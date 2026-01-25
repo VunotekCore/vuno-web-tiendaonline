@@ -1,0 +1,83 @@
+---
+export interface Props {
+  currentPage?: string;
+}
+
+const { currentPage = "home" } = Astro.props;
+
+const navItems = [
+  { href: "/", label: "Inicio", id: "home" },
+  { href: "/#core-strengths", label: "Servicios", id: "servicios" },
+  {
+    href: "/productos-frontline",
+    label: "Productos Frontline",
+    id: "productos-frontline",
+  },
+  { href: "/portafolio", label: "Portafolio", id: "portafolio" },
+  // { href: '/proceso', label: 'Proceso', id: 'proceso' },
+  { href: "/nosotros", label: "Nosotros", id: "nosotros" },
+  // { href: '/blog', label: 'Blog', id: 'blog' },
+  { href: "/contacto", label: "Contacto", id: "contacto" },
+];
+---
+
+<header
+  class="sticky top-0 z-50 w-full border-b border-white/5 bg-background-dark/80 backdrop-blur-xl"
+>
+  <div
+    class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 md:px-12"
+  >
+    <div class="flex items-center gap-3 group cursor-pointer">
+      <div
+        class="relative flex size-10 items-center justify-center rounded bg-primary/10 border border-primary/20 transition-all group-hover:border-primary/50"
+      >
+        <span class="material-symbols-outlined text-primary text-2xl"
+          >terminal</span
+        >
+        <div
+          class="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-primary animate-pulse"
+        >
+        </div>
+      </div>
+      <div class="flex flex-col">
+        <h1 class="text-lg font-bold tracking-tighter text-white">
+          SYS_ENG<span class="text-primary">.V3</span>
+        </h1>
+        <span
+          class="font-mono text-[10px] uppercase tracking-[0.2em] text-primary/60"
+          >Systems Authority</span
+        >
+      </div>
+    </div>
+
+    <nav class="hidden items-center gap-10 md:flex">
+      {
+        navItems.map((item) => (
+          <a
+            href={item.href}
+            class={`text-sm font-medium transition-colors ${
+              currentPage === item.id
+                ? "text-primary"
+                : "text-white/70 hover:text-primary"
+            }`}
+          >
+            {item.label}
+          </a>
+        ))
+      }
+    </nav>
+
+    <div class="flex items-center gap-4">
+      <button
+        class="hidden font-mono text-xs uppercase tracking-widest text-primary/80 hover:text-primary md:block"
+      >
+        [ ACCESS_PORTAL ]
+      </button>
+      <button
+        class="flex h-10 items-center justify-center rounded border border-primary/40 bg-primary/10 px-6 text-sm font-bold tracking-wide text-primary transition-all hover:bg-primary hover:text-background-dark"
+      >
+        GET STARTED
+      </button>
+    </div>
+  </div>
+</header>

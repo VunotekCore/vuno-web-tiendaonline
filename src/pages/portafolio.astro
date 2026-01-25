@@ -1,0 +1,215 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { IconBuilding, IconCode, IconShield, IconRocket, IconExternalLink, IconArrowRight } from '@tabler/icons-react';
+---
+
+<Layout title="Portafolio | SYS_ENG" currentPage="portafolio">
+  <Header currentPage="portafolio" />
+  
+  <main class="relative z-10 flex flex-1 flex-col items-center pt-24">
+    <!-- Hero Section -->
+    <div class="text-center mb-16 px-6">
+      <h1 class="text-5xl md:text-7xl font-black tracking-tighter text-white uppercase">
+        Portafolio <span class="text-primary">Enterprise</span>
+      </h1>
+      <p class="text-white/60 max-w-2xl mx-auto mt-4 text-lg">
+        Showcase of our most impactful enterprise projects and successful client partnerships.
+      </p>
+    </div>
+
+    <div class="w-full max-w-7xl px-6">
+      <!-- Featured Projects -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
+        <!-- Project 1 -->
+        <div class="glass-morphism rounded-xl p-8 group hover:border-primary/50 transition-all">
+          <div class="flex items-center gap-3 mb-4">
+            <IconBuilding className="text-primary text-2xl" />
+            <span class="text-primary font-mono text-sm uppercase tracking-widest">Salesforce Integration</span>
+          </div>
+          <h3 class="text-2xl font-bold text-white mb-4">Global CRM Transformation</h3>
+          <p class="text-white/60 mb-6">
+            Complete Salesforce ecosystem overhaul for Fortune 500 company, including multi-org data synchronization and custom LWC development.
+          </p>
+          <div class="space-y-2 mb-6">
+            <div class="flex items-center gap-2">
+              <IconCode className="text-primary size-4" />
+              <span class="text-white/80 text-sm">Apex, LWC, Lightning Platform</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <IconShield className="text-primary size-4" />
+              <span class="text-white/80 text-sm">99.9% Uptime Guarantee</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <IconRocket className="text-primary size-4" />
+              <span class="text-white/80 text-sm">300% Performance Increase</span>
+            </div>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-primary font-mono text-xs uppercase">Enterprise Client</span>
+            <IconExternalLink className="text-primary cursor-pointer hover:text-primary/80" />
+          </div>
+        </div>
+
+        <!-- Project 2 -->
+        <div class="glass-morphism rounded-xl p-8 group hover:border-primary/50 transition-all">
+          <div class="flex items-center gap-3 mb-4">
+            <IconCode className="text-primary text-2xl" />
+            <span class="text-primary font-mono text-sm uppercase tracking-widest">Full Stack Solution</span>
+          </div>
+          <h3 class="text-2xl font-bold text-white mb-4">Financial Services Platform</h3>
+          <p class="text-white/60 mb-6">
+            High-performance trading platform with real-time data processing, handling 10M+ transactions daily with sub-second latency.
+          </p>
+          <div class="space-y-2 mb-6">
+            <div class="flex items-center gap-2">
+              <IconCode className="text-primary size-4" />
+              <span class="text-white/80 text-sm">.NET Core, React, PostgreSQL</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <IconShield className="text-primary size-4" />
+              <span class="text-white/80 text-sm">SOC 2 Type II Compliant</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <IconRocket className="text-primary size-4" />
+              <span class="text-white/80 text-sm">&lt;100ms Response Time</span>
+            </div>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-primary font-mono text-xs uppercase">FinTech Leader</span>
+            <IconExternalLink className="text-primary cursor-pointer hover:text-primary/80" />
+          </div>
+        </div>
+      </div>
+
+      <!-- All Projects Grid -->
+      <div class="mb-8">
+        <div class="flex items-center justify-between mb-8">
+          <h2 class="text-3xl font-bold text-white">All Projects</h2>
+          <a href="/productos-frontline" class="flex items-center gap-2 text-primary hover:text-primary/80 font-mono text-sm">
+            <span>CONOCER PRODUCTOS FRONTLINE</span>
+            <IconArrowRight className="size-4" />
+          </a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <!-- Project Card 3 -->
+          <div class="glass-morphism rounded-xl p-6 group hover:border-primary/50 transition-all">
+            <div class="size-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+              <IconShield className="text-primary text-xl" />
+            </div>
+            <h3 class="text-lg font-bold text-white mb-2">Healthcare Data Pipeline</h3>
+            <p class="text-white/60 text-sm mb-4">
+              HIPAA-compliant data processing system for major healthcare provider network.
+            </p>
+            <div class="flex items-center justify-between">
+              <span class="text-primary font-mono text-xs uppercase">Healthcare</span>
+              <IconExternalLink className="text-primary size-4 cursor-pointer hover:text-primary/80" />
+            </div>
+          </div>
+
+          <!-- Project Card 4 -->
+          <div class="glass-morphism rounded-xl p-6 group hover:border-primary/50 transition-all">
+            <div class="size-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+              <IconRocket className="text-primary text-xl" />
+            </div>
+            <h3 class="text-lg font-bold text-white mb-2">E-commerce Scalability</h3>
+            <p class="text-white/60 text-sm mb-4">
+              Auto-scaling architecture handling Black Friday traffic spikes for retail giant.
+            </p>
+            <div class="flex items-center justify-between">
+              <span class="text-primary font-mono text-xs uppercase">Retail</span>
+              <IconExternalLink className="text-primary size-4 cursor-pointer hover:text-primary/80" />
+            </div>
+          </div>
+
+          <!-- Project Card 5 -->
+          <div class="glass-morphism rounded-xl p-6 group hover:border-primary/50 transition-all">
+            <div class="size-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+              <IconBuilding className="text-primary text-xl" />
+            </div>
+            <h3 class="text-lg font-bold text-white mb-2">Manufacturing IoT</h3>
+            <p class="text-white/60 text-sm mb-4">
+              Real-time monitoring and predictive maintenance system for smart factories.
+            </p>
+            <div class="flex items-center justify-between">
+              <span class="text-primary font-mono text-xs uppercase">Manufacturing</span>
+              <IconExternalLink className="text-primary size-4 cursor-pointer hover:text-primary/80" />
+            </div>
+          </div>
+
+          <!-- Project Card 6 -->
+          <div class="glass-morphism rounded-xl p-6 group hover:border-primary/50 transition-all">
+            <div class="size-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+              <IconCode className="text-primary text-xl" />
+            </div>
+            <h3 class="text-lg font-bold text-white mb-2">Education Platform</h3>
+            <p class="text-white/60 text-sm mb-4">
+              Scalable LMS with real-time collaboration for 1M+ student users.
+            </p>
+            <div class="flex items-center justify-between">
+              <span class="text-primary font-mono text-xs uppercase">EdTech</span>
+              <IconExternalLink className="text-primary size-4 cursor-pointer hover:text-primary/80" />
+            </div>
+          </div>
+
+          <!-- Project Card 7 -->
+          <div class="glass-morphism rounded-xl p-6 group hover:border-primary/50 transition-all">
+            <div class="size-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+              <IconShield className="text-primary text-xl" />
+            </div>
+            <h3 class="text-lg font-bold text-white mb-2">Banking Security Suite</h3>
+            <p class="text-white/60 text-sm mb-4">
+              Advanced fraud detection and compliance monitoring for banking operations.
+            </p>
+            <div class="flex items-center justify-between">
+              <span class="text-primary font-mono text-xs uppercase">Banking</span>
+              <IconExternalLink className="text-primary size-4 cursor-pointer hover:text-primary/80" />
+            </div>
+          </div>
+
+          <!-- Project Card 8 -->
+          <div class="glass-morphism rounded-xl p-6 group hover:border-primary/50 transition-all">
+            <div class="size-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+              <IconRocket className="text-primary text-xl" />
+            </div>
+            <h3 class="text-lg font-bold text-white mb-2">Logistics Optimization</h3>
+            <p class="text-white/60 text-sm mb-4">
+              AI-powered route optimization and fleet management for global logistics.
+            </p>
+            <div class="flex items-center justify-between">
+              <span class="text-primary font-mono text-xs uppercase">Logistics</span>
+              <IconExternalLink className="text-primary size-4 cursor-pointer hover:text-primary/80" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats Section -->
+      <div class="glass-morphism rounded-2xl p-12 text-center">
+        <h2 class="text-3xl font-bold text-white mb-8">Impact Metrics</h2>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div class="text-center">
+            <p class="text-4xl font-bold text-primary mb-2">500+</p>
+            <p class="text-white/60 font-mono text-sm uppercase">Projects Delivered</p>
+          </div>
+          <div class="text-center">
+            <p class="text-4xl font-bold text-primary mb-2">99.9%</p>
+            <p class="text-white/60 font-mono text-sm uppercase">Client Satisfaction</p>
+          </div>
+          <div class="text-center">
+            <p class="text-4xl font-bold text-primary mb-2">24/7</p>
+            <p class="text-white/60 font-mono text-sm uppercase">Support Coverage</p>
+          </div>
+          <div class="text-center">
+            <p class="text-4xl font-bold text-primary mb-2">50+</p>
+            <p class="text-white/60 font-mono text-sm uppercase">Industries Served</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <Footer />
+</Layout>

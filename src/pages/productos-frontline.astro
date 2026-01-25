@@ -1,0 +1,181 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { IconBox, IconRocket, IconShield, IconCpu, IconCloud, IconBolt, IconArrowRight, IconCheck } from '@tabler/icons-react';
+---
+
+<Layout title="Productos Frontline | SYS_ENG" currentPage="productos-frontline">
+  <Header currentPage="productos-frontline" />
+  
+  <main class="relative z-10 flex flex-1 flex-col items-center pt-24">
+    <!-- Hero Section -->
+    <div class="text-center mb-16 px-6">
+      <h1 class="text-5xl md:text-7xl font-black tracking-tighter text-white uppercase">
+        Productos <span class="text-primary">Frontline</span>
+      </h1>
+      <p class="text-white/60 max-w-2xl mx-auto mt-4 text-lg">
+        Enterprise-grade solutions designed for mission-critical operations. Built with cutting-edge technology for maximum performance and reliability.
+      </p>
+    </div>
+
+    <div class="w-full max-w-7xl px-6">
+      <!-- Featured Product -->
+      <div class="glass-morphism rounded-2xl p-8 mb-16">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+          <div>
+            <div class="flex items-center gap-3 mb-4">
+              <IconRocket className="text-primary text-3xl" />
+              <span class="text-primary font-mono text-sm uppercase tracking-widest">Producto Destacado</span>
+            </div>
+            <h2 class="text-3xl font-bold text-white mb-4">Frontline Automation Suite</h2>
+            <p class="text-white/60 mb-6">
+              Comprehensive automation platform that transforms enterprise workflows into intelligent, self-optimizing systems. Deploy across multiple environments with zero-downtime guarantees.
+            </p>
+            <div class="space-y-3 mb-6">
+              <div class="flex items-center gap-3">
+                <IconCheck className="text-primary size-5" />
+                <span class="text-white/80">Real-time process monitoring</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <IconCheck className="text-primary size-5" />
+                <span class="text-white/80">AI-powered decision engines</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <IconCheck className="text-primary size-5" />
+                <span class="text-white/80">Enterprise-grade security</span>
+              </div>
+            </div>
+            <button class="group flex items-center gap-2 bg-primary text-background-dark px-6 py-3 rounded-lg font-bold hover:bg-primary/80 transition-all">
+              <span>Learn More</span>
+              <IconArrowRight className="group-hover:translate-x-1 transition-transform" />
+            </button>
+          </div>
+          <div class="relative">
+            <div class="glass-morphism p-8 rounded-xl">
+              <div class="aspect-video bg-gradient-to-br from-primary/20 to-transparent rounded-lg flex items-center justify-center">
+                <IconCpu className="text-primary text-6xl animate-pulse" />
+              </div>
+              <div class="mt-4 grid grid-cols-2 gap-4">
+                <div class="text-center">
+                  <p class="text-2xl font-bold text-primary">99.99%</p>
+                  <p class="text-xs text-white/60 font-mono">Uptime</p>
+                </div>
+                <div class="text-center">
+                  <p class="text-2xl font-bold text-primary">&lt;100ms</p>
+                  <p class="text-xs text-white/60 font-mono">Latency</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Product Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+        <!-- Product 1 -->
+        <div class="glass-morphism rounded-xl p-6 group hover:border-primary/50 transition-all">
+          <div class="size-14 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+            <IconBox className="text-primary text-2xl" />
+          </div>
+          <h3 class="text-xl font-bold text-white mb-2">Data Pipeline Pro</h3>
+          <p class="text-white/60 mb-4 text-sm">
+            Advanced ETL pipeline with real-time data synchronization across multiple enterprise systems and cloud platforms.
+          </p>
+          <div class="flex items-center justify-between">
+            <span class="text-primary font-mono text-xs">Enterprise</span>
+            <IconArrowRight className="text-primary text-sm group-hover:translate-x-1 transition-transform cursor-pointer" />
+          </div>
+        </div>
+
+        <!-- Product 2 -->
+        <div class="glass-morphism rounded-xl p-6 group hover:border-primary/50 transition-all">
+          <div class="size-14 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+            <IconShield className="text-primary text-2xl" />
+          </div>
+          <h3 class="text-xl font-bold text-white mb-2">Security Shield</h3>
+          <p class="text-white/60 mb-4 text-sm">
+            Multi-layered security framework with threat detection, automated incident response, and compliance monitoring.
+          </p>
+          <div class="flex items-center justify-between">
+            <span class="text-primary font-mono text-xs">Professional</span>
+            <IconArrowRight className="text-primary text-sm group-hover:translate-x-1 transition-transform cursor-pointer" />
+          </div>
+        </div>
+
+        <!-- Product 3 -->
+        <div class="glass-morphism rounded-xl p-6 group hover:border-primary/50 transition-all">
+          <div class="size-14 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+            <IconCloud className="text-primary text-2xl" />
+          </div>
+          <h3 class="text-xl font-bold text-white mb-2">Cloud Orchestrator</h3>
+          <p class="text-white/60 mb-4 text-sm">
+            Multi-cloud deployment and management platform with automated scaling and cost optimization capabilities.
+          </p>
+          <div class="flex items-center justify-between">
+            <span class="text-primary font-mono text-xs">Business</span>
+            <IconArrowRight className="text-primary text-sm group-hover:translate-x-1 transition-transform cursor-pointer" />
+          </div>
+        </div>
+
+        <!-- Product 4 -->
+        <div class="glass-morphism rounded-xl p-6 group hover:border-primary/50 transition-all">
+          <div class="size-14 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+            <IconBolt className="text-primary text-2xl" />
+          </div>
+          <h3 class="text-xl font-bold text-white mb-2">Performance Monitor</h3>
+          <p class="text-white/60 mb-4 text-sm">
+            Real-time application performance monitoring with AI-driven insights and predictive analytics.
+          </p>
+          <div class="flex items-center justify-between">
+            <span class="text-primary font-mono text-xs">Starter</span>
+            <IconArrowRight className="text-primary text-sm group-hover:translate-x-1 transition-transform cursor-pointer" />
+          </div>
+        </div>
+
+        <!-- Product 5 -->
+        <div class="glass-morphism rounded-xl p-6 group hover:border-primary/50 transition-all">
+          <div class="size-14 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+            <IconCpu className="text-primary text-2xl" />
+          </div>
+          <h3 class="text-xl font-bold text-white mb-2">AI Integration Hub</h3>
+          <p class="text-white/60 mb-4 text-sm">
+            Centralized AI platform for machine learning model deployment and management across enterprise applications.
+          </p>
+          <div class="flex items-center justify-between">
+            <span class="text-primary font-mono text-xs">Enterprise</span>
+            <IconArrowRight className="text-primary text-sm group-hover:translate-x-1 transition-transform cursor-pointer" />
+          </div>
+        </div>
+
+        <!-- Product 6 -->
+        <div class="glass-morphism rounded-xl p-6 group hover:border-primary/50 transition-all">
+          <div class="size-14 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+            <IconBox className="text-primary text-2xl" />
+          </div>
+          <h3 class="text-xl font-bold text-white mb-2">API Gateway Pro</h3>
+          <p class="text-white/60 mb-4 text-sm">
+            Enterprise API management with rate limiting, authentication, and comprehensive analytics dashboard.
+          </p>
+          <div class="flex items-center justify-between">
+            <span class="text-primary font-mono text-xs">Professional</span>
+            <IconArrowRight className="text-primary text-sm group-hover:translate-x-1 transition-transform cursor-pointer" />
+          </div>
+        </div>
+      </div>
+
+      <!-- CTA Section -->
+      <div class="text-center py-16">
+        <h2 class="text-3xl font-bold text-white mb-4">Need a Custom Solution?</h2>
+        <p class="text-white/60 mb-8 max-w-2xl mx-auto">
+          Our team specializes in building tailored frontline products that meet your specific enterprise requirements.
+        </p>
+        <button class="bg-primary text-background-dark px-8 py-4 rounded-lg font-bold hover:bg-primary/80 transition-all hover:scale-105">
+          Request Custom Development
+        </button>
+      </div>
+    </div>
+  </main>
+  
+  <Footer />
+</Layout>

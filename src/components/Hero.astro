@@ -1,0 +1,68 @@
+---
+// Hero.astro - Componente Hero reutilizable
+---
+
+<section
+  class="relative flex min-h-[85vh] w-full flex-col items-center justify-center px-6 text-center"
+>
+  <div class="hero-glow absolute inset-0 -z-10"></div>
+
+  <div
+    class="mb-6 flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 backdrop-blur-sm"
+  >
+    <span class="material-symbols-outlined text-primary text-sm"
+      >shield_person</span
+    >
+    <span
+      class="font-mono text-[10px] uppercase tracking-[0.3em] text-primary/90"
+      >Senior Systems Engineering Protocol Active</span
+    >
+  </div>
+
+  <h1
+    class="max-w-4xl text-5xl font-black leading-tight tracking-tight text-white md:text-7xl"
+  >
+    Innovación en <br />
+    <span
+      class="bg-gradient-to-r from-primary via-primary/70 to-white bg-clip-text text-transparent"
+      >Desarrollo de Software</span
+    >
+  </h1>
+
+  <p
+    class="mt-8 max-w-2xl text-lg font-normal leading-relaxed text-white/60 md:text-xl"
+  >
+    Ingeniería de precisión para la empresa moderna. Especialistas en
+    arquitecturas de alta disponibilidad, flujos de trabajo autónomos y
+    rendimiento Full-Stack.
+  </p>
+
+  <div class="mt-12 flex flex-col gap-4 sm:flex-row">
+    <button
+      class="flex h-14 min-w-[200px] items-center justify-center rounded-lg bg-primary px-8 text-sm font-bold tracking-[0.1em] text-background-dark transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(6,249,249,0.4)]"
+    >
+      Cotizar Proyecto
+    </button>
+    <button
+      class="flex h-14 min-w-[200px] items-center justify-center rounded-lg border border-white/10 bg-white/5 px-8 text-sm font-bold tracking-[0.1em] text-white transition-all hover:bg-white/10"
+    >
+      Agendar Reunion
+    </button>
+  </div>
+
+  <!-- Technical Decorative Accents -->
+  <div
+    class="absolute bottom-10 left-12 hidden font-mono text-[10px] text-white/20 xl:block"
+  >
+    <p>STATUS: OPTIMIZED</p>
+    <p>LOAD: 12.4ms</p>
+    <p>Uptime: 99.998%</p>
+  </div>
+  <div
+    class="absolute bottom-10 right-12 hidden font-mono text-[10px] text-white/20 xl:block"
+  >
+    <p>LATENCY: 4.2ms</p>
+    <p>REGION: GLOBAL_EDGE</p>
+    <p>ENCRYPTION: AES-256</p>
+  </div>
+</section>

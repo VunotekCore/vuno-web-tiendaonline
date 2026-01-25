@@ -1,0 +1,306 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+---
+
+<Layout title="Nuestros Servicios | Desarrollo de Software" currentPage="servicios">
+  <Header currentPage="servicios" />
+
+  <main
+    class="relative min-h-screen pt-24 pb-12 flex flex-col items-center justify-center overflow-hidden"
+  >
+    <!-- Ambient Background Graphics -->
+    <div class="absolute inset-0 z-0 pointer-events-none">
+      <div
+        class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-primary/5 rounded-full blur-3xl"
+      >
+      </div>
+      <div
+        class="absolute top-1/4 right-1/4 w-80 h-80 bg-accent-violet/5 rounded-full blur-2xl"
+      >
+      </div>
+    </div>
+
+    <div class="relative z-10 w-full max-w-[1280px] px-6">
+      <!-- Hero Title -->
+      <div class="text-center mb-12">
+<h1
+          class="text-5xl md:text-7xl font-black tracking-tighter text-white uppercase italic"
+        >
+          Nuestros <span class="text-primary">Servicios</span>
+        </h1>
+        <p
+          class="text-[#8ecccc] max-w-2xl mx-auto mt-4 text-sm md:text-base font-medium leading-relaxed opacity-80"
+        >
+          Ofrecemos soluciones completas de desarrollo de software para empresas de todos los tamaños
+        </p>
+      </div>
+
+      <!-- Central Visualization & Quadrants -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-center relative">
+        <!-- Central Engine Circle -->
+        <div
+          class="hidden lg:flex absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex-col items-center justify-center pointer-events-none"
+        >
+          <div
+            class="w-64 h-64 rounded-full border-2 border-primary/20 flex items-center justify-center relative engine-glow"
+          >
+            <div
+              class="w-48 h-48 rounded-full border border-primary/40 flex flex-col items-center justify-center bg-background-dark/80 backdrop-blur-xl"
+            >
+              <span class="text-primary text-4xl font-black">10+</span>
+              <span
+                class="text-[10px] text-white/60 font-mono tracking-[0.3em] uppercase"
+                >Years exp.</span
+              >
+            </div>
+            <!-- Animated Nodes -->
+            <div
+              class="absolute top-0 w-3 h-3 bg-primary rounded-full data-point"
+            >
+            </div>
+            <div
+              class="absolute bottom-0 w-3 h-3 bg-accent-violet rounded-full data-point"
+            >
+            </div>
+            <div
+              class="absolute left-0 w-3 h-3 bg-primary rounded-full data-point"
+            >
+            </div>
+            <div
+              class="absolute right-0 w-3 h-3 bg-accent-violet rounded-full data-point"
+            >
+            </div>
+          </div>
+        </div>
+
+        <!-- Desarrollo de Software a Medida -->
+        <div class="glass-card rounded-xl p-8 group hover:border-primary/50 transition-all cursor-default h-full flex flex-col">
+          <div class="flex items-center gap-4 mb-6">
+            <div class="w-12 h-12 rounded bg-primary/20 flex items-center justify-center border border-primary/40 text-primary">
+              <span class="material-symbols-outlined text-3xl">code</span>
+            </div>
+            <h3 class="text-xl font-bold uppercase tracking-tight text-white">Desarrollo de Software a Medida</h3>
+          </div>
+          <p class="text-[#8ecccc] mb-6 leading-relaxed">
+            Diseñamos y construimos sistemas robustos adaptados específicamente a las necesidades de tu empresa. No creemos en soluciones genéricas; analizamos tu flujo de trabajo para crear herramientas que optimicen tus operaciones reales.
+          </p>
+          <ul class="space-y-3 font-mono text-sm text-[#8ecccc] mt-auto">
+            <li class="flex items-center gap-2">
+              <span class="w-1.5 h-1.5 bg-primary rounded-full"></span> Aplicaciones Web Progresivas (PWA)
+            </li>
+            <li class="flex items-center gap-2">
+              <span class="w-1.5 h-1.5 bg-primary rounded-full"></span> Sistemas Desktop (.NET)
+            </li>
+            <li class="flex items-center gap-2">
+              <span class="w-1.5 h-1.5 bg-primary rounded-full"></span> Arquitecturas escalables (Microservicios)
+            </li>
+          </ul>
+        </div>
+
+        <!-- Soluciones Salesforce -->
+        <div class="glass-card rounded-xl p-8 group hover:border-primary/50 transition-all cursor-default h-full flex flex-col">
+          <div class="flex items-center gap-4 mb-6">
+            <div class="w-12 h-12 rounded bg-primary/20 flex items-center justify-center border border-primary/40 text-primary">
+              <span class="material-symbols-outlined text-3xl">cloud_queue</span>
+            </div>
+            <h3 class="text-xl font-bold uppercase tracking-tight text-white">Soluciones Salesforce</h3>
+          </div>
+          <p class="text-[#8ecccc] mb-6 leading-relaxed">
+            Maximiza tu inversión en la plataforma CRM #1 del mundo. Nuestro equipo certificado desarrolla personalizaciones avanzadas que van más allá de la configuración estándar.
+          </p>
+          <ul class="space-y-3 font-mono text-sm text-[#8ecccc] mt-auto">
+            <li class="flex items-center gap-2">
+              <span class="w-1.5 h-1.5 bg-primary rounded-full"></span> Desarrollo Apex & LWC
+            </li>
+            <li class="flex items-center gap-2">
+              <span class="w-1.5 h-1.5 bg-primary rounded-full"></span> Automatización de Flujos Complejos
+            </li>
+            <li class="flex items-center gap-2">
+              <span class="w-1.5 h-1.5 bg-primary rounded-full"></span> Integraciones API con ERPs
+            </li>
+          </ul>
+        </div>
+
+        <!-- Aplicaciones Móviles -->
+        <div class="glass-card rounded-xl p-8 group hover:border-primary/50 transition-all cursor-default h-full flex flex-col">
+          <div class="flex items-center gap-4 mb-6">
+            <div class="w-12 h-12 rounded bg-accent-violet/20 flex items-center justify-center border border-accent-violet/40 text-accent-violet">
+              <span class="material-symbols-outlined text-3xl">smartphone</span>
+            </div>
+            <h3 class="text-xl font-bold uppercase tracking-tight text-white">Aplicaciones Móviles</h3>
+          </div>
+          <p class="text-[#8ecccc] mb-6 leading-relaxed">
+            Lleva tu negocio al bolsillo de tus clientes con aplicaciones nativas y multiplataforma de alto rendimiento. Experiencias fluidas y modernas.
+          </p>
+          <ul class="space-y-3 font-mono text-sm text-[#8ecccc] mt-auto">
+            <li class="flex items-center gap-2">
+              <span class="w-1.5 h-1.5 bg-accent-violet rounded-full"></span> Desarrollo en Flutter (iOS/Android)
+            </li>
+            <li class="flex items-center gap-2">
+              <span class="w-1.5 h-1.5 bg-accent-violet rounded-full"></span> Integración con hardware móvil
+            </li>
+            <li class="flex items-center gap-2">
+              <span class="w-1.5 h-1.5 bg-accent-violet rounded-full"></span> Notificaciones Push inteligentes
+            </li>
+          </ul>
+        </div>
+
+        <!-- Infraestructura & Cloud -->
+        <div class="glass-card rounded-xl p-8 group hover:border-primary/50 transition-all cursor-default h-full flex flex-col">
+          <div class="flex items-center gap-4 mb-6">
+            <div class="w-12 h-12 rounded bg-accent-violet/20 flex items-center justify-center border border-accent-violet/40 text-accent-violet">
+              <span class="material-symbols-outlined text-3xl">dns</span>
+            </div>
+            <h3 class="text-xl font-bold uppercase tracking-tight text-white">Infraestructura & Cloud</h3>
+          </div>
+          <p class="text-[#8ecccc] mb-6 leading-relaxed">
+            No solo desarrollamos, también garantizamos que tu software corra en entornos seguros, rápidos y disponibles 24/7.
+          </p>
+          <ul class="space-y-3 font-mono text-sm text-[#8ecccc] mt-auto">
+            <li class="flex items-center gap-2">
+              <span class="w-1.5 h-1.5 bg-accent-violet rounded-full"></span> Administración Servidores Linux
+            </li>
+            <li class="flex items-center gap-2">
+              <span class="w-1.5 h-1.5 bg-accent-violet rounded-full"></span> Redes Privadas (VPN) & Seguridad
+            </li>
+            <li class="flex items-center gap-2">
+              <span class="w-1.5 h-1.5 bg-accent-violet rounded-full"></span> CI/CD & DevOps
+            </li>
+          </ul>
+        </div>
+
+        <!-- Consultoría IT -->
+        <div class="glass-card rounded-xl p-8 group hover:border-primary/50 transition-all cursor-default h-full flex flex-col">
+          <div class="flex items-center gap-4 mb-6">
+            <div class="w-12 h-12 rounded bg-primary/20 flex items-center justify-center border border-primary/40 text-primary">
+              <span class="material-symbols-outlined text-3xl">lightbulb</span>
+            </div>
+            <h3 class="text-xl font-bold uppercase tracking-tight text-white">Consultoría IT</h3>
+          </div>
+          <p class="text-[#8ecccc] mb-6 leading-relaxed">
+            Acompañamos tu transformación digital con estrategia y experiencia técnica. Evaluamos tus sistemas actuales y diseñamos el camino hacia la modernización.
+          </p>
+          <ul class="space-y-3 font-mono text-sm text-[#8ecccc] mt-auto">
+            <li class="flex items-center gap-2">
+              <span class="w-1.5 h-1.5 bg-primary rounded-full"></span> Auditoría de Sistemas Legacy
+            </li>
+            <li class="flex items-center gap-2">
+              <span class="w-1.5 h-1.5 bg-primary rounded-full"></span> Diseño de Arquitectura de Software
+            </li>
+            <li class="flex items-center gap-2">
+              <span class="w-1.5 h-1.5 bg-primary rounded-full"></span> Capacitación de equipos técnicos
+            </li>
+          </ul>
+        </div>
+
+        <!-- Productos SaaS Propios -->
+        <div class="glass-card rounded-xl p-8 group hover:border-primary/50 transition-all cursor-default h-full flex flex-col">
+          <div class="flex items-center gap-4 mb-6">
+            <div class="w-12 h-12 rounded bg-accent-violet/20 flex items-center justify-center border border-accent-violet/40 text-accent-violet">
+              <span class="material-symbols-outlined text-3xl">rocket_launch</span>
+            </div>
+            <h3 class="text-xl font-bold uppercase tracking-tight text-white">Productos SaaS Propios</h3>
+          </div>
+          <p class="text-[#8ecccc] mb-6 leading-relaxed">
+            Innovamos desarrollando nuestras propias plataformas para resolver problemas comunes del mercado regional.
+          </p>
+          <ul class="space-y-3 font-mono text-sm text-[#8ecccc] mt-auto">
+            <li class="flex items-center gap-2">
+              <span class="w-1.5 h-1.5 bg-accent-violet rounded-full"></span> Frontline ERP (Financiero)
+            </li>
+            <li class="flex items-center gap-2">
+              <span class="w-1.5 h-1.5 bg-accent-violet rounded-full"></span> SmartFlow (Automatización)
+            </li>
+            <li class="flex items-center gap-2">
+              <span class="w-1.5 h-1.5 bg-accent-violet rounded-full"></span> RealCloud CRM
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Performance Stats -->
+      <div class="mt-16 flex flex-wrap justify-center gap-6">
+        <div
+          class="flex flex-col items-center p-6 border border-white/5 bg-white/5 rounded-lg min-w-[180px]"
+        >
+          <p
+            class="text-xs text-[#8ecccc] font-mono uppercase tracking-widest mb-1"
+          >
+            Uptime Rate
+          </p>
+          <p class="text-2xl font-bold text-white tracking-tighter">99.9%</p>
+          <div class="mt-2 w-full h-1 bg-white/10 rounded-full overflow-hidden">
+            <div class="h-full bg-primary w-[99.9%]"></div>
+          </div>
+        </div>
+        <div
+          class="flex flex-col items-center p-6 border border-white/5 bg-white/5 rounded-lg min-w-[180px]"
+        >
+          <p
+            class="text-xs text-[#8ecccc] font-mono uppercase tracking-widest mb-1"
+          >
+            Engagements
+          </p>
+          <p class="text-2xl font-bold text-white tracking-tighter">500+</p>
+          <div class="mt-2 w-full h-1 bg-white/10 rounded-full overflow-hidden">
+            <div class="h-full bg-primary w-[85%]"></div>
+          </div>
+        </div>
+        <div
+          class="flex flex-col items-center p-6 border border-white/5 bg-white/5 rounded-lg min-w-[180px]"
+        >
+          <p
+            class="text-xs text-[#8ecccc] font-mono uppercase tracking-widest mb-1"
+          >
+            Security Audit
+          </p>
+          <p class="text-2xl font-bold text-white tracking-tighter">PASS</p>
+          <div class="mt-2 w-full h-1 bg-white/10 rounded-full overflow-hidden">
+            <div class="h-full bg-accent-violet w-full"></div>
+          </div>
+        </div>
+        <div
+          class="flex flex-col items-center p-6 border border-white/5 bg-white/5 rounded-lg min-w-[180px]"
+        >
+          <p
+            class="text-xs text-[#8ecccc] font-mono uppercase tracking-widest mb-1"
+          >
+            Legacy Systems
+          </p>
+          <p class="text-2xl font-bold text-white tracking-tighter">REFAC</p>
+          <div class="mt-2 w-full h-1 bg-white/10 rounded-full overflow-hidden">
+            <div class="h-full bg-primary w-[60%]"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .code-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.05;
+    pointer-events: none;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    line-height: 1.2;
+    white-space: pre;
+    z-index: 0;
+    overflow-x: auto;
+  }
+  .engine-glow {
+    filter: drop-shadow(0 0 20px rgba(6, 249, 249, 0.4));
+  }
+  .data-point {
+    box-shadow: 0 0 10px rgba(6, 249, 249, 0.6);
+  }
+</style>
