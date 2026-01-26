@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Enterprise Project Portfolio Showcase | TechNexus Systems</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#06f9f9",
+                        "background-light": "#f5f8f8",
+                        "background-dark": "#0f2323",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .glass-card {
+            background: rgba(24, 53, 53, 0.4);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(6, 249, 249, 0.2);
+            transition: all 0.3s ease;
+        }
+        .glass-card:hover {
+            border-color: rgba(6, 249, 249, 0.8);
+            box-shadow: 0 0 20px rgba(6, 249, 249, 0.15);
+            transform: translateY(-4px);
+        }
+        .data-stream-bg {
+            background-image: linear-gradient(0deg, transparent 24%, rgba(6, 249, 249, 0.05) 25%, rgba(6, 249, 249, 0.05) 26%, transparent 27%, transparent 74%, rgba(6, 249, 249, 0.05) 75%, rgba(6, 249, 249, 0.05) 76%, transparent 77%, transparent),
+                              linear-gradient(90deg, transparent 24%, rgba(6, 249, 249, 0.05) 25%, rgba(6, 249, 249, 0.05) 26%, transparent 27%, transparent 74%, rgba(6, 249, 249, 0.05) 75%, rgba(6, 249, 249, 0.05) 76%, transparent 77%, transparent);
+            background-size: 50px 50px;
+        }
+        .glow-text {
+            text-shadow: 0 0 10px rgba(6, 249, 249, 0.5);
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-white selection:bg-primary selection:text-background-dark min-h-screen overflow-x-hidden">
+<!-- Background Decoration -->
+<div class="fixed inset-0 pointer-events-none z-0">
+<div class="absolute inset-0 data-stream-bg opacity-30"></div>
+<div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 blur-[120px] rounded-full"></div>
+<div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/5 blur-[120px] rounded-full"></div>
+</div>
+<!-- Navigation -->
+<header class="relative z-50 flex items-center justify-between border-b border-white/10 px-8 lg:px-20 py-6 backdrop-blur-md bg-background-dark/80">
+<div class="flex items-center gap-3">
+<div class="size-8 text-primary">
+<span class="material-symbols-outlined text-4xl leading-none">account_tree</span>
+</div>
+<h1 class="text-xl font-bold tracking-tighter uppercase">TechNexus <span class="text-primary">Systems</span></h1>
+</div>
+<nav class="hidden md:flex items-center gap-10">
+<a class="text-sm font-medium hover:text-primary transition-colors tracking-widest uppercase" href="#">Portfolio</a>
+<a class="text-sm font-medium hover:text-primary transition-colors tracking-widest uppercase" href="#">Expertise</a>
+<a class="text-sm font-medium hover:text-primary transition-colors tracking-widest uppercase" href="#">Services</a>
+<button class="bg-primary hover:bg-white text-background-dark px-6 py-2 rounded-sm text-sm font-bold transition-all tracking-widest uppercase">
+                Contact Expert
+            </button>
+</nav>
+<div class="md:hidden">
+<span class="material-symbols-outlined text-primary cursor-pointer">menu</span>
+</div>
+</header>
+<main class="relative z-10">
+<!-- Hero Section -->
+<section class="px-8 lg:px-20 pt-16 pb-8">
+<div class="max-w-4xl">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 mb-6">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+</span>
+<span class="text-[10px] font-bold uppercase tracking-widest text-primary">System Status: Optimized</span>
+</div>
+<h2 class="text-5xl lg:text-7xl font-black leading-[1.1] mb-6 tracking-tight">
+                    Architecting the <span class="text-primary italic">Autonomous</span> Enterprise
+                </h2>
+<p class="text-white/60 text-lg lg:text-xl max-w-2xl leading-relaxed">
+                    Senior systems engineering for global infrastructures. Specialized in high-throughput automation, Salesforce ecosystem integration, and hardened cloud architecture.
+                </p>
+</div>
+</section>
+<!-- Horizontal Scroll Section Header -->
+<div class="px-8 lg:px-20 py-8 flex items-end justify-between">
+<div>
+<h3 class="text-2xl font-bold uppercase tracking-widest mb-2 flex items-center gap-3">
+<span class="w-12 h-[1px] bg-primary"></span>
+                    Gallery of Solutions
+                </h3>
+<p class="text-white/40 text-sm">Use horizontal scroll or swipe to explore architectures.</p>
+</div>
+<div class="flex gap-4">
+<button class="size-10 rounded-full border border-white/10 flex items-center justify-center hover:border-primary/50 text-white/50 hover:text-primary transition-all">
+<span class="material-symbols-outlined">west</span>
+</button>
+<button class="size-10 rounded-full border border-white/10 flex items-center justify-center hover:border-primary/50 text-white/50 hover:text-primary transition-all">
+<span class="material-symbols-outlined">east</span>
+</button>
+</div>
+</div>
+<!-- Carousel Gallery -->
+<section class="relative">
+<div class="flex overflow-x-auto no-scrollbar snap-x snap-mandatory gap-8 px-8 lg:px-20 pb-20">
+<!-- Project 1 -->
+<div class="snap-center shrink-0 w-[85vw] md:w-[600px] glass-card rounded-xl overflow-hidden flex flex-col group">
+<div class="relative h-64 bg-[#0a1a1a] overflow-hidden">
+<div class="absolute inset-0 bg-cover bg-center mix-blend-overlay opacity-40 group-hover:scale-105 transition-transform duration-700" data-alt="Technical schematic showing global node connections for billing" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDo_-rasIqezxP2E1Poz3OlE9uJNHqNuF7iRwjYikD64bgZFjpl6TUlE2F-vFsTYKQ5LrgZmJupgFUEbZc2hc4JWzV70iyygK4n7qfEzrOnzkJ_v4R0nAlS3yBQarrwKNdemh3yN-MDKZR_kpAIE0Yrd1KbNVdpY44xzrCX034srr38V9CdYyzA2Mfw3IXYsMXi1GaZ1d4LGebVpkkv2vXgP59vD1iLqpdVpMAe0b2ilUtUvptneMZ7UIR5fH2a4AhqrucJODG8ksA');"></div>
+<div class="absolute inset-0 p-8 flex flex-col justify-end bg-gradient-to-t from-background-dark via-transparent">
+<div class="flex items-center gap-2 mb-4">
+<span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-primary text-background-dark">Status: Deployed</span>
+<span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-white/10 border border-white/10">Global Core</span>
+</div>
+<h4 class="text-2xl font-bold text-white mb-1">Enterprise Salesforce Integration</h4>
+<p class="text-primary text-sm font-medium tracking-wide">Multi-Country Billing (CR, GT, SV)</p>
+</div>
+</div>
+<div class="p-8 flex-1 flex flex-col gap-6">
+<p class="text-white/70 text-sm leading-relaxed">
+                            Automated financial workflows across multiple LATAM regions. Synchronized real-time billing data between Salesforce and localized ERP systems with 99.9% uptime.
+                        </p>
+<div class="flex flex-wrap gap-2">
+<span class="px-3 py-1 bg-white/5 rounded-md text-[11px] font-mono text-white/60 border border-white/10">#Apex</span>
+<span class="px-3 py-1 bg-white/5 rounded-md text-[11px] font-mono text-white/60 border border-white/10">#Salesforce</span>
+<span class="px-3 py-1 bg-white/5 rounded-md text-[11px] font-mono text-white/60 border border-white/10">#Middleware</span>
+<span class="px-3 py-1 bg-white/5 rounded-md text-[11px] font-mono text-white/60 border border-white/10">#ERP</span>
+</div>
+<div class="mt-auto pt-4">
+<button class="w-full border border-primary/40 hover:bg-primary hover:text-background-dark text-primary py-3 rounded-lg text-sm font-bold transition-all uppercase tracking-widest flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">hub</span>
+                                View Architecture
+                            </button>
+</div>
+</div>
+</div>
+<!-- Project 2 -->
+<div class="snap-center shrink-0 w-[85vw] md:w-[600px] glass-card rounded-xl overflow-hidden flex flex-col group">
+<div class="relative h-64 bg-[#0a1a1a] overflow-hidden">
+<div class="absolute inset-0 bg-cover bg-center mix-blend-overlay opacity-40 group-hover:scale-105 transition-transform duration-700" data-alt="Abstract data flow visualization for financial processing engine" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDJaQ_twr9bEZ5T5OvzIoIQAu-2wV_uCRSyjf0AkseMxjqLog4zayuQvFo6oL1ofhOi5q0OVJbytbn-inGmNGrHrb0wO1AuFWRAHOlJmefd450BifX-NlDfboKqaFNRaPnahFPOPMOocf_7KdZvqCVvB6B26nprbQYhl3UG6RU9UkihHvSHB63hYeyD1cvPmTOlZ3tpwgmtRa6BApXLj1YX4S-JaceLXf7tNChq60MWXYAMiAgwxiWQuA-96PSt52sIizXg359W1vQ');"></div>
+<div class="absolute inset-0 p-8 flex flex-col justify-end bg-gradient-to-t from-background-dark via-transparent">
+<div class="flex items-center gap-2 mb-4">
+<span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-primary text-background-dark">Status: Deployed</span>
+<span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-white/10 border border-white/10">Performance Hub</span>
+</div>
+<h4 class="text-2xl font-bold text-white mb-1">Automated Financial Engine</h4>
+<p class="text-primary text-sm font-medium tracking-wide">High-Performance .NET &amp; SQL Pipeline</p>
+</div>
+</div>
+<div class="p-8 flex-1 flex flex-col gap-6">
+<p class="text-white/70 text-sm leading-relaxed">
+                            Engineered a custom processing engine capable of handling 1.2M transactions per hour. Implemented advanced SQL optimization and C# multithreading strategies.
+                        </p>
+<div class="flex flex-wrap gap-2">
+<span class="px-3 py-1 bg-white/5 rounded-md text-[11px] font-mono text-white/60 border border-white/10">#DotNet</span>
+<span class="px-3 py-1 bg-white/5 rounded-md text-[11px] font-mono text-white/60 border border-white/10">#T-SQL</span>
+<span class="px-3 py-1 bg-white/5 rounded-md text-[11px] font-mono text-white/60 border border-white/10">#HighConcurrency</span>
+<span class="px-3 py-1 bg-white/5 rounded-md text-[11px] font-mono text-white/60 border border-white/10">#Automation</span>
+</div>
+<div class="mt-auto pt-4">
+<button class="w-full border border-primary/40 hover:bg-primary hover:text-background-dark text-primary py-3 rounded-lg text-sm font-bold transition-all uppercase tracking-widest flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">database</span>
+                                View Architecture
+                            </button>
+</div>
+</div>
+</div>
+<!-- Project 3 -->
+<div class="snap-center shrink-0 w-[85vw] md:w-[600px] glass-card rounded-xl overflow-hidden flex flex-col group">
+<div class="relative h-64 bg-[#0a1a1a] overflow-hidden">
+<div class="absolute inset-0 bg-cover bg-center mix-blend-overlay opacity-40 group-hover:scale-105 transition-transform duration-700" data-alt="Digital mesh representing secure infrastructure and VPN nodes" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBzqRLldscPZ9KNhP1VsqLkBAjtqNFraL62tKrRgG-39C124pZw1yGUDo3B_O8cehE6vusLTJy-vx21R9m4DD5i9Xi-mfGQXafnxJWTg4Yznos6Ixiowd0eVlBQFiYjKakTHT0vIw1wFjf4wex7WOumx1YkVOeGoe2Dfakl2qo9bdLakB3hXsohNijQZrJu0lhzCW57AtshZWcu98CIanyWyjQxeeIiwzZQG8mTWUbW09PoTEE-Ixsi849n1Xy2JU5LqM5E1GOFBYY');"></div>
+<div class="absolute inset-0 p-8 flex flex-col justify-end bg-gradient-to-t from-background-dark via-transparent">
+<div class="flex items-center gap-2 mb-4">
+<span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-primary text-background-dark">Status: Deployed</span>
+<span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-white/10 border border-white/10">SecOps Tier-1</span>
+</div>
+<h4 class="text-2xl font-bold text-white mb-1">Secure Infra Deployment</h4>
+<p class="text-primary text-sm font-medium tracking-wide">Hardened Linux &amp; VPN Nodes</p>
+</div>
+</div>
+<div class="p-8 flex-1 flex flex-col gap-6">
+<p class="text-white/70 text-sm leading-relaxed">
+                            Zero-trust network architecture designed for enterprise security standards. Automated provisioning of encrypted nodes using Terraform and Ansible on Linux clusters.
+                        </p>
+<div class="flex flex-wrap gap-2">
+<span class="px-3 py-1 bg-white/5 rounded-md text-[11px] font-mono text-white/60 border border-white/10">#Linux</span>
+<span class="px-3 py-1 bg-white/5 rounded-md text-[11px] font-mono text-white/60 border border-white/10">#SecOps</span>
+<span class="px-3 py-1 bg-white/5 rounded-md text-[11px] font-mono text-white/60 border border-white/10">#VPN</span>
+<span class="px-3 py-1 bg-white/5 rounded-md text-[11px] font-mono text-white/60 border border-white/10">#CloudInfra</span>
+</div>
+<div class="mt-auto pt-4">
+<button class="w-full border border-primary/40 hover:bg-primary hover:text-background-dark text-primary py-3 rounded-lg text-sm font-bold transition-all uppercase tracking-widest flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">shield</span>
+                                View Architecture
+                            </button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Technical Proficiency / Expertise Chips -->
+<section class="px-8 lg:px-20 py-20 bg-background-dark/50 border-t border-white/5">
+<div class="flex flex-col lg:flex-row gap-12 items-start">
+<div class="lg:w-1/3">
+<h2 class="text-3xl font-black uppercase mb-6 leading-none">Technical <br/><span class="text-primary">Proficiency</span></h2>
+<p class="text-white/50 leading-relaxed mb-8">
+                        Our core stack is built on performance, security, and scalability. We leverage these technologies to build the nervous system of modern enterprises.
+                    </p>
+<div class="flex items-center gap-4">
+<div class="flex -space-x-3">
+<div class="size-10 rounded-full border-2 border-background-dark bg-white/10 flex items-center justify-center overflow-hidden">
+<img class="object-cover" data-alt="Senior Engineer Avatar 1" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBv3hzOB_mjJlslHku_n_Ag1Vr6xLMSk1RQOVYnvnXOGLAUhJrs45iycd22hPf8ptVG9SrAcXT8BRaOx7arAI2JibKMapClCflDEh4RfzPXJZjuiGWNljJwmPPYgq0TMOHg7DDhWNR4ACVwhjPpeCC7pTd4Rz-pzcLF2tvRPTBEN85PEr4MCoxZSyn-eZ_lkxKM-DZYrbEd5Ja-k9X4QRdVB4vU0cEDZniRNN38xOpmA8Nx-aj3lWRMYVeYjlscxTiO6mgkwJVkRJQ"/>
+</div>
+<div class="size-10 rounded-full border-2 border-background-dark bg-white/10 flex items-center justify-center overflow-hidden">
+<img class="object-cover" data-alt="Senior Engineer Avatar 2" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA_p85PhRq5NvOY2goZeG8mpFr9Lp0yC2RuTbywH3quJBjDUrUjmCogs6ffeau-PDcXPT57ywFklJUgbAUKz-LqpzuQhpl2jjMw4mm5lcQ_QEOVJ9xOYEM6QCUBgyPhKvw_LU-ssL4aw2la6zjD5UwiD5KFREja-lX1PJDKN_g6MP36J_ZsPRwiYyn-r9OzB3Ec7eM16eLrvg9NzOPgyJB_by-lhPD6Ejuc7BRQdN4le2mOHPHCYRTlwRk_wqhMi5W449lURGZLsN0"/>
+</div>
+</div>
+<p class="text-xs font-bold uppercase tracking-tighter">Certified Lead Architects</p>
+</div>
+</div>
+<div class="lg:w-2/3">
+<div class="grid grid-cols-2 md:grid-cols-3 gap-6">
+<!-- Proficiency Cards -->
+<div class="glass-card p-6 rounded-lg">
+<span class="material-symbols-outlined text-primary mb-4">settings_suggest</span>
+<h5 class="text-white font-bold mb-2">Systems Automation</h5>
+<p class="text-xs text-white/50 leading-relaxed">CI/CD, Terraform, Ansible, Custom Bash/Python orchestration.</p>
+</div>
+<div class="glass-card p-6 rounded-lg">
+<span class="material-symbols-outlined text-primary mb-4">cloud_done</span>
+<h5 class="text-white font-bold mb-2">Cloud Ecosystems</h5>
+<p class="text-xs text-white/50 leading-relaxed">AWS, Azure, and Salesforce platform expert certification.</p>
+</div>
+<div class="glass-card p-6 rounded-lg">
+<span class="material-symbols-outlined text-primary mb-4">terminal</span>
+<h5 class="text-white font-bold mb-2">Core Development</h5>
+<p class="text-xs text-white/50 leading-relaxed">C#, Apex, SQL Server, Node.js, and complex API integration.</p>
+</div>
+</div>
+<div class="mt-12 flex flex-wrap gap-3">
+<div class="flex h-8 items-center gap-x-2 rounded-lg bg-primary/20 border border-primary/30 px-4">
+<p class="text-primary text-xs font-bold tracking-widest">#SFDC</p>
+</div>
+<div class="flex h-8 items-center gap-x-2 rounded-lg bg-primary/20 border border-primary/30 px-4">
+<p class="text-primary text-xs font-bold tracking-widest">#TERRAFORM</p>
+</div>
+<div class="flex h-8 items-center gap-x-2 rounded-lg bg-primary/20 border border-primary/30 px-4">
+<p class="text-primary text-xs font-bold tracking-widest">#DOTNET_CORE</p>
+</div>
+<div class="flex h-8 items-center gap-x-2 rounded-lg bg-primary/20 border border-primary/30 px-4">
+<p class="text-primary text-xs font-bold tracking-widest">#POSTGRESQL</p>
+</div>
+<div class="flex h-8 items-center gap-x-2 rounded-lg bg-primary/20 border border-primary/30 px-4">
+<p class="text-primary text-xs font-bold tracking-widest">#DOCKER</p>
+</div>
+<div class="flex h-8 items-center gap-x-2 rounded-lg bg-primary/20 border border-primary/30 px-4">
+<p class="text-primary text-xs font-bold tracking-widest">#CYBERSECURITY</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer / Action Area -->
+<footer class="relative z-10 px-8 lg:px-20 py-12 border-t border-white/5">
+<div class="flex flex-col md:flex-row justify-between items-center gap-8">
+<div class="text-center md:text-left">
+<p class="text-white/40 text-[10px] uppercase tracking-[0.2em] mb-2">Ready to scale?</p>
+<h3 class="text-2xl font-black">START A TECHNICAL AUDIT</h3>
+</div>
+<div class="flex gap-4">
+<a class="size-12 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/5 transition-colors" href="#">
+<span class="material-symbols-outlined">alternate_email</span>
+</a>
+<a class="size-12 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/5 transition-colors" href="#">
+<span class="material-symbols-outlined">linked_camera</span>
+</a>
+<button class="bg-primary px-8 py-3 text-background-dark font-black uppercase text-sm rounded-sm tracking-widest">
+                    Request Consultation
+                </button>
+</div>
+</div>
+<div class="mt-12 flex justify-between text-[10px] uppercase tracking-widest text-white/20">
+<p>© 2024 TechNexus Systems. All Systems Operational.</p>
+<div class="flex gap-6">
+<a href="#">Privacy Protocol</a>
+<a href="#">Security Policy</a>
+</div>
+</div>
+</footer>
+</body></html>

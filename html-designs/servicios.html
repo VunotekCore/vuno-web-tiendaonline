@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Tech Stack &amp; Specialties Engine | Systems Architect</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#06f9f9",
+                        "accent-violet": "#8b5cf6",
+                        "background-light": "#f5f8f8",
+                        "background-dark": "#0a0a0a", // Obsidian dark
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .glass-card {
+            background: rgba(16, 35, 35, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(6, 249, 249, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        .code-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.05;
+            pointer-events: none;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            line-height: 1.2;
+            white-space: pre;
+            z-index: 0;
+        }
+        .engine-glow {
+            filter: drop-shadow(0 0 20px rgba(6, 249, 249, 0.4));
+        }
+        .data-point {
+            box-shadow: 0 0 10px rgba(6, 249, 249, 0.6);
+        }
+        .hud-line {
+            background: linear-gradient(90deg, transparent, #06f9f9, transparent);
+            height: 1px;
+            width: 100%;
+            opacity: 0.2;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-white selection:bg-primary/30">
+<!-- Header Navigation -->
+<header class="fixed top-0 w-full z-50 border-b border-white/10 bg-background-dark/80 backdrop-blur-md px-6 lg:px-20 py-4">
+<div class="max-w-[1440px] mx-auto flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="size-8 text-primary">
+<span class="material-symbols-outlined text-3xl">developer_board</span>
+</div>
+<div>
+<h2 class="text-white text-lg font-bold leading-tight tracking-tight uppercase">Systems Architect</h2>
+<p class="text-[10px] text-primary font-mono tracking-widest uppercase opacity-80">Autonomous Engine v1.0.4</p>
+</div>
+</div>
+<nav class="hidden md:flex items-center gap-10">
+<a class="text-white/70 hover:text-primary text-xs font-medium uppercase tracking-widest transition-colors" href="#">Core.sys</a>
+<a class="text-white/70 hover:text-primary text-xs font-medium uppercase tracking-widest transition-colors" href="#">Stack.log</a>
+<a class="text-white/70 hover:text-primary text-xs font-medium uppercase tracking-widest transition-colors" href="#">Case_Studies.exe</a>
+<button class="bg-primary/10 border border-primary/50 text-primary px-5 py-2 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-primary hover:text-background-dark transition-all">
+                    Initialize Consultation
+                </button>
+</nav>
+</div>
+</header>
+<main class="relative min-h-screen pt-24 pb-12 flex flex-col items-center justify-center overflow-hidden">
+<!-- Ambient Background Graphics -->
+<div class="absolute inset-0 z-0 pointer-events-none">
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-[120px]"></div>
+<div class="absolute top-1/4 right-1/4 w-[400px] h-[400px] bg-accent-violet/5 rounded-full blur-[100px]"></div>
+</div>
+<div class="relative z-10 w-full max-w-[1280px] px-6">
+<!-- Hero Title -->
+<div class="text-center mb-12">
+<h1 class="text-5xl md:text-7xl font-black tracking-tighter text-white uppercase italic">
+                    Core <span class="text-primary">Engine</span>
+</h1>
+<p class="text-[#8ecccc] max-w-2xl mx-auto mt-4 text-sm md:text-base font-medium leading-relaxed opacity-80">
+                    Propelling enterprise automation through high-performance backend architecture and Salesforce ecosystem mastery.
+                </p>
+</div>
+<!-- Central Visualization & Quadrants -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center relative">
+<!-- Central Engine Circle (Mobile Hidden, Desktop Overlay) -->
+<div class="hidden lg:flex absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex-col items-center justify-center pointer-events-none">
+<div class="size-64 rounded-full border-2 border-primary/20 flex items-center justify-center relative engine-glow">
+<div class="size-48 rounded-full border border-primary/40 flex flex-col items-center justify-center bg-background-dark/80 backdrop-blur-xl">
+<span class="text-primary text-4xl font-black">10+</span>
+<span class="text-[10px] text-white/60 font-mono tracking-[0.3em] uppercase">Years exp.</span>
+</div>
+<!-- Animated Nodes -->
+<div class="absolute top-0 size-3 bg-primary rounded-full data-point"></div>
+<div class="absolute bottom-0 size-3 bg-accent-violet rounded-full data-point"></div>
+<div class="absolute left-0 size-3 bg-primary rounded-full data-point"></div>
+<div class="absolute right-0 size-3 bg-accent-violet rounded-full data-point"></div>
+</div>
+</div>
+<!-- Quadrant 1: Salesforce -->
+<div class="glass-card rounded-xl p-8 group hover:border-primary/50 transition-all cursor-default min-h-[280px]">
+<div class="code-bg">
+public class AccountTriggerHandler {
+    public static void afterInsert(List<account> newList) {
+        LWC_Dispatcher.sync(newList);
+        // Syncing complex ecosystems...
+    }
+}</account></div>
+<div class="relative z-10">
+<div class="flex items-center gap-4 mb-6">
+<div class="size-12 rounded bg-primary/20 flex items-center justify-center border border-primary/40 text-primary">
+<span class="material-symbols-outlined text-3xl">cloud_queue</span>
+</div>
+<h3 class="text-xl font-bold uppercase tracking-tight">Salesforce Ecosystem</h3>
+</div>
+<ul class="space-y-3 font-mono text-sm text-[#8ecccc]">
+<li class="flex items-center gap-2"><span class="size-1.5 bg-primary rounded-full"></span> Apex &amp; Visualforce Architecture</li>
+<li class="flex items-center gap-2"><span class="size-1.5 bg-primary rounded-full"></span> Lightning Web Components (LWC)</li>
+<li class="flex items-center gap-2"><span class="size-1.5 bg-primary rounded-full"></span> Multi-org Data Synchronization</li>
+</ul>
+<div class="mt-6 pt-4 border-t border-white/5 flex gap-2">
+<span class="px-2 py-1 bg-white/5 rounded text-[10px] uppercase font-bold text-white/40">CRM</span>
+<span class="px-2 py-1 bg-white/5 rounded text-[10px] uppercase font-bold text-white/40">SaaS</span>
+<span class="px-2 py-1 bg-white/5 rounded text-[10px] uppercase font-bold text-white/40">Enterprise</span>
+</div>
+</div>
+</div>
+<!-- Quadrant 2: Backend -->
+<div class="glass-card rounded-xl p-8 group hover:border-primary/50 transition-all cursor-default min-h-[280px]">
+<div class="code-bg">
+[HttpGet]
+public async Task<iactionresult> GetCoreData() {
+    var result = await _db.Systems.ToListAsync();
+    return Ok(new { status = "Optimal", result });
+}</iactionresult></div>
+<div class="relative z-10">
+<div class="flex items-center gap-4 mb-6">
+<div class="size-12 rounded bg-accent-violet/20 flex items-center justify-center border border-accent-violet/40 text-accent-violet">
+<span class="material-symbols-outlined text-3xl">database</span>
+</div>
+<h3 class="text-xl font-bold uppercase tracking-tight">Backend Mastery</h3>
+</div>
+<ul class="space-y-3 font-mono text-sm text-[#8ecccc]">
+<li class="flex items-center gap-2"><span class="size-1.5 bg-accent-violet rounded-full"></span> C# &amp; .NET Core Development</li>
+<li class="flex items-center gap-2"><span class="size-1.5 bg-accent-violet rounded-full"></span> SQL Server &amp; PostgreSQL Tuning</li>
+<li class="flex items-center gap-2"><span class="size-1.5 bg-accent-violet rounded-full"></span> Microservices &amp; RESTful APIs</li>
+</ul>
+<div class="mt-6 pt-4 border-t border-white/5 flex gap-2">
+<span class="px-2 py-1 bg-white/5 rounded text-[10px] uppercase font-bold text-white/40">Robust</span>
+<span class="px-2 py-1 bg-white/5 rounded text-[10px] uppercase font-bold text-white/40">Scalable</span>
+<span class="px-2 py-1 bg-white/5 rounded text-[10px] uppercase font-bold text-white/40">ACID</span>
+</div>
+</div>
+</div>
+<!-- Quadrant 3: Frontend -->
+<div class="glass-card rounded-xl p-8 group hover:border-primary/50 transition-all cursor-default min-h-[280px]">
+<div class="code-bg">
+import { createApp } from 'vue';
+const app = createApp({
+    data() { return { engineStatus: 'Active' } }
+}).mount('#app');</div>
+<div class="relative z-10">
+<div class="flex items-center gap-4 mb-6">
+<div class="size-12 rounded bg-primary/20 flex items-center justify-center border border-primary/40 text-primary">
+<span class="material-symbols-outlined text-3xl">view_quilt</span>
+</div>
+<h3 class="text-xl font-bold uppercase tracking-tight">Frontend Engineering</h3>
+</div>
+<ul class="space-y-3 font-mono text-sm text-[#8ecccc]">
+<li class="flex items-center gap-2"><span class="size-1.5 bg-primary rounded-full"></span> Vue.js Reactive Frameworks</li>
+<li class="flex items-center gap-2"><span class="size-1.5 bg-primary rounded-full"></span> Modern JS (ES6+) &amp; TypeScript</li>
+<li class="flex items-center gap-2"><span class="size-1.5 bg-primary rounded-full"></span> Responsive UI Design Systems</li>
+</ul>
+<div class="mt-6 pt-4 border-t border-white/5 flex gap-2">
+<span class="px-2 py-1 bg-white/5 rounded text-[10px] uppercase font-bold text-white/40">UX</span>
+<span class="px-2 py-1 bg-white/5 rounded text-[10px] uppercase font-bold text-white/40">SPA</span>
+<span class="px-2 py-1 bg-white/5 rounded text-[10px] uppercase font-bold text-white/40">PWA</span>
+</div>
+</div>
+</div>
+<!-- Quadrant 4: Infrastructure -->
+<div class="glass-card rounded-xl p-8 group hover:border-primary/50 transition-all cursor-default min-h-[280px]">
+<div class="code-bg">
+$ sudo systemctl status zentyal
+$ iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+$ vpn-status --active-tunnels</div>
+<div class="relative z-10">
+<div class="flex items-center gap-4 mb-6">
+<div class="size-12 rounded bg-accent-violet/20 flex items-center justify-center border border-accent-violet/40 text-accent-violet">
+<span class="material-symbols-outlined text-3xl">shield</span>
+</div>
+<h3 class="text-xl font-bold uppercase tracking-tight">Security &amp; Infrastructure</h3>
+</div>
+<ul class="space-y-3 font-mono text-sm text-[#8ecccc]">
+<li class="flex items-center gap-2"><span class="size-1.5 bg-accent-violet rounded-full"></span> Linux Administration (Debian/Ubuntu)</li>
+<li class="flex items-center gap-2"><span class="size-1.5 bg-accent-violet rounded-full"></span> Network Security &amp; VPN Firewalls</li>
+<li class="flex items-center gap-2"><span class="size-1.5 bg-accent-violet rounded-full"></span> Zentyal Server &amp; Identity Management</li>
+</ul>
+<div class="mt-6 pt-4 border-t border-white/5 flex gap-2">
+<span class="px-2 py-1 bg-white/5 rounded text-[10px] uppercase font-bold text-white/40">Hardened</span>
+<span class="px-2 py-1 bg-white/5 rounded text-[10px] uppercase font-bold text-white/40">Reliable</span>
+<span class="px-2 py-1 bg-white/5 rounded text-[10px] uppercase font-bold text-white/40">Secure</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Performance Stats -->
+<div class="mt-16 flex flex-wrap justify-center gap-6">
+<div class="flex flex-col items-center p-6 border border-white/5 bg-white/5 rounded-lg min-w-[180px]">
+<p class="text-xs text-[#8ecccc] font-mono uppercase tracking-widest mb-1">Uptime Rate</p>
+<p class="text-2xl font-bold text-white tracking-tighter">99.9%</p>
+<div class="mt-2 w-full h-1 bg-white/10 rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[99.9%]"></div>
+</div>
+</div>
+<div class="flex flex-col items-center p-6 border border-white/5 bg-white/5 rounded-lg min-w-[180px]">
+<p class="text-xs text-[#8ecccc] font-mono uppercase tracking-widest mb-1">Engagements</p>
+<p class="text-2xl font-bold text-white tracking-tighter">500+</p>
+<div class="mt-2 w-full h-1 bg-white/10 rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[85%]"></div>
+</div>
+</div>
+<div class="flex flex-col items-center p-6 border border-white/5 bg-white/5 rounded-lg min-w-[180px]">
+<p class="text-xs text-[#8ecccc] font-mono uppercase tracking-widest mb-1">Security Audit</p>
+<p class="text-2xl font-bold text-white tracking-tighter">PASS</p>
+<div class="mt-2 w-full h-1 bg-white/10 rounded-full overflow-hidden">
+<div class="h-full bg-accent-violet w-full"></div>
+</div>
+</div>
+<div class="flex flex-col items-center p-6 border border-white/5 bg-white/5 rounded-lg min-w-[180px]">
+<p class="text-xs text-[#8ecccc] font-mono uppercase tracking-widest mb-1">Legacy Systems</p>
+<p class="text-2xl font-bold text-white tracking-tighter">REFAC</p>
+<div class="mt-2 w-full h-1 bg-white/10 rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[60%]"></div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer Status Bar -->
+<footer class="fixed bottom-0 w-full z-50 border-t border-white/10 bg-background-dark/80 backdrop-blur-md px-6 py-2">
+<div class="max-w-[1440px] mx-auto flex items-center justify-between text-[10px] font-mono uppercase tracking-[0.2em]">
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-1.5">
+<span class="size-1.5 bg-green-500 rounded-full animate-pulse"></span>
+<span class="text-green-500">Engine Status: Optimal</span>
+</div>
+<div class="hidden sm:flex items-center gap-1.5 text-white/40">
+<span>|</span>
+<span>Global Availability: Active</span>
+</div>
+</div>
+<div class="text-white/40">
+<span class="hidden md:inline">© 2024 Systems Architect //</span>
+<span class="text-primary">Encrypted Session</span>
+</div>
+</div>
+</footer>
+<!-- Visual HUD Overlays -->
+<div class="fixed top-24 left-10 h-[calc(100vh-12rem)] w-px bg-gradient-to-b from-transparent via-primary/20 to-transparent pointer-events-none"></div>
+<div class="fixed top-24 right-10 h-[calc(100vh-12rem)] w-px bg-gradient-to-b from-transparent via-accent-violet/20 to-transparent pointer-events-none"></div>
+</body></html>

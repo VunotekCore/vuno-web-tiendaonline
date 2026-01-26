@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+<!-- Logomark: The Real Devs Pro -->
+  <symbol id="logomark" viewBox="0 0 2857.41 1174.24">
+    <defs>
+      <style>.cls-10{stroke:#18a0ba;fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:85.04px}</style>
+    </defs>
+    <g>
+      <text style="font-family:Hartwell-Bold,Hartwell;font-size:567.21px;font-weight:700" transform="translate(744.17 924.66)">
+        <tspan x="0" y="0" style="fill:#fff;letter-spacing:-.02em">D</tspan>
+        <tspan x="373.79" y="0" style="letter-spacing:-.04em;fill:#fff">e</tspan>
+        <tspan x="648.88" y="0" style="fill:#fff;letter-spacing:-.04em">v</tspan>
+        <tspan x="922.28" y="0" style="fill:#fff;letter-spacing:-.02em">s </tspan>
+        <tspan x="1273.94" y="0" style="fill:#18a0ba;letter-spacing:-.04em">P</tspan>
+        <tspan x="1580.8" y="0" style="letter-spacing:-.02em;fill:#18a0ba">ro</tspan>
+      </text>
+      <text style="fill:#fff;font-family:Hartwell-Bold,Hartwell;font-size:567.21px;font-weight:700" transform="translate(771.65 472.77)">
+        <tspan x="0" y="0" style="letter-spacing:-.02em">T</tspan>
+        <tspan x="278.5" y="0" style="letter-spacing:0">h</tspan>
+        <tspan x="587.63" y="0">e </tspan>
+        <tspan x="1020.4" y="0" style="letter-spacing:0">R</tspan>
+        <tspan x="1355.05" y="0" style="letter-spacing:0">e</tspan>
+        <tspan x="1648.87" y="0">al</tspan>
+      </text>
+      <path d="m447.81 371.61 212.97 250.93-212.97 263.58M255.49 136.29 42.52 387.22 255.49 650.8" class="cls-10"/>
+      <path d="M554.67 134.77 116.63 886.12" style="fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:85.04px;stroke:#fff"/>
+    </g>
+  </symbol>
+</svg>
