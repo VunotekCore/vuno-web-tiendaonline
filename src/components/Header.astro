@@ -15,7 +15,6 @@ const navItems = [
   },
   { href: "/portafolio", label: "Portafolio", id: "portafolio" },
   // { href: '/proceso', label: 'Proceso', id: 'proceso' },
-  { href: "/nosotros", label: "Nosotros", id: "nosotros" },
   // { href: '/blog', label: 'Blog', id: 'blog' },
   { href: "/contacto", label: "Contacto", id: "contacto" },
 ];
@@ -27,34 +26,23 @@ const navItems = [
   <div
     class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 md:px-12"
   >
-    <div class="flex items-center gap-3 group cursor-pointer">
-      <div
-        class="relative flex size-10 items-center justify-center rounded bg-primary/10 border border-primary/20 transition-all group-hover:border-primary/50"
-      >
-        <span class="material-symbols-outlined text-primary text-2xl"
-          >terminal</span
-        >
-        <div
-          class="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-primary animate-pulse"
-        >
-        </div>
-      </div>
-      <div class="flex flex-col">
-        <h1 class="text-lg font-bold tracking-tighter text-white">
-          The Real<span class="text-primary"> Devs</span>
-        </h1>
-        <span
-          class="font-mono text-[10px] uppercase tracking-[0.2em] text-primary/60"
-          >Systems Authority</span
-        >
-        <!-- <svg
-          class="w-28 h-28 text-primary"
+    <div class="flex items-center gap-4 group cursor-pointer">
+      <div class="relative flex items-center justify-center">
+        <svg
+          class="w-32 h-16 text-primary transition-transform group-hover:scale-105"
           viewBox="0 0 2857.41 1174.24"
           fill="currentColor"
         >
           <use href="/sprite.svg#logomark"></use>
-        </svg> -->
+        </svg>
       </div>
+      <!-- <div class="flex flex-col">
+        <h1 class="text-lg font-bold tracking-tighter text-white">The Real</h1>
+        <span
+          class="font-mono text-[10px] uppercase tracking-[0.2em] text-primary/60"
+          >Devs<span class="text-primary"> Pro</span></span
+        >
+      </div>j -->
     </div>
 
     <nav class="hidden items-center gap-10 md:flex">

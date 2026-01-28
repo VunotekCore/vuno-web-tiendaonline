@@ -1,0 +1,152 @@
+---
+// Componente TechStack - Optimizado
+interface TechItem {
+  id: string;
+  name: string;
+}
+
+const technologies: TechItem[] = [
+  { id: "salesforce", name: "Salesforce" },
+  { id: "dotnet", name: ".NET" },
+  { id: "react", name: "React" },
+  { id: "angular", name: "Angular" },
+  { id: "vue", name: "Vue.js" },
+  { id: "nodejs", name: "Node.js" },
+  { id: "flutter", name: "Flutter" },
+  { id: "laravel", name: "Laravel" },
+  { id: "aws", name: "AWS" },
+  { id: "azure", name: "Azure" },
+  { id: "googlecloud", name: "Google Cloud" },
+  { id: "vercel", name: "Vercel" },
+  { id: "netlify", name: "Netlify" },
+  { id: "docker", name: "Docker" },
+];
+---
+
+<section
+  class="w-full bg-transparent py-12 overflow-hidden border-t border-white/5 backdrop-blur-sm"
+>
+  <div class="container mx-auto px-4">
+    <div class="text-center mb-10">
+      <h2
+        class="text-2xl md:text-3xl font-bold text-white/90 mb-4 tracking-tight"
+      >
+        Trusted Tech Stack
+      </h2>
+      <p class="text-base text-white/50 max-w-2xl mx-auto font-light">
+        Potenciado por las tecnologías más robustas del mercado
+      </p>
+    </div>
+
+    <!-- Carrusel Infinito -->
+    <div class="relative">
+      <div class="tech-stack-slider">
+        <div class="tech-stack-track">
+          {/* Primera serie de logos */}
+          {
+            technologies.map((tech) => (
+              <div class="tech-item group">
+                <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-white border border-white/10 transition-all duration-300 group-hover:border-primary/40 group-hover:shadow-[0_0_20px_rgba(24,160,186,0.2)]">
+                  <svg
+                    class="h-10 w-10 transition-all duration-300 group-hover:scale-110"
+                    aria-label={`${tech.name} logo`}
+                  >
+                    <use href={`/sprite.svg#${tech.id}`} />
+                    <title>{tech.name}</title>
+                  </svg>
+                </div>
+                <span class="tech-name mt-3 font-mono text-[10px] uppercase tracking-wider text-white group-hover:text-primary transition-colors duration-300">
+                  {tech.name}
+                </span>
+              </div>
+            ))
+          }
+          {/* Segunda serie (duplicado para efecto infinito) */}
+          {
+            technologies.map((tech) => (
+              <div class="tech-item group">
+                <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-white border border-white/10 transition-all duration-300 group-hover:border-primary/40 group-hover:shadow-[0_0_20px_rgba(24,160,186,0.2)]">
+                  <svg
+                    class="h-10 w-10 transition-all duration-300 group-hover:scale-110"
+                    aria-label={`${tech.name} logo`}
+                  >
+                    <use href={`/sprite.svg#${tech.id}`} />
+                    <title>{tech.name}</title>
+                  </svg>
+                </div>
+                <span class="tech-name mt-3 font-mono text-[10px] uppercase tracking-wider text-white group-hover:text-primary transition-colors duration-300">
+                  {tech.name}
+                </span>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .tech-stack-slider {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 20%,
+      black 80%,
+      transparent
+    );
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 20%,
+      black 80%,
+      transparent
+    );
+  }
+
+  .tech-stack-track {
+    display: flex;
+    gap: 5rem;
+    animation: scroll 40s linear infinite;
+    width: max-content;
+  }
+
+  .tech-stack-track:hover {
+    animation-play-state: paused;
+  }
+
+  .tech-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 100px;
+    transition: transform 0.3s ease;
+  }
+
+  .tech-item:hover {
+    transform: translateY(-4px);
+  }
+
+  @keyframes scroll {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .tech-stack-track {
+      gap: 3rem;
+    }
+
+    .tech-item {
+      min-width: 80px;
+    }
+  }
+</style>

@@ -10,7 +10,7 @@ const config = {
   theme: {
     extend: {
       colors: {
-        primary: '#06f9f9',
+        primary: '#18A0BA',
         'accent-violet': '#8b5cf6',
         'background-light': '#f5f8f8',
         'background-dark': '#0a0a0a',
@@ -33,7 +33,7 @@ const config = {
     },
   },
   plugins: [
-    function({ addUtilities }) {
+    function ({ addUtilities }) {
       addUtilities({
         '.glass-morphism': {
           background: 'rgba(16, 35, 35, 0.4)',
