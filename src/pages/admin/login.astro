@@ -1,0 +1,75 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Button from "../../components/atoms/Button.astro";
+import { verifyToken } from "../../lib/admin";
+import { getTokenFromCookies } from "../../lib/cookie";
+
+const token = getTokenFromCookies(Astro.request.headers.get("cookie"));
+const user = token ? verifyToken(token) : null;
+
+if (user) {
+  return Astro.redirect("/admin/productos");
+}
+---
+
+<BaseLayout title="Admin Login | Ram;Lop">
+  <main class="min-h-screen flex items-center justify-center bg-background px-margin-mobile">
+    <div class="w-full max-w-sm">
+      <div class="text-center mb-12">
+        <h1 class="font-headline text-headline-md text-monolith-black mb-2">Ram;Lop</h1>
+        <p class="font-label-caps text-label-caps text-secondary">ADMIN PANEL</p>
+      </div>
+
+      <form id="loginForm" class="flex flex-col gap-6">
+        <div id="errorMsg" class="hidden font-body text-body-md text-error bg-error/10 p-3 text-center"></div>
+        <div>
+          <label class="font-label-caps text-label-caps text-secondary block mb-2">EMAIL</label>
+          <input id="email" type="email" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
+        </div>
+        <div>
+          <label class="font-label-caps text-label-caps text-secondary block mb-2">PASSWORD</label>
+          <input id="password" type="password" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
+        </div>
+        <Button variant="primary" class="w-full mt-4" id="submitBtn">
+          SIGN IN
+        </Button>
+      </form>
+    </div>
+  </main>
+
+  <script>
+    // @ts-nocheck
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const errorMsg = document.getElementById("errorMsg");
+      const submitBtn = document.getElementById("submitBtn");
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = "SIGNING IN...";
+      errorMsg.classList.add("hidden");
+
+      try {
+        const res = await fetch("/api/admin/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || "Login failed");
+        }
+
+        window.location.href = "/admin/productos";
+      } catch (err) {
+        errorMsg.textContent = err.message || "Invalid credentials";
+        errorMsg.classList.remove("hidden");
+        submitBtn.disabled = false;
+        submitBtn.textContent = "SIGN IN";
+      }
+    });
+  </script>
+</BaseLayout>

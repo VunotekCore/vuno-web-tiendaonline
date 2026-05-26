@@ -1,0 +1,54 @@
+---
+import AdminLayout from "./layout.astro";
+import { getOrders } from "../../lib/storage";
+
+const orders = await getOrders();
+
+const statusStyles: Record<string, string> = {
+  pending: "bg-clay-accent/20 text-clay-accent",
+  paid: "bg-monolith-black text-off-white",
+  shipped: "bg-monolith-black/80 text-off-white",
+  delivered: "bg-monolith-black text-off-white",
+  cancelled: "bg-error/20 text-error",
+};
+---
+
+<AdminLayout title="Pedidos">
+  <div class="bg-off-white border border-outline-variant">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left">
+        <thead>
+          <tr class="border-b border-outline-variant font-label-caps text-label-caps text-secondary">
+            <th class="p-4 font-medium">ORDER</th>
+            <th class="p-4 font-medium">CUSTOMER</th>
+            <th class="p-4 font-medium">DATE</th>
+            <th class="p-4 font-medium">TOTAL</th>
+            <th class="p-4 font-medium">STATUS</th>
+            <th class="p-4 font-medium">PAYMENT</th>
+          </tr>
+        </thead>
+        <tbody>
+          {orders.length === 0 && (
+            <tr>
+              <td colspan="6" class="p-8 text-center font-body text-body-md text-secondary">No orders yet</td>
+            </tr>
+          )}
+          {orders.map((order) => (
+            <tr class="border-b border-outline-variant/50 hover:bg-surface-container-low transition-colors">
+              <td class="p-4 font-body text-body-md">{order.id}</td>
+              <td class="p-4 font-body text-body-md text-secondary">{order.customer.name}</td>
+              <td class="p-4 font-body text-body-md text-secondary">{new Date(order.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</td>
+              <td class="p-4 font-price-display text-price-display">${order.total.toFixed(2)}</td>
+              <td class="p-4">
+                <span class={`font-label-caps text-label-caps text-xs px-2 py-1 ${statusStyles[order.status] || ""}`}>
+                  {order.status.toUpperCase()}
+                </span>
+              </td>
+              <td class="p-4 font-body text-body-md text-secondary capitalize">{order.paymentMethod === "stripe" ? "Card" : "Transfer"}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</AdminLayout>

@@ -1,3 +1,0 @@
-hola, crea el nuevo poryecto de astro, en el directior te deje los arhivos html, el archivo prncipal es home.html, este contiene el diseno y la estructura de colores que se requieren. el menu debe contener inicio, servicios, productos frontline, portafolio, proceso, nosotros, blog y contacto, la referencia de estilo esta con el html del mismo nombre , para productos frontline no tengo un diseno en especifico por lo que deber crear uno basado en tu experiencia.
-
-servicios, productos frontline y portafolio trabajan con enlace hacia el componente de la pagina de inicio, pero estos componenentes deben tener un enlace como ver todos los servicios que lleven a la pagina servicios, igual para portafolio conocer productos frontline y para portafolio otro mensaje. 

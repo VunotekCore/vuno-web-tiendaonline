@@ -1,0 +1,191 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Navbar from "../../components/organisms/Navbar.astro";
+import Footer from "../../components/organisms/Footer.astro";
+import { getProducts } from "../../lib/storage";
+
+const { slug } = Astro.params;
+const products = await getProducts();
+const product = products.find((p) => p.slug === slug) || null;
+const relatedProducts = products.filter((p) => p.slug !== slug).slice(0, 4);
+
+if (!product) {
+  return Astro.redirect("/404");
+}
+
+const galleryImages = [
+  "https://lh3.googleusercontent.com/aida-public/AB6AXuB1Tzls_kTSZ4dpdX9uqTsVjLuKkup7PYsstWGpN7bMNLgIfF0yR02BSNZTCNJy7AoyGOD9zBHKXrMjeIwfP74uZsvUYWbowXbkMv3VPCUPT6Iag6i8TTJxEkwT7wVuJnD2iDqLi2aD1h4xoxuyd9aXmbC-8iM3xqRK55xGrplTcwxStcy9Sp062bWGdqdXGyPqea672whnNLyL8WkBXNZcUDU4M1zXGpgFNkWQxdK2qD3AxzYqc3MRZ68Nla-ut-0wNYdgURyBfdM",
+  "https://lh3.googleusercontent.com/aida-public/AB6AXuDcSgZBC7RYqIWdRspXD1VaSAbVvEUGE4rvlQuRTwxX2hRv3577mhuAt-pYwWU79iZqYeJhd5qNY3jCCohGZSi7_-SDLiR66Hh79qyBgVq-1B0eBzibeLXCIazoLaijqOdEFl2zORPcDng29pmBzLPcykk4olbckVMA5lgipzIwmAEcTMXHYGkTXQMsgVNDMFchgtVTW5pZ235U8bA07DlOxLP7q2Ny73yUdjR0OprOdAhs5HtyPoer-pntorOhwkxRab8JZvnYwQo",
+  "https://lh3.googleusercontent.com/aida-public/AB6AXuAwhEgkFlMJiR1QjyRlglyS9AhQRIhQZtZ-LeF65wm1-cZv3jFiY66iR_pOCS6QPdc-f0_scTSLeFzP7o4lOKPpbCu8kfSGrY_LrGG9ZS0y95W_i6BOmfjT7-qWz9bhopPuPdv6_LEf7vmL3B55KIMbC6R-CFmwQ-oxi1wKPJktIDqYYG1ajYdMA9I0uyu2qAkYib9002zvvZIxhtSQ1JLGKS6ZqH5Eh0SvQ5oqj9MsVaR_0zhJ9P3YF4WbAL-VV5PS5ERw4e9Htss",
+];
+
+const relatedImages = [
+  "https://lh3.googleusercontent.com/aida-public/AB6AXuA8nwUC9jV8CVpdO0n3Lv5gpFD36PPkkWQH_OmXUNXxSLBeMXCtohOZU0gIInuKueOzEH4E5uvZnyZQvOg4hz40H0gF4SgY_jM4GoZGiOZXsSPYpgoY6J8cQRl_6w9H5tQ1vVHas2h22JFVuMOzMOxWw4ISr8_F2j8lYPWnhozXm_TzaWDm4LNHDTLoam4PbrnYSfgNEXWoML0a9cfGR9BbcupOnBUrI_KnrzwSpN6fy0Elxxh62NWuvz3MFTMt81gT2DDtjmRRmaE",
+  "https://lh3.googleusercontent.com/aida-public/AB6AXuA0lKy_9LQMocPDZrY7Wh0wPTZc6ghl71FGbZRt4OuF4TEaiUUWF5pv-Ab73AycfT1niXSuq8FRxKwHmJvsJBpIdlp8TVxauZ90ymKz9gBDBWJAGTk8cRk-62yl5OCkLCoYDpQyHkOyBZYsoEjt_AMoU5nEppSXTsyJyH7dcLbIUJ6OST1zE8J8iioA5jTRfWqtPC-lCCM7-G6VHylhv1tE4FATOcw3h1_i0CCwKZmuyqfnw8XNzuLI96LMTLkjQH3FIWnbzZ9loZ0",
+  "https://lh3.googleusercontent.com/aida-public/AB6AXuC8G4xJdslolUNUSeDtUf43X2xGJbmUf3xd_G7mEtsiz-2-KoCdol811Lz3f3K7ky6O0yUdhNJcBkYEPRdjXtvbECNL2h0gFtx41gQCZdEgzfmVxV3wGNGAFsU2vFSiM64NfH6E3sHcsf3D_PqVAXA26vQs4l2uqJpOVtap_gdrHYHqpIe0hl1CHC4hX9_r-Tc8FUxMKrBIp_VxWPsRF1t01Bksonuh9vNwU5xNXRzSlJIrcNt6doh6FjFPkyWYVK5uXxCRsV7ZKJc",
+  "https://lh3.googleusercontent.com/aida-public/AB6AXuBSqCuoHx7hJQq4a4OUuR1Bd4042acsqAx7U9AwWgbBe5xUvSLOBOPoForLj3msJ1cN1qFryLRKhu8qjfo_DfOEmQ11wC72IGRNToqLvaTYBWCJb6mosvu4VJ371AWbiXsnokovpkVvOrQMDTuzaXWlmjjn7F0JijgTHivuikbvuwCpblPfaBwBTP3ux16NORGCMiCaP_U9w04aZMNg9XYmJN6rln2O2I72qVP7j73Px7gbZ8pmS63_CVXOVR4D9TDkrTqIi9Ga9o8",
+];
+---
+
+<BaseLayout title={`${product.name} | Ram;Lop`}>
+  <Navbar />
+  <main class="w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-section-gap">
+    <section class="grid grid-cols-1 md:grid-cols-12 gap-gutter relative">
+      <div class="md:col-span-7 flex flex-col gap-unit">
+        {(galleryImages.length > 0 ? galleryImages : product.images).map((img, i) => (
+          <div class="w-full bg-surface-container aspect-[3/4] overflow-hidden relative">
+            <img src={img} alt={`${product.name} view ${i + 1}`} class="w-full h-full object-cover" loading={i === 0 ? "eager" : "lazy"} />
+          </div>
+        ))}
+      </div>
+
+      <div class="md:col-span-4 md:col-start-9 relative">
+        <div class="sticky top-[100px] flex flex-col gap-8 pt-8 md:pt-0">
+          <div class="flex flex-col gap-2">
+            <span class="font-label-caps text-label-caps text-secondary tracking-widest uppercase">{product.category}</span>
+            <h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-monolith-black">{product.name}</h1>
+            <p class="font-price-display text-price-display text-monolith-black mt-2">${product.price.toFixed(2)} USD</p>
+          </div>
+
+          <div class="flex flex-col gap-3">
+            <span class="font-label-caps text-label-caps text-secondary">COLOR: <span class="text-monolith-black ml-1" id="selectedColorName">{product.colors[0]?.name}</span></span>
+            <div class="flex gap-3" id="colorSelector">
+              {product.colors.map((c, i) => (
+                <button
+                  data-color={c.name}
+                  aria-label={c.name}
+                  class={`color-swatch w-6 h-6 rounded-full transition-all ${i === 0 ? "ring-1 ring-offset-2 ring-monolith-black ring-offset-background" : "border border-outline-variant hover:border-monolith-black"}`}
+                  style={`background-color: ${c.hex}`}
+                ></button>
+              ))}
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-3">
+            <div class="flex justify-between items-end">
+              <span class="font-label-caps text-label-caps text-secondary">TALLA (IT)</span>
+              <button class="font-body-md text-body-md text-secondary underline hover:text-monolith-black transition-colors text-sm">Guía de tallas</button>
+            </div>
+            <div class="grid grid-cols-4 gap-2" id="sizeSelector">
+              {product.sizes.map((size) => (
+                size.inStock ? (
+                  <button data-size={size.value} class="size-btn py-3 px-1 border border-outline-variant text-center font-label-caps text-label-caps text-monolith-black hover:border-monolith-black transition-colors">{size.label}</button>
+                ) : (
+                  <button class="py-3 px-1 border border-outline-variant text-center font-label-caps text-label-caps text-outline opacity-50 cursor-not-allowed">{size.label}</button>
+                )
+              ))}
+            </div>
+          </div>
+
+          <button
+            data-add-to-cart
+            data-product={JSON.stringify({
+              id: product.id,
+              name: product.name,
+              slug: product.slug,
+              price: product.price,
+              currency: product.currency,
+              images: [product.images[0]],
+              category: product.category,
+            })}
+            id="addToCartBtn"
+            class="w-full min-h-[56px] bg-monolith-black text-on-primary font-label-caps text-label-caps tracking-widest hover:opacity-80 transition-opacity mt-4 flex items-center justify-center"
+          >
+            AÑADIR AL CARRITO
+          </button>
+
+          <div class="flex flex-col mt-8 border-t border-outline-variant">
+            <details class="border-b border-outline-variant group open:pb-5">
+              <summary class="w-full py-5 flex justify-between items-center text-left cursor-pointer list-none">
+                <span class="font-label-caps text-label-caps text-monolith-black">DESCRIPCIÓN DEL PRODUCTO</span>
+                <span class="material-symbols-outlined text-secondary transition-transform group-open:hidden" data-icon="add">add</span>
+                <span class="material-symbols-outlined text-secondary transition-transform hidden group-open:block" data-icon="remove">remove</span>
+              </summary>
+              <div class="pb-5 font-body-md text-body-md text-secondary leading-relaxed">{product.description}</div>
+            </details>
+            <details class="border-b border-outline-variant group open:pb-5">
+              <summary class="w-full py-5 flex justify-between items-center text-left cursor-pointer list-none">
+                <span class="font-label-caps text-label-caps text-monolith-black">DETALLES Y CUIDADOS</span>
+                <span class="material-symbols-outlined text-secondary transition-transform group-open:hidden" data-icon="add">add</span>
+                <span class="material-symbols-outlined text-secondary transition-transform hidden group-open:block" data-icon="remove">remove</span>
+              </summary>
+              <div class="pb-5 font-body-md text-body-md text-secondary leading-relaxed">
+                <ul class="list-disc pl-4 space-y-1">{product.details?.map((d) => <li>{d}</li>)}</ul>
+              </div>
+            </details>
+            <details class="border-b border-outline-variant group open:pb-5">
+              <summary class="w-full py-5 flex justify-between items-center text-left cursor-pointer list-none">
+                <span class="font-label-caps text-label-caps text-monolith-black">ENVÍOS Y DEVOLUCIONES</span>
+                <span class="material-symbols-outlined text-secondary transition-transform group-open:hidden" data-icon="add">add</span>
+                <span class="material-symbols-outlined text-secondary transition-transform hidden group-open:block" data-icon="remove">remove</span>
+              </summary>
+              <div class="pb-5 font-body-md text-body-md text-secondary leading-relaxed">
+                Ofrecemos envío estándar gratuito en todos los pedidos. Las devoluciones son aceptadas dentro de los 14 días posteriores a la entrega para artículos en su condición original, sin usar y con todas las etiquetas originales.
+              </div>
+            </details>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="mt-section-gap w-full">
+      <div class="flex justify-between items-end mb-8 border-b border-outline-variant pb-4">
+        <h2 class="font-headline-md text-headline-md text-monolith-black">Te podría gustar</h2>
+        <a href="/catalogo" class="font-label-caps text-label-caps text-secondary hover:text-monolith-black transition-colors hidden md:block">VER TODO</a>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-x-gutter gap-y-12">
+        {relatedProducts.map((p, i) => (
+          <a href={`/producto/${p.slug}`} class={`group flex flex-col gap-4 ${i === 3 ? "hidden md:flex" : ""}`}>
+            <div class="w-full bg-surface-container aspect-[3/4] overflow-hidden relative">
+              <img src={relatedImages[i] || p.images[0]} alt={p.name} class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+            </div>
+            <div class="flex flex-col gap-1">
+              <h3 class="font-body-md text-body-md text-monolith-black">{p.name}</h3>
+              <p class="font-price-display text-price-display text-secondary">${p.price.toFixed(2)} USD</p>
+            </div>
+          </a>
+        ))}
+      </div>
+    </section>
+  </main>
+  <Footer />
+
+  <script>
+    // @ts-nocheck
+    let selectedColor = "{product.colors[0]?.name || ''}";
+    let selectedSize = "";
+
+    document.querySelectorAll(".color-swatch").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".color-swatch").forEach((b) => {
+          b.className = "color-swatch w-6 h-6 rounded-full transition-all border border-outline-variant hover:border-monolith-black";
+        });
+        btn.className = "color-swatch w-6 h-6 rounded-full transition-all ring-1 ring-offset-2 ring-monolith-black ring-offset-background";
+        selectedColor = btn.dataset.color;
+        document.getElementById("selectedColorName").textContent = selectedColor;
+      });
+    });
+
+    document.querySelectorAll(".size-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".size-btn").forEach((b) => {
+          b.classList.remove("bg-monolith-black", "text-off-white", "border-monolith-black");
+          b.classList.add("border-outline-variant", "text-monolith-black", "hover:border-monolith-black");
+        });
+        btn.classList.add("bg-monolith-black", "text-off-white", "border-monolith-black");
+        btn.classList.remove("border-outline-variant", "hover:border-monolith-black");
+        selectedSize = btn.dataset.size;
+      });
+    });
+
+    document.getElementById("addToCartBtn").addEventListener("click", function () {
+      if (!selectedSize) {
+        alert("Please select a size.");
+        return;
+      }
+      const productData = JSON.parse(this.dataset.product);
+      window.RamLopCart.addItem(productData, 1, selectedColor, selectedSize);
+      alert("Added to cart!");
+    });
+  </script>
+</BaseLayout>
