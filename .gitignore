@@ -103,5 +103,8 @@ temp/
 ehthumbs.db
 Thumbs.db
 
+# Netlify
+.netlify/
+
 #html-design - design assets (not in repo)
 html-designs/
