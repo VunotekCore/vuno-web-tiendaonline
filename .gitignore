@@ -103,5 +103,5 @@ temp/
 ehthumbs.db
 Thumbs.db
 
-#html-design - tracked by repo
-!html-designs/
+#html-design - design assets (not in repo)
+html-designs/
