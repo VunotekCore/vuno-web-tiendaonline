@@ -1,0 +1,221 @@
+[
+  {
+    "id": "prod-001",
+    "name": "Stiletto Noir Arquitectónico",
+    "slug": "stiletto-noir-arquitectonico",
+    "description": "Redefiniendo la silueta clásica, este stiletto presenta líneas arquitectónicas afiladas y un tacón esculpido de 90mm. Fabricado en Italia con piel de becerro lisa de primera calidad, su diseño minimalista elimina cualquier costura innecesaria para un acabado purista.",
+    "details": [
+      "100% Piel de becerro exterior",
+      "Forro y suela interior de piel",
+      "Tacón escultural de 90mm",
+      "Hecho en Italia",
+      "Limpiar con paño suave y seco"
+    ],
+    "price": 450.00,
+    "currency": "USD",
+    "images": [
+      "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=800&q=80",
+      "https://images.unsplash.com/photo-1605812860427-4024433a70fd?w=800&q=80",
+      "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=800&q=80"
+    ],
+    "category": "Heels",
+    "colors": [
+      { "name": "Noir", "hex": "#1A1A1A" },
+      { "name": "Sand", "hex": "#E6DED5" },
+      { "name": "White", "hex": "#FFFFFF" }
+    ],
+    "sizes": [
+      { "label": "35", "value": "35", "inStock": true },
+      { "label": "36", "value": "36", "inStock": true },
+      { "label": "37", "value": "37", "inStock": true },
+      { "label": "38", "value": "38", "inStock": true },
+      { "label": "39", "value": "39", "inStock": true },
+      { "label": "40", "value": "40", "inStock": true },
+      { "label": "41", "value": "41", "inStock": false }
+    ]
+  },
+  {
+    "id": "prod-002",
+    "name": "Sandalia Estructural Nude",
+    "slug": "sandalia-estructural-nude",
+    "description": "Una sandalia que abraza la forma del pie con líneas depuradas y una estética escultórica. Su construcción en piel nude se funde con la piel para un efecto visual alargador y sofisticado.",
+    "details": [
+      "100% Piel de becerro",
+      "Suela de cuero",
+      "Hebilla ajustable en metal dorado",
+      "Tacón bloque 60mm",
+      "Hecho a mano en España"
+    ],
+    "price": 380.00,
+    "currency": "USD",
+    "images": [
+      "https://images.unsplash.com/photo-1605812860427-4024433a70fd?w=800&q=80",
+      "https://images.unsplash.com/photo-1604176354204-9268737828e4?w=800&q=80"
+    ],
+    "category": "Sandals",
+    "colors": [
+      { "name": "Nude", "hex": "#E6DED5" }
+    ],
+    "sizes": [
+      { "label": "36", "value": "36", "inStock": true },
+      { "label": "37", "value": "37", "inStock": true },
+      { "label": "38", "value": "38", "inStock": true },
+      { "label": "39", "value": "39", "inStock": true },
+      { "label": "40", "value": "40", "inStock": false }
+    ]
+  },
+  {
+    "id": "prod-003",
+    "name": "Pump Clásico Punta Fina",
+    "slug": "pump-clasico-punta-fina",
+    "description": "El pump definitivo para la mujer de poder. Silueta alargada con punta fina y tacón de 85mm. Su construcción en piel de becerro ofrece un ajuste perfecto y una elegancia atemporal.",
+    "details": [
+      "Piel de becerro italiana",
+      "Forro de piel de cordero",
+      "Tacón aguja 85mm",
+      "Suela de cuero con insignia",
+      "Hecho en Italia"
+    ],
+    "price": 420.00,
+    "currency": "USD",
+    "images": [
+      "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=800&q=80",
+      "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=800&q=80"
+    ],
+    "category": "Heels",
+    "colors": [
+      { "name": "Arcilla", "hex": "#C18C7E" },
+      { "name": "Noir", "hex": "#1A1A1A" },
+      { "name": "Blanco", "hex": "#FFFFFF" }
+    ],
+    "sizes": [
+      { "label": "36", "value": "36", "inStock": true },
+      { "label": "37", "value": "37", "inStock": true },
+      { "label": "38", "value": "38", "inStock": true },
+      { "label": "39", "value": "39", "inStock": true },
+      { "label": "40", "value": "40", "inStock": true }
+    ]
+  },
+  {
+    "id": "prod-004",
+    "name": "Mule Bloque Geométrico",
+    "slug": "mule-bloque-geometrico",
+    "description": "Una mule de declaración arquitectónica. Su tacón bloque esculpido y su silueta minimalista la convierten en la pieza central de cualquier conjunto. Confeccionada en piel negra de alta resistencia.",
+    "details": [
+      "Piel de becerro negra",
+      "Tacón bloque geométrico 70mm",
+      "Suela de caucho grabada",
+      "Plataforma oculta 20mm",
+      "Hecho en Portugal"
+    ],
+    "price": 395.00,
+    "currency": "USD",
+    "images": [
+      "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=800&q=80",
+      "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=800&q=80"
+    ],
+    "category": "Mules",
+    "colors": [
+      { "name": "Noir", "hex": "#1A1A1A" }
+    ],
+    "sizes": [
+      { "label": "36", "value": "36", "inStock": true },
+      { "label": "37", "value": "37", "inStock": true },
+      { "label": "38", "value": "38", "inStock": true },
+      { "label": "39", "value": "39", "inStock": true },
+      { "label": "40", "value": "40", "inStock": true },
+      { "label": "41", "value": "41", "inStock": true }
+    ]
+  },
+  {
+    "id": "prod-005",
+    "name": "Kitten Heel Minimal",
+    "slug": "kitten-heel-minimal",
+    "description": "Elegancia discreta con un tacón kitten de 50mm que alarga la silueta sin sacrificar confort. Su diseño depurado y la piel blanca inmaculada la convierten en un básico de colección.",
+    "details": [
+      "Piel de becerro blanca",
+      "Tacón kitten 50mm",
+      "Puntera redondeada",
+      "Forro de piel natural",
+      "Hecho en Italia"
+    ],
+    "price": 350.00,
+    "currency": "USD",
+    "images": [
+      "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=800&q=80",
+      "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=800&q=80"
+    ],
+    "category": "Heels",
+    "colors": [
+      { "name": "Blanco", "hex": "#FFFFFF" },
+      { "name": "Noir", "hex": "#1A1A1A" }
+    ],
+    "sizes": [
+      { "label": "35", "value": "35", "inStock": true },
+      { "label": "36", "value": "36", "inStock": true },
+      { "label": "37", "value": "37", "inStock": true },
+      { "label": "38", "value": "38", "inStock": true },
+      { "label": "39", "value": "39", "inStock": true }
+    ]
+  },
+  {
+    "id": "prod-006",
+    "name": "Sandalia Jaula Arquitectónica",
+    "slug": "sandalia-jaula-arquitectonica",
+    "description": "Una exploración del espacio negativo. Esta sandalia de jaula entrelaza tiras de piel negra en una estructura geométrica que envuelve el pie. Tacón escultural de 100mm para una silueta imponente.",
+    "details": [
+      "Tiras de piel de becerro",
+      "Tacón escultural 100mm",
+      "Cierre de hebilla ajustable",
+      "Planta anatómica acolchada",
+      "Hecho a mano en España"
+    ],
+    "price": 480.00,
+    "currency": "USD",
+    "images": [
+      "https://images.unsplash.com/photo-1604176354204-9268737828e4?w=800&q=80",
+      "https://images.unsplash.com/photo-1605812860427-4024433a70fd?w=800&q=80"
+    ],
+    "category": "Sandals",
+    "colors": [
+      { "name": "Noir", "hex": "#1A1A1A" }
+    ],
+    "sizes": [
+      { "label": "36", "value": "36", "inStock": true },
+      { "label": "37", "value": "37", "inStock": true },
+      { "label": "38", "value": "38", "inStock": true },
+      { "label": "39", "value": "39", "inStock": false },
+      { "label": "40", "value": "40", "inStock": false }
+    ]
+  },
+  {
+    "id": "prod-007",
+    "name": "Botín Bloque Escultural",
+    "slug": "botin-bloque-escultural",
+    "description": "Un botín de bloque que desafía las convenciones. Tacón esculpido en ángulo y silueta recortada para un look vanguardista. La piel negra de alta resistencia y la cremallera trasera facilitan el calce.",
+    "details": [
+      "Piel de becerro negra",
+      "Tacón bloque angular 80mm",
+      "Cremallera trasera dorada",
+      "Puntera almendrada",
+      "Hecho en Portugal"
+    ],
+    "price": 520.00,
+    "currency": "USD",
+    "images": [
+      "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=800&q=80",
+      "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=800&q=80"
+    ],
+    "category": "Boots",
+    "colors": [
+      { "name": "Noir", "hex": "#1A1A1A" }
+    ],
+    "sizes": [
+      { "label": "36", "value": "36", "inStock": true },
+      { "label": "37", "value": "37", "inStock": true },
+      { "label": "38", "value": "38", "inStock": true },
+      { "label": "39", "value": "39", "inStock": true },
+      { "label": "40", "value": "40", "inStock": true }
+    ]
+  }
+]

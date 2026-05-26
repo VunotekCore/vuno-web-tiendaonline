@@ -103,6 +103,5 @@ temp/
 ehthumbs.db
 Thumbs.db
 
-#html-design
-html-design
-AGENTS.md
+#html-design - tracked by repo
+!html-designs/

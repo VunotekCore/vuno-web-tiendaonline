@@ -1,45 +1,67 @@
-# The Real Devs
+# Ram;Lop — Architectural Minimalism in Footwear
 
-## Descripción
-Proyecto web para The Real Devs - Plataforma de desarrollo y comunidad.
+Tienda online de calzado artesanal para damas con carrito de compra, pasarela de pago (Stripe + transferencia bancaria) y panel administrador.
 
 ## Stack Tecnológico
-- **Framework**: Astro
-- **Lenguaje**: TypeScript
-- **Estilos**: Tailwind CSS
-- **Gestor de paquetes**: pnpm
 
-## Comandos de Desarrollo
+- **Framework**: Astro 5.x
+- **Estilos**: Tailwind 4 con design tokens personalizados
+- **Lenguaje**: TypeScript (strict)
+- **Gestor de paquetes**: pnpm
+- **Imágenes**: ImageKit (subir/obtener individual y batch)
+- **Pagos**: Stripe + Transferencia bancaria con upload de comprobante
+- **Notificaciones**: Email (Nodemailer)
+
+## Páginas
+
+| Ruta | Descripción |
+|------|-------------|
+| `/` | Homepage — Hero, New Arrivals (bento grid), Seasonal Trends, Curated Selection |
+| `/catalogo` | Catálogo con filtros (talla, color, estilo), grid 3 cols |
+| `/producto/[slug]` | Detalle de producto — galería, selector color/talle, accordion |
+| `/carrito` | Carrito de compras + order summary |
+| `/checkout` | Checkout con Stripe y transferencia bancaria |
+| `/admin/login` | Login del panel administrador |
+| `/admin/productos` | CRUD de productos |
+| `/admin/pedidos` | Gestión de pedidos |
+
+## API Endpoints
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| POST | `/api/email/send` | Enviar notificaciones por email |
+| POST | `/api/stripe/create-payment-intent` | Crear Payment Intent de Stripe |
+| POST | `/api/stripe/webhook` | Webhook de Stripe |
+| POST | `/api/imagekit/upload` | Subir imagen a ImageKit |
+
+## Comandos
 
 ```bash
-# Instalar dependencias
-pnpm install
-
-# Iniciar servidor de desarrollo
-pnpm dev
-
-# Construir para producción
-pnpm build
-
-# Verificar tipos
-pnpm astro check
-
-# Linting
-pnpm lint
+pnpm dev              # Servidor de desarrollo
+pnpm build            # Build producción
+pnpm preview          # Preview del build
+pnpm astro check      # TypeScript check
+pnpm lint             # ESLint
+pnpm format           # Prettier
 ```
 
-## Estructura del Proyecto
-```
-src/
-├── components/    # Componentes de Astro
-├── layouts/       # Layouts base
-├── pages/         # Páginas y rutas
-└── lib/           # Utilidades y configuración
-```
+## Variables de Entorno
 
-## Contribución
-1. Fork del repositorio
-2. Crear rama de feature: `git checkout -b feature/nueva-funcionalidad`
-3. Commit de cambios: `git commit -m "feat: agregar nueva funcionalidad"`
-4. Push a la rama: `git push origin feature/nueva-funcionalidad`
-5. Crear Pull Request
+```bash
+# Stripe
+STRIPE_SECRET_KEY=
+STRIPE_PUBLISHABLE_KEY=
+STRIPE_WEBHOOK_SECRET=
+
+# ImageKit
+IMAGEKIT_PRIVATE_KEY=
+IMAGEKIT_PUBLIC_KEY=
+IMAGEKIT_URL_ENDPOINT=
+
+# Email (SMTP)
+SMTP_HOST=
+SMTP_PORT=587
+SMTP_USER=
+SMTP_PASS=
+FROM_EMAIL=noreply@ramlop.com
+```

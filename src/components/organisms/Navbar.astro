@@ -1,0 +1,77 @@
+---
+const navLinks = [
+  { label: "SANDALS", href: "/catalogo" },
+  { label: "HEELS", href: "/catalogo" },
+  { label: "NEW ARRIVALS", href: "/" },
+  { label: "BOOTS", href: "/catalogo" },
+  { label: "FLATS", href: "/catalogo" },
+];
+---
+
+<nav class="bg-background sticky top-0 z-50 transition-all duration-300" id="topNav">
+  <div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop py-6 max-w-container-max mx-auto bg-sand-nude">
+    <button class="md:hidden text-primary hover:opacity-70 transition-opacity" aria-label="Menu">
+      <span class="material-symbols-outlined" data-icon="menu">menu</span>
+    </button>
+
+    <div class="hidden md:flex items-center space-x-gutter font-label-caps text-label-caps">
+      {navLinks.map((link) => (
+        <a
+          href={link.href}
+          class="text-secondary hover:text-primary transition-colors hover:opacity-70"
+        >
+          {link.label}
+        </a>
+      ))}
+    </div>
+
+    <a
+      href="/"
+      class="font-headline-md text-headline-md tracking-tighter text-monolith-black hover:opacity-70 transition-opacity absolute left-1/2 -translate-x-1/2 md:static md:transform-none"
+    >
+      Ram;Lop
+    </a>
+
+    <div class="flex items-center space-x-unit md:space-x-gutter text-primary">
+      <a href="/carrito" class="hover:opacity-70 transition-opacity relative p-2" aria-label="Carrito">
+        <span class="material-symbols-outlined" data-icon="shopping_bag">shopping_bag</span>
+        <span id="cartBadge" class="absolute top-0 right-0 w-4 h-4 bg-monolith-black text-off-white text-[9px] font-bold rounded-full flex items-center justify-center hidden">0</span>
+      </a>
+      <button class="hover:opacity-70 transition-opacity p-2" aria-label="Perfil">
+        <span class="material-symbols-outlined" data-icon="person">person</span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<script>
+  // @ts-nocheck
+  function updateCartBadge() {
+    const badge = document.getElementById("cartBadge");
+    if (!badge) return;
+    const count = window.RamLopCart?.getCount() || 0;
+    if (count > 0) {
+      badge.textContent = count > 9 ? "9+" : count;
+      badge.classList.remove("hidden");
+    } else {
+      badge.classList.add("hidden");
+    }
+  }
+
+  document.addEventListener("cart:updated", updateCartBadge);
+  document.addEventListener("DOMContentLoaded", updateCartBadge);
+  setTimeout(updateCartBadge, 100);
+
+  // Tonal shift on scroll
+  window.addEventListener("scroll", () => {
+    const nav = document.getElementById("topNav");
+    if (!nav) return;
+    if (window.scrollY > 50) {
+      nav.classList.add("bg-surface-container-low");
+      nav.classList.remove("bg-background");
+    } else {
+      nav.classList.add("bg-background");
+      nav.classList.remove("bg-surface-container-low");
+    }
+  });
+</script>

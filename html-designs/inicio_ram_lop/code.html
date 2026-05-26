@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Ram;Lop - Architectural Minimalism in Footwear</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;700&amp;family=Playfair+Display:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed-dim": "#cdc5bd",
+                        "surface-variant": "#e3e2e1",
+                        "inverse-primary": "#c8c6c5",
+                        "surface-container": "#eeeeed",
+                        "on-primary-fixed": "#1c1b1b",
+                        "background": "#faf9f8",
+                        "error": "#ba1a1a",
+                        "surface-container-low": "#f4f3f2",
+                        "outline-variant": "#c4c7c7",
+                        "primary-fixed": "#e5e2e1",
+                        "surface-tint": "#5f5e5e",
+                        "surface-bright": "#faf9f8",
+                        "tertiary-fixed": "#ffdbd1",
+                        "surface-dim": "#dadad9",
+                        "on-background": "#1a1c1c",
+                        "surface-container-highest": "#e3e2e1",
+                        "on-surface": "#1a1c1c",
+                        "stone-gray": "#9A9A9A",
+                        "clay-accent": "#C18C7E",
+                        "on-error": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "secondary-container": "#e6ded5",
+                        "sand-nude": "#E6DED5",
+                        "on-secondary-container": "#67625b",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-container": "#32120a",
+                        "primary-container": "#1c1b1b",
+                        "tertiary": "#000000",
+                        "error-container": "#ffdad6",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-container": "#aa786a",
+                        "on-secondary-fixed-variant": "#4b4640",
+                        "primary-fixed-dim": "#c8c6c5",
+                        "on-tertiary-fixed-variant": "#653c31",
+                        "monolith-black": "#1A1A1A",
+                        "on-tertiary-fixed": "#32120a",
+                        "secondary-fixed": "#e9e1d8",
+                        "on-surface-variant": "#444748",
+                        "primary": "#000000",
+                        "on-secondary-fixed": "#1e1b16",
+                        "on-primary-container": "#858383",
+                        "outline": "#747878",
+                        "inverse-surface": "#2f3130",
+                        "tertiary-fixed-dim": "#f3b9aa",
+                        "off-white": "#FFFFFF",
+                        "on-primary": "#ffffff",
+                        "surface": "#faf9f8",
+                        "secondary": "#635e57",
+                        "on-primary-fixed-variant": "#474746",
+                        "inverse-on-surface": "#f1f0ef",
+                        "on-error-container": "#93000a",
+                        "surface-container-high": "#e9e8e7"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "gutter": "24px",
+                        "unit": "8px",
+                        "container-max": "1440px",
+                        "margin-desktop": "80px",
+                        "margin-mobile": "20px",
+                        "section-gap": "120px"
+                    },
+                    "fontFamily": {
+                        "headline-xl": ["Playfair Display"],
+                        "price-display": ["Hanken Grotesk"],
+                        "headline-lg-mobile": ["Playfair Display"],
+                        "headline-lg": ["Playfair Display"],
+                        "body-md": ["Hanken Grotesk"],
+                        "body-lg": ["Hanken Grotesk"],
+                        "headline-md": ["Playfair Display"],
+                        "label-caps": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "headline-xl": ["64px", { "lineHeight": "72px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "price-display": ["20px", { "lineHeight": "24px", "fontWeight": "500" }],
+                        "headline-lg-mobile": ["32px", { "lineHeight": "40px", "fontWeight": "600" }],
+                        "headline-lg": ["40px", { "lineHeight": "48px", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "500" }],
+                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "700" }]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-family: 'Material Symbols Outlined';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md antialiased selection:bg-monolith-black selection:text-off-white">
+<!-- TopNavBar Shared Component -->
+<nav class="bg-background dark:bg-background docked full-width top-0 z-50 sticky transition-all duration-300" id="topNav">
+<div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop py-6 max-w-container-max mx-auto bg-sand-nude dark:bg-monolith-black flat no shadows">
+<!-- Mobile Menu Icon (Placeholder for interaction) -->
+<button class="md:hidden text-primary dark:text-on-background hover:opacity-70 transition-opacity">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<!-- Navigation Links (Desktop) -->
+<div class="hidden md:flex items-center space-x-gutter font-label-caps text-label-caps">
+<a class="text-secondary hover:text-primary transition-colors hover:opacity-70" href="#">SANDALS</a>
+<a class="text-secondary hover:text-primary transition-colors hover:opacity-70" href="#">HEELS</a>
+<a class="text-primary border-b-2 border-primary pb-1 hover:opacity-70 transition-opacity Active: scale-95 duration-200" href="#">NEW ARRIVALS</a>
+<a class="text-secondary hover:text-primary transition-colors hover:opacity-70" href="#">BOOTS</a>
+<a class="text-secondary hover:text-primary transition-colors hover:opacity-70" href="#">FLATS</a>
+</div>
+<!-- Brand Logo -->
+<a class="font-headline-md text-headline-md tracking-tighter text-monolith-black dark:text-off-white hover:opacity-70 transition-opacity absolute left-1/2 transform -translate-x-1/2 md:static md:transform-none" href="#">
+                Ram;Lop
+            </a>
+<!-- Trailing Icons -->
+<div class="flex items-center space-x-unit md:space-x-gutter text-primary dark:text-on-background">
+<button class="hover:opacity-70 transition-opacity flex items-center justify-center p-2">
+<span class="material-symbols-outlined" data-icon="shopping_bag">shopping_bag</span>
+</button>
+<button class="hover:opacity-70 transition-opacity flex items-center justify-center p-2">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+</button>
+</div>
+</div>
+</nav>
+<main>
+<!-- Hero Section -->
+<section class="relative w-full h-[870px] min-h-[600px] flex items-center justify-center bg-sand-nude overflow-hidden px-margin-mobile md:px-margin-desktop">
+<div class="absolute inset-0 z-0">
+<img alt="Hero Image" class="w-full h-full object-cover object-center opacity-90" data-alt="A striking, high-fashion editorial photograph of minimalist women's footwear displayed on a brutalist concrete pedestal. The scene is bathed in soft, high-key natural light filtering through large studio windows, creating crisp, clean shadows. The aesthetic is extremely modern and architectural, utilizing a palette of stark whites, off-whites, and subtle sand tones to emphasize the geometric silhouette of a single black leather mule. The mood is calm, luxurious, and akin to a contemporary art gallery." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4zbL7OUviEEbSUp34AxuZNJp--t5JaYasW3ZhvkOzy0I3dWFYhgN-QxTgmii1dtdrZak6mrbokKQngxqTVBt6LKUNdGhZsvtTABDvHZdhJujV7mo3H9RaqkJ3gecTXjkmyNG4iRFdBSedMU65exxQC7xZp8H9-4r_JocLivAcqQCWjMdZZ0PakyqtDENneEf4v1ixQXF32OaYWJWCkJgyYP0J2orpml9hiXY4zCbGrsBbTSJrtqHVyNYmL6LZVdMOX3BeVXdFeLs"/>
+</div>
+<div class="relative z-10 flex flex-col items-center text-center max-w-3xl px-6 py-12 bg-off-white/80 backdrop-blur-sm shadow-sm rounded-DEFAULT border border-outline-variant/30">
+<h1 class="font-headline-xl text-headline-xl text-monolith-black mb-6">Architectural Minimalism.</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-10 max-w-xl">
+                    Discover the new season's structural elegance. Footwear designed not just to be worn, but to define space and form.
+                </p>
+<a class="inline-flex items-center justify-center bg-monolith-black text-off-white font-label-caps text-label-caps h-14 px-10 hover:bg-inverse-surface transition-colors duration-300 w-full sm:w-auto" href="#new-arrivals">
+                    EXPLORE COLLECTION
+                </a>
+</div>
+</section>
+<!-- New Arrivals Section (Bento Grid) -->
+<section class="py-section-gap px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto" id="new-arrivals">
+<div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
+<div>
+<h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-monolith-black">New Arrivals</h2>
+<p class="font-body-md text-body-md text-secondary mt-2">The latest studies in form and function.</p>
+</div>
+<a class="font-label-caps text-label-caps text-monolith-black border-b border-monolith-black pb-1 hover:text-secondary hover:border-secondary transition-colors uppercase" href="#">View All</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<!-- Featured Large Item -->
+<a class="group md:col-span-8 flex flex-col relative overflow-hidden bg-surface-container-low h-[500px]" href="#">
+<img alt="Featured Shoe" class="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-[1.03]" data-alt="Close-up, top-down perspective of a sleek, structural white leather sandal resting on an immaculate, light grey marble surface. The lighting is bright, diffuse, and minimalist, eliminating harsh shadows to focus entirely on the crisp lines and high-quality material of the shoe. The overall vibe is premium, quiet luxury, and architectural simplicity, perfectly fitting a high-end boutique setting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBEFG8XQSpm0_KsAfkgv5ZQ9UfzzgmPpxk2m2qR6z7Do7ysu5d6NGlgI2-FeH1I4DlRiW9pROTRn3vR0S1yOlejsgarjy-XH2iqvhRtzpc7GRSAioDYph3_KQDEwlbKI90QLuTIYzIea81yFOZg6C710o8uLWZjZW_FxWJUOSy11y495DsfI8cZkxWfM6BQNoFLRzy_hhGI4fMnNCCrkL8wtIq02mjrmif1-oJhUzCjpA0_l7DIlTKQxHuGpVk0iAbL4rd_VGpj7nE"/>
+<div class="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-monolith-black/60 to-transparent">
+<h3 class="font-headline-md text-headline-md text-off-white">The Structural Mule</h3>
+<p class="font-price-display text-price-display text-surface-container mt-2">$420</p>
+</div>
+</a>
+<!-- Smaller Items -->
+<div class="md:col-span-4 flex flex-col gap-gutter">
+<a class="group flex-1 flex flex-col relative overflow-hidden bg-surface-container-low h-[238px]" href="#">
+<img alt="Shoe 2" class="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-[1.05]" data-alt="A solitary black ankle boot with a distinct, geometric block heel standing against a stark white studio backdrop. High-contrast, directional lighting highlights the subtle grain of the premium leather and the sharp architectural lines of the heel. The aesthetic is stark, minimalist, and deeply focused on the silhouette, reflecting a modern, fashion-forward sensibility." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBXzNSsd3LhhqCJei7LqKmZsZ_Ng9pDuDof47CL8s8B_TCds7l2pRHiGNMbFi_G6AhcEe2GHVxOmdjPUw_4fiGU3l0oHdzZSez_2NE6TcNxTy0bQxvQCcxoVB4BffwQW7jwwcmyRjkn1EuauirvmsPXXVg4lFv3WS4zNttoNWhLuQw2--7Zb966WfvQe06E9if_YXVqjEPWl6kAFWGDYBl7ZWA9G9AbWOiI2LD5WQlTdf1J1zjX25KNjct_QH-_48a8Gix5mkH5b_o"/>
+<div class="absolute inset-0 bg-surface-container/0 group-hover:bg-surface-container/10 transition-colors duration-300"></div>
+<div class="absolute bottom-4 left-4">
+<h4 class="font-label-caps text-label-caps text-off-white bg-monolith-black/70 px-2 py-1">Geometric Boot</h4>
+</div>
+</a>
+<a class="group flex-1 flex flex-col relative overflow-hidden bg-sand-nude h-[238px]" href="#">
+<img alt="Shoe 3" class="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-[1.05] mix-blend-multiply" data-alt="A pair of minimalist nude leather flats arranged asymmetrically on a soft, textured beige linen cloth. The lighting is warm, soft, and inviting, creating a tonal, low-contrast composition. The image exudes a sense of calm sophistication and high-end editorial styling, emphasizing natural materials and understated luxury." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCRIG2omt6EPHOjCnd6fQLo8w48755cGvKmaCieg-zCAzfh_hfWP23HIrwREziEVnxl47Sjzf-CNHS6JK7xmjnT5BMEV1x-oK7bXqbViEg0h6elxpUP_-JOpi4-6Y30ROaE2ySBM-TtXDsTziwADjdVuZJHJ6mkn3A40uk66v_fpwKOTaN93uelz0l80F2GqW_CwYvVx-QUPFLGcN9W68CBTpLCxghCCR3QrSOrkPCtsk05_oJsmtIkwRGvrSHG93L6HhSydiwf0gQ"/>
+<div class="absolute inset-0 bg-monolith-black/0 group-hover:bg-monolith-black/5 transition-colors duration-300"></div>
+<div class="absolute bottom-4 left-4">
+<h4 class="font-label-caps text-label-caps text-monolith-black bg-off-white/80 px-2 py-1">Linear Flat</h4>
+</div>
+</a>
+</div>
+</div>
+</section>
+<!-- Seasonal Trends (Asymmetric Layout) -->
+<section class="py-section-gap px-margin-mobile md:px-margin-desktop bg-surface-container-low">
+<div class="max-w-container-max mx-auto flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
+<div class="w-full lg:w-1/2 flex justify-center lg:justify-end relative">
+<!-- Abstract Background Element for depth -->
+<div class="absolute -inset-4 bg-sand-nude transform rotate-3 -z-10 rounded-lg"></div>
+<img alt="Seasonal Trend" class="w-full max-w-md h-auto object-cover rounded-DEFAULT shadow-sm" data-alt="An editorial shot of a woman's legs wearing structural black leather heels, walking on polished concrete. The composition is cropped below the knee to focus entirely on the footwear and movement. The lighting is dramatic, casting sharp, defined shadows that enhance the architectural lines of the shoes. The overall tone is edgy, modern, and high-fashion, emphasizing a confident, minimalist aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDGwm0N1C3M1qesJvNrxC0x7B46uMcYs5ooS6KaELIR_zVBW6rMGl-cswU1gls-y8O4XQaZmgJ-p8p1vKNU9Fmgnfqedqhs7UJegZ6pZnz8NTNN0PTX0zOqYHAdesbjRj-Vu3OGWsQvEVDGNh1AdZ2zt_zW_LLhmVGKpAhoRE5iuBvkurorjS8nXW11QVaAf0oo26ac0nWXxojz2dEHqJZQEvYmB9RtAWzhw4qQWGhUb41LnIXp5RLFSiL5P-wAq-DVtOtJbwqsujI"/>
+</div>
+<div class="w-full lg:w-1/2 flex flex-col items-start space-y-6">
+<span class="font-label-caps text-label-caps text-secondary tracking-widest uppercase">Trend Report</span>
+<h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-monolith-black leading-tight">
+                        The Return of Structure.
+                    </h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-lg">
+                        This season, we move away from the fluid and embrace the bold. Sharp angles, distinct block heels, and rigid, high-quality leathers define a collection that stands its ground. It is an exploration of power through restraint.
+                    </p>
+<a class="inline-flex items-center justify-center border border-monolith-black text-monolith-black font-label-caps text-label-caps h-14 px-8 mt-4 hover:bg-monolith-black hover:text-off-white transition-colors duration-300" href="#">
+                        SHOP THE TREND
+                    </a>
+</div>
+</div>
+</section>
+<!-- Minimalist Product Grid -->
+<section class="py-section-gap px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
+<h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-monolith-black text-center mb-16">Curated Selection</h2>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-x-gutter gap-y-16">
+<!-- Item 1 -->
+<div class="group flex flex-col">
+<div class="relative bg-surface-container-lowest aspect-[4/5] overflow-hidden mb-4 flex items-center justify-center">
+<img alt="Product 1" class="w-4/5 h-auto object-contain transition-transform duration-500 group-hover:scale-110" data-alt="A single, elegant white leather pump photographed in profile against a flawless white background. The lighting is studio-perfect, soft but illuminating, highlighting the smooth texture of the leather and the slender curve of the heel. The presentation is completely isolated and minimalist, resembling a product shot for a high-end luxury e-commerce site, focusing solely on the shoe's pure form." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCxt0xKD0xkmqYwRRkIppDgeQZ3WPwtuFrKTkUQIxT4SZxHzQsBb60vDyTIpmpWAr1ZPhShQRB4B9zrMt9qeDW-pKXgJ6_A_llefBCGknjvh5W16CxeZ8qJ1_H1SOaGc7S-SS2aQ-CHcsk-U3pdPEY876OIVxvLqlcupi4NSLtv5MfRI730RvZa3JSOKYgvss-UP6qya8SpNFI2X3qqd81K3FCP2tiJV_aFMKUzht4CV7MZCRmyBlEa3Xl9rosqlGitOkNiSFc-qYI"/>
+</div>
+<h3 class="font-body-md text-body-md text-monolith-black mb-1">The Curve Pump</h3>
+<p class="font-price-display text-price-display text-secondary">$380</p>
+</div>
+<!-- Item 2 -->
+<div class="group flex flex-col">
+<div class="relative bg-surface-container-lowest aspect-[4/5] overflow-hidden mb-4 flex items-center justify-center">
+<img alt="Product 2" class="w-4/5 h-auto object-contain transition-transform duration-500 group-hover:scale-110" data-alt="A pair of sleek, minimalist black leather slide sandals displayed on a muted, warm grey surface. The lighting is soft and directional from the top left, creating subtle drop shadows that ground the items. The styling is incredibly clean and uncluttered, adhering strictly to a modern architectural aesthetic where less is significantly more." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAm-b_UkyXIFnkffRbFd4Q2jMoZB8udNx41RC8LhmQzF4Tkik_RZyC0JOT2Vq9pBQ7jQMMPCztNoIqUXsTYrGh-27x-uP5C5U1MZngdjrOlsbU1HLkLd97vgdM4xvtjTgnM_EdKgWRiSMZcmQDBMcNCmu-whq2UgXXb-5u3u8WeFt5OBaBInjhUQO_OTdeNEKT2XQjYzxmrq_rPv7vfUsKRc48UWGSR1KvOh7lLJefveIcxzZkDGlmyj0FeSZFVxlfbGRQ1Xe3ZBXE"/>
+</div>
+<h3 class="font-body-md text-body-md text-monolith-black mb-1">Essential Slide</h3>
+<p class="font-price-display text-price-display text-secondary">$290</p>
+</div>
+<!-- Item 3 -->
+<div class="group flex flex-col">
+<div class="relative bg-surface-container-lowest aspect-[4/5] overflow-hidden mb-4 flex items-center justify-center">
+<img alt="Product 3" class="w-4/5 h-auto object-contain transition-transform duration-500 group-hover:scale-110" data-alt="An avant-garde, asymmetrical leather heel in a striking sand nude tone, standing alone on a pristine white surface. The camera angle is slightly low, emphasizing the architectural construction of the shoe. The lighting is high-key and crisp, reinforcing a clinical yet luxurious modern art gallery vibe." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCx4c6jBNEyuX3dEfG25uOXralfIytK9hLBfonPadjLJ3GR3lar2gRDkSd3FRVLeqkqyVo2I2JZnq2DO1JILgjdtr7rLWfQcfTqE1vGlgWrkNCfUsf0mjbik0ScLmcN_E-OH-oJdMZO-82m26ECijSXAkxKPyQVm56n0j0cnZYr-B0oY8HuQg1MfEtc9888y1vatlfFcQlm-t15SgzhfQuIbzmagxJ87lKz7B3PZsJbCyI5sCb01wfPMzvw1kQC_Ffe5EZEw1lc2UI"/>
+</div>
+<h3 class="font-body-md text-body-md text-monolith-black mb-1">Asymmetric Mule</h3>
+<p class="font-price-display text-price-display text-secondary">$450</p>
+</div>
+<!-- Item 4 -->
+<div class="group flex flex-col">
+<div class="relative bg-surface-container-lowest aspect-[4/5] overflow-hidden mb-4 flex items-center justify-center">
+<img alt="Product 4" class="w-4/5 h-auto object-contain transition-transform duration-500 group-hover:scale-110" data-alt="A classic, streamlined loafer in dark monolith black leather, presented on a light, contrasting beige background. The image is sharply focused with high clarity, showing the fine stitching and premium finish of the material. The aesthetic is timeless, minimalist, and structurally sound, perfect for a high-end footwear boutique." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCRRxwTQrL40_JwN0Tz117irSGAChNuHZRa8dqdfYEEh2DK_Cdgz5znDmRq_sJnQ2M8w77QZWkd9k29N1kMpx7WK0iQkdPiy03yWnxjMOQ6iR9p34GsIX8JhFTsFkFbwuw9y3Vpy03KXv4wwN0fCSZ4iPGmXXCGEMm8XBjBmxG0IkFam3WZKxAGgk_oUlxDLJ8mbpRsfbEE6vGgvw6u71Lbl8CNxN58G4AAIR_C8IzS1VPUux7-qWTHOoTTtviD9Zb_dxYxiCTETx8"/>
+</div>
+<h3 class="font-body-md text-body-md text-monolith-black mb-1">Structured Loafer</h3>
+<p class="font-price-display text-price-display text-secondary">$340</p>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer Shared Component -->
+<footer class="bg-surface-container dark:bg-monolith-black full-width mt-section-gap border-t border-outline-variant flat no shadows">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-gutter px-margin-mobile md:px-margin-desktop py-section-gap w-full max-w-container-max mx-auto text-secondary dark:text-secondary-fixed-dim font-body-md text-body-md">
+<!-- Brand Column -->
+<div class="md:col-span-1 flex flex-col mb-8 md:mb-0">
+<span class="font-headline-md text-headline-md text-monolith-black dark:text-off-white mb-6">Ram;Lop</span>
+<p class="text-sm max-w-xs">Footwear designed for the modern structuralist. Form, function, and absolute minimal execution.</p>
+</div>
+<!-- Links Columns -->
+<div class="md:col-span-2 grid grid-cols-2 gap-8">
+<div class="flex flex-col space-y-4">
+<a class="hover:text-monolith-black dark:hover:text-off-white transition-colors" href="#">Sustainability</a>
+<a class="hover:text-monolith-black dark:hover:text-off-white transition-colors" href="#">Shipping &amp; Returns</a>
+<a class="hover:text-monolith-black dark:hover:text-off-white transition-colors" href="#">Boutique Locator</a>
+</div>
+<div class="flex flex-col space-y-4">
+<a class="hover:text-monolith-black dark:hover:text-off-white transition-colors" href="#">Contact Us</a>
+<a class="hover:text-monolith-black dark:hover:text-off-white transition-colors" href="#">Size Guide</a>
+<a class="hover:text-monolith-black dark:hover:text-off-white transition-colors" href="#">Privacy Policy</a>
+</div>
+</div>
+<!-- Newsletter / Utility -->
+<div class="md:col-span-1 flex flex-col mt-8 md:mt-0">
+<span class="font-label-caps text-label-caps text-monolith-black dark:text-off-white mb-4 uppercase">Join the Atelier</span>
+<div class="relative w-full border-b border-monolith-black dark:border-off-white mb-4">
+<input class="w-full bg-transparent border-none focus:ring-0 px-0 py-2 text-monolith-black dark:text-off-white placeholder:text-secondary focus:outline-none" placeholder="Email Address" type="email"/>
+<button class="absolute right-0 top-1/2 transform -translate-y-1/2 text-monolith-black dark:text-off-white hover:opacity-70 transition-opacity">
+<span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Copyright -->
+<div class="md:col-span-4 mt-16 pt-8 border-t border-outline-variant/30 text-xs">
+                © 2024 Ram;Lop. Architectural Minimalism in Footwear.
+            </div>
+</div>
+</footer>
+<script>
+        // Simple JS for TopNav scroll effect (tonal shift instead of shadow per guidelines)
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('topNav');
+            if (window.scrollY > 50) {
+                nav.classList.add('bg-surface-container-low');
+                nav.classList.remove('bg-background');
+            } else {
+                nav.classList.add('bg-background');
+                nav.classList.remove('bg-surface-container-low');
+            }
+        });
+    </script>
+</body></html>

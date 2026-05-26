@@ -1,0 +1,165 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Navbar from "../components/organisms/Navbar.astro";
+import Footer from "../components/organisms/Footer.astro";
+import { getProducts } from "../lib/storage";
+
+const products = await getProducts();
+const sizes = ["36", "37", "38", "39", "40", "41"];
+const colorSwatches = [
+  { label: "Negro", hex: "#1A1A1A" },
+  { label: "Blanco", hex: "#FFFFFF" },
+  { label: "Nude", hex: "#E6DED5" },
+  { label: "Arcilla", hex: "#C18C7E" },
+];
+const styles = [
+  "Stiletto (12)",
+  "Bloque Arquitectónico (8)",
+  "Kitten Heel (5)",
+  "Plataforma Oculta (3)",
+];
+
+const catalogImages: Record<string, string> = {
+  "stiletto-noir-arquitectonico": "https://lh3.googleusercontent.com/aida-public/AB6AXuCIXki_ASRvr0sIaNnU3klHmxsDj--1qvbfsAChqFQ9RwzVSCu9OTyPfHuGKI1Sx9dOTpuNuKM3sb3ZgW89BMGNRxsbL-w2gq1KrA3yeIWgM7yYh-wMMh-NILzLX45hBJhjKEZ93p3LW4ZUmx9B9f32yT1P9BtYpg1YsKvgeTMJU9MmFTGpYAv6-o_HyzZQO2fSEQnBEPLqe5QQehTzQqb_0a9O8KX0Uy-sicxqtLED_M08KeWeVbp2q-MPm8TigQlfL0ouBO4Vkvk",
+  "sandalia-estructural-nude": "https://lh3.googleusercontent.com/aida-public/AB6AXuAbe16VahpLX4AfiNec2byy0VDJyND8lUdvz92f8mo7WakVHJliPkQexahO33-HQJdPe84Z5BxzN6horZcZ_Dbcd37PWP6jcz15e1tarjxXeIXNf-qjagc5edt_EJbZdFzGmqzxfdOAQQrKjVLhj7eVotS4JCuofrLxGoLszSF_d8ZNdkkyOpL581b3VOQwTtIB295jUlNscJTFhEE6Oktnd_M1KAoUWs0xEEdYzWrhI6sP4ZDygHva0YEaSkj_isvWO0kC5MmAmds",
+  "pump-clasico-punta-fina": "https://lh3.googleusercontent.com/aida-public/AB6AXuCDm5uJWeSmAe1bA-T7Nf6NjlNbJUHd1RjwlW0CF22BICsopWS1PDbEvVOCUSAFGj_Fo7G4Jwcn9Gh1eUlbJqhRL3eaw_gQ8imm6Eeyu703PKDVldxmXUil97xH8jDyHlL4BgsG-Rm27TitYFNOLDqua3do1ebwntmpllYFefdeoaRCFaNBQBDvmIflKFXAx-bJYzNSQ1h0HcgXYygjkI7qnmeagYg-oTgLuTvcC6hn8t3lMPzDjOmOoKczyQ998UkeLFufQ4C3A4Y",
+  "mule-bloque-geometrico": "https://lh3.googleusercontent.com/aida-public/AB6AXuCyHi_wza-jG_CAZUh-lxz7ElSIquS-IxuZnB2Z_W30ijD5_Ngs74qSShI5_uhnZ7vi93Zl9-h3zLvSAqr76jwaUCBnNdCTO1iEtUGl6XhM_fdnTKHycJ9xuLa_rr8BoghtRy_1IkWVMO-2sZ0oJJNAgHMvPzrOFElCoOsujgK2pupRjxyHUcjp7rZPfk34DM_GLWq8RSFLmqSnMOS3DlKdRecK8SNTRE4CrJllx4r7LN9yK5_FiCxq1K-_1ZiF-J3XedkYYE6rq2s",
+  "kitten-heel-minimal": "https://lh3.googleusercontent.com/aida-public/AB6AXuDmdrSyVydSOlkNMUnjXQIO13yI5zwsWQIr597jPClPrtHKUKtfZj1_P1zFYCnoiVwnzcUjtasdAM1FkrauOOIekaPpK6eM8Y2KAveepXLNdQBkiIeqIisbUIr8yREFCtP00RLbH_t0QCtRkRzhhbHHzzSfViuO9PkWRgVJIswpnxinWtgnsWv2M5yXcHo8Dc9bomWmgihtvGvJxPhcRxjo3Y4sq4xVgffnkHF_3uJvWFJ5CYF8nE9HsgYWX9jX1zgEkapvBAYEUio",
+  "sandalia-jaula-arquitectonica": "https://lh3.googleusercontent.com/aida-public/AB6AXuDk0cK0fLk0KiNb0oURJ6WBFR9qRecCH3dBRICb_eXMOn_aojqhugiy1kGEPYaLPjKKVDEZwCEOM5v5fJdJ1wIyJC8mhnOicVNH-yXWVdpESXMWi1TZR1mBlkdZnnf-ij_AelJEGjR7NmBDqHytbkX3zdgNZYWD9B-L88ZJRwuK0Kv-NqWgMnX-Yo6k2C_gZm-8JHuCb-WUlw7TFEjPHbeigJuwx577ifDxFCLlowwB4Wf9V1H0rHxJgpMHU-hGNtKyJAOqoSVaiNY",
+};
+---
+
+<BaseLayout title="Catálogo — Colección Heels">
+  <Navbar />
+  <main class="w-full max-w-container-max mx-auto pt-12 pb-section-gap">
+    <div class="px-margin-mobile md:px-margin-desktop mb-16 text-center md:text-left">
+      <nav class="flex items-center gap-2 font-label-caps text-label-caps text-secondary mb-4 justify-center md:justify-start">
+        <a href="/" class="hover:text-monolith-black transition-colors">INICIO</a>
+        <span>/</span>
+        <a href="/catalogo" class="hover:text-monolith-black transition-colors">COLECCIÓN</a>
+        <span>/</span>
+        <span class="text-monolith-black">HEELS</span>
+      </nav>
+      <h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-monolith-black mb-4">La Colección Heels</h1>
+      <p class="font-body-md text-body-md text-secondary max-w-2xl mx-auto md:mx-0">
+        Líneas puras, siluetas estructurales y elevación minimalista. Descubre nuestra selección de tacones diseñados con precisión arquitectónica para la mujer contemporánea.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter px-margin-mobile md:px-margin-desktop relative">
+      <aside class="hidden lg:block lg:col-span-3 pr-8 sticky top-32 h-fit">
+        <div class="mb-10 pb-10 border-b border-surface-variant">
+          <h3 class="font-label-caps text-label-caps text-monolith-black mb-6">TALLA</h3>
+          <div class="grid grid-cols-4 gap-2">
+            {sizes.map((size, i) => (
+              i === 5 ? (
+                <button class="h-10 border border-outline-variant flex items-center justify-center font-body-md text-body-md text-secondary opacity-50 cursor-not-allowed">{size}</button>
+              ) : i === 1 ? (
+                <button class="h-10 border border-monolith-black bg-sand-nude flex items-center justify-center font-body-md text-body-md text-monolith-black transition-colors">{size}</button>
+              ) : (
+                <button class="h-10 border border-outline-variant flex items-center justify-center font-body-md text-body-md text-secondary hover:border-monolith-black hover:text-monolith-black transition-colors">{size}</button>
+              )
+            ))}
+          </div>
+        </div>
+
+        <div class="mb-10 pb-10 border-b border-surface-variant">
+          <h3 class="font-label-caps text-label-caps text-monolith-black mb-6">COLOR</h3>
+          <div class="flex flex-wrap gap-4">
+            {colorSwatches.map((swatch, i) => (
+              <button aria-label={swatch.label}
+                class={`w-8 h-8 rounded-full border-2 ${i === 0 ? "border-off-white ring-1 ring-monolith-black" : "border-surface-variant hover:ring-1 hover:ring-monolith-black"} transition-all`}
+                style={`background-color: ${swatch.hex}`}
+              ></button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <h3 class="font-label-caps text-label-caps text-monolith-black mb-6">ESTILO</h3>
+          <div class="flex flex-col gap-4">
+            {styles.map((style, i) => (
+              <label class="flex items-center gap-3 cursor-pointer group">
+                <input type="checkbox" checked={i === 0}
+                  class="minimal-checkbox"
+                />
+                <span class="font-body-md text-body-md text-secondary group-hover:text-monolith-black transition-colors">{style}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      </aside>
+
+      <div class="col-span-1 lg:col-span-9">
+        <div class="lg:hidden flex justify-between items-center mb-6 pb-4 border-b border-surface-variant">
+          <span class="font-body-md text-body-md text-secondary">{products.length} Resultados</span>
+          <button class="flex items-center gap-2 font-label-caps text-label-caps text-monolith-black">
+            FILTRAR
+            <span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 0;">tune</span>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-x-gutter gap-y-12">
+          {products.map((product) => {
+            const catImg = catalogImages[product.slug];
+            return (
+              <a href={`/producto/${product.slug}`} class="group flex flex-col cursor-pointer">
+                <div class="aspect-[4/5] bg-surface-container mb-4 overflow-hidden relative">
+                  <div class="absolute inset-0 bg-sand-nude/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10 pointer-events-none"></div>
+                  <img src={catImg || product.images[0]} alt={product.name} class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out" loading="lazy" />
+                  <div class="absolute bottom-4 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20 hidden md:block">
+                    <span class="bg-off-white/90 backdrop-blur-sm px-6 py-2 font-label-caps text-label-caps text-monolith-black hover:bg-monolith-black hover:text-off-white transition-colors border border-outline-variant inline-block">VISTA RÁPIDA</span>
+                  </div>
+                </div>
+                <h3 class="font-body-md text-body-md text-monolith-black">{product.name}</h3>
+                <p class="font-price-display text-price-display text-secondary mt-1">${product.price.toFixed(2)}</p>
+                {product.colors.length > 0 && (
+                  <div class="flex gap-2 mt-3">
+                    {product.colors.map((c) => (
+                      <span class="w-3 h-3 rounded-full border border-surface-variant" style={`background-color: ${c.hex}`}></span>
+                    ))}
+                  </div>
+                )}
+              </a>
+            );
+          })}
+        </div>
+
+        <div class="mt-16 text-center">
+          <button class="bg-monolith-black text-on-primary font-label-caps text-label-caps h-14 px-12 hover:bg-surface-tint transition-colors w-full md:w-auto">
+            CARGAR MÁS PRODUCTOS
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+  <Footer />
+</BaseLayout>
+
+<style>
+  .minimal-checkbox {
+    appearance: none;
+    background-color: transparent;
+    margin: 0;
+    font: inherit;
+    color: currentColor;
+    width: 16px;
+    height: 16px;
+    border: 1px solid var(--tw-border-outline-variant, #c4c7c7);
+    display: grid;
+    place-content: center;
+    cursor: pointer;
+  }
+  .minimal-checkbox::before {
+    content: "";
+    width: 10px;
+    height: 10px;
+    transform: scale(0);
+    transition: 120ms transform ease-in-out;
+    background-color: var(--tw-bg-monolith-black, #1A1A1A);
+    clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+  }
+  .minimal-checkbox:checked::before {
+    transform: scale(1);
+  }
+</style>

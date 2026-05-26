@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Carrito de Compras - Ram;Lop</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;700&amp;family=Playfair+Display:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed-dim": "#cdc5bd",
+                        "surface-variant": "#e3e2e1",
+                        "inverse-primary": "#c8c6c5",
+                        "surface-container": "#eeeeed",
+                        "on-primary-fixed": "#1c1b1b",
+                        "background": "#faf9f8",
+                        "error": "#ba1a1a",
+                        "surface-container-low": "#f4f3f2",
+                        "outline-variant": "#c4c7c7",
+                        "primary-fixed": "#e5e2e1",
+                        "surface-tint": "#5f5e5e",
+                        "surface-bright": "#faf9f8",
+                        "tertiary-fixed": "#ffdbd1",
+                        "surface-dim": "#dadad9",
+                        "on-background": "#1a1c1c",
+                        "surface-container-highest": "#e3e2e1",
+                        "on-surface": "#1a1c1c",
+                        "stone-gray": "#9A9A9A",
+                        "clay-accent": "#C18C7E",
+                        "on-error": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "secondary-container": "#e6ded5",
+                        "sand-nude": "#E6DED5",
+                        "on-secondary-container": "#67625b",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-container": "#32120a",
+                        "primary-container": "#1c1b1b",
+                        "tertiary": "#000000",
+                        "error-container": "#ffdad6",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-container": "#aa786a",
+                        "on-secondary-fixed-variant": "#4b4640",
+                        "primary-fixed-dim": "#c8c6c5",
+                        "on-tertiary-fixed-variant": "#653c31",
+                        "monolith-black": "#1A1A1A",
+                        "on-tertiary-fixed": "#32120a",
+                        "secondary-fixed": "#e9e1d8",
+                        "on-surface-variant": "#444748",
+                        "primary": "#000000",
+                        "on-secondary-fixed": "#1e1b16",
+                        "on-primary-container": "#858383",
+                        "outline": "#747878",
+                        "inverse-surface": "#2f3130",
+                        "tertiary-fixed-dim": "#f3b9aa",
+                        "off-white": "#FFFFFF",
+                        "on-primary": "#ffffff",
+                        "surface": "#faf9f8",
+                        "secondary": "#635e57",
+                        "on-primary-fixed-variant": "#474746",
+                        "inverse-on-surface": "#f1f0ef",
+                        "on-error-container": "#93000a",
+                        "surface-container-high": "#e9e8e7"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "gutter": "24px",
+                        "unit": "8px",
+                        "container-max": "1440px",
+                        "margin-desktop": "80px",
+                        "margin-mobile": "20px",
+                        "section-gap": "120px"
+                    },
+                    "fontFamily": {
+                        "headline-xl": ["Playfair Display"],
+                        "price-display": ["Hanken Grotesk"],
+                        "headline-lg-mobile": ["Playfair Display"],
+                        "headline-lg": ["Playfair Display"],
+                        "body-md": ["Hanken Grotesk"],
+                        "body-lg": ["Hanken Grotesk"],
+                        "headline-md": ["Playfair Display"],
+                        "label-caps": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "headline-xl": ["64px", { "lineHeight": "72px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "price-display": ["20px", { "lineHeight": "24px", "fontWeight": "500" }],
+                        "headline-lg-mobile": ["32px", { "lineHeight": "40px", "fontWeight": "600" }],
+                        "headline-lg": ["40px", { "lineHeight": "48px", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "500" }],
+                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col font-body-md antialiased">
+<!-- TopNavBar -->
+<nav class="bg-background dark:bg-background docked full-width top-0 z-50">
+<div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop py-6 max-w-container-max mx-auto bg-sand-nude dark:bg-monolith-black">
+<!-- Brand -->
+<a class="font-headline-md text-headline-md tracking-tighter text-monolith-black dark:text-off-white" href="#">Ram;Lop</a>
+<!-- Navigation Links (Desktop) -->
+<div class="hidden md:flex items-center space-x-gutter">
+<a class="font-label-caps text-label-caps text-secondary hover:text-primary transition-colors hover:opacity-70 transition-opacity" href="#">SANDALS</a>
+<a class="font-label-caps text-label-caps text-secondary hover:text-primary transition-colors hover:opacity-70 transition-opacity" href="#">HEELS</a>
+<a class="font-label-caps text-label-caps text-secondary hover:text-primary transition-colors hover:opacity-70 transition-opacity" href="#">NEW ARRIVALS</a>
+<a class="font-label-caps text-label-caps text-secondary hover:text-primary transition-colors hover:opacity-70 transition-opacity" href="#">BOOTS</a>
+<a class="font-label-caps text-label-caps text-secondary hover:text-primary transition-colors hover:opacity-70 transition-opacity" href="#">FLATS</a>
+</div>
+<!-- Actions -->
+<div class="flex items-center space-x-4">
+<button class="text-primary dark:text-on-background hover:opacity-70 transition-opacity" data-icon="search">
+<span class="material-symbols-outlined">search</span>
+</button>
+<button class="text-primary dark:text-on-background hover:opacity-70 transition-opacity" data-icon="person">
+<span class="material-symbols-outlined">person</span>
+</button>
+<button class="text-primary border-b-2 border-primary pb-1 dark:text-on-background hover:opacity-70 transition-opacity scale-95 duration-200" data-icon="shopping_bag">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">shopping_bag</span>
+</button>
+</div>
+</div>
+</nav>
+<!-- Main Content -->
+<main class="flex-grow w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-section-gap">
+<div class="mb-gutter">
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg mb-unit">Your Cart</h1>
+<p class="font-body-md text-body-md text-secondary">Review your selected items before proceeding to checkout.</p>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<!-- Cart Items List -->
+<div class="lg:col-span-8 flex flex-col gap-6">
+<!-- Item 1 -->
+<div class="flex gap-6 items-start pb-6 border-b border-outline-variant/30">
+<div class="w-32 h-40 bg-surface-container overflow-hidden shrink-0">
+<img alt="Stiletto Heels" class="w-full h-full object-cover" data-alt="A pair of elegant black stiletto heels photographed in a minimalist, high-end studio setting. The lighting is soft and bright, casting subtle shadows on a pristine white background. The focus is entirely on the sleek architectural lines of the footwear, embodying a luxurious, modern aesthetic typical of a premium boutique." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAOl0RnMHBcj_hVts-U-miZkKAedvVeFrbnJOQpYkYI9GkqEuV7dJe7QAMQQTg_Decv57zYF6I9Kguts0SGgGlQKIE2tlmfP1HErlORC7ZDnviFsSSPdr-aP_pynY9-4SvPA-U_9nYtfXRyeshBqrQfKMpFIbEVO47jXJ6MgLWcnhqjpChy9_x-hypykt8TANDlZ0-pTJOove9sZjmIssCHFF81nQcLFafDdxvdzlZp-o8vKzMYejEE_JA6_-HPcGdKzuaVnmHUD1Y"/>
+</div>
+<div class="flex-grow flex flex-col justify-between h-full">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-headline-md text-headline-md mb-1">Architectural Stiletto</h3>
+<p class="font-body-md text-body-md text-secondary mb-2">Black / Size 38</p>
+</div>
+<span class="font-price-display text-price-display">$450.00</span>
+</div>
+<div class="flex justify-between items-end mt-4">
+<div class="flex items-center border-b border-monolith-black pb-1 w-24 justify-between">
+<button class="text-secondary hover:text-primary transition-colors"><span class="material-symbols-outlined text-sm">remove</span></button>
+<span class="font-body-md text-body-md">1</span>
+<button class="text-secondary hover:text-primary transition-colors"><span class="material-symbols-outlined text-sm">add</span></button>
+</div>
+<button class="font-label-caps text-label-caps text-secondary hover:text-error transition-colors">REMOVE</button>
+</div>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="flex gap-6 items-start pb-6 border-b border-outline-variant/30">
+<div class="w-32 h-40 bg-surface-container overflow-hidden shrink-0">
+<img alt="Minimalist Sneakers" class="w-full h-full object-cover" data-alt="A pair of clean, minimalist white sneakers displayed on a smooth sand-nude colored plinth. The lighting is highly controlled, creating a soft, gallery-like atmosphere that highlights the premium materials and simple geometry of the shoes. The overall mood is calm, modern, and fashion-forward, avoiding any clutter." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDXhrdFhaduB1ZJGQ10Hpu_MTZQjacUqKvE3WTPzIS_qZqGBfXpjkZyUZ2HWjjVGi3CqmqShLdIZb4bntjE8RoWzvlI4tJ46mEe9uBrxNjJV1AGKlTbnmu6KURlL_f7MDRmU2m4IvIObrSms1PlYwuWv2AM7EZCS4jlGygKcR86pCosZWcsGyi4OdlyCydtaJ_BF2Ty2-MgxhRtHZJoL2l0BqC7d-6DaY8w55Lrewg2PdtpDG6wCFoEhivA8jQWx_vzeu1vsRvTSSs"/>
+</div>
+<div class="flex-grow flex flex-col justify-between h-full">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-headline-md text-headline-md mb-1">Gallery Platform</h3>
+<p class="font-body-md text-body-md text-secondary mb-2">Off-White / Size 39</p>
+</div>
+<span class="font-price-display text-price-display">$320.00</span>
+</div>
+<div class="flex justify-between items-end mt-4">
+<div class="flex items-center border-b border-monolith-black pb-1 w-24 justify-between">
+<button class="text-secondary hover:text-primary transition-colors"><span class="material-symbols-outlined text-sm">remove</span></button>
+<span class="font-body-md text-body-md">1</span>
+<button class="text-secondary hover:text-primary transition-colors"><span class="material-symbols-outlined text-sm">add</span></button>
+</div>
+<button class="font-label-caps text-label-caps text-secondary hover:text-error transition-colors">REMOVE</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Order Summary -->
+<div class="lg:col-span-4 mt-8 lg:mt-0">
+<div class="bg-surface-container-low p-6 flex flex-col h-full">
+<h2 class="font-headline-md text-headline-md mb-6 border-b border-outline-variant/30 pb-4">Order Summary</h2>
+<div class="space-y-4 mb-8 flex-grow">
+<div class="flex justify-between">
+<span class="font-body-md text-body-md text-secondary">Subtotal</span>
+<span class="font-price-display text-price-display text-base">$770.00</span>
+</div>
+<div class="flex justify-between">
+<span class="font-body-md text-body-md text-secondary">Estimated Shipping</span>
+<span class="font-body-md text-body-md">Calculated at checkout</span>
+</div>
+<div class="flex justify-between">
+<span class="font-body-md text-body-md text-secondary">Taxes</span>
+<span class="font-body-md text-body-md">Calculated at checkout</span>
+</div>
+</div>
+<div class="border-t border-outline-variant/30 pt-6 mb-8">
+<div class="flex justify-between items-center mb-6">
+<span class="font-headline-md text-headline-md">Total</span>
+<span class="font-price-display text-price-display text-2xl">$770.00</span>
+</div>
+<button class="w-full bg-monolith-black text-on-primary font-label-caps text-label-caps py-4 min-h-[56px] hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+                            PROCEED TO CHECKOUT
+                            <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+<div class="mt-auto text-center">
+<p class="font-body-md text-body-md text-secondary text-sm flex items-center justify-center gap-1">
+<span class="material-symbols-outlined text-sm">lock</span> Secure checkout
+                        </p>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container dark:bg-monolith-black full-width mt-section-gap border-t border-outline-variant">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-gutter px-margin-mobile md:px-margin-desktop py-section-gap w-full max-w-container-max mx-auto">
+<div class="col-span-1 md:col-span-4 mb-8">
+<span class="font-headline-md text-headline-md text-monolith-black dark:text-off-white">Ram;Lop</span>
+</div>
+<div class="col-span-1 md:col-span-3 grid grid-cols-2 md:grid-cols-3 gap-8">
+<div class="flex flex-col space-y-4">
+<a class="font-body-md text-body-md text-secondary hover:text-monolith-black dark:hover:text-off-white transition-colors" href="#">Sustainability</a>
+<a class="font-body-md text-body-md text-secondary hover:text-monolith-black dark:hover:text-off-white transition-colors" href="#">Shipping &amp; Returns</a>
+</div>
+<div class="flex flex-col space-y-4">
+<a class="font-body-md text-body-md text-secondary hover:text-monolith-black dark:hover:text-off-white transition-colors" href="#">Boutique Locator</a>
+<a class="font-body-md text-body-md text-secondary hover:text-monolith-black dark:hover:text-off-white transition-colors" href="#">Contact Us</a>
+</div>
+<div class="flex flex-col space-y-4">
+<a class="font-body-md text-body-md text-secondary hover:text-monolith-black dark:hover:text-off-white transition-colors" href="#">Size Guide</a>
+<a class="font-body-md text-body-md text-secondary hover:text-monolith-black dark:hover:text-off-white transition-colors" href="#">Privacy Policy</a>
+</div>
+</div>
+<div class="col-span-1 md:col-span-4 mt-12 pt-8 border-t border-outline-variant/30">
+<p class="font-body-md text-body-md text-secondary dark:text-secondary-fixed-dim">© 2024 Ram;Lop. Architectural Minimalism in Footwear.</p>
+</div>
+</div>
+</footer>
+</body></html>

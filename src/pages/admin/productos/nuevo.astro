@@ -1,0 +1,74 @@
+---
+import AdminLayout from "../layout.astro";
+import Button from "../../../components/atoms/Button.astro";
+---
+
+<AdminLayout title="Nuevo Producto">
+  <form class="max-w-2xl flex flex-col gap-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="md:col-span-2">
+        <label class="font-label-caps text-label-caps text-secondary block mb-2">NOMBRE DEL PRODUCTO</label>
+        <input type="text" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none" />
+      </div>
+      <div class="md:col-span-2">
+        <label class="font-label-caps text-label-caps text-secondary block mb-2">DESCRIPCIÓN</label>
+        <textarea class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-monolith-black focus:outline-none resize-none h-32"></textarea>
+      </div>
+      <div>
+        <label class="font-label-caps text-label-caps text-secondary block mb-2">PRECIO (USD)</label>
+        <input type="number" step="0.01" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none" />
+      </div>
+      <div>
+        <label class="font-label-caps text-label-caps text-secondary block mb-2">CATEGORÍA</label>
+        <select class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none">
+          <option>Heels</option>
+          <option>Sandals</option>
+          <option>Mules</option>
+          <option>Boots</option>
+          <option>Flats</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Images -->
+    <div>
+      <label class="font-label-caps text-label-caps text-secondary block mb-2">IMÁGENES (ImageKit)</label>
+      <div class="border-2 border-dashed border-outline-variant p-12 text-center hover:border-monolith-black transition-colors cursor-pointer">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 mx-auto mb-2 text-secondary" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14M5 12h14" />
+        </svg>
+        <p class="font-body text-body-md text-secondary">Click to upload or drag &amp; drop</p>
+      </div>
+    </div>
+
+    <!-- Sizes & Stock -->
+    <div>
+      <label class="font-label-caps text-label-caps text-secondary block mb-2">TALLES Y STOCK</label>
+      <div class="grid grid-cols-4 gap-4">
+        {["36", "37", "38", "39", "40", "41"].map((size) => (
+          <div class="flex items-center gap-2">
+            <span class="font-body text-body-md w-8">{size}</span>
+            <input type="number" min="0" value="0" class="w-full bg-transparent border-b border-outline pb-1 text-monolith-black focus:border-monolith-black focus:outline-none text-center" />
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <!-- Colors -->
+    <div>
+      <label class="font-label-caps text-label-caps text-secondary block mb-2">COLORES DISPONIBLES</label>
+      <div class="flex gap-4">
+        {["#1A1A1A", "#FFFFFF", "#E6DED5", "#C18C7E"].map((hex) => (
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" class="accent-monolith-black" />
+            <span class="w-5 h-5 rounded-full" style={`background-color: ${hex}`}></span>
+          </label>
+        ))}
+      </div>
+    </div>
+
+    <div class="pt-4 border-t border-outline-variant">
+      <Button variant="primary" class="px-12">GUARDAR PRODUCTO</Button>
+    </div>
+  </form>
+</AdminLayout>
