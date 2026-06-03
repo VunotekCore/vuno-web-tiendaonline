@@ -3,14 +3,12 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import Navbar from "../components/organisms/Navbar.astro";
 import Footer from "../components/organisms/Footer.astro";
 import Button from "../components/atoms/Button.astro";
-
 ---
-
 
 <BaseLayout title="Checkout | Ram;Lop">
   <Navbar />
   <main class="flex-grow w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-section-gap">
-    <h1 class="font-headline text-headline-lg-mobile md:text-headline-lg text-headline-lg-mobile md:text-headline-lg mb-12">Checkout</h1>
+    <h1 class="font-headline text-headline-lg-mobile md:text-headline-lg mb-12">Checkout</h1>
 
     <div id="emptyCart" class="hidden text-center py-20">
       <p class="font-body text-body-lg text-secondary mb-6">Your cart is empty. Add some items before checkout.</p>
@@ -45,30 +43,52 @@ import Button from "../components/atoms/Button.astro";
           </div>
         </div>
 
-        <div>
+        <div id="paymentSection">
           <h2 class="font-headline text-headline-md mb-6">Payment Method</h2>
+          <div id="noPaymentMethods" class="hidden font-body text-body-md text-error bg-error/10 p-3 text-center">No payment methods are currently available. Please try again later.</div>
           <div id="paymentError" class="hidden font-body text-body-md text-error bg-error/10 p-3 mb-4 text-center"></div>
-          <div class="flex flex-col gap-4">
-            <label class="flex items-center gap-4 p-4 border border-outline-variant cursor-pointer hover:border-monolith-black transition-colors has-checked:border-monolith-black has-checked:bg-monolith-black/5">
-              <input type="radio" name="payment" value="stripe" checked class="accent-monolith-black" />
-              <div>
-                <span class="font-label-caps text-label-caps text-monolith-black block">Credit Card (Stripe)</span>
-                <span class="font-body text-body-md text-secondary">Pay securely with Visa, Mastercard, or Amex</span>
+          <div id="cardErrors" class="hidden font-body text-body-md text-error bg-error/10 p-3 mb-4 text-center"></div>
+          <div id="paymentMethods" class="flex flex-col gap-4">
+            <div id="stripeOption" class="hidden">
+              <label class="flex items-center gap-4 p-4 border border-outline-variant cursor-pointer hover:border-monolith-black transition-colors has-checked:border-monolith-black has-checked:bg-monolith-black/5">
+                <input type="radio" name="payment" value="stripe" class="accent-monolith-black" />
+                <div>
+                  <span class="font-label-caps text-label-caps text-monolith-black block">Credit Card (Stripe)</span>
+                  <span class="font-body text-body-md text-secondary">Pay securely with Visa, Mastercard, or Amex</span>
+                </div>
+              </label>
+              <div id="stripeCardElement" class="hidden pl-14 pr-4 pb-4 border-l-2 border-monolith-black">
+                <div id="cardElement" class="py-3 px-4 border border-outline-variant bg-white rounded"></div>
               </div>
-            </label>
-            <label class="flex items-center gap-4 p-4 border border-outline-variant cursor-pointer hover:border-monolith-black transition-colors has-checked:border-monolith-black has-checked:bg-monolith-black/5">
-              <input type="radio" name="payment" value="transfer" class="accent-monolith-black" />
-              <div>
-                <span class="font-label-caps text-label-caps text-monolith-black block">Bank Transfer</span>
-                <span class="font-body text-body-md text-secondary">Pay via wire transfer. Upload your payment receipt after placing the order.</span>
-              </div>
-            </label>
+            </div>
+            <div id="transferOption" class="hidden">
+              <label class="flex items-center gap-4 p-4 border border-outline-variant cursor-pointer hover:border-monolith-black transition-colors has-checked:border-monolith-black has-checked:bg-monolith-black/5">
+                <input type="radio" name="payment" value="transfer" class="accent-monolith-black" />
+                <div>
+                  <span class="font-label-caps text-label-caps text-monolith-black block">Bank Transfer</span>
+                  <span class="font-body text-body-md text-secondary">Pay via wire transfer. Upload your payment receipt after placing the order.</span>
+                </div>
+              </label>
+            </div>
           </div>
           <div id="transferInfo" class="hidden mt-4 p-4 bg-surface-container-low">
-            <p class="font-label-caps text-label-caps text-monolith-black mb-2">Bank Transfer Details</p>
-            <p class="font-body text-body-md text-secondary mb-1">Bank: Banregio</p>
-            <p class="font-body text-body-md text-secondary mb-1">Account: 1234 5678 9012 3456</p>
-            <p class="font-body text-body-md text-secondary">CLABE: 012345678901234567</p>
+            <div id="receiptUploadSection">
+              <p class="font-label-caps text-label-caps text-secondary mb-3">SUBIR COMPROBANTE DE PAGO (opcional)</p>
+              <div id="receiptUploadZone" class="border-2 border-dashed border-outline-variant rounded-sm p-6 text-center cursor-pointer hover:border-monolith-black transition-colors bg-white mb-3">
+                <span class="material-symbols-outlined text-3xl text-secondary mb-1 block">receipt_long</span>
+                <p class="font-body text-body-md text-secondary text-sm mb-1">Selecciona el comprobante de tu transferencia</p>
+                <p class="font-body text-body-md text-secondary text-xs">JPG, PNG, PDF · Máximo 5MB</p>
+                <input type="file" id="receiptInput" accept="image/jpeg,image/png,image/webp,application/pdf" class="hidden" />
+              </div>
+              <div id="receiptPreview" class="hidden flex items-center gap-3 p-3 bg-white border border-outline-variant rounded-sm">
+                <span class="material-symbols-outlined text-2xl text-secondary">description</span>
+                <span id="receiptFileName" class="font-body text-body-md text-monolith-black flex-1 truncate"></span>
+                <button type="button" id="receiptRemove" class="text-error hover:text-error/80 transition-colors">
+                  <span class="material-symbols-outlined text-lg">close</span>
+                </button>
+              </div>
+              <div id="receiptMessage" class="hidden font-body text-body-md text-xs mt-2"></div>
+            </div>
           </div>
         </div>
 
@@ -92,6 +112,20 @@ import Button from "../components/atoms/Button.astro";
               <span class="font-body text-body-md text-secondary">Shipping</span>
               <span class="font-body text-body-md">Free</span>
             </div>
+
+            <!-- Coupon -->
+            <div class="border-t border-outline-variant/30 pt-4">
+              <div class="flex gap-2">
+                <input type="text" id="couponInput" class="flex-1 bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none text-sm uppercase font-mono" placeholder="COUPON CODE" />
+                <button id="couponApplyBtn" class="font-label-caps text-label-caps bg-monolith-black text-off-white h-10 px-4 rounded-md hover:bg-monolith-black/90 transition-all shrink-0 text-xs">APPLY</button>
+              </div>
+              <div id="couponMessage" class="font-body text-body-md text-xs mt-2"></div>
+              <div id="couponDiscountRow" class="hidden flex justify-between mt-2">
+                <span class="font-body text-body-md text-clay-accent">Discount</span>
+                <span class="font-price-display text-price-display text-base text-clay-accent" id="summaryDiscount">-$0.00</span>
+              </div>
+            </div>
+
             <div class="border-t border-outline-variant/30 pt-4">
               <div class="flex justify-between">
                 <span class="font-headline text-headline-md">Total</span>
@@ -106,8 +140,195 @@ import Button from "../components/atoms/Button.astro";
   <Footer />
 
   <script src="/js/cart.js" is:inline></script>
+  <script src="https://js.stripe.com/v3/"></script>
   <script>
     // @ts-nocheck
+    let stripe = null;
+    let elements = null;
+    let card = null;
+    let settings = null;
+    let banks = [];
+
+    // --- Coupon State ---
+    let appliedCoupon = null; // { code, discount, couponId }
+    let couponDiscount = 0;
+
+    function getCustomerEmail() {
+      return document.getElementById("customerEmail").value.trim();
+    }
+
+    async function applyCoupon() {
+      const input = document.getElementById("couponInput");
+      const code = input.value.trim().toUpperCase();
+      const msg = document.getElementById("couponMessage");
+      const discountRow = document.getElementById("couponDiscountRow");
+      const discountEl = document.getElementById("summaryDiscount");
+      const applyBtn = document.getElementById("couponApplyBtn");
+
+      if (!code) {
+        msg.className = "font-body text-body-md text-xs mt-2 text-error";
+        msg.textContent = "Enter a coupon code";
+        return;
+      }
+
+      const subtotal = window.RamLopCart.getSubtotal();
+      const email = getCustomerEmail();
+
+      applyBtn.disabled = true;
+      applyBtn.textContent = "...";
+      msg.className = "font-body text-body-md text-xs mt-2 text-secondary";
+      msg.textContent = "Validating...";
+
+      try {
+        const res = await fetch("/api/cupones/validate.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code, subtotal, email }),
+        });
+        const data = await res.json();
+
+        if (data.valid) {
+          appliedCoupon = { code, discount: data.discount, couponId: data.coupon.id };
+          couponDiscount = data.discount;
+          msg.className = "font-body text-body-md text-xs mt-2 text-green-700";
+          msg.textContent = "Coupon applied! You saved " + (data.coupon.discount_type === "percentage" ? data.coupon.discount_value + "%" : "$" + data.discount.toFixed(2));
+          discountRow.classList.remove("hidden");
+          discountEl.textContent = "-$" + data.discount.toFixed(2);
+          renderSummaryTotal();
+        } else {
+          appliedCoupon = null;
+          couponDiscount = 0;
+          discountRow.classList.add("hidden");
+          msg.className = "font-body text-body-md text-xs mt-2 text-error";
+          msg.textContent = data.error || "Invalid coupon";
+        }
+      } catch (err) {
+        appliedCoupon = null;
+        couponDiscount = 0;
+        discountRow.classList.add("hidden");
+        msg.className = "font-body text-body-md text-xs mt-2 text-error";
+        msg.textContent = "Error validating coupon";
+      }
+
+      applyBtn.disabled = false;
+      applyBtn.textContent = "APPLY";
+    }
+
+    function removeCoupon() {
+      appliedCoupon = null;
+      couponDiscount = 0;
+      document.getElementById("couponDiscountRow").classList.add("hidden");
+      document.getElementById("couponMessage").className = "font-body text-body-md text-xs mt-2";
+      document.getElementById("couponMessage").textContent = "";
+      document.getElementById("couponInput").value = "";
+      renderSummaryTotal();
+    }
+
+    function renderSummaryTotal() {
+      const subtotal = window.RamLopCart.getSubtotal();
+      const total = Math.max(0, subtotal - couponDiscount);
+      document.getElementById("summaryTotal").textContent = "$" + total.toFixed(2);
+    }
+
+    function renderBankDetails() {
+      const container = document.getElementById("transferInfo");
+      if (!banks.length) {
+        container.innerHTML = '<p class="font-body text-body-md text-secondary">No bank accounts configured. Contact us for transfer details.</p>';
+        return;
+      }
+      let html = '<p class="font-label-caps text-label-caps text-monolith-black mb-2">Bank Transfer Details</p>';
+      banks.forEach(b => {
+        html += '<div class="mb-3 pb-3 border-b border-outline-variant/30 last:border-0 last:mb-0 last:pb-0">';
+        if (b.bankName) html += `<p class="font-body text-body-md text-secondary mb-1"><strong>Bank:</strong> ${b.bankName}</p>`;
+        if (b.accountHolder) html += `<p class="font-body text-body-md text-secondary mb-1"><strong>Account Holder:</strong> ${b.accountHolder}</p>`;
+        if (b.accountNumber) html += `<p class="font-body text-body-md text-secondary mb-1"><strong>Account:</strong> ${b.accountNumber}</p>`;
+        if (b.accountType) html += `<p class="font-body text-body-md text-secondary mb-1"><strong>Type:</strong> ${b.accountType}</p>`;
+        if (b.routingNumber) html += `<p class="font-body text-body-md text-secondary mb-1"><strong>Routing:</strong> ${b.routingNumber}</p>`;
+        if (b.instructions) html += `<p class="font-body text-body-md text-secondary mt-2">${b.instructions}</p>`;
+        html += '</div>';
+      });
+      container.innerHTML = html;
+    }
+
+    async function loadSettings() {
+      try {
+        const res = await fetch("/api/configuracion/public.php");
+        settings = await res.json();
+      } catch {
+        settings = null;
+      }
+
+      const stripeEnabled = settings?.stripe?.enabled === true;
+      const transferEnabled = settings?.transfer?.enabled === true;
+      const stripeOption = document.getElementById("stripeOption");
+      const transferOption = document.getElementById("transferOption");
+      const paymentMethods = document.getElementById("paymentMethods");
+      const noPaymentMethods = document.getElementById("noPaymentMethods");
+      const placeOrderBtn = document.getElementById("placeOrderBtn");
+
+      if (stripeEnabled) stripeOption.classList.remove("hidden");
+      if (transferEnabled) transferOption.classList.remove("hidden");
+
+      if (!stripeEnabled && !transferEnabled) {
+        paymentMethods.classList.add("hidden");
+        noPaymentMethods.classList.remove("hidden");
+        placeOrderBtn.disabled = true;
+        placeOrderBtn.style.opacity = "0.5";
+        return;
+      }
+
+      // Auto-select default: prefer stripe if available
+      const radios = document.querySelectorAll('input[name="payment"]');
+      if (stripeEnabled) {
+        document.querySelector('#stripeOption input[type="radio"]').checked = true;
+      } else {
+        document.querySelector('#transferOption input[type="radio"]').checked = true;
+        document.getElementById("transferInfo").classList.remove("hidden");
+        renderBankDetails();
+      }
+
+      // Load bank accounts
+      banks = settings?.transfer?.banks || [];
+
+      // Init Stripe
+      const publishableKey = settings?.stripe?.publishableKey;
+      if (publishableKey && stripeEnabled) {
+        stripe = Stripe(publishableKey);
+        mountCardElement();
+      }
+    }
+
+    // --- Receipt Upload ---
+    let receiptFile = null;
+    let receiptUrl = "";
+
+    document.getElementById("receiptUploadZone").addEventListener("click", () => document.getElementById("receiptInput").click());
+
+    document.getElementById("receiptInput").addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      receiptFile = file;
+      document.getElementById("receiptFileName").textContent = file.name;
+      document.getElementById("receiptPreview").classList.remove("hidden");
+      document.getElementById("receiptUploadZone").classList.add("hidden");
+    });
+
+    document.getElementById("receiptRemove").addEventListener("click", () => {
+      receiptFile = null;
+      receiptUrl = "";
+      document.getElementById("receiptInput").value = "";
+      document.getElementById("receiptPreview").classList.add("hidden");
+      document.getElementById("receiptUploadZone").classList.remove("hidden");
+    });
+
+    function showReceiptMsg(text, isError) {
+      const el = document.getElementById("receiptMessage");
+      el.textContent = text;
+      el.className = "font-body text-body-md text-xs mt-2 " + (isError ? "text-error" : "text-green-700");
+      el.classList.remove("hidden");
+    }
+
+    // --- Render Summary ---
     function renderSummary() {
       const items = window.RamLopCart.getItems();
       const empty = document.getElementById("emptyCart");
@@ -139,14 +360,75 @@ import Button from "../components/atoms/Button.astro";
       `).join("");
 
       document.getElementById("summarySubtotal").textContent = `$${window.RamLopCart.getSubtotal().toFixed(2)}`;
-      document.getElementById("summaryTotal").textContent = `$${window.RamLopCart.getSubtotal().toFixed(2)}`;
+      renderSummaryTotal();
     }
 
     document.querySelectorAll('input[name="payment"]').forEach(radio => {
       radio.addEventListener("change", () => {
-        document.getElementById("transferInfo").classList.toggle("hidden", radio.value !== "transfer");
+        const isStripe = radio.value === "stripe";
+        const isTransfer = radio.value === "transfer";
+        document.getElementById("stripeCardElement").classList.toggle("hidden", !isStripe);
+        document.getElementById("transferInfo").classList.toggle("hidden", !isTransfer);
+        if (isTransfer && banks.length) renderBankDetails();
       });
     });
+
+    function mountCardElement() {
+      if (!stripe || card) return;
+      elements = stripe.elements();
+      card = elements.create("card", {
+        style: {
+          base: {
+            fontSize: "16px",
+            fontFamily: '"Hanken Grotesk", sans-serif',
+            color: "#1A1A1A",
+            "::placeholder": { color: "#9A9A9A" },
+          },
+        },
+      });
+      card.mount("#cardElement");
+      card.addEventListener("change", (event) => {
+        const el = document.getElementById("cardErrors");
+        if (event.error) {
+          el.textContent = event.error.message;
+          el.classList.remove("hidden");
+        } else {
+          el.classList.add("hidden");
+        }
+      });
+    }
+
+    function buildOrderObject(payment) {
+      const items = window.RamLopCart.getItems();
+      const name = document.getElementById("customerName").value.trim();
+      const email = document.getElementById("customerEmail").value.trim();
+      const address = document.getElementById("customerAddress").value.trim();
+      const city = document.getElementById("customerCity").value.trim();
+      const zip = document.getElementById("customerZip").value.trim();
+      const subtotal = window.RamLopCart.getSubtotal();
+      const total = Math.max(0, subtotal - couponDiscount);
+
+      const order = {
+        id: "RL-" + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 5).toUpperCase(),
+        items: items,
+        subtotal: subtotal,
+        shipping: 0,
+        tax: 0,
+        discountTotal: couponDiscount,
+        total: total,
+        status: "pending",
+        paymentMethod: payment,
+        paymentStatus: "pending",
+        customer: { name, email, address, city, zip },
+        createdAt: new Date().toISOString()
+      };
+
+      if (appliedCoupon) {
+        order.couponCode = appliedCoupon.code;
+      }
+
+      return order;
+    }
 
     document.getElementById("placeOrderBtn").addEventListener("click", async function () {
       const items = window.RamLopCart.getItems();
@@ -171,36 +453,62 @@ import Button from "../components/atoms/Button.astro";
       this.disabled = true;
       this.textContent = "PROCESSING...";
 
-      const subtotal = window.RamLopCart.getSubtotal();
-
-      const order = {
-        id: "RL-" + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 5).toUpperCase(),
-        items: items,
-        subtotal: subtotal,
-        shipping: 0,
-        tax: 0,
-        total: subtotal,
-        status: "pending",
-        paymentMethod: payment,
-        paymentStatus: "pending",
-        customer: { name, email, address, city, zip },
-        createdAt: new Date().toISOString()
-      };
+      const order = buildOrderObject(payment);
+      const subtotal = order.subtotal;
 
       if (payment === "stripe") {
         try {
-          const res = await fetch("/api/stripe/create-payment-intent", {
+          // 1. Save order BEFORE payment (idempotent)
+          const createRes = await fetch("/api/pedidos/create.php", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ items, customerEmail: email })
+            body: JSON.stringify(order)
           });
-          const data = await res.json();
+          if (!createRes.ok) {
+            const createErr = await createRes.json();
+            throw new Error(createErr.error || "Failed to create order");
+          }
 
-          if (!res.ok) throw new Error(data.error);
+          // 2. Create PaymentIntent
+          const piRes = await fetch("/api/stripe/create-payment-intent.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ items, customerEmail: email, total: order.total })
+          });
+          const piData = await piRes.json();
+          if (!piRes.ok) throw new Error(piData.error);
 
-          window.RamLopCart.clear();
-          localStorage.setItem("ramlop_last_order_" + order.id, JSON.stringify(order));
-          window.location.href = "/carrito?order=" + order.id + "&payment_intent=" + data.clientSecret;
+          // 3. Confirm card payment
+          const { error, paymentIntent } = await stripe.confirmCardPayment(piData.clientSecret, {
+            payment_method: { card: card },
+          });
+
+          if (error) {
+            throw new Error(error.message);
+          }
+
+          if (paymentIntent.status === "succeeded") {
+            // 4. Confirm payment in DB
+            const confirmRes = await fetch("/api/pedidos/confirm-payment.php", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ id: order.id, stripePaymentIntentId: paymentIntent.id })
+            });
+            if (!confirmRes.ok) {
+              // Order saved but confirm failed — redirect anyway, webhook will reconcile
+              console.warn("Payment confirmed but status update failed, webhook will reconcile");
+            }
+
+            order.status = "paid";
+            order.paymentStatus = "completed";
+            order.stripePaymentIntentId = paymentIntent.id;
+
+            window.RamLopCart.clear();
+            localStorage.setItem("ramlop_last_order_" + order.id, JSON.stringify(order));
+            window.location.href = "/?order=" + order.id + "&status=paid";
+          } else {
+            throw new Error("Payment was not successful: " + paymentIntent.status);
+          }
         } catch (err) {
           document.getElementById("paymentError").textContent = err.message;
           document.getElementById("paymentError").classList.remove("hidden");
@@ -209,15 +517,39 @@ import Button from "../components/atoms/Button.astro";
         }
       } else {
         try {
-          const res = await fetch("/api/email/send", {
+          const createRes = await fetch("/api/pedidos/create.php", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              to: email,
-              subject: "Order Confirmation #" + order.id + " — Ram;Lop (Bank Transfer)",
-              html: "<h2>Order #" + order.id + "</h2><p>Thank you for your order! Please complete your bank transfer to the following account:</p><p>Banregio<br>Account: 1234 5678 9012 3456<br>CLABE: 012345678901234567</p><p>Total: $" + subtotal.toFixed(2) + "</p>"
-            })
+            body: JSON.stringify(order)
           });
+          if (!createRes.ok) {
+            const createErr = await createRes.json();
+            throw new Error(createErr.error || "Failed to create order");
+          }
+
+          // Upload receipt if provided
+          if (receiptFile) {
+            showReceiptMsg("Subiendo comprobante...", false);
+            const formData = new FormData();
+            formData.append("file", receiptFile);
+            formData.append("folder", "receipts");
+            const uploadRes = await fetch("/api/imagekit/upload.php", { method: "POST", body: formData });
+            const uploadData = await uploadRes.json();
+            if (uploadRes.ok && uploadData.url) {
+              receiptUrl = uploadData.url;
+              await fetch("/api/pedidos/update-receipt.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id: order.id, transferReceipt: receiptUrl })
+              });
+              showReceiptMsg("Comprobante recibido correctamente.", false);
+            } else {
+              showReceiptMsg("No se pudo subir el comprobante. Puedes enviarlo por email a soporte.", true);
+            }
+          }
+
+          // Email is sent server-side in create.php
+
 
           window.RamLopCart.clear();
           localStorage.setItem("ramlop_last_order_" + order.id, JSON.stringify(order));
@@ -232,6 +564,30 @@ import Button from "../components/atoms/Button.astro";
       }
     });
 
-    renderSummary();
+    document.getElementById("couponApplyBtn").addEventListener("click", applyCoupon);
+
+    document.getElementById("couponInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        applyCoupon();
+      }
+    });
+
+    // Re-validate coupon when email changes (for per-customer limits)
+    document.getElementById("customerEmail").addEventListener("change", () => {
+      if (appliedCoupon) {
+        // Leave coupon applied but will be validated server-side on order creation
+      }
+    });
+
+    loadSettings().then(() => {
+      renderSummary();
+
+      // Re-apply payment change handler for initial state
+      const checked = document.querySelector('input[name="payment"]:checked');
+      if (checked) {
+        checked.dispatchEvent(new Event("change"));
+      }
+    });
   </script>
 </BaseLayout>

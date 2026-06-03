@@ -1,0 +1,296 @@
+---
+import AdminLayout from "../_layout.astro";
+
+const validStatuses = ["pending", "paid", "shipped", "delivered", "cancelled"];
+---
+
+<AdminLayout title="Detalle de Pedido" currentPath="/admin/pedidos">
+  <div id="loading" class="font-body text-body-md text-secondary p-4">Loading order...</div>
+  <div id="message" class="hidden font-body text-body-md p-3 mb-6"></div>
+
+  <div id="orderContent" class="hidden">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
+        <h2 class="font-headline text-headline-md mb-4 flex items-center gap-2">
+          <span class="material-symbols-outlined text-xl">receipt</span>
+          Order <span id="orderId" class="text-monolith-black"></span>
+        </h2>
+        <div class="space-y-3 font-body text-body-md">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-base text-secondary">calendar_today</span>
+            <span class="text-secondary">Date:</span>
+            <span id="orderDate"></span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-base text-secondary">info</span>
+            <span class="text-secondary">Status:</span>
+            <span id="orderStatus"></span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-base text-secondary">credit_card</span>
+            <span class="text-secondary">Payment:</span>
+            <span id="orderPayment"></span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-base text-secondary">check_circle</span>
+            <span class="text-secondary">Payment Status:</span>
+            <span id="orderPaymentStatus"></span>
+          </div>
+          <div id="receiptRow" class="flex items-center gap-2 hidden">
+            <span class="material-symbols-outlined text-base text-secondary">description</span>
+            <span class="text-secondary">Receipt:</span>
+            <a id="receiptLink" href="#" target="_blank" class="text-monolith-black underline hover:no-underline">View Receipt</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
+        <h2 class="font-headline text-headline-md mb-4 flex items-center gap-2">
+          <span class="material-symbols-outlined text-xl">person</span>
+          Customer
+        </h2>
+        <div class="space-y-3 font-body text-body-md">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-base text-secondary">badge</span>
+            <span class="text-secondary">Name:</span>
+            <span id="custName"></span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-base text-secondary">mail</span>
+            <span class="text-secondary">Email:</span>
+            <span id="custEmail"></span>
+          </div>
+          <div class="flex items-start gap-2">
+            <span class="material-symbols-outlined text-base text-secondary mt-0.5">home</span>
+            <span class="text-secondary">Address:</span>
+            <span id="custAddress"></span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-base text-secondary">location_city</span>
+            <span class="text-secondary">City:</span>
+            <span id="custCity"></span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-base text-secondary">pin_drop</span>
+            <span class="text-secondary">Zip:</span>
+            <span id="custZip"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm mb-8">
+      <h2 class="font-headline text-headline-md p-6 pb-0 flex items-center gap-2">
+        <span class="material-symbols-outlined text-xl">shopping_bag</span>
+        Order Items
+      </h2>
+      <!-- Desktop items table -->
+      <div class="hidden md:block p-6 pt-4">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left">
+            <thead>
+              <tr class="bg-monolith-black/5 font-label-caps text-label-caps text-secondary">
+                <th class="p-4 font-medium">PRODUCT</th>
+                <th class="p-4 font-medium">COLOR</th>
+                <th class="p-4 font-medium">SIZE</th>
+                <th class="p-4 font-medium">QTY</th>
+                <th class="p-4 font-medium">PRICE</th>
+                <th class="p-4 font-medium">SUBTOTAL</th>
+              </tr>
+            </thead>
+            <tbody id="orderItemsBody"></tbody>
+            <tfoot>
+              <tr id="discountRow" class="hidden border-t border-outline-variant/50">
+                <td colspan="5" class="p-4 text-right font-body text-body-md text-clay-accent">Discount</td>
+                <td class="p-4 font-price-display text-price-display text-clay-accent" id="orderDiscount"></td>
+              </tr>
+              <tr class="font-headline text-headline-md border-t border-outline-variant">
+                <td colspan="5" class="p-4 text-right">Total</td>
+                <td class="p-4 font-price-display text-price-display text-monolith-black" id="orderTotal"></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+      <!-- Mobile items cards -->
+      <div id="orderItemsCards" class="block md:hidden divide-y divide-outline-variant/50 px-6"></div>
+      <div id="discountRowMobile" class="hidden md:hidden border-t border-outline-variant/50 px-6 py-3 flex justify-between items-center">
+        <span class="font-body text-body-md text-clay-accent">Discount</span>
+        <span class="font-price-display text-price-display text-clay-accent" id="orderDiscountMobile"></span>
+      </div>
+      <div class="block md:hidden border-t border-outline-variant px-6 py-4 flex justify-between items-center">
+        <span class="font-headline text-headline-md">Total</span>
+        <span class="font-price-display text-price-display text-monolith-black" id="orderTotalMobile"></span>
+      </div>
+    </div>
+
+    <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
+      <h2 class="font-headline text-headline-md mb-4 flex items-center gap-2">
+        <span class="material-symbols-outlined text-xl">update</span>
+        Update Status
+      </h2>
+      <form id="statusForm" class="flex items-end gap-4">
+        <div class="flex-grow">
+          <select id="statusSelect" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors">
+            {validStatuses.map(s => <option value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
+          </select>
+        </div>
+        <button type="submit" class="bg-monolith-black text-off-white font-label-caps text-label-caps min-h-[42px] px-5 inline-flex items-center justify-center gap-1.5 rounded-md hover:bg-monolith-black/90 hover:shadow-sm transition-all duration-200 whitespace-nowrap">
+          <span class="material-symbols-outlined text-lg">save</span>
+          UPDATE
+        </button>
+      </form>
+    </div>
+
+    <div class="mt-6">
+      <a href="/admin/pedidos" class="inline-flex items-center gap-1.5 font-label-caps text-label-caps text-secondary hover:text-monolith-black transition-colors">
+        <span class="material-symbols-outlined text-lg">arrow_back</span>
+        Back to Orders
+      </a>
+    </div>
+  </div>
+
+  <div id="error" class="hidden font-body text-body-md text-error bg-error/10 p-3 rounded-sm"></div>
+
+  <script>
+    // @ts-nocheck
+    const statusStyles = {
+      pending: "bg-clay-accent/20 text-clay-accent",
+      paid: "bg-monolith-black text-off-white",
+      shipped: "bg-monolith-black/80 text-off-white",
+      delivered: "bg-monolith-black text-off-white",
+      cancelled: "bg-error/20 text-error",
+    };
+
+    function statusBadge(status) {
+      return `<span class="inline-flex items-center gap-1 font-label-caps text-label-caps text-xs px-2 py-1 rounded-sm ${statusStyles[status] || ''}">
+        <span class="w-1.5 h-1.5 rounded-full ${status === 'cancelled' ? 'bg-error' : status === 'pending' ? 'bg-clay-accent' : 'bg-off-white'}"></span>
+        ${(status || '').toUpperCase()}
+      </span>`;
+    }
+
+    (async function () {
+      const params = new URLSearchParams(window.location.search);
+      const orderId = params.get("id");
+
+      if (!orderId) {
+        document.getElementById("loading").textContent = "No order ID specified.";
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/pedidos/get.php?id=" + encodeURIComponent(orderId));
+        if (!res.ok) throw new Error("Order not found");
+        const o = await res.json();
+
+        document.getElementById("orderId").textContent = o.id;
+        document.getElementById("orderDate").textContent = o.createdAt
+          ? new Date(o.createdAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" })
+          : '';
+        document.getElementById("orderStatus").innerHTML = statusBadge(o.status);
+        document.getElementById("orderPayment").textContent = o.paymentMethod === 'stripe' ? 'Card (Stripe)' : 'Bank Transfer';
+        document.getElementById("orderPaymentStatus").textContent = o.paymentStatus || 'N/A';
+
+        if (o.transferReceipt) {
+          document.getElementById("receiptRow").classList.remove("hidden");
+          document.getElementById("receiptLink").href = o.transferReceipt;
+        }
+
+        // Customer
+        document.getElementById("custName").textContent = o.customer?.name || '';
+        document.getElementById("custEmail").textContent = o.customer?.email || '';
+        document.getElementById("custAddress").textContent = o.customer?.address || '';
+        document.getElementById("custCity").textContent = o.customer?.city || '';
+        document.getElementById("custZip").textContent = o.customer?.zip || '';
+
+        // Items
+        const items = o.items || [];
+        const tbody = document.getElementById("orderItemsBody");
+        const cards = document.getElementById("orderItemsCards");
+
+        // Desktop rows
+        tbody.innerHTML = items.map(item => `
+          <tr class="border-b border-outline-variant/50">
+            <td class="p-4 font-body text-body-md text-monolith-black font-medium">${item.product?.name || ''}</td>
+            <td class="p-4 font-body text-body-md text-secondary">${item.selectedColor || '—'}</td>
+            <td class="p-4 font-body text-body-md text-secondary">${item.selectedSize || '—'}</td>
+            <td class="p-4 font-body text-body-md">${item.quantity || 1}</td>
+            <td class="p-4 font-price-display text-price-display">$${(item.product?.price || 0).toFixed(2)}</td>
+            <td class="p-4 font-price-display text-price-display">$${((item.product?.price || 0) * (item.quantity || 1)).toFixed(2)}</td>
+          </tr>
+        `).join("");
+
+        // Mobile cards
+        cards.innerHTML = items.map(item => `
+          <div class="py-4 flex flex-col gap-2 first:pt-0 last:pb-0">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-lg text-monolith-black">check_indeterminate_small</span>
+                <span class="font-body text-body-md text-monolith-black font-medium">${item.product?.name || ''}</span>
+              </div>
+              <span class="font-price-display text-price-display whitespace-nowrap ml-3">$${((item.product?.price || 0) * (item.quantity || 1)).toFixed(2)}</span>
+            </div>
+            <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm font-body text-body-md text-secondary ml-8">
+              <span>Color: <span class="text-monolith-black">${item.selectedColor || '—'}</span></span>
+              <span>Size: <span class="text-monolith-black">${item.selectedSize || '—'}</span></span>
+              <span>Qty: <span class="text-monolith-black">${item.quantity || 1}</span></span>
+              <span>@ <span class="text-monolith-black">$${(item.product?.price || 0).toFixed(2)}</span></span>
+            </div>
+          </div>
+        `).join("");
+
+        // Discount
+        const discountRow = document.getElementById("discountRow");
+        const discountEl = document.getElementById("orderDiscount");
+        const discountRowMobile = document.getElementById("discountRowMobile");
+        const discountElMobile = document.getElementById("orderDiscountMobile");
+        if (o.discountTotal && o.discountTotal > 0) {
+          if (discountRow) discountRow.classList.remove("hidden");
+          if (discountEl) discountEl.textContent = "-$" + o.discountTotal.toFixed(2);
+          if (discountRowMobile) discountRowMobile.classList.remove("hidden");
+          if (discountElMobile) discountElMobile.textContent = "-$" + o.discountTotal.toFixed(2);
+        }
+
+        const total = "$" + (o.total || 0).toFixed(2);
+        document.getElementById("orderTotal").textContent = total;
+        document.getElementById("orderTotalMobile").textContent = total;
+
+        // Status select
+        document.getElementById("statusSelect").value = o.status || 'pending';
+
+        document.getElementById("loading").classList.add("hidden");
+        document.getElementById("orderContent").classList.remove("hidden");
+      } catch (err) {
+        document.getElementById("loading").textContent = "Error loading order.";
+        document.getElementById("error").textContent = err.message;
+        document.getElementById("error").classList.remove("hidden");
+      }
+    })();
+
+    document.getElementById("statusForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const params = new URLSearchParams(window.location.search);
+      const orderId = params.get("id");
+      const status = document.getElementById("statusSelect").value;
+
+      const msg = document.getElementById("message");
+      try {
+        const res = await fetch("/api/pedidos/update-status.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: orderId, status }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+        msg.className = "font-body text-body-md p-3 mb-6 bg-green-100 text-green-800 rounded-sm";
+        msg.textContent = "Order status updated to: " + status;
+        msg.classList.remove("hidden");
+        location.reload();
+      } catch (err) {
+        msg.className = "font-body text-body-md p-3 mb-6 bg-red-100 text-error rounded-sm";
+        msg.textContent = err.message;
+        msg.classList.remove("hidden");
+      }
+    });
+  </script>
+</AdminLayout>

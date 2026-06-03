@@ -1,54 +1,227 @@
 ---
-import AdminLayout from "./layout.astro";
-import { getOrders } from "../../lib/storage";
-
-const orders = await getOrders();
-
-const statusStyles: Record<string, string> = {
-  pending: "bg-clay-accent/20 text-clay-accent",
-  paid: "bg-monolith-black text-off-white",
-  shipped: "bg-monolith-black/80 text-off-white",
-  delivered: "bg-monolith-black text-off-white",
-  cancelled: "bg-error/20 text-error",
-};
+import AdminLayout from "./_layout.astro";
 ---
 
-<AdminLayout title="Pedidos">
-  <div class="bg-off-white border border-outline-variant">
+<AdminLayout title="Pedidos" currentPath="/admin/pedidos">
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+    <div class="flex items-center gap-4 w-full md:w-auto">
+      <div class="relative flex-1 md:w-72">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-secondary pointer-events-none">search</span>
+        <input type="text" id="searchInput" placeholder="Buscar por orden, cliente o email..." class="w-full h-10 pl-10 pr-3 bg-transparent border-b border-outline text-monolith-black focus:border-monolith-black focus:outline-none font-body text-body-md" />
+      </div>
+      <select id="statusFilter" class="h-10 bg-transparent border-b border-outline text-monolith-black focus:border-monolith-black focus:outline-none font-body text-body-md">
+        <option value="">Todos los estados</option>
+        <option value="pending">Pending</option>
+        <option value="paid">Paid</option>
+        <option value="shipped">Shipped</option>
+        <option value="delivered">Delivered</option>
+        <option value="cancelled">Cancelled</option>
+      </select>
+      <p class="font-body text-body-md text-secondary whitespace-nowrap" id="orderCount">0 pedidos</p>
+    </div>
+  </div>
+
+  <!-- Desktop table -->
+  <div class="hidden md:block bg-off-white border border-outline-variant shadow-sm rounded-sm">
     <div class="overflow-x-auto">
       <table class="w-full text-left">
         <thead>
-          <tr class="border-b border-outline-variant font-label-caps text-label-caps text-secondary">
+          <tr class="bg-monolith-black/5 font-label-caps text-label-caps text-secondary">
             <th class="p-4 font-medium">ORDER</th>
             <th class="p-4 font-medium">CUSTOMER</th>
             <th class="p-4 font-medium">DATE</th>
             <th class="p-4 font-medium">TOTAL</th>
             <th class="p-4 font-medium">STATUS</th>
             <th class="p-4 font-medium">PAYMENT</th>
+            <th class="p-4 font-medium"></th>
           </tr>
         </thead>
-        <tbody>
-          {orders.length === 0 && (
-            <tr>
-              <td colspan="6" class="p-8 text-center font-body text-body-md text-secondary">No orders yet</td>
-            </tr>
-          )}
-          {orders.map((order) => (
-            <tr class="border-b border-outline-variant/50 hover:bg-surface-container-low transition-colors">
-              <td class="p-4 font-body text-body-md">{order.id}</td>
-              <td class="p-4 font-body text-body-md text-secondary">{order.customer.name}</td>
-              <td class="p-4 font-body text-body-md text-secondary">{new Date(order.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</td>
-              <td class="p-4 font-price-display text-price-display">${order.total.toFixed(2)}</td>
-              <td class="p-4">
-                <span class={`font-label-caps text-label-caps text-xs px-2 py-1 ${statusStyles[order.status] || ""}`}>
-                  {order.status.toUpperCase()}
-                </span>
-              </td>
-              <td class="p-4 font-body text-body-md text-secondary capitalize">{order.paymentMethod === "stripe" ? "Card" : "Transfer"}</td>
-            </tr>
-          ))}
+        <tbody id="ordersTableBody">
+          <tr>
+            <td colspan="7" class="p-8 text-center font-body text-body-md text-secondary">Loading...</td>
+          </tr>
         </tbody>
       </table>
     </div>
   </div>
+
+  <!-- Mobile cards -->
+  <div id="orderCards" class="block md:hidden space-y-3">
+    <p class="font-body text-body-md text-secondary p-4">Loading...</p>
+  </div>
+
+  <!-- Pagination -->
+  <div id="pagination" class="hidden mt-6 flex items-center justify-center gap-2"></div>
+
+  <script>
+    // @ts-nocheck
+    const PAGE_LIMIT = 10;
+    let currentOffset = 0;
+    let totalOrders = 0;
+    let searchTerm = "";
+    let statusFilter = "";
+    let searchTimeout = null;
+
+    const statusStyles = {
+      pending: "bg-clay-accent/20 text-clay-accent",
+      paid: "bg-monolith-black text-off-white",
+      shipped: "bg-monolith-black/80 text-off-white",
+      delivered: "bg-monolith-black text-off-white",
+      cancelled: "bg-error/20 text-error",
+    };
+
+    function statusBadge(status) {
+      return `<span class="inline-flex items-center gap-1 font-label-caps text-label-caps text-xs px-2 py-1 rounded-sm ${statusStyles[status] || ''}">
+        <span class="w-1.5 h-1.5 rounded-full ${status === 'cancelled' ? 'bg-error' : status === 'pending' ? 'bg-clay-accent' : 'bg-off-white'}"></span>
+        ${(status || '').toUpperCase()}
+      </span>`;
+    }
+
+    function formatDate(dateStr) {
+      return dateStr ? new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : '';
+    }
+
+    function paymentLabel(method) {
+      return method === 'stripe' ? 'Card' : 'Transfer';
+    }
+
+    function paymentIcon(method) {
+      return method === 'stripe' ? 'credit_card' : 'account_balance';
+    }
+
+    function renderOrders(orders) {
+      const tbody = document.getElementById("ordersTableBody");
+      const cards = document.getElementById("orderCards");
+
+      const rowsHtml = orders.map(o => `
+        <tr class="border-b border-outline-variant/50 hover:bg-monolith-black/[0.02] transition-colors">
+          <td class="p-4 font-body text-body-md">
+            <a href="/admin/pedidos/detalle?id=${encodeURIComponent(o.id)}" class="text-monolith-black font-medium hover:underline">${o.id}</a>
+          </td>
+          <td class="p-4 font-body text-body-md text-secondary">${o.customer?.name || '—'}</td>
+          <td class="p-4 font-body text-body-md text-secondary">${formatDate(o.createdAt)}</td>
+          <td class="p-4 font-price-display text-price-display">$${(o.total || 0).toFixed(2)}</td>
+          <td class="p-4">${statusBadge(o.status)}</td>
+          <td class="p-4">
+            <span class="inline-flex items-center gap-1.5 font-body text-body-md text-secondary capitalize">
+              <span class="material-symbols-outlined text-base">${paymentIcon(o.paymentMethod)}</span>
+              ${paymentLabel(o.paymentMethod)}
+            </span>
+          </td>
+          <td class="p-4">
+            <a href="/admin/pedidos/detalle?id=${encodeURIComponent(o.id)}" class="inline-flex items-center gap-1 px-3 py-1.5 font-label-caps text-label-caps border rounded-md transition-all duration-200 border-monolith-black/20 text-secondary hover:border-monolith-black hover:text-monolith-black hover:bg-monolith-black/5">
+              <span class="material-symbols-outlined text-sm">visibility</span>
+              VIEW
+            </a>
+          </td>
+        </tr>
+      `).join("");
+
+      const cardsHtml = orders.map(o => `
+        <a href="/admin/pedidos/detalle?id=${encodeURIComponent(o.id)}" class="block bg-off-white border border-outline-variant border-l-2 border-l-monolith-black shadow-sm hover:shadow-md transition-all duration-200 rounded-sm p-4">
+          <div class="flex items-start justify-between mb-3">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-lg text-monolith-black">receipt_long</span>
+              <span class="font-body text-body-md text-monolith-black font-medium">${o.id}</span>
+            </div>
+            ${statusBadge(o.status)}
+          </div>
+          <div class="grid grid-cols-2 gap-y-2 gap-x-4 font-body text-body-md text-sm">
+            <div class="flex items-center gap-1.5 text-secondary">
+              <span class="material-symbols-outlined text-base">person</span>
+              ${o.customer?.name || '—'}
+            </div>
+            <div class="flex items-center gap-1.5 text-secondary justify-self-end">
+              <span class="material-symbols-outlined text-base">${paymentIcon(o.paymentMethod)}</span>
+              <span class="capitalize">${paymentLabel(o.paymentMethod)}</span>
+            </div>
+            <div class="flex items-center gap-1.5 text-secondary">
+              <span class="material-symbols-outlined text-base">calendar_today</span>
+              ${formatDate(o.createdAt)}
+            </div>
+            <div class="font-price-display text-price-display justify-self-end">$${(o.total || 0).toFixed(2)}</div>
+          </div>
+        </a>
+      `).join("");
+
+      tbody.innerHTML = rowsHtml || '<tr><td colspan="7" class="p-8 text-center font-body text-body-md text-secondary">No orders yet</td></tr>';
+      cards.innerHTML = cardsHtml || '<p class="font-body text-body-md text-secondary p-4">No orders yet</p>';
+    }
+
+    function renderPagination() {
+      const container = document.getElementById("pagination");
+      const totalPages = Math.ceil(totalOrders / PAGE_LIMIT);
+      const currentPage = Math.floor(currentOffset / PAGE_LIMIT) + 1;
+
+      if (totalPages <= 1) { container.classList.add("hidden"); return; }
+      container.classList.remove("hidden");
+
+      let html = '<button class="pag-prev w-9 h-9 flex items-center justify-center border border-outline-variant rounded-sm hover:border-monolith-black transition-colors font-body text-body-md" ' + (currentPage <= 1 ? 'disabled style="opacity:0.3"' : '') + '><span class="material-symbols-outlined text-sm">chevron_left</span></button>';
+
+      for (let i = 1; i <= totalPages; i++) {
+        const active = i === currentPage ? 'bg-monolith-black text-off-white border-monolith-black' : 'border-outline-variant hover:border-monolith-black';
+        html += `<button class="pag-page w-9 h-9 flex items-center justify-center border rounded-sm transition-colors font-body text-body-md text-sm ${active}" data-page="${i}">${i}</button>`;
+      }
+
+      html += '<button class="pag-next w-9 h-9 flex items-center justify-center border border-outline-variant rounded-sm hover:border-monolith-black transition-colors font-body text-body-md" ' + (currentPage >= totalPages ? 'disabled style="opacity:0.3"' : '') + '><span class="material-symbols-outlined text-sm">chevron_right</span></button>';
+
+      container.innerHTML = html;
+
+      container.querySelectorAll(".pag-page").forEach(btn => {
+        btn.addEventListener("click", () => {
+          currentOffset = (parseInt(btn.dataset.page) - 1) * PAGE_LIMIT;
+          loadOrders();
+        });
+      });
+      container.querySelector(".pag-prev")?.addEventListener("click", () => {
+        if (currentOffset <= 0) return;
+        currentOffset = Math.max(0, currentOffset - PAGE_LIMIT);
+        loadOrders();
+      });
+      container.querySelector(".pag-next")?.addEventListener("click", () => {
+        if (currentOffset + PAGE_LIMIT >= totalOrders) return;
+        currentOffset += PAGE_LIMIT;
+        loadOrders();
+      });
+    }
+
+    function searchOrders() {
+      searchTerm = document.getElementById("searchInput").value.trim();
+      statusFilter = document.getElementById("statusFilter").value;
+      currentOffset = 0;
+      loadOrders();
+    }
+
+    function debounceSearch() {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(searchOrders, 300);
+    }
+
+    document.getElementById("searchInput").addEventListener("input", debounceSearch);
+    document.getElementById("statusFilter").addEventListener("change", searchOrders);
+
+    async function loadOrders() {
+      try {
+        let url = `/api/pedidos/list.php?limit=${PAGE_LIMIT}&offset=${currentOffset}`;
+        if (searchTerm) url += `&search=${encodeURIComponent(searchTerm)}`;
+        if (statusFilter) url += `&status=${encodeURIComponent(statusFilter)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        const orders = data.items || data;
+        totalOrders = data.total || orders.length;
+
+        renderOrders(orders, false);
+        document.getElementById("orderCount").textContent =
+          Math.min(currentOffset + orders.length, totalOrders) + " de " + totalOrders + " pedidos registrados";
+        renderPagination();
+      } catch (err) {
+        document.getElementById("ordersTableBody").innerHTML =
+          `<tr><td colspan="7" class="p-8 text-center font-body text-body-md text-error">Error: ${err.message}</td></tr>`;
+        document.getElementById("orderCards").innerHTML =
+          `<p class="font-body text-body-md text-error p-4">Error: ${err.message}</p>`;
+      }
+    }
+
+    loadOrders();
+  </script>
 </AdminLayout>

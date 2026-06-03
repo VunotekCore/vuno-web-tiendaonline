@@ -1,0 +1,137 @@
+---
+import AdminLayout from "./_layout.astro";
+---
+
+<AdminLayout title="Usuarios" currentPath="/admin/usuarios">
+  <div class="flex items-center gap-4 mb-6">
+    <p class="font-body text-body-md text-secondary" id="userCount">0 usuarios</p>
+  </div>
+
+  <!-- Desktop table -->
+  <div class="hidden md:block bg-off-white border border-outline-variant shadow-sm rounded-sm">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left">
+        <thead>
+          <tr class="bg-monolith-black/5 font-label-caps text-label-caps text-secondary">
+            <th class="p-4 font-medium">EMAIL</th>
+            <th class="p-4 font-medium">NOMBRE</th>
+            <th class="p-4 font-medium">ROL</th>
+            <th class="p-4 font-medium">CREADO</th>
+            <th class="p-4 font-medium">ACCIONES</th>
+          </tr>
+        </thead>
+        <tbody id="usersBody">
+          <tr><td colspan="5" class="p-8 text-center font-body text-body-md text-secondary">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Mobile cards -->
+  <div id="userCards" class="block md:hidden space-y-3">
+    <p class="font-body text-body-md text-secondary p-4">Loading...</p>
+  </div>
+
+  <div id="msg" class="hidden font-body text-body-md text-sm mt-4"></div>
+
+  <script>
+    // @ts-nocheck
+    let availableRoles = [];
+
+    function showMsg(text, type) {
+      const el = document.getElementById("msg");
+      el.textContent = text;
+      el.className = "font-body text-body-md text-sm mt-4 block " + (type === 'error' ? 'text-error' : 'text-monolith-black');
+    }
+
+    async function loadUsers() {
+      try {
+        const res = await fetch("/api/admin/users.php");
+        const data = await res.json();
+        const users = data.items || [];
+        availableRoles = data.roles || [];
+
+        document.getElementById("userCount").textContent = users.length + " usuarios";
+        const tbody = document.getElementById("usersBody");
+        const cards = document.getElementById("userCards");
+
+        if (users.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center font-body text-body-md text-secondary">No users</td></tr>';
+          cards.innerHTML = '<p class="font-body text-body-md text-secondary p-4">No users</p>';
+          return;
+        }
+
+        const currentUserEmail = "{{email}}"; // will be replaced by verify response
+
+        const rowsHtml = users.map(u => `
+          <tr class="border-b border-outline-variant/50 hover:bg-monolith-black/[0.02] transition-colors">
+            <td class="p-4 font-body text-body-md text-monolith-black">${u.email}</td>
+            <td class="p-4 font-body text-body-md text-secondary">${u.name || '—'}</td>
+            <td class="p-4">
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 font-label-caps text-label-caps rounded-sm bg-monolith-black/10 text-monolith-black text-xs">${u.roleName || u.role}</span>
+            </td>
+            <td class="p-4 font-body text-body-md text-secondary text-sm">${new Date(u.createdAt).toLocaleDateString("es-ES", { year: "numeric", month: "short", day: "numeric" })}</td>
+            <td class="p-4">
+              <select class="role-select h-8 bg-transparent border border-outline-variant rounded-sm px-2 text-sm font-body text-body-md text-monolith-black focus:border-monolith-black focus:outline-none" data-user-id="${u.id}">
+                ${availableRoles.map(r => `<option value="${r.code}" ${r.code === u.role ? 'selected' : ''}>${r.name}</option>`).join("")}
+              </select>
+            </td>
+          </tr>
+        `).join("");
+
+        const cardsHtml = users.map(u => `
+          <div class="bg-off-white border border-outline-variant border-l-2 border-l-monolith-black shadow-sm hover:shadow-md transition-all duration-200 rounded-sm p-4">
+            <div class="flex items-start justify-between mb-2">
+              <div>
+                <p class="font-body text-body-md text-monolith-black font-medium">${u.email}</p>
+                <p class="font-body text-body-md text-secondary text-sm">${u.name || '—'}</p>
+              </div>
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 font-label-caps text-label-caps rounded-sm bg-monolith-black/10 text-monolith-black text-xs">${u.roleName || u.role}</span>
+            </div>
+            <div class="flex items-center gap-2 mt-2">
+              <span class="font-body text-body-md text-secondary text-sm">Rol:</span>
+              <select class="role-select h-8 bg-transparent border border-outline-variant rounded-sm px-2 text-sm font-body text-body-md text-monolith-black focus:border-monolith-black focus:outline-none" data-user-id="${u.id}">
+                ${availableRoles.map(r => `<option value="${r.code}" ${r.code === u.role ? 'selected' : ''}>${r.name}</option>`).join("")}
+              </select>
+            </div>
+          </div>
+        `).join("");
+
+        tbody.innerHTML = rowsHtml;
+        cards.innerHTML = cardsHtml;
+
+        document.querySelectorAll(".role-select").forEach(sel => {
+          sel.addEventListener("change", async function () {
+            const userId = parseInt(this.dataset.userId);
+            const role = this.value;
+            try {
+              const res = await fetch("/api/admin/users.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ user_id: userId, role }),
+              });
+              if (res.ok) {
+                showMsg("Rol actualizado correctamente", "success");
+                loadUsers();
+              } else {
+                const d = await res.json();
+                showMsg(d.error || "Error al actualizar rol", "error");
+                loadUsers();
+              }
+            } catch (err) {
+              showMsg(err.message, "error");
+              loadUsers();
+            }
+          });
+        });
+      } catch (err) {
+        document.getElementById("usersBody").innerHTML =
+          `<tr><td colspan="5" class="p-8 text-center font-body text-body-md text-error">Error: ${err.message}</td></tr>`;
+        document.getElementById("userCards").innerHTML =
+          `<p class="font-body text-body-md text-error p-4">Error: ${err.message}</p>`;
+      }
+    }
+
+    loadUsers();
+  </script>
+</AdminLayout>

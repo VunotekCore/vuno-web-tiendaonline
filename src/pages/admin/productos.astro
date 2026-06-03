@@ -1,22 +1,31 @@
 ---
-import AdminLayout from "./layout.astro";
-import { getProducts } from "../../lib/storage";
-
-const products = await getProducts();
+import AdminLayout from "./_layout.astro";
 ---
 
-<AdminLayout title="Productos">
-  <div class="flex justify-between items-center mb-6">
-    <p class="font-body text-body-md text-secondary">{products.length} productos registrados</p>
-    <a href="/admin/productos/nuevo" class="bg-monolith-black text-off-white font-label-caps text-label-caps h-10 px-6 inline-flex items-center justify-center hover:opacity-90 transition-opacity">
-      + NUEVO PRODUCTO
+<AdminLayout title="Productos" currentPath="/admin/productos">
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+    <div class="flex items-center gap-4 w-full md:w-auto">
+      <div class="relative flex-1 md:w-56">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-secondary pointer-events-none">search</span>
+        <input type="text" id="searchInput" placeholder="Buscar productos..." class="w-full h-10 pl-10 pr-3 bg-transparent border-b border-outline text-monolith-black focus:border-monolith-black focus:outline-none font-body text-body-md" />
+      </div>
+      <select id="categoryFilter" class="h-10 bg-transparent border-b border-outline text-monolith-black focus:border-monolith-black focus:outline-none font-body text-body-md">
+        <option value="">Todas las categorías</option>
+      </select>
+      <p class="font-body text-body-md text-secondary whitespace-nowrap" id="productCount">0 productos</p>
+    </div>
+    <a href="/admin/productos/nuevo" class="bg-monolith-black text-off-white font-label-caps text-label-caps h-10 px-5 inline-flex items-center justify-center gap-1.5 rounded-md hover:bg-monolith-black/90 hover:shadow-sm transition-all duration-200 shrink-0">
+      <span class="material-symbols-outlined text-lg">add</span>
+      NUEVO PRODUCTO
     </a>
   </div>
-  <div class="bg-off-white border border-outline-variant">
+
+  <!-- Desktop table -->
+  <div class="hidden md:block bg-off-white border border-outline-variant shadow-sm rounded-sm">
     <div class="overflow-x-auto">
       <table class="w-full text-left">
         <thead>
-          <tr class="border-b border-outline-variant font-label-caps text-label-caps text-secondary">
+          <tr class="bg-monolith-black/5 font-label-caps text-label-caps text-secondary">
             <th class="p-4 font-medium">PRODUCTO</th>
             <th class="p-4 font-medium">PRECIO</th>
             <th class="p-4 font-medium">CATEGORÍA</th>
@@ -24,30 +33,266 @@ const products = await getProducts();
             <th class="p-4 font-medium">ACCIONES</th>
           </tr>
         </thead>
-        <tbody>
-          {products.map((p) => {
-            const totalStock = p.sizes.reduce((sum, s) => sum + (s.inStock ? 1 : 0), 0);
-            return (
-              <tr class="border-b border-outline-variant/50 hover:bg-surface-container-low transition-colors">
-                <td class="p-4 font-body text-body-md">{p.name}</td>
-                <td class="p-4 font-price-display text-price-display">${p.price.toFixed(2)}</td>
-                <td class="p-4 font-body text-body-md text-secondary">{p.category}</td>
-                <td class="p-4">
-                  <span class={`font-label-caps text-label-caps text-xs px-2 py-1 ${totalStock === 0 ? "bg-error/20 text-error" : "bg-monolith-black/10 text-monolith-black"}`}>
-                    {totalStock === 0 ? "AGOTADO" : `${p.sizes.length} talles`}
-                  </span>
-                </td>
-                <td class="p-4">
-                  <div class="flex gap-3">
-                    <button class="font-label-caps text-label-caps text-secondary hover:text-monolith-black transition-colors">EDIT</button>
-                    <button class="font-label-caps text-label-caps text-secondary hover:text-error transition-colors">DELETE</button>
-                  </div>
-                </td>
-              </tr>
-            );
-          })}
+        <tbody id="productsTableBody">
+          <tr>
+            <td colspan="5" class="p-8 text-center font-body text-body-md text-secondary">Loading...</td>
+          </tr>
         </tbody>
       </table>
     </div>
   </div>
+
+  <!-- Mobile cards -->
+  <div id="productCards" class="block md:hidden space-y-3">
+    <p class="font-body text-body-md text-secondary p-4">Loading...</p>
+  </div>
+
+  <!-- Delete Modal -->
+  <div id="deleteModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+    <div class="bg-off-white border border-outline-variant shadow-lg rounded-sm p-6 w-full max-w-md">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="material-symbols-outlined text-3xl text-error">warning</span>
+        <h3 class="font-headline text-headline-md">Eliminar Producto</h3>
+      </div>
+      <p class="font-body text-body-md text-secondary mb-6">
+        ¿Estás seguro de eliminar <strong id="deleteItemName" class="text-monolith-black"></strong>?
+      </p>
+      <div class="flex justify-end gap-3">
+        <button id="deleteCancelBtn" class="font-label-caps text-label-caps text-secondary border border-monolith-black/20 rounded-md px-4 h-10 hover:border-monolith-black hover:text-monolith-black transition-all">CANCELAR</button>
+        <button id="deleteConfirmBtn" class="bg-error text-off-white font-label-caps text-label-caps rounded-md px-4 h-10 inline-flex items-center gap-1.5 hover:bg-error/90 transition-all">
+          <span class="material-symbols-outlined text-lg">delete</span>
+          ELIMINAR
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div id="pagination" class="hidden mt-6 flex items-center justify-center gap-2"></div>
+
+  <script>
+    // @ts-nocheck
+    const PAGE_LIMIT = 10;
+    let deleteTargetId = null;
+    let deleteTargetEncodedId = null;
+    let currentOffset = 0;
+    let totalProducts = 0;
+    let searchTerm = "";
+    let categoryFilter = "";
+    let searchTimeout = null;
+
+    function openDeleteModal(id, name) {
+      deleteTargetId = id;
+      deleteTargetEncodedId = encodeURIComponent(id);
+      document.getElementById("deleteItemName").textContent = name;
+      document.getElementById("deleteModal").classList.remove("hidden");
+    }
+
+    function closeDeleteModal() {
+      document.getElementById("deleteModal").classList.add("hidden");
+      deleteTargetId = null;
+      deleteTargetEncodedId = null;
+    }
+
+    function stockBadge(stock) {
+      const cls = stock === 0 ? 'bg-error/20 text-error' : 'bg-monolith-black/10 text-monolith-black';
+      const label = stock === 0 ? 'AGOTADO' : stock + ' uds.';
+      return `<span class="font-label-caps text-label-caps text-xs px-2 py-1 rounded-sm ${cls}">${label}</span>`;
+    }
+
+    function actionLinks(p) {
+      const id = encodeURIComponent(p.id);
+      const name = p.name;
+      return `<div class="flex gap-2">
+        <a href="/admin/productos/editar?id=${id}" class="inline-flex items-center gap-1 px-3 py-1.5 font-label-caps text-label-caps border rounded-md transition-all duration-200 border-monolith-black/20 text-secondary hover:border-monolith-black hover:text-monolith-black hover:bg-monolith-black/5">
+          <span class="material-symbols-outlined text-sm">edit</span>
+          EDIT
+        </a>
+        <button data-delete-id="${id}" data-delete-name="${name}" class="delete-btn inline-flex items-center gap-1 px-3 py-1.5 font-label-caps text-label-caps border rounded-md transition-all duration-200 border-error/20 text-secondary hover:border-error hover:text-error hover:bg-error/5">
+          <span class="material-symbols-outlined text-sm">delete</span>
+          DELETE
+        </button>
+      </div>`;
+    }
+
+    function renderProducts(products) {
+      const tbody = document.getElementById("productsTableBody");
+      const cards = document.getElementById("productCards");
+
+      const rowsHtml = products.map(p => `
+        <tr class="border-b border-outline-variant/50 hover:bg-monolith-black/[0.02] transition-colors">
+          <td class="p-4 font-body text-body-md text-monolith-black font-medium">${p.name}</td>
+          <td class="p-4 font-price-display text-price-display">$${p.price.toFixed(2)}</td>
+          <td class="p-4 font-body text-body-md text-secondary">${p.category || '—'}</td>
+          <td class="p-4">${stockBadge(p.totalStock || 0)}</td>
+          <td class="p-4">${actionLinks(p)}</td>
+        </tr>
+      `).join("");
+
+      const cardsHtml = products.map(p => {
+        const id = encodeURIComponent(p.id);
+        return `
+          <div class="bg-off-white border border-outline-variant border-l-2 border-l-monolith-black shadow-sm hover:shadow-md transition-all duration-200 rounded-sm p-4 flex flex-col gap-3">
+            <div class="flex items-start justify-between">
+              <div class="flex items-start gap-3">
+                <span class="material-symbols-outlined text-xl text-monolith-black mt-0.5">inventory_2</span>
+                <div>
+                  <p class="font-body text-body-md text-monolith-black font-medium">${p.name}</p>
+                  <p class="font-body text-body-md text-secondary text-sm">${p.category || '—'}</p>
+                </div>
+              </div>
+              <span class="font-price-display text-price-display whitespace-nowrap ml-3">$${p.price.toFixed(2)}</span>
+            </div>
+            <div class="flex items-center justify-between pt-1">
+              ${stockBadge(p.totalStock || 0)}
+              <div class="flex gap-2">
+                <a href="/admin/productos/editar?id=${id}" class="inline-flex items-center gap-1 px-3 py-1.5 font-label-caps text-label-caps border rounded-md transition-all duration-200 border-monolith-black/20 text-secondary hover:border-monolith-black hover:text-monolith-black hover:bg-monolith-black/5">
+                  <span class="material-symbols-outlined text-sm">edit</span>
+                  EDIT
+                </a>
+                <button data-delete-id="${id}" data-delete-name="${p.name}" class="delete-btn inline-flex items-center gap-1 px-3 py-1.5 font-label-caps text-label-caps border rounded-md transition-all duration-200 border-error/20 text-secondary hover:border-error hover:text-error hover:bg-error/5">
+                  <span class="material-symbols-outlined text-sm">delete</span>
+                  DELETE
+                </button>
+              </div>
+            </div>
+          </div>`;
+      }).join("");
+
+      tbody.innerHTML = rowsHtml || '<tr><td colspan="5" class="p-8 text-center font-body text-body-md text-secondary">No products yet</td></tr>';
+      cards.innerHTML = cardsHtml || '<p class="font-body text-body-md text-secondary p-4">No products yet</p>';
+
+      document.querySelectorAll(".delete-btn").forEach(btn => {
+        btn.removeEventListener("click", deleteBtnHandler);
+        btn.addEventListener("click", deleteBtnHandler);
+      });
+    }
+
+    function deleteBtnHandler() {
+      openDeleteModal(decodeURIComponent(this.dataset.deleteId), this.dataset.deleteName);
+    }
+
+    function renderPagination() {
+      const container = document.getElementById("pagination");
+      const totalPages = Math.ceil(totalProducts / PAGE_LIMIT);
+      const currentPage = Math.floor(currentOffset / PAGE_LIMIT) + 1;
+
+      if (totalPages <= 1) { container.classList.add("hidden"); return; }
+      container.classList.remove("hidden");
+
+      let html = '<button class="pag-prev w-9 h-9 flex items-center justify-center border border-outline-variant rounded-sm hover:border-monolith-black transition-colors font-body text-body-md" ' + (currentPage <= 1 ? 'disabled style="opacity:0.3"' : '') + '><span class="material-symbols-outlined text-sm">chevron_left</span></button>';
+
+      for (let i = 1; i <= totalPages; i++) {
+        const active = i === currentPage ? 'bg-monolith-black text-off-white border-monolith-black' : 'border-outline-variant hover:border-monolith-black';
+        html += `<button class="pag-page w-9 h-9 flex items-center justify-center border rounded-sm transition-colors font-body text-body-md text-sm ${active}" data-page="${i}">${i}</button>`;
+      }
+
+      html += '<button class="pag-next w-9 h-9 flex items-center justify-center border border-outline-variant rounded-sm hover:border-monolith-black transition-colors font-body text-body-md" ' + (currentPage >= totalPages ? 'disabled style="opacity:0.3"' : '') + '><span class="material-symbols-outlined text-sm">chevron_right</span></button>';
+
+      container.innerHTML = html;
+
+      container.querySelectorAll(".pag-page").forEach(btn => {
+        btn.addEventListener("click", () => {
+          currentOffset = (parseInt(btn.dataset.page) - 1) * PAGE_LIMIT;
+          loadProducts();
+        });
+      });
+      container.querySelector(".pag-prev")?.addEventListener("click", () => {
+        if (currentOffset <= 0) return;
+        currentOffset = Math.max(0, currentOffset - PAGE_LIMIT);
+        loadProducts();
+      });
+      container.querySelector(".pag-next")?.addEventListener("click", () => {
+        if (currentOffset + PAGE_LIMIT >= totalProducts) return;
+        currentOffset += PAGE_LIMIT;
+        loadProducts();
+      });
+    }
+
+    function searchProducts() {
+      searchTerm = document.getElementById("searchInput").value.trim();
+      categoryFilter = document.getElementById("categoryFilter").value;
+      currentOffset = 0;
+      loadProducts();
+    }
+
+    function debounceSearch() {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(searchProducts, 300);
+    }
+
+    document.getElementById("searchInput").addEventListener("input", debounceSearch);
+    document.getElementById("categoryFilter").addEventListener("change", searchProducts);
+
+    async function loadProducts() {
+      try {
+        let url = `/api/productos/list.php?limit=${PAGE_LIMIT}&offset=${currentOffset}`;
+        if (searchTerm) url += `&search=${encodeURIComponent(searchTerm)}`;
+        if (categoryFilter) url += `&category=${encodeURIComponent(categoryFilter)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        const products = data.items || data;
+        totalProducts = data.total || products.length;
+
+        renderProducts(products, false);
+        document.getElementById("productCount").textContent =
+          Math.min(currentOffset + products.length, totalProducts) + " de " + totalProducts + " productos registrados";
+        renderPagination();
+      } catch (err) {
+        document.getElementById("productsTableBody").innerHTML =
+          `<tr><td colspan="5" class="p-8 text-center font-body text-body-md text-error">Error: ${err.message}</td></tr>`;
+        document.getElementById("productCards").innerHTML =
+          `<p class="font-body text-body-md text-error p-4">Error: ${err.message}</p>`;
+      }
+    }
+
+    // Load categories for filter dropdown
+    (async function loadCategoryFilter() {
+      try {
+        const res = await fetch("/api/categorias/list.php");
+        const data = await res.json();
+        const cats = data.items || data;
+        const select = document.getElementById("categoryFilter");
+        (Array.isArray(cats) ? cats : []).forEach(c => {
+          const opt = document.createElement("option");
+          opt.value = c.name;
+          opt.textContent = c.name;
+          select.appendChild(opt);
+        });
+      } catch {}
+    })();
+
+    // --- Delete modal handlers ---
+    document.getElementById("deleteConfirmBtn").addEventListener("click", async () => {
+      if (!deleteTargetId) return;
+
+      try {
+        const res = await fetch("/api/productos/delete.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: deleteTargetId }),
+        });
+        if (res.ok) {
+          closeDeleteModal();
+          currentOffset = 0;
+          loadProducts();
+        } else {
+          const data = await res.json();
+          alert(data.error || "Delete failed");
+        }
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+
+    document.getElementById("deleteCancelBtn").addEventListener("click", closeDeleteModal);
+    document.getElementById("deleteModal").addEventListener("click", (e) => {
+      if (e.target === e.currentTarget) closeDeleteModal();
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeDeleteModal();
+    });
+
+    loadProducts();
+  </script>
 </AdminLayout>

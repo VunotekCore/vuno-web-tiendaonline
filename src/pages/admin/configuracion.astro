@@ -1,0 +1,433 @@
+---
+import AdminLayout from "./_layout.astro";
+
+const tabs = [
+  { id: "store", label: "Tienda", icon: "store" },
+  { id: "receipt", label: "Recibo", icon: "receipt" },
+  { id: "imagekit", label: "ImageKit", icon: "photo_library" },
+  { id: "stripe", label: "Stripe", icon: "credit_card" },
+  { id: "transfer", label: "Transferencia", icon: "account_balance" },
+  { id: "smtp", label: "Email / SMTP", icon: "mail" },
+];
+---
+
+<AdminLayout title="Configuración" currentPath="/admin/configuracion">
+  <div id="loading" class="font-body text-body-md text-secondary p-4">Loading settings...</div>
+  <div id="message" class="hidden font-body text-body-md p-3 mb-6 rounded-sm"></div>
+
+  <div id="settingsContent" class="hidden">
+    <!-- Tabs -->
+    <div class="border-b border-outline-variant mb-8 overflow-x-auto">
+      <div class="flex gap-1 min-w-max">
+        {tabs.map(t => (
+          <button
+            class="tab-btn px-4 py-3 font-label-caps text-label-caps text-secondary hover:text-monolith-black border-b-2 border-transparent hover:border-monolith-black/30 transition-all whitespace-nowrap flex items-center gap-1.5"
+            data-tab={t.id}
+          >
+            <span class="material-symbols-outlined text-lg">{t.icon}</span>
+            {t.label}
+          </button>
+        ))}
+      </div>
+    </div>
+
+    <!-- Store Tab -->
+    <div id="tab-store" class="tab-content max-w-2xl">
+      <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
+        <h2 class="font-headline text-headline-md mb-6 flex items-center gap-2">
+          <span class="material-symbols-outlined text-xl">store</span>
+          Información de la Tienda
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="md:col-span-2">
+            <label class="font-label-caps text-label-caps text-secondary block mb-2">NOMBRE DE LA TIENDA</label>
+            <input type="text" id="store-name" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none" />
+          </div>
+          <div class="md:col-span-2">
+            <label class="font-label-caps text-label-caps text-secondary block mb-2">LEMA / SLOGAN</label>
+            <input type="text" id="store-slogan" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none" />
+          </div>
+          <div class="md:col-span-2">
+            <label class="font-label-caps text-label-caps text-secondary block mb-2">EMAIL DE CONTACTO</label>
+            <input type="email" id="store-email" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none" />
+          </div>
+          <div class="md:col-span-2">
+            <label class="font-label-caps text-label-caps text-secondary block mb-2">DESCRIPCIÓN</label>
+            <textarea id="store-description" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-monolith-black focus:outline-none resize-none h-24"></textarea>
+          </div>
+          <div class="md:col-span-2">
+            <label class="font-label-caps text-label-caps text-secondary block mb-2">URL DEL LOGOTIPO</label>
+            <input type="text" id="store-logo" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none" placeholder="https://..." />
+            <p class="font-body text-body-md text-xs text-secondary mt-1">URL pública de la imagen del logotipo</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Receipt Tab -->
+    <div id="tab-receipt" class="tab-content hidden max-w-2xl">
+      <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
+        <h2 class="font-headline text-headline-md mb-6 flex items-center gap-2">
+          <span class="material-symbols-outlined text-xl">receipt</span>
+          Datos de Facturación / Recibo
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="md:col-span-2">
+            <label class="font-label-caps text-label-caps text-secondary block mb-2">RAZÓN SOCIAL</label>
+            <input type="text" id="receipt-businessName" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none" />
+          </div>
+          <div class="md:col-span-2">
+            <label class="font-label-caps text-label-caps text-secondary block mb-2">RUC / NIT / TAX ID</label>
+            <input type="text" id="receipt-taxId" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none" />
+          </div>
+          <div class="md:col-span-2">
+            <label class="font-label-caps text-label-caps text-secondary block mb-2">DIRECCIÓN</label>
+            <input type="text" id="receipt-address" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none" />
+          </div>
+          <div>
+            <label class="font-label-caps text-label-caps text-secondary block mb-2">CIUDAD</label>
+            <input type="text" id="receipt-city" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none" />
+          </div>
+          <div>
+            <label class="font-label-caps text-label-caps text-secondary block mb-2">ESTADO / PROVINCIA</label>
+            <input type="text" id="receipt-state" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none" />
+          </div>
+          <div>
+            <label class="font-label-caps text-label-caps text-secondary block mb-2">CÓDIGO POSTAL</label>
+            <input type="text" id="receipt-zip" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none" />
+          </div>
+          <div>
+            <label class="font-label-caps text-label-caps text-secondary block mb-2">TELÉFONO</label>
+            <input type="text" id="receipt-phone" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ImageKit Tab -->
+    <div id="tab-imagekit" class="tab-content hidden max-w-2xl">
+      <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
+        <h2 class="font-headline text-headline-md mb-6 flex items-center gap-2">
+          <span class="material-symbols-outlined text-xl">photo_library</span>
+          ImageKit — Gestión de Imágenes
+        </h2>
+        <div class="space-y-6">
+          <div>
+            <label class="font-label-caps text-label-caps text-secondary block mb-2">PUBLIC KEY</label>
+            <input type="text" id="imagekit-publicKey" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none font-mono text-sm" />
+          </div>
+          <div>
+            <label class="font-label-caps text-label-caps text-secondary block mb-2">PRIVATE KEY</label>
+            <input type="password" id="imagekit-privateKey" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none font-mono text-sm" />
+          </div>
+          <div>
+            <label class="font-label-caps text-label-caps text-secondary block mb-2">URL ENDPOINT</label>
+            <input type="text" id="imagekit-urlEndpoint" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none font-mono text-sm" placeholder="https://ik.imagekit.io/your_id" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stripe Tab -->
+    <div id="tab-stripe" class="tab-content hidden max-w-2xl">
+      <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
+        <h2 class="font-headline text-headline-md mb-6 flex items-center gap-2">
+          <span class="material-symbols-outlined text-xl">credit_card</span>
+          Stripe — Pasarela de Pago
+        </h2>
+
+        <div class="flex items-center justify-between pb-6 mb-6 border-b border-outline-variant">
+          <div>
+            <p class="font-body text-body-md text-monolith-black font-medium">Habilitar Stripe</p>
+            <p class="font-body text-body-md text-sm text-secondary">Permite pagos con tarjeta vía Stripe</p>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="stripe-enabled" class="sr-only peer" />
+            <div class="w-12 h-6.5 bg-outline-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[3px] after:start-[3px] after:bg-white after:border-outline-variant after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-monolith-black"></div>
+          </label>
+        </div>
+
+        <div class="space-y-6">
+          <div>
+            <label class="font-label-caps text-label-caps text-secondary block mb-2">PUBLISHABLE KEY</label>
+            <input type="text" id="stripe-publishableKey" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none font-mono text-sm" placeholder="pk_live_..." />
+          </div>
+          <div>
+            <label class="font-label-caps text-label-caps text-secondary block mb-2">SECRET KEY</label>
+            <input type="password" id="stripe-secretKey" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none font-mono text-sm" placeholder="sk_live_..." />
+          </div>
+          <div>
+            <label class="font-label-caps text-label-caps text-secondary block mb-2">WEBHOOK SECRET</label>
+            <input type="password" id="stripe-webhookSecret" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none font-mono text-sm" placeholder="whsec_..." />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transfer Tab -->
+    <div id="tab-transfer" class="tab-content hidden max-w-3xl">
+      <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
+        <h2 class="font-headline text-headline-md mb-6 flex items-center gap-2">
+          <span class="material-symbols-outlined text-xl">account_balance</span>
+          Transferencia Bancaria
+        </h2>
+
+        <div class="flex items-center justify-between pb-6 mb-6 border-b border-outline-variant">
+          <div>
+            <p class="font-body text-body-md text-monolith-black font-medium">Habilitar Transferencia</p>
+            <p class="font-body text-body-md text-sm text-secondary">Permite pagos mediante transferencia bancaria</p>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="transfer-enabled" class="sr-only peer" />
+            <div class="w-12 h-6.5 bg-outline-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[3px] after:start-[3px] after:bg-white after:border-outline-variant after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-monolith-black"></div>
+          </label>
+        </div>
+
+        <div id="banks-container" class="space-y-6"></div>
+
+        <button id="addBankBtn" class="mt-4 font-label-caps text-label-caps text-secondary hover:text-monolith-black inline-flex items-center gap-1.5 transition-colors">
+          <span class="material-symbols-outlined text-lg">add_circle</span>
+          AGREGAR BANCO
+        </button>
+      </div>
+    </div>
+
+    <!-- Bank entry template -->
+    <template id="bank-template">
+      <div class="bank-entry border border-outline-variant rounded-sm p-4 bg-white relative">
+        <button type="button" class="delete-bank absolute top-2 right-2 w-8 h-8 flex items-center justify-center text-secondary hover:text-error transition-colors" title="Eliminar banco">
+          <span class="material-symbols-outlined text-lg">close</span>
+        </button>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="font-label-caps text-label-caps text-secondary block mb-1 text-xs">NOMBRE DEL BANCO</label>
+            <input type="text" data-bank-field="bankName" class="w-full bg-transparent border-b border-outline pb-1.5 text-monolith-black focus:border-monolith-black focus:outline-none text-sm" />
+          </div>
+          <div>
+            <label class="font-label-caps text-label-caps text-secondary block mb-1 text-xs">TITULAR DE LA CUENTA</label>
+            <input type="text" data-bank-field="accountHolder" class="w-full bg-transparent border-b border-outline pb-1.5 text-monolith-black focus:border-monolith-black focus:outline-none text-sm" />
+          </div>
+          <div>
+            <label class="font-label-caps text-label-caps text-secondary block mb-1 text-xs">NÚMERO DE CUENTA</label>
+            <input type="text" data-bank-field="accountNumber" class="w-full bg-transparent border-b border-outline pb-1.5 text-monolith-black focus:border-monolith-black focus:outline-none font-mono text-sm" />
+          </div>
+          <div>
+            <label class="font-label-caps text-label-caps text-secondary block mb-1 text-xs">TIPO DE CUENTA</label>
+            <select data-bank-field="accountType" class="w-full bg-transparent border-b border-outline pb-1.5 text-monolith-black focus:border-monolith-black focus:outline-none text-sm">
+              <option value="">Seleccionar...</option>
+              <option value="Corriente">Corriente</option>
+              <option value="Ahorro">Ahorro</option>
+              <option value="Vista">Vista</option>
+            </select>
+          </div>
+          <div>
+            <label class="font-label-caps text-label-caps text-secondary block mb-1 text-xs">RUT / ABA / CÓDIGO</label>
+            <input type="text" data-bank-field="routingNumber" class="w-full bg-transparent border-b border-outline pb-1.5 text-monolith-black focus:border-monolith-black focus:outline-none font-mono text-sm" />
+          </div>
+          <div class="md:col-span-2">
+            <label class="font-label-caps text-label-caps text-secondary block mb-1 text-xs">INSTRUCCIONES</label>
+            <textarea data-bank-field="instructions" class="w-full bg-transparent border border-outline p-2 text-monolith-black focus:border-monolith-black focus:outline-none resize-none h-16 text-sm" placeholder="Ej: Realiza el depósito y envía el comprobante a ..."></textarea>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <!-- SMTP Tab -->
+    <div id="tab-smtp" class="tab-content hidden max-w-2xl">
+      <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
+        <h2 class="font-headline text-headline-md mb-6 flex items-center gap-2">
+          <span class="material-symbols-outlined text-xl">mail</span>
+          Email / SMTP — Notificaciones
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="md:col-span-2">
+            <label class="font-label-caps text-label-caps text-secondary block mb-2">SMTP HOST</label>
+            <input type="text" id="smtp-host" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none font-mono text-sm" placeholder="smtp.gmail.com" />
+          </div>
+          <div>
+            <label class="font-label-caps text-label-caps text-secondary block mb-2">SMTP PORT</label>
+            <input type="text" id="smtp-port" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none font-mono text-sm" placeholder="587" />
+          </div>
+          <div>
+            <label class="font-label-caps text-label-caps text-secondary block mb-2">SMTP USER</label>
+            <input type="text" id="smtp-user" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none font-mono text-sm" />
+          </div>
+          <div>
+            <label class="font-label-caps text-label-caps text-secondary block mb-2">SMTP PASSWORD</label>
+            <input type="password" id="smtp-pass" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none font-mono text-sm" />
+          </div>
+          <div>
+            <label class="font-label-caps text-label-caps text-secondary block mb-2">FROM EMAIL</label>
+            <input type="email" id="smtp-fromEmail" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none" placeholder="tienda@ramlop.com" />
+          </div>
+          <div>
+            <label class="font-label-caps text-label-caps text-secondary block mb-2">FROM NAME</label>
+            <input type="text" id="smtp-fromName" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none" placeholder="Ram;Lop" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Save button -->
+    <div class="mt-8 pt-6 border-t border-outline-variant">
+      <button id="saveBtn" class="bg-monolith-black text-off-white font-label-caps text-label-caps h-12 px-8 inline-flex items-center justify-center gap-1.5 rounded-md hover:bg-monolith-black/90 hover:shadow-sm transition-all duration-200">
+        <span class="material-symbols-outlined text-lg">save</span>
+        GUARDAR CONFIGURACIÓN
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // @ts-nocheck
+    const fieldMap = {
+      store: ["name", "slogan", "email", "description", "logo"],
+      receipt: ["businessName", "taxId", "address", "city", "state", "zip", "phone"],
+      imagekit: ["publicKey", "privateKey", "urlEndpoint"],
+      stripe: { text: ["publishableKey", "secretKey", "webhookSecret"], bool: ["enabled"] },
+      smtp: ["host", "port", "user", "pass", "fromEmail", "fromName"],
+    };
+
+    const bankFields = ["bankName", "accountHolder", "accountNumber", "accountType", "routingNumber", "instructions"];
+
+    function createBankEntry(data) {
+      const tpl = document.getElementById("bank-template");
+      const clone = tpl.content.cloneNode(true);
+      const entry = clone.querySelector(".bank-entry");
+
+      bankFields.forEach(f => {
+        const el = entry.querySelector(`[data-bank-field="${f}"]`);
+        if (el) el.value = data?.[f] ?? "";
+      });
+
+      entry.querySelector(".delete-bank").addEventListener("click", () => {
+        entry.remove();
+      });
+
+      return entry;
+    }
+
+    function loadBanks(banks) {
+      const container = document.getElementById("banks-container");
+      container.innerHTML = "";
+      if (!banks || banks.length === 0) {
+        container.appendChild(createBankEntry({}));
+        return;
+      }
+      banks.forEach(b => container.appendChild(createBankEntry(b)));
+    }
+
+    function collectBanks() {
+      const entries = document.querySelectorAll("#banks-container .bank-entry");
+      return Array.from(entries).map(entry => {
+        const bank = {};
+        bankFields.forEach(f => {
+          const el = entry.querySelector(`[data-bank-field="${f}"]`);
+          bank[f] = el ? el.value : "";
+        });
+        return bank;
+      });
+    }
+
+    function loadSettings(settings) {
+      for (const [section, fields] of Object.entries(fieldMap)) {
+        const textFields = Array.isArray(fields) ? fields : (fields.text || []);
+        const boolFields = Array.isArray(fields) ? [] : (fields.bool || []);
+
+        for (const field of textFields) {
+          const el = document.getElementById(`${section}-${field}`);
+          if (el) el.value = settings[section]?.[field] ?? "";
+        }
+        for (const field of boolFields) {
+          const el = document.getElementById(`${section}-${field}`);
+          if (el) el.checked = settings[section]?.[field] ?? false;
+        }
+      }
+      const transfer = settings.transfer || {};
+      document.getElementById("transfer-enabled").checked = transfer.enabled ?? true;
+      loadBanks(transfer.banks);
+    }
+
+    function collectSettings() {
+      const settings = {};
+      for (const [section, fields] of Object.entries(fieldMap)) {
+        const textFields = Array.isArray(fields) ? fields : (fields.text || []);
+        const boolFields = Array.isArray(fields) ? [] : (fields.bool || []);
+        settings[section] = {};
+
+        for (const field of textFields) {
+          const el = document.getElementById(`${section}-${field}`);
+          settings[section][field] = el ? el.value : "";
+        }
+        for (const field of boolFields) {
+          const el = document.getElementById(`${section}-${field}`);
+          settings[section][field] = el ? el.checked : false;
+        }
+      }
+      settings.transfer = {
+        enabled: document.getElementById("transfer-enabled").checked,
+        banks: collectBanks(),
+      };
+      return settings;
+    }
+
+    // --- Tab switching ---
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab-btn").forEach(b => {
+          b.classList.remove("text-monolith-black", "border-monolith-black");
+          b.classList.add("text-secondary", "border-transparent");
+        });
+        btn.classList.remove("text-secondary", "border-transparent");
+        btn.classList.add("text-monolith-black", "border-monolith-black");
+
+        document.querySelectorAll(".tab-content").forEach(tc => tc.classList.add("hidden"));
+        document.getElementById("tab-" + btn.dataset.tab).classList.remove("hidden");
+      });
+    });
+
+    document.querySelector(".tab-btn")?.click();
+
+    // --- Load settings ---
+    (async function () {
+      try {
+        const res = await fetch("/api/configuracion/get.php");
+        const settings = await res.json();
+        loadSettings(settings);
+        document.getElementById("loading").classList.add("hidden");
+        document.getElementById("settingsContent").classList.remove("hidden");
+      } catch (err) {
+        document.getElementById("loading").textContent = "Error loading settings: " + err.message;
+      }
+    })();
+
+    // --- Add Bank ---
+    document.getElementById("addBankBtn").addEventListener("click", () => {
+      const container = document.getElementById("banks-container");
+      container.appendChild(createBankEntry({}));
+    });
+
+    // --- Save ---
+    document.getElementById("saveBtn").addEventListener("click", async () => {
+      const msg = document.getElementById("message");
+      const settings = collectSettings();
+
+      try {
+        const res = await fetch("/api/configuracion/update.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(settings),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Error saving");
+        msg.className = "font-body text-body-md p-3 mb-6 rounded-sm bg-green-100 text-green-800 block";
+        msg.textContent = "Configuración guardada correctamente.";
+        msg.classList.remove("hidden");
+        setTimeout(() => msg.classList.add("hidden"), 4000);
+      } catch (err) {
+        msg.className = "font-body text-body-md p-3 mb-6 rounded-sm bg-red-100 text-error block";
+        msg.textContent = err.message;
+        msg.classList.remove("hidden");
+      }
+    });
+  </script>
+</AdminLayout>

@@ -1,0 +1,148 @@
+---
+import AdminLayout from "../_layout.astro";
+---
+
+<AdminLayout title="Nuevo Post" currentPath="/admin/blog">
+  <form id="blogForm" class="max-w-2xl">
+    <div id="message" class="hidden font-body text-body-md p-3 mb-6 rounded-sm"></div>
+
+    <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-6 space-y-6">
+      <h2 class="font-headline text-headline-md flex items-center gap-2">
+        <span class="material-symbols-outlined text-xl">article</span>
+        Nuevo Post
+      </h2>
+
+      <div>
+        <label class="font-label-caps text-label-caps text-secondary block mb-2">TÍTULO</label>
+        <input type="text" id="fieldTitle" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none" />
+      </div>
+
+      <div>
+        <label class="font-label-caps text-label-caps text-secondary block mb-2">SLUG</label>
+        <input type="text" id="fieldSlug" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none font-mono text-sm" />
+        <p class="font-body text-body-sm text-secondary mt-1">Se genera automáticamente desde el título</p>
+      </div>
+
+      <div>
+        <label class="font-label-caps text-label-caps text-secondary block mb-2">EXTRACTO</label>
+        <textarea id="fieldExcerpt" rows="3" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none resize-none"></textarea>
+      </div>
+
+      <div>
+        <label class="font-label-caps text-label-caps text-secondary block mb-2">CONTENIDO (HTML)</label>
+        <textarea id="fieldContent" rows="16" required class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-monolith-black focus:outline-none font-mono text-sm leading-relaxed resize-y"></textarea>
+      </div>
+
+      <div>
+        <label class="font-label-caps text-label-caps text-secondary block mb-2">IMAGEN DESTACADA (URL)</label>
+        <input type="url" id="fieldImage" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none" placeholder="https://..." />
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div>
+          <label class="font-label-caps text-label-caps text-secondary block mb-2">AUTOR</label>
+          <input type="text" id="fieldAuthor" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none" placeholder="Ram;Lop" />
+        </div>
+        <div>
+          <label class="font-label-caps text-label-caps text-secondary block mb-2">CATEGORÍA</label>
+          <select id="fieldCategory" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none">
+            <option value="">Sin categoría</option>
+          </select>
+        </div>
+        <div>
+          <label class="font-label-caps text-label-caps text-secondary block mb-2">ESTADO</label>
+          <select id="fieldStatus" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none">
+            <option value="draft">Borrador</option>
+            <option value="published">Publicado</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex justify-end gap-3 mt-8">
+      <a href="/admin/blog" class="font-label-caps text-label-caps text-secondary border border-monolith-black/20 rounded-md px-5 h-10 inline-flex items-center hover:border-monolith-black hover:text-monolith-black transition-all">CANCELAR</a>
+      <button type="submit" id="submitBtn" class="bg-monolith-black text-off-white font-label-caps text-label-caps h-10 px-5 inline-flex items-center justify-center gap-1.5 rounded-md hover:bg-monolith-black/90 hover:shadow-sm transition-all duration-200">
+        <span class="material-symbols-outlined text-lg">save</span>
+        GUARDAR
+      </button>
+    </div>
+  </form>
+
+  <script>
+    // @ts-nocheck
+    function slugify(text) {
+      return text.toLowerCase().trim()
+        .replace(/[^\w\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
+    }
+
+    // Auto-generate slug
+    document.getElementById("fieldTitle").addEventListener("input", function() {
+      if (!document.getElementById("fieldSlug").dataset.manual) {
+        document.getElementById("fieldSlug").value = slugify(this.value);
+      }
+    });
+    document.getElementById("fieldSlug").addEventListener("input", function() {
+      this.dataset.manual = this.value ? "1" : "";
+    });
+
+    // Load categories
+    (async function loadCategories() {
+      try {
+        const res = await fetch("/api/blog/categories.php");
+        const cats = await res.json();
+        const select = document.getElementById("fieldCategory");
+        (cats || []).forEach(c => {
+          const opt = document.createElement("option");
+          opt.value = c.id;
+          opt.textContent = c.name;
+          select.appendChild(opt);
+        });
+      } catch {}
+    })();
+
+    // Form submit
+    document.getElementById("blogForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById("submitBtn");
+      const msg = document.getElementById("message");
+
+      const data = {
+        title: document.getElementById("fieldTitle").value.trim(),
+        slug: document.getElementById("fieldSlug").value.trim(),
+        excerpt: document.getElementById("fieldExcerpt").value.trim(),
+        content: document.getElementById("fieldContent").value.trim(),
+        featured_image: document.getElementById("fieldImage").value.trim(),
+        author: document.getElementById("fieldAuthor").value.trim() || "Ram;Lop",
+        category_id: document.getElementById("fieldCategory").value || null,
+        status: document.getElementById("fieldStatus").value,
+      };
+
+      if (!data.title || !data.slug || !data.content) {
+        msg.textContent = "Completa los campos obligatorios: título, slug y contenido.";
+        msg.className = "font-body text-body-md text-error bg-error/10 p-3 mb-6 rounded-sm block";
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "GUARDANDO...";
+
+      try {
+        const res = await fetch("/api/blog/create.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
+        if (!res.ok) throw new Error((await res.json()).error || "Error");
+        window.location.href = "/admin/blog";
+      } catch (err) {
+        msg.textContent = "Error: " + err.message;
+        msg.className = "font-body text-body-md text-error bg-error/10 p-3 mb-6 rounded-sm block";
+        btn.disabled = false;
+        btn.textContent = "GUARDAR";
+      }
+    });
+  </script>
+</AdminLayout>

@@ -1,0 +1,466 @@
+---
+import AdminLayout from "./_layout.astro";
+---
+
+<AdminLayout title="Cupones" currentPath="/admin/cupones">
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+    <div class="flex items-center gap-4 w-full md:w-auto">
+      <div class="relative flex-1 md:w-56">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-secondary pointer-events-none">search</span>
+        <input type="text" id="searchInput" placeholder="Buscar cupones..." class="w-full h-10 pl-10 pr-3 bg-transparent border-b border-outline text-monolith-black focus:border-monolith-black focus:outline-none font-body text-body-md" />
+      </div>
+      <p class="font-body text-body-md text-secondary whitespace-nowrap" id="couponCount">0 cupones</p>
+    </div>
+    <button id="openCreateBtn" class="bg-monolith-black text-off-white font-label-caps text-label-caps h-10 px-5 inline-flex items-center justify-center gap-1.5 rounded-md hover:bg-monolith-black/90 hover:shadow-sm transition-all duration-200 shrink-0">
+      <span class="material-symbols-outlined text-lg">add</span>
+      NUEVO CUPÓN
+    </button>
+  </div>
+
+  <!-- Desktop table -->
+  <div class="hidden md:block bg-off-white border border-outline-variant shadow-sm rounded-sm">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left">
+        <thead>
+          <tr class="bg-monolith-black/5 font-label-caps text-label-caps text-secondary">
+            <th class="p-4 font-medium">CÓDIGO</th>
+            <th class="p-4 font-medium">DESCUENTO</th>
+            <th class="p-4 font-medium">VIGENCIA</th>
+            <th class="p-4 font-medium">USOS</th>
+            <th class="p-4 font-medium">ESTADO</th>
+            <th class="p-4 font-medium">ACCIONES</th>
+          </tr>
+        </thead>
+        <tbody id="couponsBody">
+          <tr><td colspan="6" class="p-8 text-center font-body text-body-md text-secondary">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Mobile cards -->
+  <div id="couponCards" class="block md:hidden space-y-3">
+    <p class="font-body text-body-md text-secondary p-4">Loading...</p>
+  </div>
+
+  <!-- Pagination -->
+  <div id="pagination" class="hidden mt-6 flex items-center justify-center gap-2"></div>
+
+  <!-- Create/Edit Modal -->
+  <div id="formModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+    <div class="bg-off-white border border-outline-variant shadow-lg rounded-sm p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <h3 class="font-headline text-headline-md mb-4 flex items-center gap-2" id="formModalTitle">
+        <span class="material-symbols-outlined text-xl">add_circle</span>
+        Nuevo Cupón
+      </h3>
+
+      <div class="space-y-4">
+        <div>
+          <label class="font-label-caps text-label-caps text-secondary block mb-1">CÓDIGO *</label>
+          <input type="text" id="formCode" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none text-lg uppercase" placeholder="ej. BIENVENIDO10" />
+        </div>
+        <div>
+          <label class="font-label-caps text-label-caps text-secondary block mb-1">DESCRIPCIÓN</label>
+          <input type="text" id="formDescription" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none text-lg" placeholder="Descripción interna" />
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="font-label-caps text-label-caps text-secondary block mb-1">TIPO *</label>
+            <select id="formType" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none text-lg">
+              <option value="percentage">Porcentaje (%)</option>
+              <option value="fixed">Monto fijo ($)</option>
+            </select>
+          </div>
+          <div>
+            <label class="font-label-caps text-label-caps text-secondary block mb-1">VALOR *</label>
+            <input type="number" step="0.01" min="0" id="formValue" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none text-lg" placeholder="10" />
+          </div>
+        </div>
+        <div>
+          <label class="font-label-caps text-label-caps text-secondary block mb-1">MONTO MÍNIMO DE PEDIDO</label>
+          <input type="number" step="0.01" min="0" id="formMinAmount" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none text-lg" placeholder="0 (sin mínimo)" />
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="font-label-caps text-label-caps text-secondary block mb-1">USOS MÁXIMOS (TOTAL)</label>
+            <input type="number" min="0" id="formMaxUses" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none text-lg" placeholder="Ilimitado" />
+          </div>
+          <div>
+            <label class="font-label-caps text-label-caps text-secondary block mb-1">USOS POR CLIENTE</label>
+            <input type="number" min="0" id="formMaxPerCustomer" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none text-lg" placeholder="Ilimitado" />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="font-label-caps text-label-caps text-secondary block mb-1">VÁLIDO DESDE</label>
+            <input type="datetime-local" id="formStartsAt" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none text-lg" />
+          </div>
+          <div>
+            <label class="font-label-caps text-label-caps text-secondary block mb-1">VÁLIDO HASTA</label>
+            <input type="datetime-local" id="formExpiresAt" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none text-lg" />
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <input type="checkbox" id="formActive" class="w-5 h-5 accent-monolith-black" checked />
+          <label for="formActive" class="font-body text-body-md text-monolith-black">Activo</label>
+        </div>
+      </div>
+
+      <div id="formMsg" class="hidden font-body text-body-md text-sm mt-4"></div>
+      <div class="flex justify-end gap-3 mt-6">
+        <button id="formCancelBtn" class="font-label-caps text-label-caps text-secondary border border-monolith-black/20 rounded-md px-4 h-10 hover:border-monolith-black hover:text-monolith-black transition-all">CANCELAR</button>
+        <button id="formSaveBtn" class="bg-monolith-black text-off-white font-label-caps text-label-caps rounded-md px-4 h-10 inline-flex items-center gap-1.5 hover:bg-monolith-black/90 transition-all">
+          <span class="material-symbols-outlined text-lg" id="formSaveIcon">add</span>
+          <span id="formSaveText">CREAR</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Modal -->
+  <div id="deleteModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+    <div class="bg-off-white border border-outline-variant shadow-lg rounded-sm p-6 w-full max-w-md">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="material-symbols-outlined text-3xl text-error">warning</span>
+        <h3 class="font-headline text-headline-md">Eliminar Cupón</h3>
+      </div>
+      <p class="font-body text-body-md text-secondary mb-6">
+        ¿Estás seguro de eliminar <strong id="deleteItemName" class="text-monolith-black"></strong>?
+      </p>
+      <div class="flex justify-end gap-3">
+        <button id="deleteCancelBtn" class="font-label-caps text-label-caps text-secondary border border-monolith-black/20 rounded-md px-4 h-10 hover:border-monolith-black hover:text-monolith-black transition-all">CANCELAR</button>
+        <button id="deleteConfirmBtn" class="bg-error text-off-white font-label-caps text-label-caps rounded-md px-4 h-10 inline-flex items-center gap-1.5 hover:bg-error/90 transition-all">
+          <span class="material-symbols-outlined text-lg">delete</span>
+          ELIMINAR
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // @ts-nocheck
+    const PAGE_LIMIT = 10;
+    let editTargetId = null;
+    let deleteTargetId = null;
+    let currentOffset = 0;
+    let totalCoupons = 0;
+    let searchTerm = "";
+    let searchTimeout = null;
+
+    // --- Modal controls ---
+    function openCreateModal() {
+      editTargetId = null;
+      document.getElementById("formModalTitle").innerHTML = '<span class="material-symbols-outlined text-xl">add_circle</span> Nuevo Cupón';
+      document.getElementById("formSaveIcon").textContent = "add";
+      document.getElementById("formSaveText").textContent = "CREAR";
+      document.getElementById("formCode").value = "";
+      document.getElementById("formDescription").value = "";
+      document.getElementById("formType").value = "percentage";
+      document.getElementById("formValue").value = "";
+      document.getElementById("formMinAmount").value = "";
+      document.getElementById("formMaxUses").value = "";
+      document.getElementById("formMaxPerCustomer").value = "";
+      document.getElementById("formStartsAt").value = "";
+      document.getElementById("formExpiresAt").value = "";
+      document.getElementById("formActive").checked = true;
+      document.getElementById("formMsg").classList.add("hidden");
+      document.getElementById("formModal").classList.remove("hidden");
+      setTimeout(() => document.getElementById("formCode").focus(), 100);
+    }
+
+    function openEditModal(coupon) {
+      editTargetId = coupon.id;
+      document.getElementById("formModalTitle").innerHTML = '<span class="material-symbols-outlined text-xl">edit</span> Editar Cupón';
+      document.getElementById("formSaveIcon").textContent = "save";
+      document.getElementById("formSaveText").textContent = "GUARDAR";
+      document.getElementById("formCode").value = coupon.code;
+      document.getElementById("formDescription").value = coupon.description || "";
+      document.getElementById("formType").value = coupon.discount_type;
+      document.getElementById("formValue").value = coupon.discount_value;
+      document.getElementById("formMinAmount").value = coupon.min_order_amount || "";
+      document.getElementById("formMaxUses").value = coupon.max_uses || "";
+      document.getElementById("formMaxPerCustomer").value = coupon.max_uses_per_customer || "";
+      document.getElementById("formStartsAt").value = coupon.starts_at ? coupon.starts_at.substring(0, 16) : "";
+      document.getElementById("formExpiresAt").value = coupon.expires_at ? coupon.expires_at.substring(0, 16) : "";
+      document.getElementById("formActive").checked = coupon.is_active;
+      document.getElementById("formMsg").classList.add("hidden");
+      document.getElementById("formModal").classList.remove("hidden");
+      setTimeout(() => document.getElementById("formCode").focus(), 100);
+    }
+
+    function closeFormModal() {
+      document.getElementById("formModal").classList.add("hidden");
+      editTargetId = null;
+    }
+
+    function openDeleteModal(id, code) {
+      deleteTargetId = id;
+      document.getElementById("deleteItemName").textContent = code;
+      document.getElementById("deleteModal").classList.remove("hidden");
+    }
+    function closeDeleteModal() {
+      document.getElementById("deleteModal").classList.add("hidden");
+      deleteTargetId = null;
+    }
+
+    function formatCurrency(n) {
+      return "$" + parseFloat(n).toFixed(2);
+    }
+
+    function formatDateOnly(d) {
+      if (!d) return "—";
+      return new Date(d).toLocaleDateString("es-ES", { year: "numeric", month: "short", day: "numeric" });
+    }
+
+    function renderCoupons(coupons) {
+      const tbody = document.getElementById("couponsBody");
+      const cards = document.getElementById("couponCards");
+
+      if (coupons.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center font-body text-body-md text-secondary">No coupons yet.</td></tr>';
+        cards.innerHTML = '<p class="font-body text-body-md text-secondary p-4">No coupons yet.</p>';
+        return;
+      }
+
+      function statusBadge(c) {
+        const now = new Date();
+        const expires = c.expires_at ? new Date(c.expires_at) : null;
+        const starts = c.starts_at ? new Date(c.starts_at) : null;
+        if (!c.is_active) return '<span class="inline-flex items-center gap-1 px-2.5 py-1 font-label-caps text-label-caps bg-monolith-black/10 text-secondary rounded-sm">INACTIVO</span>';
+        if (expires && expires < now) return '<span class="inline-flex items-center gap-1 px-2.5 py-1 font-label-caps text-label-caps bg-error/10 text-error rounded-sm">VENCIDO</span>';
+        if (starts && starts > now) return '<span class="inline-flex items-center gap-1 px-2.5 py-1 font-label-caps text-label-caps bg-clay-accent/20 text-clay-accent rounded-sm">PROGRAMADO</span>';
+        return '<span class="inline-flex items-center gap-1 px-2.5 py-1 font-label-caps text-label-caps bg-monolith-black text-off-white rounded-sm">ACTIVO</span>';
+      }
+
+      function discountLabel(c) {
+        if (c.discount_type === "percentage") return c.discount_value + "%";
+        return formatCurrency(c.discount_value);
+      }
+
+      function actionButtons(c) {
+        return `<div class="flex gap-2">
+          <button class="edit-btn inline-flex items-center gap-1 px-3 py-1.5 font-label-caps text-label-caps border rounded-md transition-all duration-200 border-monolith-black/20 text-secondary hover:border-monolith-black hover:text-monolith-black hover:bg-monolith-black/5" data-coupon='${JSON.stringify(c).replace(/'/g, "&#39;")}'>
+            <span class="material-symbols-outlined text-sm">edit</span>
+            EDITAR
+          </button>
+          <button class="delete-btn inline-flex items-center gap-1 px-3 py-1.5 font-label-caps text-label-caps border rounded-md transition-all duration-200 border-error/20 text-secondary hover:border-error hover:text-error hover:bg-error/5" data-id="${c.id}" data-code="${c.code}">
+            <span class="material-symbols-outlined text-sm">delete</span>
+            ELIMINAR
+          </button>
+        </div>`;
+      }
+
+      // Desktop rows
+      tbody.innerHTML = coupons.map(c => `
+        <tr class="border-b border-outline-variant/50 hover:bg-monolith-black/[0.02] transition-colors">
+          <td class="p-4">
+            <span class="font-body text-body-md text-monolith-black font-medium font-mono">${c.code}</span>
+            ${c.description ? '<br><span class="font-body text-body-md text-secondary text-xs">' + c.description + '</span>' : ''}
+          </td>
+          <td class="p-4 font-price-display text-price-display text-sm">${discountLabel(c)}</td>
+          <td class="p-4 font-body text-body-md text-secondary text-sm">
+            ${c.starts_at ? 'Desde: ' + formatDateOnly(c.starts_at) + '<br>' : ''}
+            ${c.expires_at ? 'Hasta: ' + formatDateOnly(c.expires_at) : '—'}
+          </td>
+          <td class="p-4 font-body text-body-md text-sm">
+            ${c.use_count}${c.max_uses ? ' / ' + c.max_uses : ''}
+          </td>
+          <td class="p-4">${statusBadge(c)}</td>
+          <td class="p-4">${actionButtons(c)}</td>
+        </tr>
+      `).join("");
+
+      // Mobile cards
+      cards.innerHTML = coupons.map(c => `
+        <div class="bg-off-white border border-outline-variant border-l-2 border-l-monolith-black shadow-sm hover:shadow-md transition-all duration-200 rounded-sm p-4">
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-body text-body-md text-monolith-black font-medium font-mono">${c.code}</span>
+            ${statusBadge(c)}
+          </div>
+          ${c.description ? '<p class="font-body text-body-md text-secondary text-sm mb-2">' + c.description + '</p>' : ''}
+          <div class="flex items-center gap-4 text-sm">
+            <span class="font-price-display text-price-display">${discountLabel(c)}</span>
+            <span class="font-body text-body-md text-secondary">Usos: ${c.use_count}${c.max_uses ? ' / ' + c.max_uses : ''}</span>
+          </div>
+          <div class="flex gap-2 mt-3">${actionButtons(c)}</div>
+        </div>
+      `).join("");
+
+      // Edit handlers
+      document.querySelectorAll(".edit-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const c = JSON.parse(btn.dataset.coupon);
+          openEditModal(c);
+        });
+      });
+
+      // Delete handlers
+      document.querySelectorAll(".delete-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          openDeleteModal(parseInt(btn.dataset.id), btn.dataset.code);
+        });
+      });
+    }
+
+    function renderPagination() {
+      const container = document.getElementById("pagination");
+      const totalPages = Math.ceil(totalCoupons / PAGE_LIMIT);
+      const currentPage = Math.floor(currentOffset / PAGE_LIMIT) + 1;
+
+      if (totalPages <= 1) { container.classList.add("hidden"); return; }
+      container.classList.remove("hidden");
+
+      let html = '<button class="pag-prev w-9 h-9 flex items-center justify-center border border-outline-variant rounded-sm hover:border-monolith-black transition-colors font-body text-body-md" ' + (currentPage <= 1 ? 'disabled style="opacity:0.3"' : '') + '><span class="material-symbols-outlined text-sm">chevron_left</span></button>';
+
+      for (let i = 1; i <= totalPages; i++) {
+        const active = i === currentPage ? 'bg-monolith-black text-off-white border-monolith-black' : 'border-outline-variant hover:border-monolith-black';
+        html += `<button class="pag-page w-9 h-9 flex items-center justify-center border rounded-sm transition-colors font-body text-body-md text-sm ${active}" data-page="${i}">${i}</button>`;
+      }
+
+      html += '<button class="pag-next w-9 h-9 flex items-center justify-center border border-outline-variant rounded-sm hover:border-monolith-black transition-colors font-body text-body-md" ' + (currentPage >= totalPages ? 'disabled style="opacity:0.3"' : '') + '><span class="material-symbols-outlined text-sm">chevron_right</span></button>';
+
+      container.innerHTML = html;
+
+      container.querySelectorAll(".pag-page").forEach(btn => {
+        btn.addEventListener("click", () => {
+          currentOffset = (parseInt(btn.dataset.page) - 1) * PAGE_LIMIT;
+          loadCoupons();
+        });
+      });
+      container.querySelector(".pag-prev")?.addEventListener("click", () => {
+        if (currentOffset <= 0) return;
+        currentOffset = Math.max(0, currentOffset - PAGE_LIMIT);
+        loadCoupons();
+      });
+      container.querySelector(".pag-next")?.addEventListener("click", () => {
+        if (currentOffset + PAGE_LIMIT >= totalCoupons) return;
+        currentOffset += PAGE_LIMIT;
+        loadCoupons();
+      });
+    }
+
+    function searchCoupons() {
+      searchTerm = document.getElementById("searchInput").value.trim();
+      currentOffset = 0;
+      loadCoupons();
+    }
+
+    document.getElementById("searchInput").addEventListener("input", () => {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(searchCoupons, 300);
+    });
+
+    async function loadCoupons() {
+      try {
+        let url = `/api/cupones/list.php?limit=${PAGE_LIMIT}&offset=${currentOffset}`;
+        if (searchTerm) url += `&search=${encodeURIComponent(searchTerm)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        const coupons = data.items || [];
+        totalCoupons = data.total || coupons.length;
+
+        document.getElementById("couponCount").textContent =
+          Math.min(currentOffset + coupons.length, totalCoupons) + " de " + totalCoupons + " cupones";
+        renderCoupons(coupons);
+        renderPagination();
+      } catch (err) {
+        document.getElementById("couponsBody").innerHTML =
+          `<tr><td colspan="6" class="p-8 text-center font-body text-body-md text-error">Error: ${err.message}</td></tr>`;
+        document.getElementById("couponCards").innerHTML =
+          `<p class="font-body text-body-md text-error p-4">Error: ${err.message}</p>`;
+      }
+    }
+
+    // --- Open create modal ---
+    document.getElementById("openCreateBtn").addEventListener("click", openCreateModal);
+
+    // --- Form save handler ---
+    document.getElementById("formSaveBtn").addEventListener("click", async () => {
+      const code = document.getElementById("formCode").value.trim().toUpperCase();
+      const type = document.getElementById("formType").value;
+      const value = parseFloat(document.getElementById("formValue").value);
+      const msg = document.getElementById("formMsg");
+
+      if (!code) { msg.textContent = "El código es obligatorio"; msg.className = "font-body text-body-md text-sm text-error block"; return; }
+      if (!value || value <= 0) { msg.textContent = "El valor del descuento debe ser mayor a 0"; msg.className = "font-body text-body-md text-sm text-error block"; return; }
+      if (type === "percentage" && value > 100) { msg.textContent = "El porcentaje no puede superar 100%"; msg.className = "font-body text-body-md text-sm text-error block"; return; }
+
+      const payload = {
+        code: code,
+        description: document.getElementById("formDescription").value.trim(),
+        discount_type: type,
+        discount_value: value,
+        min_order_amount: document.getElementById("formMinAmount").value ? parseFloat(document.getElementById("formMinAmount").value) : null,
+        max_uses: document.getElementById("formMaxUses").value ? parseInt(document.getElementById("formMaxUses").value) : null,
+        max_uses_per_customer: document.getElementById("formMaxPerCustomer").value ? parseInt(document.getElementById("formMaxPerCustomer").value) : null,
+        is_active: document.getElementById("formActive").checked,
+        starts_at: document.getElementById("formStartsAt").value ? new Date(document.getElementById("formStartsAt").value).toISOString().slice(0, 19).replace("T", " ") : null,
+        expires_at: document.getElementById("formExpiresAt").value ? new Date(document.getElementById("formExpiresAt").value).toISOString().slice(0, 19).replace("T", " ") : null,
+      };
+
+      if (editTargetId) payload.id = editTargetId;
+
+      try {
+        const endpoint = editTargetId ? "/api/cupones/update.php" : "/api/cupones/create.php";
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+
+        closeFormModal();
+        loadCoupons();
+      } catch (err) {
+        msg.className = "font-body text-body-md text-sm text-error block";
+        msg.textContent = err.message;
+      }
+    });
+
+    document.getElementById("formCancelBtn").addEventListener("click", closeFormModal);
+    document.getElementById("formModal").addEventListener("click", (e) => {
+      if (e.target === e.currentTarget) closeFormModal();
+    });
+    document.getElementById("formCode").addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeFormModal();
+    });
+
+    // --- Delete modal handlers ---
+    document.getElementById("deleteConfirmBtn").addEventListener("click", async () => {
+      if (!deleteTargetId) return;
+
+      try {
+        const res = await fetch("/api/cupones/delete.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: deleteTargetId }),
+        });
+        if (res.ok) {
+          closeDeleteModal();
+          loadCoupons();
+        } else {
+          const d = await res.json();
+          alert(d.error || "Error al eliminar");
+        }
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+
+    document.getElementById("deleteCancelBtn").addEventListener("click", closeDeleteModal);
+    document.getElementById("deleteModal").addEventListener("click", (e) => {
+      if (e.target === e.currentTarget) closeDeleteModal();
+    });
+
+    // --- Global Escape key ---
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        if (!document.getElementById("formModal").classList.contains("hidden")) closeFormModal();
+        if (!document.getElementById("deleteModal").classList.contains("hidden")) closeDeleteModal();
+      }
+    });
+
+    loadCoupons();
+  </script>
+</AdminLayout>

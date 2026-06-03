@@ -1,0 +1,41 @@
+<?php
+/**
+ * POST /api/pedidos/update-status.php - Update order status
+ */
+
+require_once __DIR__ . '/../../config.php';
+require_once __DIR__ . '/../../includes/auth.php';
+require_once __DIR__ . '/../../includes/storage.php';
+
+setCorsHeaders();
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') jsonError('Method not allowed', 405);
+if (!isAdminLoggedIn()) jsonError('Unauthorized', 401);
+requireRole('superadmin', 'editor');
+
+$input = json_decode(file_get_contents('php://input'), true);
+if (!$input || empty($input['id']) || empty($input['status'])) {
+    jsonError('Order ID and status required');
+}
+
+$validStatuses = ['pending', 'paid', 'shipped', 'delivered', 'cancelled'];
+if (!in_array($input['status'], $validStatuses)) {
+    jsonError('Invalid status');
+}
+
+$paymentStatus = null;
+if ($input['status'] === 'paid') $paymentStatus = 'completed';
+if ($input['status'] === 'cancelled') $paymentStatus = 'failed';
+
+try {
+    $order = getOrderById($input['id']);
+    $oldStatus = $order['status'] ?? 'unknown';
+    updateOrderStatus($input['id'], $input['status'], $paymentStatus);
+    logAdminAction('update', 'order', $input['id'], 'Order status changed: ' . $oldStatus . ' → ' . $input['status'], [
+        'from_status' => $oldStatus,
+        'to_status' => $input['status'],
+    ]);
+    jsonResponse(['success' => true]);
+} catch (\Exception $e) {
+    jsonError($e->getMessage(), 404);
+}

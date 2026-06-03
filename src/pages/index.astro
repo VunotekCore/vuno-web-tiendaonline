@@ -138,6 +138,9 @@ const newArrivalImages = [
             image={curatedImages[i] || p.images[0]}
             href={`/producto/${p.slug}`}
             colors={p.colors.map((c) => c.hex)}
+            productId={p.id}
+            productSlug={p.slug}
+            productPrice={p.price}
           />
         ))}
       </div>

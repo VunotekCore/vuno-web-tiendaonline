@@ -13,11 +13,8 @@
     "format": "prettier --write ."
   },
   "dependencies": {
-    "@astrojs/netlify": "^7.0.10",
     "@tailwindcss/vite": "^4.0.0",
     "astro": "^6.3.8",
-    "nodemailer": "^8.0.8",
-    "stripe": "^22.1.1",
     "tailwindcss": "^4.0.0"
   },
   "devDependencies": {

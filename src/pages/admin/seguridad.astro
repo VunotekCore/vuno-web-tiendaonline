@@ -1,0 +1,289 @@
+---
+import AdminLayout from "./_layout.astro";
+---
+
+<AdminLayout title="Seguridad" currentPath="/admin/seguridad">
+  <div id="loading" class="font-body text-body-md text-secondary p-4">Loading...</div>
+  <div id="message" class="hidden font-body text-body-md p-3 mb-6 rounded-sm"></div>
+
+  <div id="securityContent" class="hidden max-w-xl space-y-8">
+
+    <!-- Current status card -->
+    <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
+      <h2 class="font-headline text-headline-md mb-4 flex items-center gap-2">
+        <span class="material-symbols-outlined text-xl">security</span>
+        Autenticación de Dos Factores (2FA)
+      </h2>
+      <div id="statusDisplay" class="flex items-center gap-3 mb-6">
+        <span class="material-symbols-outlined text-2xl" id="statusIcon">lock_open</span>
+        <div>
+          <p class="font-body text-body-md font-medium" id="statusText">Loading...</p>
+          <p class="font-body text-body-md text-secondary text-sm" id="statusSubtext"></p>
+        </div>
+      </div>
+      <button id="setupBtn" class="hidden bg-monolith-black text-off-white font-label-caps text-label-caps h-10 px-5 inline-flex items-center justify-center gap-1.5 rounded-md hover:bg-monolith-black/90 hover:shadow-sm transition-all duration-200">
+        <span class="material-symbols-outlined text-lg">add</span>
+        CONFIGURAR 2FA
+      </button>
+      <button id="disableBtn" class="hidden bg-error text-off-white font-label-caps text-label-caps h-10 px-5 inline-flex items-center justify-center gap-1.5 rounded-md hover:bg-error/90 transition-all duration-200">
+        <span class="material-symbols-outlined text-lg">lock_open</span>
+        DESACTIVAR 2FA
+      </button>
+    </div>
+
+    <!-- Setup step 1: Password confirmation -->
+    <div id="stepPassword" class="hidden bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
+      <h3 class="font-headline text-headline-md mb-4">Confirmar Contraseña</h3>
+      <p class="font-body text-body-md text-secondary mb-4">Re-ingresa tu contraseña para configurar 2FA.</p>
+      <input type="password" id="setupPassword" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none mb-4" placeholder="••••••••" />
+      <div id="stepPasswordMsg" class="hidden font-body text-body-md text-sm mb-4"></div>
+      <button id="stepPasswordBtn" class="bg-monolith-black text-off-white font-label-caps text-label-caps h-10 px-5 inline-flex items-center justify-center gap-1.5 rounded-md hover:bg-monolith-black/90 transition-all duration-200">
+        CONTINUAR
+      </button>
+    </div>
+
+    <!-- Setup step 2: QR code + secret -->
+    <div id="stepQR" class="hidden bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
+      <h3 class="font-headline text-headline-md mb-4">Escanea el Código QR</h3>
+      <p class="font-body text-body-md text-secondary mb-4">
+        Escanea este código QR con Google Authenticator, Authy o cualquier app compatible.
+      </p>
+      <div class="flex justify-center mb-4">
+        <div id="qrContainer" class="bg-white p-4 border border-outline-variant rounded-sm">
+          <img id="qrImage" src="" alt="QR Code" class="w-48 h-48" />
+        </div>
+      </div>
+      <p class="font-body text-body-md text-secondary text-sm mb-1">O ingresa este código manualmente:</p>
+      <p id="secretDisplay" class="font-mono text-sm bg-monolith-black/5 p-3 rounded-sm text-center tracking-wider mb-4 select-all"></p>
+      <p class="font-body text-body-md text-secondary mb-4">Cuenta: <span id="qrEmail" class="text-monolith-black font-medium"></span></p>
+      <div class="border-t border-outline-variant pt-4">
+        <label class="font-label-caps text-label-caps text-secondary block mb-2">CÓDIGO DE VERIFICACIÓN</label>
+        <input type="text" id="stepQRCode" inputmode="numeric" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none text-center text-2xl tracking-[0.25em] mb-4" placeholder="000000" maxlength="8" />
+        <div id="stepQRMsg" class="hidden font-body text-body-md text-sm mb-4"></div>
+        <button id="stepQRBtn" class="bg-monolith-black text-off-white font-label-caps text-label-caps h-10 px-5 inline-flex items-center justify-center gap-1.5 rounded-md hover:bg-monolith-black/90 transition-all duration-200">
+          VERIFICAR Y ACTIVAR
+        </button>
+      </div>
+    </div>
+
+    <!-- Setup step 3: Backup codes -->
+    <div id="stepBackup" class="hidden bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
+      <h3 class="font-headline text-headline-md mb-2 flex items-center gap-2">
+        <span class="material-symbols-outlined text-xl">warning</span>
+        Códigos de Respaldo
+      </h3>
+      <p class="font-body text-body-md text-secondary mb-4">
+        Guarda estos códigos en un lugar seguro. Son de un solo uso y te permitirán acceder si pierdes tu dispositivo.
+      </p>
+      <div id="backupCodesDisplay" class="bg-monolith-black/5 p-4 rounded-sm mb-4 font-mono text-sm space-y-1"></div>
+      <p class="font-body text-body-md text-error text-sm mb-4">Estos códigos no se mostrarán nuevamente.</p>
+      <button id="finishBtn" class="bg-monolith-black text-off-white font-label-caps text-label-caps h-10 px-5 inline-flex items-center justify-center gap-1.5 rounded-md hover:bg-monolith-black/90 transition-all duration-200">
+        FINALIZAR
+      </button>
+    </div>
+
+    <!-- Disable modal -->
+    <div id="disableModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+      <div class="bg-off-white border border-outline-variant shadow-lg rounded-sm p-6 w-full max-w-md">
+        <h3 class="font-headline text-headline-md mb-4">Desactivar 2FA</h3>
+        <p class="font-body text-body-md text-secondary mb-4">Ingresa tu contraseña y un código de verificación para desactivar 2FA.</p>
+        <input type="password" id="disablePassword" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none mb-4" placeholder="Contraseña" />
+        <input type="text" id="disableCode" inputmode="numeric" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none text-center text-2xl tracking-[0.25em] mb-4" placeholder="000000" maxlength="8" />
+        <div id="disableMsg" class="hidden font-body text-body-md text-sm mb-4"></div>
+        <div class="flex justify-end gap-3">
+          <button id="disableCancelBtn" class="font-label-caps text-label-caps text-secondary border border-monolith-black/20 rounded-md px-4 h-10 hover:border-monolith-black hover:text-monolith-black transition-all">CANCELAR</button>
+          <button id="disableConfirmBtn" class="bg-error text-off-white font-label-caps text-label-caps rounded-md px-4 h-10 inline-flex items-center gap-1.5 hover:bg-error/90 transition-all">DESACTIVAR</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // @ts-nocheck
+    let currentSecret = "";
+    let currentBackupCodes = [];
+
+    function showMsg(id, text, isError) {
+      const el = document.getElementById(id);
+      el.textContent = text;
+      el.className = "font-body text-body-md text-sm " + (isError ? "text-error block" : "text-green-700 block");
+      el.classList.remove("hidden");
+    }
+
+    function hideMsg(id) {
+      document.getElementById(id).classList.add("hidden");
+    }
+
+    async function loadStatus() {
+      try {
+        const res = await fetch("/api/admin/verify.php");
+        const data = await res.json();
+        if (!data.valid) { window.location.href = "/admin/login"; return; }
+
+        // Fetch current 2FA status
+        const statusRes = await fetch("/api/admin/2fa/status.php");
+        const status = await statusRes.json();
+
+        const icon = document.getElementById("statusIcon");
+        const text = document.getElementById("statusText");
+        const sub = document.getElementById("statusSubtext");
+
+        if (status.enabled) {
+          icon.textContent = "lock";
+          text.textContent = "2FA está activo";
+          sub.textContent = "Se requiere código de autenticación al iniciar sesión.";
+          document.getElementById("setupBtn").classList.add("hidden");
+          document.getElementById("disableBtn").classList.remove("hidden");
+        } else {
+          icon.textContent = "lock_open";
+          text.textContent = "2FA no está configurado";
+          sub.textContent = "Protege tu cuenta con autenticación de dos factores.";
+          document.getElementById("setupBtn").classList.remove("hidden");
+          document.getElementById("disableBtn").classList.add("hidden");
+        }
+
+        document.getElementById("loading").classList.add("hidden");
+        document.getElementById("securityContent").classList.remove("hidden");
+      } catch (err) {
+        document.getElementById("loading").textContent = "Error: " + err.message;
+      }
+    }
+
+    loadStatus();
+
+    // ===== SETUP FLOW =====
+
+    // Step 1: Password confirmation
+    document.getElementById("setupBtn").addEventListener("click", () => {
+      document.getElementById("stepPassword").classList.remove("hidden");
+      document.getElementById("setupPassword").value = "";
+      hideMsg("stepPasswordMsg");
+      document.getElementById("setupPassword").focus();
+    });
+
+    document.getElementById("stepPasswordBtn").addEventListener("click", async () => {
+      const password = document.getElementById("setupPassword").value;
+      if (!password) { showMsg("stepPasswordMsg", "Ingresa tu contraseña", true); return; }
+
+      document.getElementById("stepPasswordBtn").disabled = true;
+      document.getElementById("stepPasswordBtn").textContent = "VERIFICANDO...";
+
+      try {
+        const res = await fetch("/api/admin/2fa/setup.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ password }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+
+        currentSecret = data.secret || data.qrUri;
+        document.getElementById("stepPassword").classList.add("hidden");
+        document.getElementById("stepQR").classList.remove("hidden");
+
+        // Generate QR code image via Google Charts API (no library needed)
+        const qrUri = encodeURIComponent(data.qrUri);
+        document.getElementById("qrImage").src = "https://chart.googleapis.com/chart?chs=200x200&chld=M|0&cht=qr&chl=" + qrUri;
+        document.getElementById("secretDisplay").textContent = data.secret;
+        document.getElementById("qrEmail").textContent = data.email;
+        document.getElementById("stepQRCode").value = "";
+        document.getElementById("stepQRCode").focus();
+      } catch (err) {
+        showMsg("stepPasswordMsg", err.message, true);
+      } finally {
+        document.getElementById("stepPasswordBtn").disabled = false;
+        document.getElementById("stepPasswordBtn").textContent = "CONTINUAR";
+      }
+    });
+
+    // Step 2: Verify first code and enable
+    document.getElementById("stepQRBtn").addEventListener("click", async () => {
+      const code = document.getElementById("stepQRCode").value.trim();
+      if (!code) { showMsg("stepQRMsg", "Ingresa el código de verificación", true); return; }
+
+      document.getElementById("stepQRBtn").disabled = true;
+      document.getElementById("stepQRBtn").textContent = "VERIFICANDO...";
+
+      try {
+        const res = await fetch("/api/admin/2fa/enable.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+
+        currentBackupCodes = data.backupCodes || [];
+        document.getElementById("stepQR").classList.add("hidden");
+
+        // Show backup codes
+        const container = document.getElementById("backupCodesDisplay");
+        container.innerHTML = currentBackupCodes.map((c, i) =>
+          `<div class="flex items-center gap-3 py-1">
+            <span class="text-monolith-black/40 w-6 text-right">${i + 1}.</span>
+            <code class="text-monolith-black font-bold tracking-wider">${c}</code>
+          </div>`
+        ).join("");
+        document.getElementById("stepBackup").classList.remove("hidden");
+      } catch (err) {
+        showMsg("stepQRMsg", err.message, true);
+      } finally {
+        document.getElementById("stepQRBtn").disabled = false;
+        document.getElementById("stepQRBtn").textContent = "VERIFICAR Y ACTIVAR";
+      }
+    });
+
+    // Finish setup
+    document.getElementById("finishBtn").addEventListener("click", () => {
+      currentBackupCodes = [];
+      document.getElementById("stepBackup").classList.add("hidden");
+      window.location.reload();
+    });
+
+    // ===== DISABLE FLOW =====
+
+    document.getElementById("disableBtn").addEventListener("click", () => {
+      document.getElementById("disablePassword").value = "";
+      document.getElementById("disableCode").value = "";
+      hideMsg("disableMsg");
+      document.getElementById("disableModal").classList.remove("hidden");
+      document.getElementById("disablePassword").focus();
+    });
+
+    document.getElementById("disableCancelBtn").addEventListener("click", () => {
+      document.getElementById("disableModal").classList.add("hidden");
+    });
+
+    document.getElementById("disableConfirmBtn").addEventListener("click", async () => {
+      const password = document.getElementById("disablePassword").value;
+      const code = document.getElementById("disableCode").value.trim();
+
+      if (!password || !code) { showMsg("disableMsg", "Completa todos los campos", true); return; }
+
+      document.getElementById("disableConfirmBtn").disabled = true;
+      document.getElementById("disableConfirmBtn").textContent = "DESACTIVANDO...";
+
+      try {
+        const res = await fetch("/api/admin/2fa/disable.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ password, code }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+
+        document.getElementById("disableModal").classList.add("hidden");
+        window.location.reload();
+      } catch (err) {
+        showMsg("disableMsg", err.message, true);
+      } finally {
+        document.getElementById("disableConfirmBtn").disabled = false;
+        document.getElementById("disableConfirmBtn").textContent = "DESACTIVAR";
+      }
+    });
+
+    document.getElementById("disableModal").addEventListener("click", (e) => {
+      if (e.target === e.currentTarget) document.getElementById("disableModal").classList.add("hidden");
+    });
+  </script>
+</AdminLayout>

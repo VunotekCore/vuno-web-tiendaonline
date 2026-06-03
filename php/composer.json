@@ -1,0 +1,20 @@
+{
+  "name": "ramlop/backend",
+  "description": "Ram;Lop PHP Backend",
+  "type": "project",
+  "require": {
+    "php": ">=8.1",
+    "stripe/stripe-php": "^16.0",
+    "phpmailer/phpmailer": "^6.9"
+  },
+  "autoload": {
+    "files": [
+      "includes/helpers.php",
+      "includes/storage.php",
+      "includes/auth.php",
+      "includes/stripe.php",
+      "includes/email.php",
+      "includes/imagekit.php"
+    ]
+  }
+}

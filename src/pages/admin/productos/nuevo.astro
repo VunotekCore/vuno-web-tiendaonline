@@ -1,74 +1,312 @@
 ---
-import AdminLayout from "../layout.astro";
-import Button from "../../../components/atoms/Button.astro";
+import AdminLayout from "../_layout.astro";
+
+const allSizes = ["36", "37", "38", "39", "40", "41"];
+const allColors = [
+  { name: "Noir", hex: "#1A1A1A" },
+  { name: "White", hex: "#FFFFFF" },
+  { name: "Nude", hex: "#E6DED5" },
+  { name: "Arcilla", hex: "#C18C7E" },
+];
+
+const tabs = [
+  { id: "info", label: "Información", icon: "description" },
+  { id: "pricing", label: "Precio & Categoría", icon: "sell" },
+  { id: "images", label: "Imágenes", icon: "photo_library" },
+  { id: "variants", label: "Variantes", icon: "palette" },
+];
 ---
 
-<AdminLayout title="Nuevo Producto">
-  <form class="max-w-2xl flex flex-col gap-8">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div class="md:col-span-2">
-        <label class="font-label-caps text-label-caps text-secondary block mb-2">NOMBRE DEL PRODUCTO</label>
-        <input type="text" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none" />
-      </div>
-      <div class="md:col-span-2">
-        <label class="font-label-caps text-label-caps text-secondary block mb-2">DESCRIPCIÓN</label>
-        <textarea class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-monolith-black focus:outline-none resize-none h-32"></textarea>
-      </div>
-      <div>
-        <label class="font-label-caps text-label-caps text-secondary block mb-2">PRECIO (USD)</label>
-        <input type="number" step="0.01" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none" />
-      </div>
-      <div>
-        <label class="font-label-caps text-label-caps text-secondary block mb-2">CATEGORÍA</label>
-        <select class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none">
-          <option>Heels</option>
-          <option>Sandals</option>
-          <option>Mules</option>
-          <option>Boots</option>
-          <option>Flats</option>
-        </select>
+<AdminLayout title="Nuevo Producto" currentPath="/admin/productos">
+  <form id="productForm" class="max-w-2xl">
+    <div id="message" class="hidden font-body text-body-md p-3 mb-6 rounded-sm"></div>
+
+    <!-- Tabs -->
+    <div class="border-b border-outline-variant mb-8 overflow-x-auto">
+      <div class="flex gap-1 min-w-max">
+        {tabs.map(t => (
+          <button
+            type="button"
+            class="tab-btn px-4 py-3 font-label-caps text-label-caps text-secondary hover:text-monolith-black border-b-2 border-transparent hover:border-monolith-black/30 transition-all whitespace-nowrap flex items-center gap-1.5"
+            data-tab={t.id}
+          >
+            <span class="material-symbols-outlined text-lg">{t.icon}</span>
+            {t.label}
+          </button>
+        ))}
       </div>
     </div>
 
-    <!-- Images -->
-    <div>
-      <label class="font-label-caps text-label-caps text-secondary block mb-2">IMÁGENES (ImageKit)</label>
-      <div class="border-2 border-dashed border-outline-variant p-12 text-center hover:border-monolith-black transition-colors cursor-pointer">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 mx-auto mb-2 text-secondary" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14M5 12h14" />
-        </svg>
-        <p class="font-body text-body-md text-secondary">Click to upload or drag &amp; drop</p>
-      </div>
-    </div>
-
-    <!-- Sizes & Stock -->
-    <div>
-      <label class="font-label-caps text-label-caps text-secondary block mb-2">TALLES Y STOCK</label>
-      <div class="grid grid-cols-4 gap-4">
-        {["36", "37", "38", "39", "40", "41"].map((size) => (
-          <div class="flex items-center gap-2">
-            <span class="font-body text-body-md w-8">{size}</span>
-            <input type="number" min="0" value="0" class="w-full bg-transparent border-b border-outline pb-1 text-monolith-black focus:border-monolith-black focus:outline-none text-center" />
+    <!-- Tab: Información -->
+    <div id="tab-info" class="tab-content">
+      <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
+        <h2 class="font-headline text-headline-md mb-6 flex items-center gap-2">
+          <span class="material-symbols-outlined text-xl">description</span>
+          Información del Producto
+        </h2>
+        <div class="space-y-6">
+          <div>
+            <label class="font-label-caps text-label-caps text-secondary block mb-2">NOMBRE DEL PRODUCTO</label>
+            <input type="text" id="fieldName" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none" />
           </div>
-        ))}
+          <div>
+            <label class="font-label-caps text-label-caps text-secondary block mb-2">DESCRIPCIÓN</label>
+            <textarea id="fieldDescription" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-monolith-black focus:outline-none resize-none h-32"></textarea>
+          </div>
+          <div>
+            <label class="font-label-caps text-label-caps text-secondary block mb-2">DETALLES (uno por línea)</label>
+            <textarea id="fieldDetails" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-monolith-black focus:outline-none resize-none h-24" placeholder="Ej:&#10;Piel genuina italiana&#10;Suela antideslizante&#10;Tacón de acero inoxidable"></textarea>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Colors -->
-    <div>
-      <label class="font-label-caps text-label-caps text-secondary block mb-2">COLORES DISPONIBLES</label>
-      <div class="flex gap-4">
-        {["#1A1A1A", "#FFFFFF", "#E6DED5", "#C18C7E"].map((hex) => (
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" class="accent-monolith-black" />
-            <span class="w-5 h-5 rounded-full" style={`background-color: ${hex}`}></span>
-          </label>
-        ))}
+    <!-- Tab: Precio & Categoría -->
+    <div id="tab-pricing" class="tab-content hidden">
+      <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
+        <h2 class="font-headline text-headline-md mb-6 flex items-center gap-2">
+          <span class="material-symbols-outlined text-xl">sell</span>
+          Precio y Categoría
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label class="font-label-caps text-label-caps text-secondary block mb-2">PRECIO (USD)</label>
+            <input type="number" step="0.01" id="fieldPrice" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none" />
+          </div>
+          <div>
+            <label class="font-label-caps text-label-caps text-secondary block mb-2">CATEGORÍA</label>
+            <select id="fieldCategory" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none">
+              <option value="" disabled selected>Cargando...</option>
+            </select>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="pt-4 border-t border-outline-variant">
-      <Button variant="primary" class="px-12">GUARDAR PRODUCTO</Button>
+    <!-- Tab: Imágenes -->
+    <div id="tab-images" class="tab-content hidden">
+      <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
+        <h2 class="font-headline text-headline-md mb-6 flex items-center gap-2">
+          <span class="material-symbols-outlined text-xl">photo_library</span>
+          Imágenes del Producto
+        </h2>
+        <div id="imageUploadZone" class="border-2 border-dashed border-outline-variant rounded-sm p-8 text-center cursor-pointer hover:border-monolith-black transition-colors bg-white mb-4">
+          <span class="material-symbols-outlined text-4xl text-secondary mb-2 block">cloud_upload</span>
+          <p class="font-body text-body-md text-secondary mb-1">Arrastra imágenes aquí o haz clic para seleccionar</p>
+          <p class="font-body text-body-md text-secondary text-sm">JPG, PNG, WebP · Máximo 5MB cada una</p>
+          <input type="file" id="imageInput" accept="image/jpeg,image/png,image/webp" multiple class="hidden" />
+        </div>
+        <div id="uploadMessage" class="hidden font-body text-body-md p-3 mb-4 rounded-sm"></div>
+        <div id="imagePreviewList" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
+      </div>
+    </div>
+
+    <!-- Tab: Variantes -->
+    <div id="tab-variants" class="tab-content hidden">
+      <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
+        <h2 class="font-headline text-headline-md mb-6 flex items-center gap-2">
+          <span class="material-symbols-outlined text-xl">palette</span>
+          Matriz de Inventario
+        </h2>
+        <p class="font-body text-body-md text-secondary mb-6">Ingresa el stock numérico para cada combinación de color y talle. Deja en 0 para deshabilitar.</p>
+        <div class="overflow-x-auto">
+          <div class="grid gap-3 min-w-[500px]" style="grid-template-columns: 60px repeat({allColors.length}, minmax(100px,1fr))">
+            <div></div>
+            {allColors.map(color => (
+              <div class="flex items-center gap-2 font-label-caps text-label-caps text-secondary">
+                <span class="w-4 h-4 rounded-full border border-outline-variant shrink-0" style={`background-color: ${color.hex}`}></span>
+                <span>{color.name}</span>
+              </div>
+            ))}
+            {allSizes.map(size => [
+              <div class="font-body text-body-md text-monolith-black font-medium self-center">{size}</div>,
+              ...allColors.map(color => {
+                const inputId = `stock-${color.name}-${size}`;
+                return (
+                  <input type="number" id={inputId} min="0" step="1" value="0"
+                    class="w-full h-10 px-2 text-center border border-outline-variant rounded-sm bg-white
+                           focus:border-monolith-black focus:outline-none transition-colors
+                           [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                );
+              })
+            ])}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submit -->
+    <div class="mt-8 pt-6 border-t border-outline-variant flex items-center gap-4">
+      <button type="submit" class="bg-monolith-black text-off-white font-label-caps text-label-caps h-12 px-8 inline-flex items-center justify-center gap-1.5 rounded-md hover:bg-monolith-black/90 hover:shadow-sm transition-all duration-200">
+        <span class="material-symbols-outlined text-lg">save</span>
+        GUARDAR PRODUCTO
+      </button>
+      <a href="/admin/productos" class="font-label-caps text-label-caps text-secondary hover:text-monolith-black transition-colors">CANCELAR</a>
     </div>
   </form>
+
+  <script>
+    // @ts-nocheck
+    // --- Tab switching ---
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab-btn").forEach(b => {
+          b.classList.remove("text-monolith-black", "border-monolith-black");
+          b.classList.add("text-secondary", "border-transparent");
+        });
+        btn.classList.remove("text-secondary", "border-transparent");
+        btn.classList.add("text-monolith-black", "border-monolith-black");
+
+        document.querySelectorAll(".tab-content").forEach(tc => tc.classList.add("hidden"));
+        document.getElementById("tab-" + btn.dataset.tab).classList.remove("hidden");
+      });
+    });
+    document.querySelector(".tab-btn")?.click();
+
+    // --- Load categories ---
+    async function loadCategories() {
+      try {
+        const res = await fetch("/api/categorias/list.php");
+        const cats = await res.json();
+        const select = document.getElementById("fieldCategory");
+        select.innerHTML = cats.map(c => `<option value="${c.name}">${c.name}</option>`).join("") || '<option value="" disabled>No categories</option>';
+      } catch {
+        document.getElementById("fieldCategory").innerHTML = '<option value="" disabled>Error loading</option>';
+      }
+    }
+    loadCategories();
+
+    // --- Image Upload ---
+    const uploadedImages = [];
+    const imageInput = document.getElementById("imageInput");
+    const imageZone = document.getElementById("imageUploadZone");
+    const imagePreviewList = document.getElementById("imagePreviewList");
+    const uploadMsg = document.getElementById("uploadMessage");
+
+    function showUploadMsg(text, isError) {
+      uploadMsg.textContent = text;
+      uploadMsg.className = "font-body text-body-md p-3 mb-4 rounded-sm " + (isError ? "bg-red-100 text-error block" : "bg-green-100 text-green-800 block");
+      uploadMsg.classList.remove("hidden");
+      setTimeout(() => uploadMsg.classList.add("hidden"), 4000);
+    }
+
+    function renderImagePreviews() {
+      if (!uploadedImages.length) {
+        imagePreviewList.innerHTML = '<p class="font-body text-body-md text-secondary col-span-full text-center py-4">No hay imágenes subidas</p>';
+        return;
+      }
+      imagePreviewList.innerHTML = uploadedImages.map((img, i) => `
+        <div class="relative group border border-outline-variant rounded-sm overflow-hidden bg-white">
+          <img src="${img.url}" alt="${img.name}" class="w-full h-32 object-cover" />
+          <div class="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+            <button type="button" class="delete-image-btn opacity-0 group-hover:opacity-100 bg-error text-off-white rounded-full w-8 h-8 flex items-center justify-center transition-all" data-index="${i}">
+              <span class="material-symbols-outlined text-sm">close</span>
+            </button>
+          </div>
+          <p class="text-xs truncate px-2 py-1 text-secondary">${img.name}</p>
+        </div>
+      `).join("");
+
+      document.querySelectorAll(".delete-image-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const idx = parseInt(btn.dataset.index);
+          uploadedImages.splice(idx, 1);
+          renderImagePreviews();
+        });
+      });
+    }
+
+    async function uploadFile(file) {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("folder", "products");
+      try {
+        const res = await fetch("/api/imagekit/upload.php", { method: "POST", body: formData });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Upload failed");
+        uploadedImages.push({ url: data.url, name: data.name || file.name, fileId: data.fileId });
+        renderImagePreviews();
+        showUploadMsg("Imagen subida: " + (data.name || file.name), false);
+      } catch (err) {
+        showUploadMsg("Error al subir " + file.name + ": " + err.message, true);
+      }
+    }
+
+    imageInput.addEventListener("change", () => {
+      Array.from(imageInput.files).forEach(f => uploadFile(f));
+      imageInput.value = "";
+    });
+
+    imageZone.addEventListener("click", () => imageInput.click());
+
+    imageZone.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      imageZone.classList.add("border-monolith-black", "bg-monolith-black/5");
+    });
+    imageZone.addEventListener("dragleave", () => {
+      imageZone.classList.remove("border-monolith-black", "bg-monolith-black/5");
+    });
+    imageZone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      imageZone.classList.remove("border-monolith-black", "bg-monolith-black/5");
+      Array.from(e.dataTransfer.files).filter(f => f.type.startsWith("image/")).forEach(f => uploadFile(f));
+    });
+
+    renderImagePreviews();
+
+    // --- Submit ---
+    document.getElementById("productForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const allColors = [{"name":"Noir","hex":"#1A1A1A"},{"name":"White","hex":"#FFFFFF"},{"name":"Nude","hex":"#E6DED5"},{"name":"Arcilla","hex":"#C18C7E"}];
+      const allSizes = ["36","37","38","39","40","41"];
+
+      const details = document.getElementById("fieldDetails").value
+        .split("\n").map(l => l.trim()).filter(Boolean);
+
+      const colors = [];
+      const stocks = {};
+      allColors.forEach(c => {
+        let hasStock = false;
+        allSizes.forEach(s => {
+          const el = document.getElementById("stock-" + c.name + "-" + s);
+          const val = parseInt(el?.value) || 0;
+          stocks[c.name + "_" + s] = val;
+          if (val > 0) hasStock = true;
+        });
+        if (hasStock) colors.push(c);
+      });
+
+      const payload = {
+        name: document.getElementById("fieldName").value,
+        description: document.getElementById("fieldDescription").value,
+        details: details.length ? details : null,
+        price: parseFloat(document.getElementById("fieldPrice").value),
+        category: document.getElementById("fieldCategory").value,
+        colors: colors.length ? colors : allColors,
+        sizes: allSizes.map(s => ({ label: s, value: s })),
+        stocks,
+        images: uploadedImages.map(i => i.url),
+      };
+
+      const msg = document.getElementById("message");
+      try {
+        const res = await fetch("/api/productos/create.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+        msg.className = "font-body text-body-md p-3 mb-6 rounded-sm bg-green-100 text-green-800 block";
+        msg.textContent = "Producto creado correctamente.";
+        msg.classList.remove("hidden");
+        e.target.reset();
+      } catch (err) {
+        msg.className = "font-body text-body-md p-3 mb-6 rounded-sm bg-red-100 text-error block";
+        msg.textContent = err.message;
+        msg.classList.remove("hidden");
+      }
+    });
+  </script>
 </AdminLayout>

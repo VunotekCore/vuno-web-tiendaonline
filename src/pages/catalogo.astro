@@ -103,24 +103,36 @@ const catalogImages: Record<string, string> = {
           {products.map((product) => {
             const catImg = catalogImages[product.slug];
             return (
-              <a href={`/producto/${product.slug}`} class="group flex flex-col cursor-pointer">
+              <div class="group flex flex-col cursor-pointer">
                 <div class="aspect-[4/5] bg-surface-container mb-4 overflow-hidden relative">
                   <div class="absolute inset-0 bg-sand-nude/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10 pointer-events-none"></div>
-                  <img src={catImg || product.images[0]} alt={product.name} class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out" loading="lazy" />
+                  <a href={`/producto/${product.slug}`} class="block w-full h-full">
+                    <img src={catImg || product.images[0]} alt={product.name} class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out" loading="lazy" />
+                  </a>
+                  <button
+                    data-toggle-wishlist
+                    data-product={JSON.stringify({ id: product.id, name: product.name, slug: product.slug, price: product.price, currency: product.currency, images: [catImg || product.images[0]], category: product.category })}
+                    class="absolute top-3 right-3 z-20 w-9 h-9 flex items-center justify-center bg-off-white/80 backdrop-blur-sm rounded-full hover:bg-off-white transition-colors border border-outline-variant/30"
+                    aria-label="Add to wishlist"
+                  >
+                    <span class="material-symbols-outlined wishlist-icon text-[18px] text-monolith-black" style="font-variation-settings: 'FILL' 0">favorite_border</span>
+                  </button>
                   <div class="absolute bottom-4 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20 hidden md:block">
                     <span class="bg-off-white/90 backdrop-blur-sm px-6 py-2 font-label-caps text-label-caps text-monolith-black hover:bg-monolith-black hover:text-off-white transition-colors border border-outline-variant inline-block">VISTA RÁPIDA</span>
                   </div>
                 </div>
-                <h3 class="font-body-md text-body-md text-monolith-black">{product.name}</h3>
-                <p class="font-price-display text-price-display text-secondary mt-1">${product.price.toFixed(2)}</p>
-                {product.colors.length > 0 && (
-                  <div class="flex gap-2 mt-3">
-                    {product.colors.map((c) => (
-                      <span class="w-3 h-3 rounded-full border border-surface-variant" style={`background-color: ${c.hex}`}></span>
-                    ))}
-                  </div>
-                )}
-              </a>
+                <a href={`/producto/${product.slug}`} class="block">
+                  <h3 class="font-body-md text-body-md text-monolith-black">{product.name}</h3>
+                  <p class="font-price-display text-price-display text-secondary mt-1">${product.price.toFixed(2)}</p>
+                  {product.colors.length > 0 && (
+                    <div class="flex gap-2 mt-3">
+                      {product.colors.map((c) => (
+                        <span class="w-3 h-3 rounded-full border border-surface-variant" style={`background-color: ${c.hex}`}></span>
+                      ))}
+                    </div>
+                  )}
+                </a>
+              </div>
             );
           })}
         </div>

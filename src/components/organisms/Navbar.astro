@@ -33,6 +33,10 @@ const navLinks = [
     </a>
 
     <div class="flex items-center space-x-unit md:space-x-gutter text-primary">
+      <a href="/wishlist" class="hover:opacity-70 transition-opacity relative p-2" aria-label="Wishlist">
+        <span class="material-symbols-outlined" data-icon="favorite">favorite</span>
+        <span id="wishlistBadge" class="absolute top-0 right-0 w-4 h-4 bg-monolith-black text-off-white text-[9px] font-bold rounded-full flex items-center justify-center hidden">0</span>
+      </a>
       <a href="/carrito" class="hover:opacity-70 transition-opacity relative p-2" aria-label="Carrito">
         <span class="material-symbols-outlined" data-icon="shopping_bag">shopping_bag</span>
         <span id="cartBadge" class="absolute top-0 right-0 w-4 h-4 bg-monolith-black text-off-white text-[9px] font-bold rounded-full flex items-center justify-center hidden">0</span>
@@ -58,9 +62,28 @@ const navLinks = [
     }
   }
 
+  function updateWishlistBadge() {
+    const badge = document.getElementById("wishlistBadge");
+    if (!badge) return;
+    const count = window.RamLopWishlist?.getCount() || 0;
+    if (count > 0) {
+      badge.textContent = count > 9 ? "9+" : count;
+      badge.classList.remove("hidden");
+    } else {
+      badge.classList.add("hidden");
+    }
+  }
+
   document.addEventListener("cart:updated", updateCartBadge);
-  document.addEventListener("DOMContentLoaded", updateCartBadge);
-  setTimeout(updateCartBadge, 100);
+  document.addEventListener("wishlist:updated", updateWishlistBadge);
+  document.addEventListener("DOMContentLoaded", function () {
+    updateCartBadge();
+    updateWishlistBadge();
+  });
+  setTimeout(function () {
+    updateCartBadge();
+    updateWishlistBadge();
+  }, 100);
 
   // Tonal shift on scroll
   window.addEventListener("scroll", () => {

@@ -4,6 +4,13 @@ import Navbar from "../../components/organisms/Navbar.astro";
 import Footer from "../../components/organisms/Footer.astro";
 import { getProducts } from "../../lib/storage";
 
+export async function getStaticPaths() {
+  const products = await getProducts();
+  return products.map((product) => ({
+    params: { slug: product.slug },
+  }));
+}
+
 const { slug } = Astro.params;
 const products = await getProducts();
 const product = products.find((p) => p.slug === slug) || null;
@@ -77,22 +84,40 @@ const relatedImages = [
             </div>
           </div>
 
-          <button
-            data-add-to-cart
-            data-product={JSON.stringify({
-              id: product.id,
-              name: product.name,
-              slug: product.slug,
-              price: product.price,
-              currency: product.currency,
-              images: [product.images[0]],
-              category: product.category,
-            })}
-            id="addToCartBtn"
-            class="w-full min-h-[56px] bg-monolith-black text-on-primary font-label-caps text-label-caps tracking-widest hover:opacity-80 transition-opacity mt-4 flex items-center justify-center"
-          >
-            AÑADIR AL CARRITO
-          </button>
+          <div class="flex gap-3 mt-4">
+            <button
+              data-add-to-cart
+              data-product={JSON.stringify({
+                id: product.id,
+                name: product.name,
+                slug: product.slug,
+                price: product.price,
+                currency: product.currency,
+                images: [product.images[0]],
+                category: product.category,
+              })}
+              id="addToCartBtn"
+              class="flex-1 min-h-[56px] bg-monolith-black text-on-primary font-label-caps text-label-caps tracking-widest hover:opacity-80 transition-opacity flex items-center justify-center"
+            >
+              AÑADIR AL CARRITO
+            </button>
+            <button
+              data-toggle-wishlist
+              data-product={JSON.stringify({
+                id: product.id,
+                name: product.name,
+                slug: product.slug,
+                price: product.price,
+                currency: product.currency,
+                images: [product.images[0]],
+                category: product.category,
+              })}
+              class="w-[56px] min-h-[56px] border border-outline-variant flex items-center justify-center hover:border-monolith-black transition-colors"
+              aria-label="Add to wishlist"
+            >
+              <span class="material-symbols-outlined wishlist-icon text-2xl text-monolith-black" style="font-variation-settings: 'FILL' 0">favorite_border</span>
+            </button>
+          </div>
 
           <div class="flex flex-col mt-8 border-t border-outline-variant">
             <details class="border-b border-outline-variant group open:pb-5">
@@ -125,6 +150,45 @@ const relatedImages = [
             </details>
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- Reviews -->
+    <section class="mt-section-gap w-full border-t border-outline-variant pt-12">
+      <h2 class="font-headline-md text-headline-md text-monolith-black mb-2">Reseñas</h2>
+      <div id="reviewStats" class="flex items-center gap-4 mb-8">
+        <div class="flex items-center gap-1" id="reviewStars"></div>
+        <span class="font-body-md text-body-md text-secondary" id="reviewCount"></span>
+      </div>
+
+      <div id="reviewsList" class="grid grid-cols-1 md:grid-cols-2 gap-gutter mb-12"></div>
+
+      <!-- Review form -->
+      <div class="bg-surface-container-low p-6 md:p-8 max-w-lg">
+        <h3 class="font-label-caps text-label-caps text-monolith-black mb-4 tracking-widest">DEJA TU RESEÑA</h3>
+        <form id="reviewForm" class="flex flex-col gap-4">
+          <div class="grid grid-cols-2 gap-4">
+            <input type="text" id="reviewName" placeholder="Tu nombre *" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none font-body-md text-body-md" />
+            <input type="email" id="reviewEmail" placeholder="Tu email" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none font-body-md text-body-md" />
+          </div>
+          <div>
+            <div class="flex items-center gap-1 mb-2">
+              <span class="font-body-md text-body-md text-secondary mr-2">Rating *</span>
+              {[1,2,3,4,5].map((star) => (
+                <button type="button" data-review-star={star} class="review-star text-2xl text-outline hover:text-clay-accent transition-colors cursor-pointer" aria-label={`${star} star`}>
+                  <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0">star</span>
+                </button>
+              ))}
+            </div>
+            <input type="hidden" id="reviewRating" value="0" />
+          </div>
+          <input type="text" id="reviewTitle" placeholder="Título de tu reseña" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none font-body-md text-body-md" />
+          <textarea id="reviewComment" placeholder="Escribe tu reseña..." rows="4" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-monolith-black focus:outline-none font-body-md text-body-md resize-none"></textarea>
+          <div id="reviewMsg" class="hidden font-body-md text-body-md text-sm"></div>
+          <button type="submit" id="reviewSubmitBtn" class="bg-monolith-black text-on-primary font-label-caps text-label-caps h-12 px-8 hover:opacity-80 transition-opacity self-start tracking-widest">
+            ENVIAR RESEÑA
+          </button>
+        </form>
       </div>
     </section>
 
@@ -187,5 +251,144 @@ const relatedImages = [
       window.RamLopCart.addItem(productData, 1, selectedColor, selectedSize);
       alert("Added to cart!");
     });
+
+    // Sync wishlist icon on load
+    (function () {
+      const btn = document.querySelector("[data-toggle-wishlist]");
+      if (!btn) return;
+      const product = JSON.parse(btn.dataset.product || "{}");
+      if (window.RamLopWishlist.isInWishlist(product.id)) {
+        const icon = btn.querySelector(".wishlist-icon");
+        if (icon) {
+          icon.textContent = "favorite";
+          icon.style.fontVariationSettings = "'FILL' 1";
+        }
+        btn.classList.add("in-wishlist");
+      }
+    })();
+
+    // --- Reviews ---
+    (function () {
+      const productId = "{product.id}";
+
+      function starsHtml(rating, filled = true) {
+        const color = filled ? "text-clay-accent" : "text-outline";
+        const fill = filled ? 1 : 0;
+        return Array(5).fill(0).map((_, i) =>
+          `<span class="material-symbols-outlined text-sm ${i < rating ? color : 'text-outline'}" style="font-variation-settings: 'FILL' ${i < rating ? fill : 0}">star</span>`
+        ).join("");
+      }
+
+      function renderStats(stats) {
+        document.getElementById("reviewStars").innerHTML = stats.total > 0 ? starsHtml(Math.round(stats.average)) : starsHtml(0);
+        document.getElementById("reviewCount").textContent = stats.total > 0
+          ? stats.average + " promedio · " + stats.total + " reseña" + (stats.total !== 1 ? "s" : "")
+          : "0 reseñas";
+      }
+
+      function renderReviews(reviews) {
+        const container = document.getElementById("reviewsList");
+        if (reviews.length === 0) {
+          container.innerHTML = '<p class="font-body-md text-body-md text-secondary col-span-full">No hay reseñas aún. Sé el primero en opinar.</p>';
+          return;
+        }
+        container.innerHTML = reviews.map(r => `
+          <div class="border border-outline-variant p-4">
+            <div class="flex items-center gap-2 mb-2">
+              <div class="flex items-center gap-0.5">${starsHtml(r.rating)}</div>
+              <span class="font-label-caps text-label-caps text-secondary text-xs">${r.reviewerName || 'Anónimo'}</span>
+            </div>
+            ${r.title ? '<p class="font-body-md text-body-md text-monolith-black font-medium mb-1">' + r.title + '</p>' : ''}
+            ${r.comment ? '<p class="font-body-md text-body-md text-secondary">' + r.comment + '</p>' : ''}
+          </div>
+        `).join("");
+      }
+
+      async function loadReviews() {
+        try {
+          const res = await fetch("/api/resenas/list.php?product_id=" + encodeURIComponent(productId));
+          const data = await res.json();
+          renderStats(data.stats);
+          renderReviews(data.reviews);
+        } catch (err) {
+          document.getElementById("reviewsList").innerHTML = '<p class="font-body-md text-body-md text-error col-span-full">Error al cargar reseñas</p>';
+        }
+      }
+
+      // Star rating selector
+      let selectedRating = 0;
+      document.querySelectorAll(".review-star").forEach(btn => {
+        btn.addEventListener("click", () => {
+          selectedRating = parseInt(btn.dataset.reviewStar);
+          document.getElementById("reviewRating").value = selectedRating;
+          document.querySelectorAll(".review-star").forEach((s, i) => {
+            const icon = s.querySelector(".material-symbols-outlined");
+            if (i < selectedRating) {
+              icon.style.fontVariationSettings = "'FILL' 1";
+              s.classList.remove("text-outline");
+              s.classList.add("text-clay-accent");
+            } else {
+              icon.style.fontVariationSettings = "'FILL' 0";
+              s.classList.remove("text-clay-accent");
+              s.classList.add("text-outline");
+            }
+          });
+        });
+      });
+
+      // Submit review
+      document.getElementById("reviewForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const msg = document.getElementById("reviewMsg");
+        const name = document.getElementById("reviewName").value.trim();
+        const rating = selectedRating;
+
+        if (!name) { msg.textContent = "Por favor ingresa tu nombre"; msg.className = "font-body-md text-body-md text-sm text-error block"; return; }
+        if (rating < 1) { msg.textContent = "Por favor selecciona un rating"; msg.className = "font-body-md text-body-md text-sm text-error block"; return; }
+
+        const btn = document.getElementById("reviewSubmitBtn");
+        btn.disabled = true;
+        btn.textContent = "ENVIANDO...";
+
+        try {
+          const res = await fetch("/api/resenas/create.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              product_id: productId,
+              reviewer_name: name,
+              reviewer_email: document.getElementById("reviewEmail").value.trim(),
+              rating: rating,
+              title: document.getElementById("reviewTitle").value.trim(),
+              comment: document.getElementById("reviewComment").value.trim(),
+            }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error);
+
+          msg.textContent = "¡Reseña enviada! Será publicada tras aprobación.";
+          msg.className = "font-body-md text-body-md text-sm text-monolith-black block";
+          document.getElementById("reviewForm").reset();
+          selectedRating = 0;
+          document.getElementById("reviewRating").value = 0;
+          document.querySelectorAll(".review-star .material-symbols-outlined").forEach(icon => {
+            icon.style.fontVariationSettings = "'FILL' 0";
+          });
+          document.querySelectorAll(".review-star").forEach(s => {
+            s.classList.remove("text-clay-accent");
+            s.classList.add("text-outline");
+          });
+          loadReviews();
+        } catch (err) {
+          msg.textContent = err.message;
+          msg.className = "font-body-md text-body-md text-sm text-error block";
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "ENVIAR RESEÑA";
+        }
+      });
+
+      loadReviews();
+    })();
   </script>
 </BaseLayout>
