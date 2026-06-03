@@ -7,5 +7,6 @@ setCorsHeaders();
 
 $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : null;
 $offset = isset($_GET['offset']) ? (int)$_GET['offset'] : null;
+$lang = isset($_GET['lang']) ? trim($_GET['lang']) : null;
 
-jsonResponse(getCategories($limit, $offset));
+jsonResponse(getCategories($limit, $offset, $lang));

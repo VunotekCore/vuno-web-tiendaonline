@@ -10,11 +10,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 
 $slug = $_GET['slug'] ?? '';
 $id = (int)($_GET['id'] ?? 0);
+$lang = isset($_GET['lang']) ? trim($_GET['lang']) : null;
 
 if ($slug) {
-    $post = getBlogPostBySlug($slug);
+    $post = getBlogPostBySlug($slug, $lang);
 } elseif ($id) {
-    $post = getBlogPostById($id);
+    $post = getBlogPostById($id, $lang);
 } else {
     jsonError('Provide id or slug parameter');
 }

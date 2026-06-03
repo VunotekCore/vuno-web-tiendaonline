@@ -8,4 +8,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     jsonError('Method not allowed', 405);
 }
 
-jsonResponse(getBlogCategories());
+$lang = isset($_GET['lang']) ? trim($_GET['lang']) : null;
+
+jsonResponse(getBlogCategories($lang));

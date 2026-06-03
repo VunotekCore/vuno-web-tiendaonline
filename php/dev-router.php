@@ -9,10 +9,27 @@
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $distPath = __DIR__ . '/../dist';
 
-// Blog dynamic route: /blog/{slug}
-if (preg_match('#^/blog/(.+)$#', $uri, $m)) {
+// Blog dynamic routes with optional locale prefix
+// /{lang}/blog/{slug}  or  /blog/{slug}
+$locale = 'es'; // default
+$blogPath = $uri;
+
+if (preg_match('#^/(es|en)/blog/(.+)$#', $uri, $m)) {
+    $locale = $m[1];
+    $slug = $m[2];
+    if ($slug !== 'index.php' && !file_exists($distPath . $uri)) {
+        $_GET['slug'] = $slug;
+        $_GET['lang'] = $locale;
+        require __DIR__ . '/blog/index.php';
+        return true;
+    }
+} elseif (preg_match('#^/(es|en)/blog/?$#', $uri, $m)) {
+    $locale = $m[1];
+    $_GET['lang'] = $locale;
+    require __DIR__ . '/blog/index.php';
+    return true;
+} elseif (preg_match('#^/blog/(.+)$#', $uri, $m)) {
     $slug = $m[1];
-    // Skip if it's a known static file
     if ($slug !== 'post.php' && $slug !== 'index.php' && !file_exists($distPath . $uri)) {
         $_GET['slug'] = $slug;
         require __DIR__ . '/blog/index.php';

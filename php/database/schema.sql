@@ -637,6 +637,103 @@ CREATE TABLE settings (
 ) ENGINE=InnoDB;
 
 -- =============================================================================
+-- 13. Traducciones (i18n)
+-- =============================================================================
+
+CREATE TABLE product_translations (
+    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    product_id  VARCHAR(50) NOT NULL,
+    lang        CHAR(2) NOT NULL,
+    name        VARCHAR(255),
+    description TEXT,
+    details     TEXT COMMENT 'JSON array of translated detail texts',
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+    UNIQUE KEY uk_product_lang (product_id, lang)
+) ENGINE=InnoDB;
+
+CREATE TABLE category_translations (
+    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    category_id VARCHAR(50) NOT NULL,
+    lang        CHAR(2) NOT NULL,
+    name        VARCHAR(100) NOT NULL,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE,
+    UNIQUE KEY uk_category_lang (category_id, lang)
+) ENGINE=InnoDB;
+
+CREATE TABLE blog_post_translations (
+    id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    blog_post_id  INT UNSIGNED NOT NULL,
+    lang          CHAR(2) NOT NULL,
+    title         VARCHAR(255),
+    excerpt       TEXT,
+    content       LONGTEXT,
+    created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (blog_post_id) REFERENCES blog_posts(id) ON DELETE CASCADE,
+    UNIQUE KEY uk_post_lang (blog_post_id, lang)
+) ENGINE=InnoDB;
+
+CREATE TABLE blog_category_translations (
+    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    category_id INT UNSIGNED NOT NULL,
+    lang        CHAR(2) NOT NULL,
+    name        VARCHAR(200) NOT NULL,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (category_id) REFERENCES blog_categories(id) ON DELETE CASCADE,
+    UNIQUE KEY uk_bcat_lang (category_id, lang)
+) ENGINE=InnoDB;
+
+-- English translations for seed categories
+INSERT INTO category_translations (category_id, lang, name) VALUES
+('cat-heels', 'en', 'Heels'),
+('cat-sandals', 'en', 'Sandals'),
+('cat-mules', 'en', 'Mules'),
+('cat-boots', 'en', 'Boots'),
+('cat-flats', 'en', 'Flats');
+
+-- English translations for seed products
+INSERT INTO product_translations (product_id, lang, name, description, details) VALUES
+('prod-001', 'en',
+ 'Architectural Stiletto Noir',
+ 'Redefining the classic silhouette, this stiletto features sharp architectural lines and a sculpted 90mm heel. Made in Italy from premium smooth calf leather, its minimalist design eliminates unnecessary seams for a purist finish.',
+ '["100% Calf leather exterior","Leather lining and insole","Sculptural 90mm heel","Made in Italy","Clean with soft dry cloth"]'),
+('prod-002', 'en',
+ 'Nude Structural Sandal',
+ 'A sandal that embraces the foot\'s shape with clean lines and sculptural aesthetics. Its nude leather construction blends with the skin for a lengthening and sophisticated visual effect.',
+ '["100% Calf leather","Leather sole","Adjustable buckle in gold metal","Block heel 60mm","Handmade in Spain"]'),
+('prod-003', 'en',
+ 'Classic Pointed Pump',
+ 'The ultimate pump for the power woman. Elongated silhouette with pointed toe and 85mm heel. Crafted from calf leather for a perfect fit and timeless elegance.',
+ '["Italian calf leather","Lambskin lining","85mm stiletto heel","Leather sole with insignia","Made in Italy"]'),
+('prod-004', 'en',
+ 'Geometric Block Mule',
+ 'An architectural statement mule. Its sculpted block heel and minimalist silhouette make it the centerpiece of any outfit. Crafted in high-resistance black leather.',
+ '["Black calf leather","70mm geometric block heel","Engraved rubber sole","20mm concealed platform","Made in Portugal"]'),
+('prod-005', 'en',
+ 'Minimal Kitten Heel',
+ 'Discreet elegance with a 50mm kitten heel that lengthens the silhouette without sacrificing comfort. Its clean design and pristine white leather make it a collection essential.',
+ '["White calf leather","50mm kitten heel","Rounded toe","Natural leather lining","Made in Italy"]'),
+('prod-006', 'en',
+ 'Architectural Cage Sandal',
+ 'An exploration of negative space. This cage sandal interweaves black leather straps in a geometric structure that envelops the foot. Sculptural 100mm heel for an imposing silhouette.',
+ '["Calf leather straps","Sculptural 100mm heel","Adjustable buckle closure","Cushioned anatomical footbed","Handmade in Spain"]'),
+('prod-007', 'en',
+ 'Sculptural Block Bootie',
+ 'A block bootie that defies convention. Angled sculpted heel and cropped silhouette for an avant-garde look. High-resistance black leather and rear zipper for easy fitting.',
+ '["Black calf leather","80mm angular block heel","Gold rear zipper","Almond toe","Made in Portugal"]');
+
+-- English translations for blog categories
+INSERT INTO blog_category_translations (category_id, lang, name) VALUES
+(1, 'en', 'Trends'),
+(2, 'en', 'Care'),
+(3, 'en', 'Behind the Design');
+
+-- =============================================================================
 -- Seed Data
 -- =============================================================================
 

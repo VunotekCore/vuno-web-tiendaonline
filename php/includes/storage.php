@@ -8,7 +8,7 @@
 //  Products
 // =============================================================================
 
-function getProducts(?int $limit = null, ?int $offset = null, ?string $search = null, ?string $category = null): array
+function getProducts(?int $limit = null, ?int $offset = null, ?string $search = null, ?string $category = null, ?string $lang = null): array
 {
     $db = getDb();
 
@@ -51,32 +51,32 @@ function getProducts(?int $limit = null, ?int $offset = null, ?string $search = 
 
     $products = [];
     foreach ($rows as $row) {
-        $products[] = buildProduct($row['id']);
+        $products[] = buildProduct($row['id'], $lang);
     }
     return ['items' => $products, 'total' => $total];
 }
 
-function getProductById(string $id): ?array
+function getProductById(string $id, ?string $lang = null): ?array
 {
     $db = getDb();
     $stmt = $db->prepare('SELECT * FROM products WHERE id = ? AND deleted_at IS NULL');
     $stmt->execute([$id]);
     $row = $stmt->fetch();
     if (!$row) return null;
-    return buildProduct($row['id']);
+    return buildProduct($row['id'], $lang);
 }
 
-function getProductBySlug(string $slug): ?array
+function getProductBySlug(string $slug, ?string $lang = null): ?array
 {
     $db = getDb();
     $stmt = $db->prepare('SELECT * FROM products WHERE slug = ? AND deleted_at IS NULL');
     $stmt->execute([$slug]);
     $row = $stmt->fetch();
     if (!$row) return null;
-    return buildProduct($row['id']);
+    return buildProduct($row['id'], $lang);
 }
 
-function buildProduct(string $id): array
+function buildProduct(string $id, ?string $lang = null): array
 {
     $db = getDb();
 
@@ -85,10 +85,34 @@ function buildProduct(string $id): array
     $row = $p->fetch();
     if (!$row) return [];
 
+    // Apply translations if lang is provided and not Spanish
+    if ($lang && $lang !== 'es') {
+        try {
+            $tStmt = $db->prepare('SELECT name, description, details FROM product_translations WHERE product_id = ? AND lang = ?');
+            $tStmt->execute([$id, $lang]);
+            $trans = $tStmt->fetch();
+            if ($trans) {
+                if ($trans['name']) $row['name'] = $trans['name'];
+                if ($trans['description']) $row['description'] = $trans['description'];
+                $transDetails = $trans['details'];
+            }
+        } catch (\PDOException $e) {
+            // Translation table not available yet
+        }
+    }
+
     // Details
     $det = $db->prepare('SELECT detail_text FROM product_details WHERE product_id = ? ORDER BY sort_order');
     $det->execute([$id]);
     $details = array_column($det->fetchAll(), 'detail_text');
+
+    // Override details with translated JSON if available
+    if (isset($transDetails) && $transDetails) {
+        $parsed = json_decode($transDetails, true);
+        if (is_array($parsed)) {
+            $details = $parsed;
+        }
+    }
 
     // Images
     $img = $db->prepare('SELECT url FROM product_images WHERE product_id = ? ORDER BY sort_order');
@@ -96,11 +120,29 @@ function buildProduct(string $id): array
     $images = array_column($img->fetchAll(), 'url');
 
     // Categories (first one as string for backward compat)
-    $cat = $db->prepare(
-        'SELECT c.name FROM product_categories pc JOIN categories c ON c.id = pc.category_id WHERE pc.product_id = ? LIMIT 1'
+    $catStmt = $db->prepare(
+        'SELECT c.id FROM product_categories pc JOIN categories c ON c.id = pc.category_id WHERE pc.product_id = ? LIMIT 1'
     );
-    $cat->execute([$id]);
-    $category = $cat->fetchColumn() ?: '';
+    $catStmt->execute([$id]);
+    $catId = $catStmt->fetchColumn() ?: '';
+
+    $category = $catId;
+    if ($catId) {
+        if ($lang && $lang !== 'es') {
+            try {
+                $ctStmt = $db->prepare('SELECT name FROM category_translations WHERE category_id = ? AND lang = ?');
+                $ctStmt->execute([$catId, $lang]);
+                $ctName = $ctStmt->fetchColumn();
+                $category = $ctName ?: $catId;
+            } catch (\PDOException $e) {
+                // Translation table not available yet
+            }
+        } else {
+            $nStmt = $db->prepare('SELECT name FROM categories WHERE id = ?');
+            $nStmt->execute([$catId]);
+            $category = $nStmt->fetchColumn() ?: $catId;
+        }
+    }
 
     // Colors
     $col = $db->prepare('SELECT id, name, hex, sort_order FROM product_colors WHERE product_id = ? ORDER BY sort_order');
@@ -642,7 +684,7 @@ function resolveVariant(string $productId, string $colorName, string $sizeLabel)
 //  Categories
 // =============================================================================
 
-function getCategories(?int $limit = null, ?int $offset = null): array
+function getCategories(?int $limit = null, ?int $offset = null, ?string $lang = null): array
 {
     $db = getDb();
 
@@ -662,12 +704,28 @@ function getCategories(?int $limit = null, ?int $offset = null): array
     $stmt->execute($params);
     $rows = $stmt->fetchAll();
 
+    // Load translations if needed
+    $transMap = [];
+    if ($lang && $lang !== 'es') {
+        try {
+            $tStmt = $db->prepare('SELECT category_id, name FROM category_translations WHERE lang = ?');
+            $tStmt->execute([$lang]);
+            while ($t = $tStmt->fetch()) {
+                $transMap[$t['category_id']] = $t['name'];
+            }
+        } catch (\PDOException $e) {
+            // Translation table not available yet
+        }
+    }
+
     return [
-        'items' => array_map(fn($r) => [
-            'id'   => $r['id'],
-            'name' => $r['name'],
-            'slug' => $r['slug'],
-        ], $rows),
+        'items' => array_map(function($r) use ($transMap) {
+            return [
+                'id'   => $r['id'],
+                'name' => $transMap[$r['id']] ?? $r['name'],
+                'slug' => $r['slug'],
+            ];
+        }, $rows),
         'total' => $total,
     ];
 }
@@ -1435,13 +1493,34 @@ function getBlogCategoryById(int $id): ?array
     return $row ?: null;
 }
 
-function getBlogCategories(): array
+function getBlogCategories(?string $lang = null): array
 {
     $db = getDb();
-    return $db->query('SELECT * FROM blog_categories ORDER BY name')->fetchAll();
+    $rows = $db->query('SELECT * FROM blog_categories ORDER BY name')->fetchAll();
+
+    if ($lang && $lang !== 'es') {
+        try {
+            $tStmt = $db->prepare('SELECT category_id, name FROM blog_category_translations WHERE lang = ?');
+            $tStmt->execute([$lang]);
+            $transMap = [];
+            while ($t = $tStmt->fetch()) {
+                $transMap[(int)$t['category_id']] = $t['name'];
+            }
+            foreach ($rows as &$r) {
+                if (isset($transMap[(int)$r['id']])) {
+                    $r['name'] = $transMap[(int)$r['id']];
+                }
+            }
+            unset($r);
+        } catch (\PDOException $e) {
+            // Translation table not available yet
+        }
+    }
+
+    return $rows;
 }
 
-function getBlogPosts(int $page = 1, int $limit = 10, string $status = '', int $categoryId = 0): array
+function getBlogPosts(int $page = 1, int $limit = 10, string $status = '', int $categoryId = 0, ?string $lang = null): array
 {
     $db = getDb();
     $where = ['p.deleted_at IS NULL'];
@@ -1472,6 +1551,35 @@ function getBlogPosts(int $page = 1, int $limit = 10, string $status = '', int $
     $stmt->execute($params);
     $items = $stmt->fetchAll();
 
+    // Apply translations if needed
+    if ($lang && $lang !== 'es') {
+        try {
+            $postIds = array_map(fn($i) => $i['id'], $items);
+            if (!empty($postIds)) {
+                $placeholders = implode(',', array_fill(0, count($postIds), '?'));
+                $tStmt = $db->prepare("SELECT blog_post_id, title, excerpt, content FROM blog_post_translations WHERE blog_post_id IN ($placeholders) AND lang = ?");
+                $tParams = $postIds;
+                $tParams[] = $lang;
+                $tStmt->execute($tParams);
+                $transMap = [];
+                while ($t = $tStmt->fetch()) {
+                    $transMap[(int)$t['blog_post_id']] = $t;
+                }
+                foreach ($items as &$item) {
+                    $tid = (int)$item['id'];
+                    if (isset($transMap[$tid])) {
+                        if ($transMap[$tid]['title']) $item['title'] = $transMap[$tid]['title'];
+                        if ($transMap[$tid]['excerpt']) $item['excerpt'] = $transMap[$tid]['excerpt'];
+                        if ($transMap[$tid]['content']) $item['content'] = $transMap[$tid]['content'];
+                    }
+                }
+                unset($item);
+            }
+        } catch (\PDOException $e) {
+            // Translation table not available yet
+        }
+    }
+
     // Count total
     $countStmt = $db->prepare(
         "SELECT COUNT(*) FROM blog_posts p WHERE {$whereClause}"
@@ -1483,7 +1591,7 @@ function getBlogPosts(int $page = 1, int $limit = 10, string $status = '', int $
     return ['items' => $items, 'total' => $total, 'page' => $page, 'pages' => (int)ceil($total / $limit)];
 }
 
-function getBlogPostById(int $id): ?array
+function getBlogPostById(int $id, ?string $lang = null): ?array
 {
     $db = getDb();
     $stmt = $db->prepare(
@@ -1494,10 +1602,35 @@ function getBlogPostById(int $id): ?array
     );
     $stmt->execute([$id]);
     $row = $stmt->fetch();
-    return $row ?: null;
+    if (!$row) return null;
+
+    if ($lang && $lang !== 'es') {
+        try {
+            $tStmt = $db->prepare('SELECT title, excerpt, content FROM blog_post_translations WHERE blog_post_id = ? AND lang = ?');
+            $tStmt->execute([$id, $lang]);
+            $trans = $tStmt->fetch();
+            if ($trans) {
+                if ($trans['title']) $row['title'] = $trans['title'];
+                if ($trans['excerpt']) $row['excerpt'] = $trans['excerpt'];
+                if ($trans['content']) $row['content'] = $trans['content'];
+            }
+
+            // Translate category name
+            if ($row['category_id']) {
+                $ctStmt = $db->prepare('SELECT name FROM blog_category_translations WHERE category_id = ? AND lang = ?');
+                $ctStmt->execute([(int)$row['category_id'], $lang]);
+                $ctName = $ctStmt->fetchColumn();
+                if ($ctName) $row['category_name'] = $ctName;
+            }
+        } catch (\PDOException $e) {
+            // Translation table not available yet
+        }
+    }
+
+    return $row;
 }
 
-function getBlogPostBySlug(string $slug): ?array
+function getBlogPostBySlug(string $slug, ?string $lang = null): ?array
 {
     $db = getDb();
     $stmt = $db->prepare(
@@ -1508,7 +1641,32 @@ function getBlogPostBySlug(string $slug): ?array
     );
     $stmt->execute([$slug]);
     $row = $stmt->fetch();
-    return $row ?: null;
+    if (!$row) return null;
+
+    if ($lang && $lang !== 'es') {
+        try {
+            $tStmt = $db->prepare('SELECT title, excerpt, content FROM blog_post_translations WHERE blog_post_id = ? AND lang = ?');
+            $tStmt->execute([$row['id'], $lang]);
+            $trans = $tStmt->fetch();
+            if ($trans) {
+                if ($trans['title']) $row['title'] = $trans['title'];
+                if ($trans['excerpt']) $row['excerpt'] = $trans['excerpt'];
+                if ($trans['content']) $row['content'] = $trans['content'];
+            }
+
+            // Translate category name
+            if ($row['category_id']) {
+                $ctStmt = $db->prepare('SELECT name FROM blog_category_translations WHERE category_id = ? AND lang = ?');
+                $ctStmt->execute([(int)$row['category_id'], $lang]);
+                $ctName = $ctStmt->fetchColumn();
+                if ($ctName) $row['category_name'] = $ctName;
+            }
+        } catch (\PDOException $e) {
+            // Translation table not available yet
+        }
+    }
+
+    return $row;
 }
 
 function createBlogPost(array $data): int

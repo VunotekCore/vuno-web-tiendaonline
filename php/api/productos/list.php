@@ -13,6 +13,7 @@ $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : null;
 $offset = isset($_GET['offset']) ? (int)$_GET['offset'] : null;
 $search = isset($_GET['search']) ? trim($_GET['search']) : null;
 $category = isset($_GET['category']) ? trim($_GET['category']) : null;
+$lang = isset($_GET['lang']) ? trim($_GET['lang']) : null;
 
-$result = getProducts($limit, $offset, $search, $category);
+$result = getProducts($limit, $offset, $search, $category, $lang);
 jsonResponse($result);
