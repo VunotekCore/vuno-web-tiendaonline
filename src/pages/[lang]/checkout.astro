@@ -1,51 +1,105 @@
 ---
-import BaseLayout from "../layouts/BaseLayout.astro";
-import Navbar from "../components/organisms/Navbar.astro";
-import Footer from "../components/organisms/Footer.astro";
-import Button from "../components/atoms/Button.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Navbar from "../../components/organisms/Navbar.astro";
+import Footer from "../../components/organisms/Footer.astro";
+import Button from "../../components/atoms/Button.astro";
+import { t, type Locale, locales } from "../../i18n/utils";
+
+export async function getStaticPaths() {
+  return locales.map((lang) => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params as { lang: Locale };
+const currentPath = Astro.url.pathname;
+const siteUrl = import.meta.env.PROD ? "https://ramlop.com" : "http://localhost:4321";
+const alternateUrls = {
+  es: `${siteUrl}/es/checkout`,
+  en: `${siteUrl}/en/checkout`,
+};
+
+const i18n = {
+  title: t("checkout.title", lang),
+  empty: t("checkout.empty", lang),
+  explore: t("checkout.explore", lang),
+  shipping: t("checkout.shipping", lang),
+  fullName: t("checkout.fullName", lang),
+  email: t("checkout.email", lang),
+  address: t("checkout.address", lang),
+  city: t("checkout.city", lang),
+  zip: t("checkout.zip", lang),
+  payment: t("checkout.payment", lang),
+  noPayment: t("checkout.noPayment", lang),
+  card: t("checkout.card", lang),
+  cardDesc: t("checkout.cardDesc", lang),
+  transfer: t("checkout.transfer", lang),
+  transferDesc: t("checkout.transferDesc", lang),
+  receipt: t("checkout.receipt", lang),
+  receiptSelect: t("checkout.receipt.select", lang),
+  receiptHint: t("checkout.receipt.hint", lang),
+  placeOrder: t("checkout.placeOrder", lang),
+  processing: t("checkout.processing", lang),
+  orderSummary: t("checkout.orderSummary", lang),
+  shippingFree: t("checkout.shippingFree", lang),
+  couponCode: t("checkout.couponCode", lang),
+  couponApply: t("checkout.couponApply", lang),
+  couponEnter: t("checkout.couponEnter", lang),
+  couponValidating: t("checkout.couponValidating", lang),
+  couponApplied: t("checkout.couponApplied", lang),
+  couponInvalid: t("checkout.couponInvalid", lang),
+  couponError: t("checkout.couponError", lang),
+  discount: t("checkout.discount", lang),
+  fillFields: t("checkout.fillFields", lang),
+  cartEmpty: t("checkout.cartEmpty", lang),
+  orderPlaced: t("checkout.orderPlaced", lang),
+  uploading: t("checkout.uploading", lang),
+  receiptReceived: t("checkout.receiptReceived", lang),
+  receiptFailed: t("checkout.receiptFailed", lang),
+  noBanks: t("checkout.noBanks", lang),
+  bankDetails: t("checkout.bankDetails", lang),
+};
 ---
 
-<BaseLayout title="Checkout | Ram;Lop">
-  <Navbar />
+<BaseLayout title={lang === "es" ? "Checkout | Ram;Lop" : "Checkout | Ram;Lop"} lang={lang} alternateUrls={alternateUrls}>
+  <Navbar lang={lang} currentPath={currentPath} />
   <main class="flex-grow w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-section-gap">
-    <h1 class="font-headline text-headline-lg-mobile md:text-headline-lg mb-12">Checkout</h1>
+    <h1 class="font-headline text-headline-lg-mobile md:text-headline-lg mb-12">{t("checkout.title", lang)}</h1>
 
     <div id="emptyCart" class="hidden text-center py-20">
-      <p class="font-body text-body-lg text-secondary mb-6">Your cart is empty. Add some items before checkout.</p>
-      <Button variant="secondary" href="/catalogo">EXPLORE COLLECTION</Button>
+      <p class="font-body text-body-lg text-secondary mb-6">{t("checkout.empty", lang)}</p>
+      <Button variant="secondary" href={`/${lang}/catalogo`}>{t("checkout.explore", lang)}</Button>
     </div>
 
     <div id="checkoutForm" class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
       <div class="lg:col-span-7 flex flex-col gap-8">
         <div>
-          <h2 class="font-headline text-headline-md mb-6">Shipping Information</h2>
+          <h2 class="font-headline text-headline-md mb-6">{t("checkout.shipping", lang)}</h2>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="md:col-span-2">
-              <label class="font-label-caps text-label-caps text-secondary block mb-2">FULL NAME</label>
+              <label class="font-label-caps text-label-caps text-secondary block mb-2">{t("checkout.fullName", lang)}</label>
               <input id="customerName" type="text" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
             </div>
             <div class="md:col-span-2">
-              <label class="font-label-caps text-label-caps text-secondary block mb-2">EMAIL</label>
+              <label class="font-label-caps text-label-caps text-secondary block mb-2">{t("checkout.email", lang)}</label>
               <input id="customerEmail" type="email" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
             </div>
             <div class="md:col-span-2">
-              <label class="font-label-caps text-label-caps text-secondary block mb-2">ADDRESS</label>
+              <label class="font-label-caps text-label-caps text-secondary block mb-2">{t("checkout.address", lang)}</label>
               <input id="customerAddress" type="text" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
             </div>
             <div>
-              <label class="font-label-caps text-label-caps text-secondary block mb-2">CITY</label>
+              <label class="font-label-caps text-label-caps text-secondary block mb-2">{t("checkout.city", lang)}</label>
               <input id="customerCity" type="text" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
             </div>
             <div>
-              <label class="font-label-caps text-label-caps text-secondary block mb-2">ZIP CODE</label>
+              <label class="font-label-caps text-label-caps text-secondary block mb-2">{t("checkout.zip", lang)}</label>
               <input id="customerZip" type="text" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
             </div>
           </div>
         </div>
 
         <div id="paymentSection">
-          <h2 class="font-headline text-headline-md mb-6">Payment Method</h2>
-          <div id="noPaymentMethods" class="hidden font-body text-body-md text-error bg-error/10 p-3 text-center">No payment methods are currently available. Please try again later.</div>
+          <h2 class="font-headline text-headline-md mb-6">{t("checkout.payment", lang)}</h2>
+          <div id="noPaymentMethods" class="hidden font-body text-body-md text-error bg-error/10 p-3 text-center">{t("checkout.noPayment", lang)}</div>
           <div id="paymentError" class="hidden font-body text-body-md text-error bg-error/10 p-3 mb-4 text-center"></div>
           <div id="cardErrors" class="hidden font-body text-body-md text-error bg-error/10 p-3 mb-4 text-center"></div>
           <div id="paymentMethods" class="flex flex-col gap-4">
@@ -53,8 +107,8 @@ import Button from "../components/atoms/Button.astro";
               <label class="flex items-center gap-4 p-4 border border-outline-variant cursor-pointer hover:border-monolith-black transition-colors has-checked:border-monolith-black has-checked:bg-monolith-black/5">
                 <input type="radio" name="payment" value="stripe" class="accent-monolith-black" />
                 <div>
-                  <span class="font-label-caps text-label-caps text-monolith-black block">Credit Card (Stripe)</span>
-                  <span class="font-body text-body-md text-secondary">Pay securely with Visa, Mastercard, or Amex</span>
+                  <span class="font-label-caps text-label-caps text-monolith-black block">{t("checkout.card", lang)}</span>
+                  <span class="font-body text-body-md text-secondary">{t("checkout.cardDesc", lang)}</span>
                 </div>
               </label>
               <div id="stripeCardElement" class="hidden pl-14 pr-4 pb-4 border-l-2 border-monolith-black">
@@ -65,19 +119,19 @@ import Button from "../components/atoms/Button.astro";
               <label class="flex items-center gap-4 p-4 border border-outline-variant cursor-pointer hover:border-monolith-black transition-colors has-checked:border-monolith-black has-checked:bg-monolith-black/5">
                 <input type="radio" name="payment" value="transfer" class="accent-monolith-black" />
                 <div>
-                  <span class="font-label-caps text-label-caps text-monolith-black block">Bank Transfer</span>
-                  <span class="font-body text-body-md text-secondary">Pay via wire transfer. Upload your payment receipt after placing the order.</span>
+                  <span class="font-label-caps text-label-caps text-monolith-black block">{t("checkout.transfer", lang)}</span>
+                  <span class="font-body text-body-md text-secondary">{t("checkout.transferDesc", lang)}</span>
                 </div>
               </label>
             </div>
           </div>
           <div id="transferInfo" class="hidden mt-4 p-4 bg-surface-container-low">
             <div id="receiptUploadSection">
-              <p class="font-label-caps text-label-caps text-secondary mb-3">SUBIR COMPROBANTE DE PAGO (opcional)</p>
+              <p class="font-label-caps text-label-caps text-secondary mb-3">{t("checkout.receipt", lang)}</p>
               <div id="receiptUploadZone" class="border-2 border-dashed border-outline-variant rounded-sm p-6 text-center cursor-pointer hover:border-monolith-black transition-colors bg-white mb-3">
                 <span class="material-symbols-outlined text-3xl text-secondary mb-1 block">receipt_long</span>
-                <p class="font-body text-body-md text-secondary text-sm mb-1">Selecciona el comprobante de tu transferencia</p>
-                <p class="font-body text-body-md text-secondary text-xs">JPG, PNG, PDF · Máximo 5MB</p>
+                <p class="font-body text-body-md text-secondary text-sm mb-1">{t("checkout.receipt.select", lang)}</p>
+                <p class="font-body text-body-md text-secondary text-xs">{t("checkout.receipt.hint", lang)}</p>
                 <input type="file" id="receiptInput" accept="image/jpeg,image/png,image/webp,application/pdf" class="hidden" />
               </div>
               <div id="receiptPreview" class="hidden flex items-center gap-3 p-3 bg-white border border-outline-variant rounded-sm">
@@ -94,41 +148,41 @@ import Button from "../components/atoms/Button.astro";
 
         <div id="orderButtonContainer">
           <Button variant="primary" class="w-full" id="placeOrderBtn">
-            PLACE ORDER
+            {i18n.placeOrder}
           </Button>
         </div>
       </div>
 
       <div class="lg:col-span-4 lg:col-start-9">
         <div class="bg-surface-container-low p-6 sticky top-[100px]">
-          <h2 class="font-headline text-headline-md mb-6 border-b border-outline-variant/30 pb-4">Order Summary</h2>
+          <h2 class="font-headline text-headline-md mb-6 border-b border-outline-variant/30 pb-4">{i18n.orderSummary}</h2>
           <div id="orderItems" class="mb-6 space-y-4"></div>
           <div class="space-y-4 mb-8">
             <div class="flex justify-between">
-              <span class="font-body text-body-md text-secondary">Subtotal</span>
+              <span class="font-body text-body-md text-secondary">{t("cart.subtotal", lang)}</span>
               <span class="font-price-display text-price-display text-base" id="summarySubtotal">$0.00</span>
             </div>
             <div class="flex justify-between">
-              <span class="font-body text-body-md text-secondary">Shipping</span>
-              <span class="font-body text-body-md">Free</span>
+              <span class="font-body text-body-md text-secondary">{t("cart.shipping", lang)}</span>
+              <span class="font-body text-body-md">{t("checkout.shippingFree", lang)}</span>
             </div>
 
             <!-- Coupon -->
             <div class="border-t border-outline-variant/30 pt-4">
               <div class="flex gap-2">
-                <input type="text" id="couponInput" class="flex-1 bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none text-sm uppercase font-mono" placeholder="COUPON CODE" />
-                <button id="couponApplyBtn" class="font-label-caps text-label-caps bg-monolith-black text-off-white h-10 px-4 rounded-md hover:bg-monolith-black/90 transition-all shrink-0 text-xs">APPLY</button>
+                <input type="text" id="couponInput" class="flex-1 bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none text-sm uppercase font-mono" placeholder={t("checkout.couponCode", lang)} />
+                <button id="couponApplyBtn" class="font-label-caps text-label-caps bg-monolith-black text-off-white h-10 px-4 rounded-md hover:bg-monolith-black/90 transition-all shrink-0 text-xs">{t("checkout.couponApply", lang)}</button>
               </div>
               <div id="couponMessage" class="font-body text-body-md text-xs mt-2"></div>
               <div id="couponDiscountRow" class="hidden flex justify-between mt-2">
-                <span class="font-body text-body-md text-clay-accent">Discount</span>
+                <span class="font-body text-body-md text-clay-accent">{t("checkout.discount", lang)}</span>
                 <span class="font-price-display text-price-display text-base text-clay-accent" id="summaryDiscount">-$0.00</span>
               </div>
             </div>
 
             <div class="border-t border-outline-variant/30 pt-4">
               <div class="flex justify-between">
-                <span class="font-headline text-headline-md">Total</span>
+                <span class="font-headline text-headline-md">{t("cart.total", lang)}</span>
                 <span class="font-price-display text-price-display text-2xl" id="summaryTotal">$0.00</span>
               </div>
             </div>
@@ -137,7 +191,7 @@ import Button from "../components/atoms/Button.astro";
       </div>
     </div>
   </main>
-  <Footer />
+  <Footer lang={lang} />
 
   <script src="/js/cart.js" is:inline></script>
   <script src="https://js.stripe.com/v3/"></script>
@@ -149,8 +203,27 @@ import Button from "../components/atoms/Button.astro";
     let settings = null;
     let banks = [];
 
+    const checkoutI18n = {
+      couponEnter: `{i18n.couponEnter}`,
+      couponValidating: `{i18n.couponValidating}`,
+      couponApplied: `{i18n.couponApplied}`,
+      couponInvalid: `{i18n.couponInvalid}`,
+      couponError: `{i18n.couponError}`,
+      fillFields: `{i18n.fillFields}`,
+      cartEmpty: `{i18n.cartEmpty}`,
+      orderPlaced: `{i18n.orderPlaced}`,
+      uploading: `{i18n.uploading}`,
+      receiptReceived: `{i18n.receiptReceived}`,
+      receiptFailed: `{i18n.receiptFailed}`,
+      noBanks: `{i18n.noBanks}`,
+      bankDetails: `{i18n.bankDetails}`,
+      placeOrder: `{i18n.placeOrder}`,
+      processing: `{i18n.processing}`,
+      couponApply: `{i18n.couponApply}`,
+    };
+
     // --- Coupon State ---
-    let appliedCoupon = null; // { code, discount, couponId }
+    let appliedCoupon = null;
     let couponDiscount = 0;
 
     function getCustomerEmail() {
@@ -167,7 +240,7 @@ import Button from "../components/atoms/Button.astro";
 
       if (!code) {
         msg.className = "font-body text-body-md text-xs mt-2 text-error";
-        msg.textContent = "Enter a coupon code";
+        msg.textContent = checkoutI18n.couponEnter;
         return;
       }
 
@@ -177,7 +250,7 @@ import Button from "../components/atoms/Button.astro";
       applyBtn.disabled = true;
       applyBtn.textContent = "...";
       msg.className = "font-body text-body-md text-xs mt-2 text-secondary";
-      msg.textContent = "Validating...";
+      msg.textContent = checkoutI18n.couponValidating;
 
       try {
         const res = await fetch("/api/cupones/validate.php", {
@@ -191,7 +264,7 @@ import Button from "../components/atoms/Button.astro";
           appliedCoupon = { code, discount: data.discount, couponId: data.coupon.id };
           couponDiscount = data.discount;
           msg.className = "font-body text-body-md text-xs mt-2 text-green-700";
-          msg.textContent = "Coupon applied! You saved " + (data.coupon.discount_type === "percentage" ? data.coupon.discount_value + "%" : "$" + data.discount.toFixed(2));
+          msg.textContent = checkoutI18n.couponApplied + " " + (data.coupon.discount_type === "percentage" ? data.coupon.discount_value + "%" : "$" + data.discount.toFixed(2));
           discountRow.classList.remove("hidden");
           discountEl.textContent = "-$" + data.discount.toFixed(2);
           renderSummaryTotal();
@@ -200,18 +273,18 @@ import Button from "../components/atoms/Button.astro";
           couponDiscount = 0;
           discountRow.classList.add("hidden");
           msg.className = "font-body text-body-md text-xs mt-2 text-error";
-          msg.textContent = data.error || "Invalid coupon";
+          msg.textContent = data.error || checkoutI18n.couponInvalid;
         }
       } catch (err) {
         appliedCoupon = null;
         couponDiscount = 0;
         discountRow.classList.add("hidden");
         msg.className = "font-body text-body-md text-xs mt-2 text-error";
-        msg.textContent = "Error validating coupon";
+        msg.textContent = checkoutI18n.couponError;
       }
 
       applyBtn.disabled = false;
-      applyBtn.textContent = "APPLY";
+      applyBtn.textContent = checkoutI18n.couponApply;
     }
 
     function removeCoupon() {
@@ -233,10 +306,10 @@ import Button from "../components/atoms/Button.astro";
     function renderBankDetails() {
       const container = document.getElementById("transferInfo");
       if (!banks.length) {
-        container.innerHTML = '<p class="font-body text-body-md text-secondary">No bank accounts configured. Contact us for transfer details.</p>';
+        container.innerHTML = '<p class="font-body text-body-md text-secondary">' + checkoutI18n.noBanks + '</p>';
         return;
       }
-      let html = '<p class="font-label-caps text-label-caps text-monolith-black mb-2">Bank Transfer Details</p>';
+      let html = '<p class="font-label-caps text-label-caps text-monolith-black mb-2">' + checkoutI18n.bankDetails + '</p>';
       banks.forEach(b => {
         html += '<div class="mb-3 pb-3 border-b border-outline-variant/30 last:border-0 last:mb-0 last:pb-0">';
         if (b.bankName) html += `<p class="font-body text-body-md text-secondary mb-1"><strong>Bank:</strong> ${b.bankName}</p>`;
@@ -277,7 +350,6 @@ import Button from "../components/atoms/Button.astro";
         return;
       }
 
-      // Auto-select default: prefer stripe if available
       const radios = document.querySelectorAll('input[name="payment"]');
       if (stripeEnabled) {
         document.querySelector('#stripeOption input[type="radio"]').checked = true;
@@ -287,10 +359,8 @@ import Button from "../components/atoms/Button.astro";
         renderBankDetails();
       }
 
-      // Load bank accounts
       banks = settings?.transfer?.banks || [];
 
-      // Init Stripe
       const publishableKey = settings?.stripe?.publishableKey;
       if (publishableKey && stripeEnabled) {
         stripe = Stripe(publishableKey);
@@ -433,7 +503,7 @@ import Button from "../components/atoms/Button.astro";
     document.getElementById("placeOrderBtn").addEventListener("click", async function () {
       const items = window.RamLopCart.getItems();
       if (items.length === 0) {
-        alert("Your cart is empty.");
+        alert(checkoutI18n.cartEmpty);
         return;
       }
 
@@ -445,20 +515,19 @@ import Button from "../components/atoms/Button.astro";
       const payment = document.querySelector('input[name="payment"]:checked').value;
 
       if (!name || !email || !address || !city || !zip) {
-        document.getElementById("paymentError").textContent = "Please fill in all shipping fields.";
+        document.getElementById("paymentError").textContent = checkoutI18n.fillFields;
         document.getElementById("paymentError").classList.remove("hidden");
         return;
       }
 
       this.disabled = true;
-      this.textContent = "PROCESSING...";
+      this.textContent = checkoutI18n.processing;
 
       const order = buildOrderObject(payment);
       const subtotal = order.subtotal;
 
       if (payment === "stripe") {
         try {
-          // 1. Save order BEFORE payment (idempotent)
           const createRes = await fetch("/api/pedidos/create.php", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -469,7 +538,6 @@ import Button from "../components/atoms/Button.astro";
             throw new Error(createErr.error || "Failed to create order");
           }
 
-          // 2. Create PaymentIntent
           const piRes = await fetch("/api/stripe/create-payment-intent.php", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -478,7 +546,6 @@ import Button from "../components/atoms/Button.astro";
           const piData = await piRes.json();
           if (!piRes.ok) throw new Error(piData.error);
 
-          // 3. Confirm card payment
           const { error, paymentIntent } = await stripe.confirmCardPayment(piData.clientSecret, {
             payment_method: { card: card },
           });
@@ -488,14 +555,12 @@ import Button from "../components/atoms/Button.astro";
           }
 
           if (paymentIntent.status === "succeeded") {
-            // 4. Confirm payment in DB
             const confirmRes = await fetch("/api/pedidos/confirm-payment.php", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ id: order.id, stripePaymentIntentId: paymentIntent.id })
             });
             if (!confirmRes.ok) {
-              // Order saved but confirm failed — redirect anyway, webhook will reconcile
               console.warn("Payment confirmed but status update failed, webhook will reconcile");
             }
 
@@ -505,7 +570,7 @@ import Button from "../components/atoms/Button.astro";
 
             window.RamLopCart.clear();
             localStorage.setItem("ramlop_last_order_" + order.id, JSON.stringify(order));
-            window.location.href = "/?order=" + order.id + "&status=paid";
+            window.location.href = `/${lang}/?order=${order.id}&status=paid`;
           } else {
             throw new Error("Payment was not successful: " + paymentIntent.status);
           }
@@ -513,7 +578,7 @@ import Button from "../components/atoms/Button.astro";
           document.getElementById("paymentError").textContent = err.message;
           document.getElementById("paymentError").classList.remove("hidden");
           this.disabled = false;
-          this.textContent = "PLACE ORDER";
+          this.textContent = checkoutI18n.placeOrder;
         }
       } else {
         try {
@@ -527,9 +592,8 @@ import Button from "../components/atoms/Button.astro";
             throw new Error(createErr.error || "Failed to create order");
           }
 
-          // Upload receipt if provided
           if (receiptFile) {
-            showReceiptMsg("Subiendo comprobante...", false);
+            showReceiptMsg(checkoutI18n.uploading, false);
             const formData = new FormData();
             formData.append("file", receiptFile);
             formData.append("folder", "receipts");
@@ -542,24 +606,21 @@ import Button from "../components/atoms/Button.astro";
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ id: order.id, transferReceipt: receiptUrl })
               });
-              showReceiptMsg("Comprobante recibido correctamente.", false);
+              showReceiptMsg(checkoutI18n.receiptReceived, false);
             } else {
-              showReceiptMsg("No se pudo subir el comprobante. Puedes enviarlo por email a soporte.", true);
+              showReceiptMsg(checkoutI18n.receiptFailed, true);
             }
           }
 
-          // Email is sent server-side in create.php
-
-
           window.RamLopCart.clear();
           localStorage.setItem("ramlop_last_order_" + order.id, JSON.stringify(order));
-          alert("Order placed! We'll send you the bank transfer details via email.");
-          window.location.href = "/";
+          alert(checkoutI18n.orderPlaced);
+          window.location.href = `/${lang}/`;
         } catch (err) {
           document.getElementById("paymentError").textContent = err.message;
           document.getElementById("paymentError").classList.remove("hidden");
           this.disabled = false;
-          this.textContent = "PLACE ORDER";
+          this.textContent = checkoutI18n.placeOrder;
         }
       }
     });
@@ -573,17 +634,14 @@ import Button from "../components/atoms/Button.astro";
       }
     });
 
-    // Re-validate coupon when email changes (for per-customer limits)
     document.getElementById("customerEmail").addEventListener("change", () => {
       if (appliedCoupon) {
-        // Leave coupon applied but will be validated server-side on order creation
       }
     });
 
     loadSettings().then(() => {
       renderSummary();
 
-      // Re-apply payment change handler for initial state
       const checked = document.querySelector('input[name="payment"]:checked');
       if (checked) {
         checked.dispatchEvent(new Event("change"));

@@ -1,15 +1,29 @@
 ---
-import BaseLayout from "../layouts/BaseLayout.astro";
-import Navbar from "../components/organisms/Navbar.astro";
-import Footer from "../components/organisms/Footer.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Navbar from "../../components/organisms/Navbar.astro";
+import Footer from "../../components/organisms/Footer.astro";
+import { t, type Locale, locales } from "../../i18n/utils";
+
+export async function getStaticPaths() {
+  return locales.map((lang) => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params as { lang: Locale };
+const currentPath = Astro.url.pathname;
+const siteUrl = import.meta.env.PROD ? "https://ramlop.com" : "http://localhost:4321";
+const alternateUrls = {
+  es: `${siteUrl}/es/wishlist`,
+  en: `${siteUrl}/en/wishlist`,
+};
+
 ---
 
-<BaseLayout title="Wishlist | Ram;Lop">
-  <Navbar />
+<BaseLayout title={lang === "es" ? "Lista de Deseos | Ram;Lop" : "Wishlist | Ram;Lop"} lang={lang} alternateUrls={alternateUrls}>
+  <Navbar lang={lang} currentPath={currentPath} />
   <main class="flex-grow w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-section-gap">
     <div class="mb-gutter">
-      <h1 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg mb-unit">Wishlist</h1>
-      <p class="font-body-md text-body-md text-secondary">Your saved items, ready whenever you are.</p>
+      <h1 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg mb-unit">{t("wishlist.title", lang)}</h1>
+      <p class="font-body-md text-body-md text-secondary">{t("wishlist.subtitle", lang)}</p>
     </div>
 
     <div id="wishlistContainer" class="hidden">
@@ -18,16 +32,20 @@ import Footer from "../components/organisms/Footer.astro";
 
     <div id="emptyWishlist" class="text-center py-20">
       <span class="material-symbols-outlined text-5xl text-outline mb-4" style="font-variation-settings: 'FILL' 0">favorite_border</span>
-      <p class="font-body-lg text-body-lg text-secondary mb-6">Your wishlist is empty.</p>
-      <a href="/catalogo" class="inline-flex items-center justify-center bg-monolith-black text-off-white font-label-caps text-label-caps h-14 px-10 hover:opacity-80 transition-opacity">
-        EXPLORE COLLECTION
+      <p class="font-body-lg text-body-lg text-secondary mb-6">{t("wishlist.empty", lang)}</p>
+      <a href={`/${lang}/catalogo`} class="inline-flex items-center justify-center bg-monolith-black text-off-white font-label-caps text-label-caps h-14 px-10 hover:opacity-80 transition-opacity">
+        {t("wishlist.explore", lang)}
       </a>
     </div>
   </main>
-  <Footer />
+  <Footer lang={lang} />
 
   <script>
     // @ts-nocheck
+    const wishlistI18n = {
+      addedToCart: `{t("wishlist.addedToCart", lang)}`,
+    };
+
     const wishlistImages = [
       "https://lh3.googleusercontent.com/aida-public/AB6AXuAOl0RnMHBcj_hVts-U-miZkKAedvVeFrbnJOQpYkYI9GkqEuV7dJe7QAMQQTg_Decv57zYF6I9Kguts0SGgGlQKIE2tlmfP1HErlORC7ZDnviFsSSPdr-aP_pynY9-4SvPA-U_9nYtfXRyeshBqrQfKMpFIbEVO47jXJ6MgLWcnhqjpChy9_x-hypykt8TANDlZ0-pTJOove9sZjmIssCHFF81nQcLFafDdxvdzlZp-o8vKzMYejEE_JA6_-HPcGdKzuaVnmHUD1Y",
       "https://lh3.googleusercontent.com/aida-public/AB6AXuDXhrdFhaduB1ZJGQ10Hpu_MTZQjacUqKvE3WTPzIS_qZqGBfXpjkZyUZ2HWjjVGi3CqmqShLdIZb4bntjE8RoWzvlI4tJ46mEe9uBrxNjJV1AGKlTbnmu6KURlL_f7MDRmU2m4IvIObrSms1PlYwuWv2AM7EZCS4jlGygKcR86pCosZWcsGyi4OdlyCydtaJ_BF2Ty2-MgxhRtHZJoL2l0BqC7d-6DaY8w55Lrewg2PdtpDG6wCFoEhivA8jQWx_vzeu1vsRvTSSs",
@@ -51,7 +69,7 @@ import Footer from "../components/organisms/Footer.astro";
       grid.innerHTML = items.map((item, idx) => `
         <div class="flex flex-col group" data-product-id="${item.product.id}">
           <div class="relative bg-surface-container aspect-[4/5] overflow-hidden mb-4">
-            <a href="/producto/${item.product.slug}">
+            <a href="/${lang}/producto/${item.product.slug}">
               <img src="${wishlistImages[idx % wishlistImages.length]}" alt="${item.product.name}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
             </a>
             <div class="absolute top-3 right-3 flex flex-col gap-2">
@@ -70,12 +88,12 @@ import Footer from "../components/organisms/Footer.astro";
               data-product='${JSON.stringify(item.product)}'
               data-quantity="1"
               class="absolute bottom-4 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-off-white/90 backdrop-blur-sm px-6 py-2 font-label-caps text-label-caps text-monolith-black hover:bg-monolith-black hover:text-off-white transition-colors border border-outline-variant text-xs whitespace-nowrap hidden md:block"
-              onclick="event.stopPropagation(); window.RamLopCart.addItem(${JSON.stringify(item.product).replace(/"/g, "'")}, 1, '', ''); alert('Added to cart!');"
+              onclick="event.stopPropagation(); window.RamLopCart.addItem(${JSON.stringify(item.product).replace(/"/g, "'")}, 1, '', ''); alert(wishlistI18n.addedToCart);"
             >
-              AÑADIR AL CARRITO
+              {t("wishlist.addToCart", lang)}
             </button>
           </div>
-          <a href="/producto/${item.product.slug}" class="flex flex-col gap-1">
+          <a href="/${lang}/producto/${item.product.slug}" class="flex flex-col gap-1">
             <h3 class="font-body-md text-body-md text-monolith-black">${item.product.name}</h3>
             <p class="font-price-display text-price-display text-secondary">$${parseFloat(item.product.price).toFixed(2)}</p>
           </a>

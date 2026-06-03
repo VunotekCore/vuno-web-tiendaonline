@@ -1,16 +1,28 @@
 ---
+import type { Locale } from "../../i18n/utils";
+import { t } from "../../i18n/utils";
+
+interface Props {
+  lang: Locale;
+  currentPath: string;
+}
+
+const { lang, currentPath } = Astro.props;
+const otherLang: Locale = lang === "es" ? "en" : "es";
+const langSwitchPath = currentPath.replace(`/${lang}/`, `/${otherLang}/`);
+
 const navLinks = [
-  { label: "SANDALS", href: "/catalogo" },
-  { label: "HEELS", href: "/catalogo" },
-  { label: "NEW ARRIVALS", href: "/" },
-  { label: "BOOTS", href: "/catalogo" },
-  { label: "FLATS", href: "/catalogo" },
+  { key: "nav.sandals", href: `/${lang}/catalogo` },
+  { key: "nav.heels", href: `/${lang}/catalogo` },
+  { key: "nav.newArrivals", href: `/${lang}/#new-arrivals` },
+  { key: "nav.boots", href: `/${lang}/catalogo` },
+  { key: "nav.flats", href: `/${lang}/catalogo` },
 ];
 ---
 
 <nav class="bg-background sticky top-0 z-50 transition-all duration-300" id="topNav">
   <div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop py-6 max-w-container-max mx-auto bg-sand-nude">
-    <button class="md:hidden text-primary hover:opacity-70 transition-opacity" aria-label="Menu">
+    <button class="md:hidden text-primary hover:opacity-70 transition-opacity" aria-label={t("nav.menu", lang)}>
       <span class="material-symbols-outlined" data-icon="menu">menu</span>
     </button>
 
@@ -20,28 +32,31 @@ const navLinks = [
           href={link.href}
           class="text-secondary hover:text-primary transition-colors hover:opacity-70"
         >
-          {link.label}
+          {t(link.key, lang)}
         </a>
       ))}
     </div>
 
     <a
-      href="/"
+      href={`/${lang}/`}
       class="font-headline-md text-headline-md tracking-tighter text-monolith-black hover:opacity-70 transition-opacity absolute left-1/2 -translate-x-1/2 md:static md:transform-none"
     >
       Ram;Lop
     </a>
 
     <div class="flex items-center space-x-unit md:space-x-gutter text-primary">
-      <a href="/wishlist" class="hover:opacity-70 transition-opacity relative p-2" aria-label="Wishlist">
+      <a href={langSwitchPath} class="hover:opacity-70 transition-opacity p-2 font-label-caps text-label-caps text-secondary" aria-label={t("nav.lang", lang)}>
+        {t("nav.langSwitch", lang)}
+      </a>
+      <a href={`/${lang}/wishlist`} class="hover:opacity-70 transition-opacity relative p-2" aria-label={t("nav.wishlist", lang)}>
         <span class="material-symbols-outlined" data-icon="favorite">favorite</span>
         <span id="wishlistBadge" class="absolute top-0 right-0 w-4 h-4 bg-monolith-black text-off-white text-[9px] font-bold rounded-full flex items-center justify-center hidden">0</span>
       </a>
-      <a href="/carrito" class="hover:opacity-70 transition-opacity relative p-2" aria-label="Carrito">
+      <a href={`/${lang}/carrito`} class="hover:opacity-70 transition-opacity relative p-2" aria-label={t("nav.cart", lang)}>
         <span class="material-symbols-outlined" data-icon="shopping_bag">shopping_bag</span>
         <span id="cartBadge" class="absolute top-0 right-0 w-4 h-4 bg-monolith-black text-off-white text-[9px] font-bold rounded-full flex items-center justify-center hidden">0</span>
       </a>
-      <button class="hover:opacity-70 transition-opacity p-2" aria-label="Perfil">
+      <button class="hover:opacity-70 transition-opacity p-2" aria-label={t("nav.profile", lang)}>
         <span class="material-symbols-outlined" data-icon="person">person</span>
       </button>
     </div>

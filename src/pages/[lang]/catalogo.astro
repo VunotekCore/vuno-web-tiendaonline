@@ -1,10 +1,16 @@
 ---
-import BaseLayout from "../layouts/BaseLayout.astro";
-import Navbar from "../components/organisms/Navbar.astro";
-import Footer from "../components/organisms/Footer.astro";
-import { getProducts } from "../lib/storage";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Navbar from "../../components/organisms/Navbar.astro";
+import Footer from "../../components/organisms/Footer.astro";
+import { getProducts } from "../../lib/storage";
+import { t, type Locale, locales } from "../../i18n/utils";
 
-const products = await getProducts();
+export async function getStaticPaths() {
+  return locales.map((lang) => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params as { lang: Locale };
+const products = await getProducts(lang);
 const sizes = ["36", "37", "38", "39", "40", "41"];
 const colorSwatches = [
   { label: "Negro", hex: "#1A1A1A" },
@@ -27,29 +33,37 @@ const catalogImages: Record<string, string> = {
   "kitten-heel-minimal": "https://lh3.googleusercontent.com/aida-public/AB6AXuDmdrSyVydSOlkNMUnjXQIO13yI5zwsWQIr597jPClPrtHKUKtfZj1_P1zFYCnoiVwnzcUjtasdAM1FkrauOOIekaPpK6eM8Y2KAveepXLNdQBkiIeqIisbUIr8yREFCtP00RLbH_t0QCtRkRzhhbHHzzSfViuO9PkWRgVJIswpnxinWtgnsWv2M5yXcHo8Dc9bomWmgihtvGvJxPhcRxjo3Y4sq4xVgffnkHF_3uJvWFJ5CYF8nE9HsgYWX9jX1zgEkapvBAYEUio",
   "sandalia-jaula-arquitectonica": "https://lh3.googleusercontent.com/aida-public/AB6AXuDk0cK0fLk0KiNb0oURJ6WBFR9qRecCH3dBRICb_eXMOn_aojqhugiy1kGEPYaLPjKKVDEZwCEOM5v5fJdJ1wIyJC8mhnOicVNH-yXWVdpESXMWi1TZR1mBlkdZnnf-ij_AelJEGjR7NmBDqHytbkX3zdgNZYWD9B-L88ZJRwuK0Kv-NqWgMnX-Yo6k2C_gZm-8JHuCb-WUlw7TFEjPHbeigJuwx577ifDxFCLlowwB4Wf9V1H0rHxJgpMHU-hGNtKyJAOqoSVaiNY",
 };
+
+const currentPath = Astro.url.pathname;
+const alternateUrls = {
+  es: `${import.meta.env.PROD ? "https://ramlop.com" : "http://localhost:4321"}/es/catalogo`,
+  en: `${import.meta.env.PROD ? "https://ramlop.com" : "http://localhost:4321"}/en/catalogo`,
+};
 ---
 
-<BaseLayout title="Catálogo — Colección Heels">
-  <Navbar />
+<BaseLayout title={lang === "es" ? "Catálogo — Colección | Ram;Lop" : "Catalog — Collection | Ram;Lop"} lang={lang} alternateUrls={alternateUrls}>
+  <Navbar lang={lang} currentPath={currentPath} />
   <main class="w-full max-w-container-max mx-auto pt-12 pb-section-gap">
     <div class="px-margin-mobile md:px-margin-desktop mb-16 text-center md:text-left">
       <nav class="flex items-center gap-2 font-label-caps text-label-caps text-secondary mb-4 justify-center md:justify-start">
-        <a href="/" class="hover:text-monolith-black transition-colors">INICIO</a>
+        <a href={`/${lang}/`} class="hover:text-monolith-black transition-colors">{t("catalog.breadcrumb.home", lang)}</a>
         <span>/</span>
-        <a href="/catalogo" class="hover:text-monolith-black transition-colors">COLECCIÓN</a>
+        <a href={`/${lang}/catalogo`} class="hover:text-monolith-black transition-colors">{t("catalog.breadcrumb.collection", lang)}</a>
         <span>/</span>
         <span class="text-monolith-black">HEELS</span>
       </nav>
-      <h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-monolith-black mb-4">La Colección Heels</h1>
+      <h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-monolith-black mb-4">{t("catalog.title", lang)}</h1>
       <p class="font-body-md text-body-md text-secondary max-w-2xl mx-auto md:mx-0">
-        Líneas puras, siluetas estructurales y elevación minimalista. Descubre nuestra selección de tacones diseñados con precisión arquitectónica para la mujer contemporánea.
+        {lang === "es"
+          ? "Líneas puras, siluetas estructurales y elevación minimalista. Descubre nuestra selección de tacones diseñados con precisión arquitectónica para la mujer contemporánea."
+          : "Pure lines, structural silhouettes, and minimalist elevation. Discover our selection of heels designed with architectural precision for the contemporary woman."}
       </p>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter px-margin-mobile md:px-margin-desktop relative">
       <aside class="hidden lg:block lg:col-span-3 pr-8 sticky top-32 h-fit">
         <div class="mb-10 pb-10 border-b border-surface-variant">
-          <h3 class="font-label-caps text-label-caps text-monolith-black mb-6">TALLA</h3>
+          <h3 class="font-label-caps text-label-caps text-monolith-black mb-6">{t("catalog.filter.size", lang)}</h3>
           <div class="grid grid-cols-4 gap-2">
             {sizes.map((size, i) => (
               i === 5 ? (
@@ -64,7 +78,7 @@ const catalogImages: Record<string, string> = {
         </div>
 
         <div class="mb-10 pb-10 border-b border-surface-variant">
-          <h3 class="font-label-caps text-label-caps text-monolith-black mb-6">COLOR</h3>
+          <h3 class="font-label-caps text-label-caps text-monolith-black mb-6">{t("catalog.filter.color", lang)}</h3>
           <div class="flex flex-wrap gap-4">
             {colorSwatches.map((swatch, i) => (
               <button aria-label={swatch.label}
@@ -76,7 +90,7 @@ const catalogImages: Record<string, string> = {
         </div>
 
         <div>
-          <h3 class="font-label-caps text-label-caps text-monolith-black mb-6">ESTILO</h3>
+          <h3 class="font-label-caps text-label-caps text-monolith-black mb-6">{t("catalog.filter.style", lang)}</h3>
           <div class="flex flex-col gap-4">
             {styles.map((style, i) => (
               <label class="flex items-center gap-3 cursor-pointer group">
@@ -92,9 +106,9 @@ const catalogImages: Record<string, string> = {
 
       <div class="col-span-1 lg:col-span-9">
         <div class="lg:hidden flex justify-between items-center mb-6 pb-4 border-b border-surface-variant">
-          <span class="font-body-md text-body-md text-secondary">{products.length} Resultados</span>
+          <span class="font-body-md text-body-md text-secondary">{products.length} {t("catalog.results", lang)}</span>
           <button class="flex items-center gap-2 font-label-caps text-label-caps text-monolith-black">
-            FILTRAR
+            {t("catalog.filter.btn", lang)}
             <span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 0;">tune</span>
           </button>
         </div>
@@ -106,7 +120,7 @@ const catalogImages: Record<string, string> = {
               <div class="group flex flex-col cursor-pointer">
                 <div class="aspect-[4/5] bg-surface-container mb-4 overflow-hidden relative">
                   <div class="absolute inset-0 bg-sand-nude/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10 pointer-events-none"></div>
-                  <a href={`/producto/${product.slug}`} class="block w-full h-full">
+                  <a href={`/${lang}/producto/${product.slug}`} class="block w-full h-full">
                     <img src={catImg || product.images[0]} alt={product.name} class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out" loading="lazy" />
                   </a>
                   <button
@@ -118,10 +132,10 @@ const catalogImages: Record<string, string> = {
                     <span class="material-symbols-outlined wishlist-icon text-[18px] text-monolith-black" style="font-variation-settings: 'FILL' 0">favorite_border</span>
                   </button>
                   <div class="absolute bottom-4 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20 hidden md:block">
-                    <span class="bg-off-white/90 backdrop-blur-sm px-6 py-2 font-label-caps text-label-caps text-monolith-black hover:bg-monolith-black hover:text-off-white transition-colors border border-outline-variant inline-block">VISTA RÁPIDA</span>
+                    <span class="bg-off-white/90 backdrop-blur-sm px-6 py-2 font-label-caps text-label-caps text-monolith-black hover:bg-monolith-black hover:text-off-white transition-colors border border-outline-variant inline-block">{t("catalog.quickView", lang)}</span>
                   </div>
                 </div>
-                <a href={`/producto/${product.slug}`} class="block">
+                <a href={`/${lang}/producto/${product.slug}`} class="block">
                   <h3 class="font-body-md text-body-md text-monolith-black">{product.name}</h3>
                   <p class="font-price-display text-price-display text-secondary mt-1">${product.price.toFixed(2)}</p>
                   {product.colors.length > 0 && (
@@ -139,13 +153,13 @@ const catalogImages: Record<string, string> = {
 
         <div class="mt-16 text-center">
           <button class="bg-monolith-black text-on-primary font-label-caps text-label-caps h-14 px-12 hover:bg-surface-tint transition-colors w-full md:w-auto">
-            CARGAR MÁS PRODUCTOS
+            {t("catalog.loadMore", lang)}
           </button>
         </div>
       </div>
     </div>
   </main>
-  <Footer />
+  <Footer lang={lang} />
 </BaseLayout>
 
 <style>

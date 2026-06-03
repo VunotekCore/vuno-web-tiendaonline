@@ -1,20 +1,33 @@
 import type { Product, Order } from "./types";
+import type { Locale } from "../i18n/utils";
 
 const API_BASE = import.meta.env.PUBLIC_API_URL || "/api";
 
-export async function getProducts(): Promise<Product[]> {
-  const res = await fetch(`${API_BASE}/productos/list.php`);
-  if (!res.ok) return [];
-  const data = await res.json();
-  return data.items || data;
+export async function getProducts(lang?: Locale): Promise<Product[]> {
+  try {
+    const url = lang ? `${API_BASE}/productos/list.php?lang=${lang}` : `${API_BASE}/productos/list.php`;
+    const res = await fetch(url);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.items || data;
+  } catch {
+    return [];
+  }
 }
 
-export async function getProductBySlug(slug: string): Promise<Product | null> {
-  const res = await fetch(`${API_BASE}/productos/list.php`);
-  if (!res.ok) return null;
-  const data = await res.json();
-  const products: Product[] = data.items || data;
-  return products.find((p) => p.slug === slug) || null;
+export async function getProductBySlug(slug: string, lang?: Locale): Promise<Product | null> {
+  try {
+    const url = lang
+      ? `${API_BASE}/productos/list.php?lang=${lang}`
+      : `${API_BASE}/productos/list.php`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = await res.json();
+    const products: Product[] = data.items || data;
+    return products.find((p) => p.slug === slug) || null;
+  } catch {
+    return null;
+  }
 }
 
 export async function getProductById(id: string): Promise<Product | null> {

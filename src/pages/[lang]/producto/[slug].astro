@@ -1,24 +1,25 @@
 ---
-import BaseLayout from "../../layouts/BaseLayout.astro";
-import Navbar from "../../components/organisms/Navbar.astro";
-import Footer from "../../components/organisms/Footer.astro";
-import { getProducts } from "../../lib/storage";
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import Navbar from "../../../components/organisms/Navbar.astro";
+import Footer from "../../../components/organisms/Footer.astro";
+import { getProducts } from "../../../lib/storage";
+import { t, type Locale } from "../../../i18n/utils";
 
 export async function getStaticPaths() {
-  const products = await getProducts();
-  return products.map((product) => ({
-    params: { slug: product.slug },
-  }));
+  const esProducts = await getProducts("es");
+  const enProducts = await getProducts("en");
+  const paths = [];
+  for (const p of esProducts) paths.push({ params: { lang: "es" as Locale, slug: p.slug } });
+  for (const p of enProducts) paths.push({ params: { lang: "en" as Locale, slug: p.slug } });
+  return paths;
 }
 
-const { slug } = Astro.params;
-const products = await getProducts();
+const { lang, slug } = Astro.params as { lang: Locale; slug: string };
+const products = await getProducts(lang);
 const product = products.find((p) => p.slug === slug) || null;
 const relatedProducts = products.filter((p) => p.slug !== slug).slice(0, 4);
 
-if (!product) {
-  return Astro.redirect("/404");
-}
+if (!product) return Astro.redirect("/404");
 
 const galleryImages = [
   "https://lh3.googleusercontent.com/aida-public/AB6AXuB1Tzls_kTSZ4dpdX9uqTsVjLuKkup7PYsstWGpN7bMNLgIfF0yR02BSNZTCNJy7AoyGOD9zBHKXrMjeIwfP74uZsvUYWbowXbkMv3VPCUPT6Iag6i8TTJxEkwT7wVuJnD2iDqLi2aD1h4xoxuyd9aXmbC-8iM3xqRK55xGrplTcwxStcy9Sp062bWGdqdXGyPqea672whnNLyL8WkBXNZcUDU4M1zXGpgFNkWQxdK2qD3AxzYqc3MRZ68Nla-ut-0wNYdgURyBfdM",
@@ -32,10 +33,40 @@ const relatedImages = [
   "https://lh3.googleusercontent.com/aida-public/AB6AXuC8G4xJdslolUNUSeDtUf43X2xGJbmUf3xd_G7mEtsiz-2-KoCdol811Lz3f3K7ky6O0yUdhNJcBkYEPRdjXtvbECNL2h0gFtx41gQCZdEgzfmVxV3wGNGAFsU2vFSiM64NfH6E3sHcsf3D_PqVAXA26vQs4l2uqJpOVtap_gdrHYHqpIe0hl1CHC4hX9_r-Tc8FUxMKrBIp_VxWPsRF1t01Bksonuh9vNwU5xNXRzSlJIrcNt6doh6FjFPkyWYVK5uXxCRsV7ZKJc",
   "https://lh3.googleusercontent.com/aida-public/AB6AXuBSqCuoHx7hJQq4a4OUuR1Bd4042acsqAx7U9AwWgbBe5xUvSLOBOPoForLj3msJ1cN1qFryLRKhu8qjfo_DfOEmQ11wC72IGRNToqLvaTYBWCJb6mosvu4VJ371AWbiXsnokovpkVvOrQMDTuzaXWlmjjn7F0JijgTHivuikbvuwCpblPfaBwBTP3ux16NORGCMiCaP_U9w04aZMNg9XYmJN6rln2O2I72qVP7j73Px7gbZ8pmS63_CVXOVR4D9TDkrTqIi9Ga9o8",
 ];
+
+const currentPath = Astro.url.pathname;
+const siteUrl = import.meta.env.PROD ? "https://ramlop.com" : "http://localhost:4321";
+const alternateUrls = {
+  es: `${siteUrl}/es/producto/${slug}`,
+  en: `${siteUrl}/en/producto/${slug}`,
+};
+
+const i18n = {
+  selectSize: t("product.selectSize", lang),
+  addedToCart: t("product.addedToCart", lang),
+  reviewsTitle: t("product.reviews.title", lang),
+  reviewsLeave: t("product.reviews.leave", lang),
+  reviewsName: t("product.reviews.name", lang),
+  reviewsEmail: t("product.reviews.email", lang),
+  reviewsRating: t("product.reviews.rating", lang),
+  reviewsTitlePlaceholder: t("product.reviews.titlePlaceholder", lang),
+  reviewsComment: t("product.reviews.comment", lang),
+  reviewsSubmit: t("product.reviews.submit", lang),
+  reviewsSending: t("product.reviews.sending", lang),
+  reviewsSuccess: t("product.reviews.success", lang),
+  reviewsError: t("product.reviews.error", lang),
+  reviewsNameRequired: t("product.reviews.nameRequired", lang),
+  reviewsRatingRequired: t("product.reviews.ratingRequired", lang),
+  reviewsAverage: t("product.reviews.average", lang),
+  reviewsReview: t("product.reviews.review", lang),
+  reviewsReviews: t("product.reviews.reviews", lang),
+  reviewsEmpty: t("product.reviews.empty", lang),
+  reviewsAnonymous: t("product.reviews.anonymous", lang),
+};
 ---
 
-<BaseLayout title={`${product.name} | Ram;Lop`}>
-  <Navbar />
+<BaseLayout title={`${product.name} | Ram;Lop`} lang={lang} alternateUrls={alternateUrls}>
+  <Navbar lang={lang} currentPath={currentPath} />
   <main class="w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-section-gap">
     <section class="grid grid-cols-1 md:grid-cols-12 gap-gutter relative">
       <div class="md:col-span-7 flex flex-col gap-unit">
@@ -55,7 +86,7 @@ const relatedImages = [
           </div>
 
           <div class="flex flex-col gap-3">
-            <span class="font-label-caps text-label-caps text-secondary">COLOR: <span class="text-monolith-black ml-1" id="selectedColorName">{product.colors[0]?.name}</span></span>
+            <span class="font-label-caps text-label-caps text-secondary">{t("product.color", lang)}: <span class="text-monolith-black ml-1" id="selectedColorName">{product.colors[0]?.name}</span></span>
             <div class="flex gap-3" id="colorSelector">
               {product.colors.map((c, i) => (
                 <button
@@ -70,8 +101,8 @@ const relatedImages = [
 
           <div class="flex flex-col gap-3">
             <div class="flex justify-between items-end">
-              <span class="font-label-caps text-label-caps text-secondary">TALLA (IT)</span>
-              <button class="font-body-md text-body-md text-secondary underline hover:text-monolith-black transition-colors text-sm">Guía de tallas</button>
+              <span class="font-label-caps text-label-caps text-secondary">{t("product.size", lang)}</span>
+              <button class="font-body-md text-body-md text-secondary underline hover:text-monolith-black transition-colors text-sm">{t("product.sizeGuide", lang)}</button>
             </div>
             <div class="grid grid-cols-4 gap-2" id="sizeSelector">
               {product.sizes.map((size) => (
@@ -99,7 +130,7 @@ const relatedImages = [
               id="addToCartBtn"
               class="flex-1 min-h-[56px] bg-monolith-black text-on-primary font-label-caps text-label-caps tracking-widest hover:opacity-80 transition-opacity flex items-center justify-center"
             >
-              AÑADIR AL CARRITO
+              {t("product.addToCart", lang)}
             </button>
             <button
               data-toggle-wishlist
@@ -122,7 +153,7 @@ const relatedImages = [
           <div class="flex flex-col mt-8 border-t border-outline-variant">
             <details class="border-b border-outline-variant group open:pb-5">
               <summary class="w-full py-5 flex justify-between items-center text-left cursor-pointer list-none">
-                <span class="font-label-caps text-label-caps text-monolith-black">DESCRIPCIÓN DEL PRODUCTO</span>
+                <span class="font-label-caps text-label-caps text-monolith-black">{t("product.description", lang)}</span>
                 <span class="material-symbols-outlined text-secondary transition-transform group-open:hidden" data-icon="add">add</span>
                 <span class="material-symbols-outlined text-secondary transition-transform hidden group-open:block" data-icon="remove">remove</span>
               </summary>
@@ -130,7 +161,7 @@ const relatedImages = [
             </details>
             <details class="border-b border-outline-variant group open:pb-5">
               <summary class="w-full py-5 flex justify-between items-center text-left cursor-pointer list-none">
-                <span class="font-label-caps text-label-caps text-monolith-black">DETALLES Y CUIDADOS</span>
+                <span class="font-label-caps text-label-caps text-monolith-black">{t("product.care", lang)}</span>
                 <span class="material-symbols-outlined text-secondary transition-transform group-open:hidden" data-icon="add">add</span>
                 <span class="material-symbols-outlined text-secondary transition-transform hidden group-open:block" data-icon="remove">remove</span>
               </summary>
@@ -140,12 +171,12 @@ const relatedImages = [
             </details>
             <details class="border-b border-outline-variant group open:pb-5">
               <summary class="w-full py-5 flex justify-between items-center text-left cursor-pointer list-none">
-                <span class="font-label-caps text-label-caps text-monolith-black">ENVÍOS Y DEVOLUCIONES</span>
+                <span class="font-label-caps text-label-caps text-monolith-black">{t("product.shipping", lang)}</span>
                 <span class="material-symbols-outlined text-secondary transition-transform group-open:hidden" data-icon="add">add</span>
                 <span class="material-symbols-outlined text-secondary transition-transform hidden group-open:block" data-icon="remove">remove</span>
               </summary>
               <div class="pb-5 font-body-md text-body-md text-secondary leading-relaxed">
-                Ofrecemos envío estándar gratuito en todos los pedidos. Las devoluciones son aceptadas dentro de los 14 días posteriores a la entrega para artículos en su condición original, sin usar y con todas las etiquetas originales.
+                {t("product.shippingText", lang)}
               </div>
             </details>
           </div>
@@ -155,7 +186,7 @@ const relatedImages = [
 
     <!-- Reviews -->
     <section class="mt-section-gap w-full border-t border-outline-variant pt-12">
-      <h2 class="font-headline-md text-headline-md text-monolith-black mb-2">Reseñas</h2>
+      <h2 class="font-headline-md text-headline-md text-monolith-black mb-2">{i18n.reviewsTitle}</h2>
       <div id="reviewStats" class="flex items-center gap-4 mb-8">
         <div class="flex items-center gap-1" id="reviewStars"></div>
         <span class="font-body-md text-body-md text-secondary" id="reviewCount"></span>
@@ -163,17 +194,16 @@ const relatedImages = [
 
       <div id="reviewsList" class="grid grid-cols-1 md:grid-cols-2 gap-gutter mb-12"></div>
 
-      <!-- Review form -->
       <div class="bg-surface-container-low p-6 md:p-8 max-w-lg">
-        <h3 class="font-label-caps text-label-caps text-monolith-black mb-4 tracking-widest">DEJA TU RESEÑA</h3>
+        <h3 class="font-label-caps text-label-caps text-monolith-black mb-4 tracking-widest">{i18n.reviewsLeave}</h3>
         <form id="reviewForm" class="flex flex-col gap-4">
           <div class="grid grid-cols-2 gap-4">
-            <input type="text" id="reviewName" placeholder="Tu nombre *" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none font-body-md text-body-md" />
-            <input type="email" id="reviewEmail" placeholder="Tu email" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none font-body-md text-body-md" />
+            <input type="text" id="reviewName" placeholder={i18n.reviewsName} required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none font-body-md text-body-md" />
+            <input type="email" id="reviewEmail" placeholder={i18n.reviewsEmail} class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none font-body-md text-body-md" />
           </div>
           <div>
             <div class="flex items-center gap-1 mb-2">
-              <span class="font-body-md text-body-md text-secondary mr-2">Rating *</span>
+              <span class="font-body-md text-body-md text-secondary mr-2">{i18n.reviewsRating}</span>
               {[1,2,3,4,5].map((star) => (
                 <button type="button" data-review-star={star} class="review-star text-2xl text-outline hover:text-clay-accent transition-colors cursor-pointer" aria-label={`${star} star`}>
                   <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0">star</span>
@@ -182,11 +212,11 @@ const relatedImages = [
             </div>
             <input type="hidden" id="reviewRating" value="0" />
           </div>
-          <input type="text" id="reviewTitle" placeholder="Título de tu reseña" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none font-body-md text-body-md" />
-          <textarea id="reviewComment" placeholder="Escribe tu reseña..." rows="4" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-monolith-black focus:outline-none font-body-md text-body-md resize-none"></textarea>
+          <input type="text" id="reviewTitle" placeholder={i18n.reviewsTitlePlaceholder} class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none font-body-md text-body-md" />
+          <textarea id="reviewComment" placeholder={i18n.reviewsComment} rows="4" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-monolith-black focus:outline-none font-body-md text-body-md resize-none"></textarea>
           <div id="reviewMsg" class="hidden font-body-md text-body-md text-sm"></div>
           <button type="submit" id="reviewSubmitBtn" class="bg-monolith-black text-on-primary font-label-caps text-label-caps h-12 px-8 hover:opacity-80 transition-opacity self-start tracking-widest">
-            ENVIAR RESEÑA
+            {i18n.reviewsSubmit}
           </button>
         </form>
       </div>
@@ -194,12 +224,12 @@ const relatedImages = [
 
     <section class="mt-section-gap w-full">
       <div class="flex justify-between items-end mb-8 border-b border-outline-variant pb-4">
-        <h2 class="font-headline-md text-headline-md text-monolith-black">Te podría gustar</h2>
-        <a href="/catalogo" class="font-label-caps text-label-caps text-secondary hover:text-monolith-black transition-colors hidden md:block">VER TODO</a>
+        <h2 class="font-headline-md text-headline-md text-monolith-black">{t("product.related", lang)}</h2>
+        <a href={`/${lang}/catalogo`} class="font-label-caps text-label-caps text-secondary hover:text-monolith-black transition-colors hidden md:block">{t("product.related.viewAll", lang)}</a>
       </div>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-x-gutter gap-y-12">
         {relatedProducts.map((p, i) => (
-          <a href={`/producto/${p.slug}`} class={`group flex flex-col gap-4 ${i === 3 ? "hidden md:flex" : ""}`}>
+          <a href={`/${lang}/producto/${p.slug}`} class={`group flex flex-col gap-4 ${i === 3 ? "hidden md:flex" : ""}`}>
             <div class="w-full bg-surface-container aspect-[3/4] overflow-hidden relative">
               <img src={relatedImages[i] || p.images[0]} alt={p.name} class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
             </div>
@@ -212,10 +242,26 @@ const relatedImages = [
       </div>
     </section>
   </main>
-  <Footer />
+  <Footer lang={lang} />
 
   <script>
     // @ts-nocheck
+    const i18n = {
+      selectSize: `{i18n.selectSize}`,
+      addedToCart: `{i18n.addedToCart}`,
+      reviewsSubmit: `{i18n.reviewsSubmit}`,
+      reviewsSending: `{i18n.reviewsSending}`,
+      reviewsSuccess: `{i18n.reviewsSuccess}`,
+      reviewsError: `{i18n.reviewsError}`,
+      reviewsNameRequired: `{i18n.reviewsNameRequired}`,
+      reviewsRatingRequired: `{i18n.reviewsRatingRequired}`,
+      reviewsAverage: `{i18n.reviewsAverage}`,
+      reviewsReview: `{i18n.reviewsReview}`,
+      reviewsReviews: `{i18n.reviewsReviews}`,
+      reviewsEmpty: `{i18n.reviewsEmpty}`,
+      reviewsAnonymous: `{i18n.reviewsAnonymous}`,
+    };
+
     let selectedColor = "{product.colors[0]?.name || ''}";
     let selectedSize = "";
 
@@ -244,15 +290,14 @@ const relatedImages = [
 
     document.getElementById("addToCartBtn").addEventListener("click", function () {
       if (!selectedSize) {
-        alert("Please select a size.");
+        alert(i18n.selectSize);
         return;
       }
       const productData = JSON.parse(this.dataset.product);
       window.RamLopCart.addItem(productData, 1, selectedColor, selectedSize);
-      alert("Added to cart!");
+      alert(i18n.addedToCart);
     });
 
-    // Sync wishlist icon on load
     (function () {
       const btn = document.querySelector("[data-toggle-wishlist]");
       if (!btn) return;
@@ -267,7 +312,6 @@ const relatedImages = [
       }
     })();
 
-    // --- Reviews ---
     (function () {
       const productId = "{product.id}";
 
@@ -280,23 +324,24 @@ const relatedImages = [
       }
 
       function renderStats(stats) {
+        const countLabel = stats.total === 1 ? i18n.reviewsReview : i18n.reviewsReviews;
         document.getElementById("reviewStars").innerHTML = stats.total > 0 ? starsHtml(Math.round(stats.average)) : starsHtml(0);
         document.getElementById("reviewCount").textContent = stats.total > 0
-          ? stats.average + " promedio · " + stats.total + " reseña" + (stats.total !== 1 ? "s" : "")
-          : "0 reseñas";
+          ? stats.average + " " + i18n.reviewsAverage + " · " + stats.total + " " + countLabel
+          : "0 " + countLabel;
       }
 
       function renderReviews(reviews) {
         const container = document.getElementById("reviewsList");
         if (reviews.length === 0) {
-          container.innerHTML = '<p class="font-body-md text-body-md text-secondary col-span-full">No hay reseñas aún. Sé el primero en opinar.</p>';
+          container.innerHTML = '<p class="font-body-md text-body-md text-secondary col-span-full">' + i18n.reviewsEmpty + '</p>';
           return;
         }
         container.innerHTML = reviews.map(r => `
           <div class="border border-outline-variant p-4">
             <div class="flex items-center gap-2 mb-2">
               <div class="flex items-center gap-0.5">${starsHtml(r.rating)}</div>
-              <span class="font-label-caps text-label-caps text-secondary text-xs">${r.reviewerName || 'Anónimo'}</span>
+              <span class="font-label-caps text-label-caps text-secondary text-xs">${r.reviewerName || i18n.reviewsAnonymous}</span>
             </div>
             ${r.title ? '<p class="font-body-md text-body-md text-monolith-black font-medium mb-1">' + r.title + '</p>' : ''}
             ${r.comment ? '<p class="font-body-md text-body-md text-secondary">' + r.comment + '</p>' : ''}
@@ -311,11 +356,10 @@ const relatedImages = [
           renderStats(data.stats);
           renderReviews(data.reviews);
         } catch (err) {
-          document.getElementById("reviewsList").innerHTML = '<p class="font-body-md text-body-md text-error col-span-full">Error al cargar reseñas</p>';
+          document.getElementById("reviewsList").innerHTML = '<p class="font-body-md text-body-md text-error col-span-full">' + i18n.reviewsError + '</p>';
         }
       }
 
-      // Star rating selector
       let selectedRating = 0;
       document.querySelectorAll(".review-star").forEach(btn => {
         btn.addEventListener("click", () => {
@@ -336,19 +380,18 @@ const relatedImages = [
         });
       });
 
-      // Submit review
       document.getElementById("reviewForm").addEventListener("submit", async (e) => {
         e.preventDefault();
         const msg = document.getElementById("reviewMsg");
         const name = document.getElementById("reviewName").value.trim();
         const rating = selectedRating;
 
-        if (!name) { msg.textContent = "Por favor ingresa tu nombre"; msg.className = "font-body-md text-body-md text-sm text-error block"; return; }
-        if (rating < 1) { msg.textContent = "Por favor selecciona un rating"; msg.className = "font-body-md text-body-md text-sm text-error block"; return; }
+        if (!name) { msg.textContent = i18n.reviewsNameRequired; msg.className = "font-body-md text-body-md text-sm text-error block"; return; }
+        if (rating < 1) { msg.textContent = i18n.reviewsRatingRequired; msg.className = "font-body-md text-body-md text-sm text-error block"; return; }
 
         const btn = document.getElementById("reviewSubmitBtn");
         btn.disabled = true;
-        btn.textContent = "ENVIANDO...";
+        btn.textContent = i18n.reviewsSending;
 
         try {
           const res = await fetch("/api/resenas/create.php", {
@@ -366,7 +409,7 @@ const relatedImages = [
           const data = await res.json();
           if (!res.ok) throw new Error(data.error);
 
-          msg.textContent = "¡Reseña enviada! Será publicada tras aprobación.";
+          msg.textContent = i18n.reviewsSuccess;
           msg.className = "font-body-md text-body-md text-sm text-monolith-black block";
           document.getElementById("reviewForm").reset();
           selectedRating = 0;
@@ -384,7 +427,7 @@ const relatedImages = [
           msg.className = "font-body-md text-body-md text-sm text-error block";
         } finally {
           btn.disabled = false;
-          btn.textContent = "ENVIAR RESEÑA";
+          btn.textContent = i18n.reviewsSubmit;
         }
       });
 

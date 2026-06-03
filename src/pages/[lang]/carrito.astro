@@ -1,50 +1,64 @@
 ---
-import BaseLayout from "../layouts/BaseLayout.astro";
-import Navbar from "../components/organisms/Navbar.astro";
-import Footer from "../components/organisms/Footer.astro";
-import Button from "../components/atoms/Button.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Navbar from "../../components/organisms/Navbar.astro";
+import Footer from "../../components/organisms/Footer.astro";
+import Button from "../../components/atoms/Button.astro";
+import { t, type Locale, locales } from "../../i18n/utils";
+
+export async function getStaticPaths() {
+  return locales.map((lang) => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params as { lang: Locale };
+const currentPath = Astro.url.pathname;
+const siteUrl = import.meta.env.PROD ? "https://ramlop.com" : "http://localhost:4321";
+const alternateUrls = {
+  es: `${siteUrl}/es/carrito`,
+  en: `${siteUrl}/en/carrito`,
+};
+
 ---
 
-<BaseLayout title="Carrito de Compras | Ram;Lop">
-  <Navbar />
+<BaseLayout title={lang === "es" ? "Carrito de Compras | Ram;Lop" : "Shopping Cart | Ram;Lop"} lang={lang} alternateUrls={alternateUrls}>
+  <Navbar lang={lang} currentPath={currentPath} />
   <main class="flex-grow w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-section-gap">
     <div class="mb-gutter">
-      <h1 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg mb-unit">Your Cart</h1>
-      <p class="font-body-md text-body-md text-secondary">Review your selected items before proceeding to checkout.</p>
+      <h1 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg mb-unit">{t("cart.title", lang)}</h1>
+      <p class="font-body-md text-body-md text-secondary">{t("cart.subtitle", lang)}</p>
     </div>
 
     <div id="cartContainer" class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
       <div class="lg:col-span-8 flex flex-col gap-6" id="cartItems"></div>
       <div class="lg:col-span-4 mt-8 lg:mt-0">
         <div class="bg-surface-container-low p-6 flex flex-col h-full">
-          <h2 class="font-headline-md text-headline-md mb-6 border-b border-outline-variant/30 pb-4">Order Summary</h2>
+          <h2 class="font-headline-md text-headline-md mb-6 border-b border-outline-variant/30 pb-4">{t("cart.summary", lang)}</h2>
           <div class="space-y-4 mb-8 flex-grow">
             <div class="flex justify-between">
-              <span class="font-body-md text-body-md text-secondary">Subtotal</span>
+              <span class="font-body-md text-body-md text-secondary">{t("cart.subtotal", lang)}</span>
               <span class="font-price-display text-price-display text-base" id="subtotal">$0.00</span>
             </div>
             <div class="flex justify-between">
-              <span class="font-body-md text-body-md text-secondary">Estimated Shipping</span>
-              <span class="font-body-md text-body-md">Calculated at checkout</span>
+              <span class="font-body-md text-body-md text-secondary">{t("cart.shipping", lang)}</span>
+              <span class="font-body-md text-body-md">{t("cart.shippingCalc", lang)}</span>
             </div>
             <div class="flex justify-between">
-              <span class="font-body-md text-body-md text-secondary">Taxes</span>
-              <span class="font-body-md text-body-md">Calculated at checkout</span>
+              <span class="font-body-md text-body-md text-secondary">{t("cart.taxes", lang)}</span>
+              <span class="font-body-md text-body-md">{t("cart.taxesCalc", lang)}</span>
             </div>
           </div>
           <div class="border-t border-outline-variant/30 pt-6 mb-8">
             <div class="flex justify-between items-center mb-6">
-              <span class="font-headline-md text-headline-md">Total</span>
+              <span class="font-headline-md text-headline-md">{t("cart.total", lang)}</span>
               <span class="font-price-display text-price-display text-2xl" id="total">$0.00</span>
             </div>
-            <Button variant="primary" class="w-full gap-2" href="/checkout">
-              PROCEED TO CHECKOUT
+            <Button variant="primary" class="w-full gap-2" href={`/${lang}/checkout`}>
+              {t("cart.checkout", lang)}
               <span class="material-symbols-outlined text-sm">arrow_forward</span>
             </Button>
           </div>
           <div class="mt-auto text-center">
             <p class="font-body-md text-body-md text-secondary text-sm flex items-center justify-center gap-1">
-              <span class="material-symbols-outlined text-sm">lock</span> Secure checkout
+              <span class="material-symbols-outlined text-sm">lock</span> {t("cart.secure", lang)}
             </p>
           </div>
         </div>
@@ -52,15 +66,21 @@ import Button from "../components/atoms/Button.astro";
     </div>
 
     <div id="emptyCart" class="hidden text-center py-20">
-      <p class="font-body-lg text-body-lg text-secondary mb-6">Your cart is empty.</p>
-      <Button variant="secondary" href="/catalogo">EXPLORE COLLECTION</Button>
+      <p class="font-body-lg text-body-lg text-secondary mb-6">{t("cart.empty", lang)}</p>
+      <Button variant="secondary" href={`/${lang}/catalogo`}>{t("cart.explore", lang)}</Button>
     </div>
   </main>
-  <Footer />
+  <Footer lang={lang} />
 
   <script src="/js/cart.js" is:inline></script>
   <script>
     // @ts-nocheck
+    const cartI18n = {
+      decrease: `{t("cart.decrease", lang)}`,
+      increase: `{t("cart.increase", lang)}`,
+      remove: `{t("cart.remove", lang)}`,
+    };
+
     const cartImages = [
       "https://lh3.googleusercontent.com/aida-public/AB6AXuAOl0RnMHBcj_hVts-U-miZkKAedvVeFrbnJOQpYkYI9GkqEuV7dJe7QAMQQTg_Decv57zYF6I9Kguts0SGgGlQKIE2tlmfP1HErlORC7ZDnviFsSSPdr-aP_pynY9-4SvPA-U_9nYtfXRyeshBqrQfKMpFIbEVO47jXJ6MgLWcnhqjpChy9_x-hypykt8TANDlZ0-pTJOove9sZjmIssCHFF81nQcLFafDdxvdzlZp-o8vKzMYejEE_JA6_-HPcGdKzuaVnmHUD1Y",
       "https://lh3.googleusercontent.com/aida-public/AB6AXuDXhrdFhaduB1ZJGQ10Hpu_MTZQjacUqKvE3WTPzIS_qZqGBfXpjkZyUZ2HWjjVGi3CqmqShLdIZb4bntjE8RoWzvlI4tJ46mEe9uBrxNjJV1AGKlTbnmu6KURlL_f7MDRmU2m4IvIObrSms1PlYwuWv2AM7EZCS4jlGygKcR86pCosZWcsGyi4OdlyCydtaJ_BF2Ty2-MgxhRtHZJoL2l0BqC7d-6DaY8w55Lrewg2PdtpDG6wCFoEhivA8jQWx_vzeu1vsRvTSSs",
@@ -96,15 +116,15 @@ import Button from "../components/atoms/Button.astro";
             </div>
             <div class="flex justify-between items-end mt-4">
               <div class="flex items-center border-b border-monolith-black pb-1 w-24 justify-between">
-                <button class="text-secondary hover:text-primary transition-colors" onclick="updateQty('${item.product.id}', '${item.selectedColor}', '${item.selectedSize}', ${item.quantity - 1})" aria-label="Decrease">
+                <button class="text-secondary hover:text-primary transition-colors" onclick="updateQty('${item.product.id}', '${item.selectedColor}', '${item.selectedSize}', ${item.quantity - 1})" aria-label="${cartI18n.decrease}">
                   <span class="material-symbols-outlined text-sm">remove</span>
                 </button>
                 <span class="font-body-md text-body-md">${item.quantity}</span>
-                <button class="text-secondary hover:text-primary transition-colors" onclick="updateQty('${item.product.id}', '${item.selectedColor}', '${item.selectedSize}', ${item.quantity + 1})" aria-label="Increase">
+                <button class="text-secondary hover:text-primary transition-colors" onclick="updateQty('${item.product.id}', '${item.selectedColor}', '${item.selectedSize}', ${item.quantity + 1})" aria-label="${cartI18n.increase}">
                   <span class="material-symbols-outlined text-sm">add</span>
                 </button>
               </div>
-              <button class="font-label-caps text-label-caps text-secondary hover:text-error transition-colors" onclick="removeItem('${item.product.id}', '${item.selectedColor}', '${item.selectedSize}')">REMOVE</button>
+              <button class="font-label-caps text-label-caps text-secondary hover:text-error transition-colors" onclick="removeItem('${item.product.id}', '${item.selectedColor}', '${item.selectedSize}')">${cartI18n.remove}</button>
             </div>
           </div>
         </div>
