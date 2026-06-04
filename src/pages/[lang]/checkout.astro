@@ -193,11 +193,49 @@ const i18n = {
   </main>
   <Footer lang={lang} />
 
+  <!-- Success modal -->
+  <div id="successModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+    <div class="bg-off-white border border-outline-variant shadow-lg rounded-sm p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="material-symbols-outlined text-3xl text-green-600">check_circle</span>
+        <h3 class="font-headline text-headline-md" id="successTitle">Pedido Realizado</h3>
+      </div>
+      <p class="font-body text-body-md text-secondary mb-2" id="successMessage"></p>
+      <p class="font-body text-body-md text-sm text-secondary mb-4" id="successOrderId"></p>
+
+      <!-- Bank details for transfer -->
+      <div id="successBankInfo" class="hidden mb-4 p-4 bg-surface-container-low border border-outline-variant rounded-sm"></div>
+
+      <!-- Receipt upload after order -->
+      <div id="successReceiptSection" class="hidden mb-4 p-4 bg-surface-container-low border border-outline-variant rounded-sm">
+        <p class="font-label-caps text-label-caps text-secondary mb-3" id="successReceiptLabel">SUBIR COMPROBANTE DE PAGO</p>
+        <div id="successReceiptZone" class="border-2 border-dashed border-outline-variant rounded-sm p-4 text-center cursor-pointer hover:border-monolith-black transition-colors bg-white mb-2">
+          <span class="material-symbols-outlined text-2xl text-secondary mb-1 block">receipt_long</span>
+          <p class="font-body text-body-md text-secondary text-sm" id="successReceiptSelect">Selecciona el comprobante</p>
+          <input type="file" id="successReceiptInput" accept="image/jpeg,image/png,image/webp,application/pdf" class="hidden" />
+        </div>
+        <div id="successReceiptPreview" class="hidden flex items-center gap-3 p-3 bg-white border border-outline-variant rounded-sm">
+          <span class="material-symbols-outlined text-2xl text-secondary">description</span>
+          <span id="successReceiptName" class="font-body text-body-md text-monolith-black flex-1 truncate"></span>
+          <button type="button" id="successReceiptRemove" class="text-error hover:text-error/80 transition-colors"><span class="material-symbols-outlined text-lg">close</span></button>
+        </div>
+        <div id="successReceiptMsg" class="font-body text-body-md text-xs mt-1 hidden"></div>
+      </div>
+
+      <div class="flex justify-end gap-3 mt-4">
+        <a id="successContinueBtn" href="/" class="font-label-caps text-label-caps bg-monolith-black text-off-white rounded-md px-6 h-10 inline-flex items-center hover:bg-monolith-black/90 transition-all">
+          CONTINUAR COMPRANDO
+        </a>
+      </div>
+    </div>
+  </div>
+
   <script src="/js/cart.js" is:inline></script>
   <script src="https://js.stripe.com/v3/"></script>
-  <script set:html={`window.checkoutI18n = ${JSON.stringify(i18n)};`} is:inline></script>
+  <script set:html={`window.checkoutI18n = ${JSON.stringify(i18n)}; window.CHECKOUT_LANG = '${lang}';`} is:inline></script>
   <script>
     // @ts-nocheck
+    const LANG = window.CHECKOUT_LANG;
     let stripe = null;
     let elements = null;
     let card = null;
@@ -484,6 +522,96 @@ const i18n = {
       return order;
     }
 
+    let successOrderId = null;
+    let successReceiptFile = null;
+    let successReceiptUrl = "";
+
+    function showErrorMsg(msg) {
+      document.getElementById("paymentError").textContent = msg;
+      document.getElementById("paymentError").classList.remove("hidden");
+    }
+
+    function showOrderSuccessModal(order) {
+      const isTransfer = order.paymentMethod === "transfer";
+      document.getElementById("successTitle").textContent = checkoutI18n.orderPlaced;
+      document.getElementById("successMessage").textContent = isTransfer
+        ? "Te enviamos los datos bancarios por email. También puedes verlos abajo."
+        : "Gracias por tu compra. Recibirás una confirmación por email.";
+      document.getElementById("successOrderId").textContent = "Orden: " + order.id;
+      document.getElementById("successContinueBtn").href = "/" + LANG + "/";
+
+      if (isTransfer && banks.length) {
+        let html = '<p class="font-label-caps text-label-caps text-monolith-black mb-2">' + checkoutI18n.bankDetails + '</p>';
+        banks.forEach(b => {
+          html += '<div class="mb-2 pb-2 border-b border-outline-variant/30 last:border-0 last:mb-0 last:pb-0">';
+          if (b.bankName) html += '<p class="font-body text-body-md text-sm"><strong>Banco:</strong> ' + b.bankName + '</p>';
+          if (b.accountHolder) html += '<p class="font-body text-body-md text-sm"><strong>Titular:</strong> ' + b.accountHolder + '</p>';
+          if (b.accountNumber) html += '<p class="font-body text-body-md text-sm"><strong>Cuenta:</strong> ' + b.accountNumber + '</p>';
+          if (b.accountType) html += '<p class="font-body text-body-md text-sm"><strong>Tipo:</strong> ' + b.accountType + '</p>';
+          if (b.routingNumber) html += '<p class="font-body text-body-md text-sm"><strong>Routing:</strong> ' + b.routingNumber + '</p>';
+          if (b.instructions) html += '<p class="font-body text-body-md text-sm text-secondary mt-1">' + b.instructions + '</p>';
+          html += '</div>';
+        });
+        document.getElementById("successBankInfo").innerHTML = html;
+        document.getElementById("successBankInfo").classList.remove("hidden");
+        document.getElementById("successReceiptSection").classList.remove("hidden");
+        successOrderId = order.id;
+      }
+
+      document.getElementById("successModal").classList.remove("hidden");
+    }
+
+    // Success modal receipt upload
+    document.getElementById("successReceiptZone").addEventListener("click", () => document.getElementById("successReceiptInput").click());
+
+    document.getElementById("successReceiptInput").addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      if (!file || !successOrderId) return;
+      successReceiptFile = file;
+      document.getElementById("successReceiptName").textContent = file.name;
+      document.getElementById("successReceiptPreview").classList.remove("hidden");
+      document.getElementById("successReceiptZone").classList.add("hidden");
+
+      // Auto-upload
+      const msg = document.getElementById("successReceiptMsg");
+      msg.textContent = "Subiendo...";
+      msg.className = "font-body text-body-md text-xs mt-1 text-secondary";
+      msg.classList.remove("hidden");
+
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("folder", "receipts");
+      try {
+        const uploadRes = await fetch("/api/imagekit/upload.php", { method: "POST", body: formData });
+        const uploadData = await uploadRes.json();
+        if (uploadRes.ok && uploadData.url) {
+          successReceiptUrl = uploadData.url;
+          await fetch("/api/pedidos/update-receipt.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: successOrderId, transferReceipt: successReceiptUrl })
+          });
+          msg.textContent = "¡Comprobante recibido!";
+          msg.className = "font-body text-body-md text-xs mt-1 text-green-700";
+        } else {
+          msg.textContent = "Error al subir. Puedes hacerlo después.";
+          msg.className = "font-body text-body-md text-xs mt-1 text-error";
+        }
+      } catch {
+        msg.textContent = "Error de conexión. Puedes hacerlo después.";
+        msg.className = "font-body text-body-md text-xs mt-1 text-error";
+      }
+    });
+
+    document.getElementById("successReceiptRemove").addEventListener("click", () => {
+      successReceiptFile = null;
+      successReceiptUrl = "";
+      document.getElementById("successReceiptInput").value = "";
+      document.getElementById("successReceiptPreview").classList.add("hidden");
+      document.getElementById("successReceiptZone").classList.remove("hidden");
+      document.getElementById("successReceiptMsg").classList.add("hidden");
+    });
+
     let submitting = false;
 
     document.getElementById("placeOrderBtn").addEventListener("click", async function () {
@@ -493,7 +621,7 @@ const i18n = {
       const items = window.RamLopCart.getItems();
       if (items.length === 0) {
         submitting = false;
-        alert(checkoutI18n.cartEmpty);
+        showErrorMsg(checkoutI18n.cartEmpty);
         return;
       }
 
@@ -561,7 +689,7 @@ const i18n = {
 
             window.RamLopCart.clear();
             localStorage.setItem("ramlop_last_order_" + order.id, JSON.stringify(order));
-            window.location.href = `/${lang}/?order=${order.id}&status=paid`;
+            showOrderSuccessModal(order);
           } else {
             throw new Error("Payment was not successful: " + paymentIntent.status);
           }
@@ -606,8 +734,7 @@ const i18n = {
 
           window.RamLopCart.clear();
           localStorage.setItem("ramlop_last_order_" + order.id, JSON.stringify(order));
-          alert(checkoutI18n.orderPlaced);
-          window.location.href = `/${lang}/`;
+          showOrderSuccessModal(order);
         } catch (err) {
           document.getElementById("paymentError").textContent = err.message;
           document.getElementById("paymentError").classList.remove("hidden");
