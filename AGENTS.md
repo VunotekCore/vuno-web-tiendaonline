@@ -741,9 +741,10 @@ El archivo `schema.sql` es **idempotente** — incluye `CREATE DATABASE IF NOT E
 | 4 | Corregir seed `schema.sql` (email + hash correctos) | ✅ |
 | 5 | Login `admin@vunotek.com` / `admin123` funciona con validación DB | ✅ |
 | 6 | Login con credenciales inválidas → 401 | ✅ |
-| 7 | Verificar que `2fa/setup.php` y `2fa/disable.php` también usan `validateCredentials()` DB | Pendiente |
-| 8 | Ejecutar `./dev.sh` y navegar a `/admin/login` | Pendiente |
-| 9 | Login real en navegador, confirmar sesión y Dashboard | Pendiente |
+| 7 | Eliminar `getOrCreateAdminUserId()` — ahora solo `getAdminUserId()` sin auto-creación desde `.env` | ✅ |
+| 8 | Login real en navegador, confirmar sesión y Dashboard | ✅ |
+| 9 | Login con usuario eliminado de DB → 401 (sin fallback a `.env`) | ✅ |
+| 10 | Login con usuario creado directamente en DB → funciona | ✅ |
 
 ### 14.2 Fase 2 — Dashboard
 

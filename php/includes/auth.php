@@ -4,7 +4,7 @@
  *
  * Database tables required:
  * - admin_roles        (seed: superadmin, editor, viewer)
- * - admin_users        (auto-created on first login from ADMIN_EMAIL)
+ * - admin_users        (seeded via schema.sql / usuarios admin UI)
  * - admin_activity_log (written by logAdminAction)
  * - admin_activity_details (written by logAdminAction)
  */
@@ -40,7 +40,7 @@ function validateCredentials(string $email, string $password): bool
 function loginAdmin(string $email): array
 {
     startAdminSession();
-    $userId = getOrCreateAdminUserId($email);
+    $userId = getAdminUserId($email);
     $totpEnabled = isTotpEnabledForUser($userId);
 
     if ($totpEnabled) {
@@ -59,27 +59,16 @@ function loginAdmin(string $email): array
     return ['success' => true];
 }
 
-function getOrCreateAdminUserId(string $email): int
+function getAdminUserId(string $email): int
 {
     $db = getDb();
-    $stmt = $db->prepare('SELECT id FROM admin_users WHERE email = ?');
+    $stmt = $db->prepare('SELECT id FROM admin_users WHERE email = ? AND is_active = 1');
     $stmt->execute([$email]);
     $id = $stmt->fetchColumn();
     if ($id) return (int)$id;
 
-    // Determine role: superadmin if matches ADMIN_EMAIL, else editor
-    $adminEmail = env('ADMIN_EMAIL', 'admin@ramlop.com');
-    $roleCode = $email === $adminEmail ? 'superadmin' : 'editor';
-    $roleStmt = $db->prepare('SELECT id FROM admin_roles WHERE code = ?');
-    $roleStmt->execute([$roleCode]);
-    $roleId = $roleStmt->fetchColumn();
-    if (!$roleId) $roleId = 1;
-
-    $db->prepare(
-        'INSERT INTO admin_users (email, password_hash, name, role_id) VALUES (?, ?, ?, ?)'
-    )->execute([$email, password_hash(env('ADMIN_PASSWORD', 'ramlop2024'), PASSWORD_DEFAULT), $email, $roleId]);
-
-    return (int)$db->lastInsertId();
+    jsonError('Usuario no encontrado en la base de datos', 401);
+    exit;
 }
 
 function isAdminLoggedIn(): bool
