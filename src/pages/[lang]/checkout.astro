@@ -195,6 +195,7 @@ const i18n = {
 
   <script src="/js/cart.js" is:inline></script>
   <script src="https://js.stripe.com/v3/"></script>
+  <script set:html={`window.checkoutI18n = ${JSON.stringify(i18n)};`} is:inline></script>
   <script>
     // @ts-nocheck
     let stripe = null;
@@ -203,24 +204,7 @@ const i18n = {
     let settings = null;
     let banks = [];
 
-    const checkoutI18n = {
-      couponEnter: `{i18n.couponEnter}`,
-      couponValidating: `{i18n.couponValidating}`,
-      couponApplied: `{i18n.couponApplied}`,
-      couponInvalid: `{i18n.couponInvalid}`,
-      couponError: `{i18n.couponError}`,
-      fillFields: `{i18n.fillFields}`,
-      cartEmpty: `{i18n.cartEmpty}`,
-      orderPlaced: `{i18n.orderPlaced}`,
-      uploading: `{i18n.uploading}`,
-      receiptReceived: `{i18n.receiptReceived}`,
-      receiptFailed: `{i18n.receiptFailed}`,
-      noBanks: `{i18n.noBanks}`,
-      bankDetails: `{i18n.bankDetails}`,
-      placeOrder: `{i18n.placeOrder}`,
-      processing: `{i18n.processing}`,
-      couponApply: `{i18n.couponApply}`,
-    };
+    const checkoutI18n = window.checkoutI18n;
 
     // --- Coupon State ---
     let appliedCoupon = null;
@@ -500,9 +484,15 @@ const i18n = {
       return order;
     }
 
+    let submitting = false;
+
     document.getElementById("placeOrderBtn").addEventListener("click", async function () {
+      if (submitting) return;
+      submitting = true;
+
       const items = window.RamLopCart.getItems();
       if (items.length === 0) {
+        submitting = false;
         alert(checkoutI18n.cartEmpty);
         return;
       }
@@ -515,6 +505,7 @@ const i18n = {
       const payment = document.querySelector('input[name="payment"]:checked').value;
 
       if (!name || !email || !address || !city || !zip) {
+        submitting = false;
         document.getElementById("paymentError").textContent = checkoutI18n.fillFields;
         document.getElementById("paymentError").classList.remove("hidden");
         return;
@@ -579,6 +570,7 @@ const i18n = {
           document.getElementById("paymentError").classList.remove("hidden");
           this.disabled = false;
           this.textContent = checkoutI18n.placeOrder;
+          submitting = false;
         }
       } else {
         try {
@@ -621,6 +613,7 @@ const i18n = {
           document.getElementById("paymentError").classList.remove("hidden");
           this.disabled = false;
           this.textContent = checkoutI18n.placeOrder;
+          submitting = false;
         }
       }
     });

@@ -50,6 +50,6 @@ try {
     }
 
     jsonResponse(['success' => true, 'id' => $order['id']]);
-} catch (\Exception $e) {
+} catch (\Throwable $e) {
     jsonError('Failed to save order: ' . $e->getMessage(), 500);
 }
