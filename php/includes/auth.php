@@ -9,9 +9,10 @@
  * - admin_activity_details (written by logAdminAction)
  */
 
-require_once __DIR__ . '/../../vendor/autoload.php';
-
-use OTPHP\TOTP;
+$autoloadPath = __DIR__ . '/../../vendor/autoload.php';
+if (file_exists($autoloadPath)) {
+    require_once $autoloadPath;
+}
 
 function startAdminSession(): void
 {
@@ -31,10 +32,7 @@ function loginAdmin(string $email): array
 {
     startAdminSession();
     $userId = getOrCreateAdminUserId($email);
-    $db = getDb();
-    $stmt = $db->prepare('SELECT totp_enabled FROM admin_users WHERE id = ?');
-    $stmt->execute([$userId]);
-    $totpEnabled = (bool)$stmt->fetchColumn();
+    $totpEnabled = isTotpEnabledForUser($userId);
 
     if ($totpEnabled) {
         $_SESSION['admin_totp_pending'] = true;
@@ -181,12 +179,12 @@ function logAdminAction(string $action, string $entityType, string $entityId, st
 
 function generateTotpSecret(): string
 {
-    return TOTP::generate()->getSecret();
+    return \OTPHP\TOTP::generate()->getSecret();
 }
 
 function getTotpProvisioningUri(string $secret, string $email): string
 {
-    $totp = TOTP::createFromSecret($secret);
+    $totp = \OTPHP\TOTP::createFromSecret($secret);
     $totp->setLabel($email);
     $totp->setIssuer('Ram;Lop Admin');
     return $totp->getProvisioningUri();
@@ -194,7 +192,7 @@ function getTotpProvisioningUri(string $secret, string $email): string
 
 function verifyTotpCode(string $secret, string $code): bool
 {
-    $totp = TOTP::createFromSecret($secret);
+    $totp = \OTPHP\TOTP::createFromSecret($secret);
     return $totp->verify($code, null, 1);
 }
 
@@ -209,10 +207,14 @@ function generateBackupCodes(): array
 
 function isTotpEnabledForUser(int $userId): bool
 {
-    $db = getDb();
-    $stmt = $db->prepare('SELECT totp_enabled FROM admin_users WHERE id = ?');
-    $stmt->execute([$userId]);
-    return (bool)$stmt->fetchColumn();
+    try {
+        $db = getDb();
+        $stmt = $db->prepare('SELECT totp_enabled FROM admin_users WHERE id = ?');
+        $stmt->execute([$userId]);
+        return (bool)$stmt->fetchColumn();
+    } catch (\PDOException $e) {
+        return false; // Column not migrated yet
+    }
 }
 
 // =============================================================================

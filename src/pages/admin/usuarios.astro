@@ -3,8 +3,12 @@ import AdminLayout from "./_layout.astro";
 ---
 
 <AdminLayout title="Usuarios" currentPath="/admin/usuarios">
-  <div class="flex items-center gap-4 mb-6">
+  <div class="flex items-center justify-between gap-4 mb-6">
     <p class="font-body text-body-md text-secondary" id="userCount">0 usuarios</p>
+    <button id="btnCreate" class="inline-flex items-center gap-1.5 bg-monolith-black text-off-white font-label-caps text-label-caps px-4 h-9 hover:bg-monolith-black/80 transition-colors">
+      <span class="material-symbols-outlined text-sm">add</span>
+      NUEVO USUARIO
+    </button>
   </div>
 
   <!-- Desktop table -->
@@ -34,14 +38,108 @@ import AdminLayout from "./_layout.astro";
 
   <div id="msg" class="hidden font-body text-body-md text-sm mt-4"></div>
 
+  <!-- Create/Edit Modal -->
+  <div id="userModal" class="fixed inset-0 z-50 hidden bg-monolith-black/40 flex items-center justify-center p-4">
+    <div class="bg-off-white w-full max-w-md p-8 shadow-xl">
+      <div class="flex items-center justify-between mb-6">
+        <h3 class="font-headline-md text-headline-md text-monolith-black" id="modalTitle">Nuevo Usuario</h3>
+        <button id="modalClose" class="text-secondary hover:text-monolith-black transition-colors">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <form id="userForm" class="space-y-4">
+        <input type="hidden" id="editUserId" value="">
+        <div>
+          <label class="block font-label-caps text-label-caps text-secondary mb-1">Email</label>
+          <input type="email" id="fieldEmail" required class="w-full border-b border-monolith-black bg-transparent px-0 py-2 text-monolith-black placeholder:text-secondary focus:outline-none focus:border-monolith-black">
+        </div>
+        <div>
+          <label class="block font-label-caps text-label-caps text-secondary mb-1">Nombre</label>
+          <input type="text" id="fieldName" class="w-full border-b border-monolith-black bg-transparent px-0 py-2 text-monolith-black placeholder:text-secondary focus:outline-none focus:border-monolith-black" placeholder="Opcional">
+        </div>
+        <div>
+          <label class="block font-label-caps text-label-caps text-secondary mb-1">Contraseña <span id="pwHint" class="text-xs text-secondary font-normal">(mín. 6 caracteres)</span></label>
+          <input type="password" id="fieldPassword" class="w-full border-b border-monolith-black bg-transparent px-0 py-2 text-monolith-black placeholder:text-secondary focus:outline-none focus:border-monolith-black">
+        </div>
+        <div>
+          <label class="block font-label-caps text-label-caps text-secondary mb-1">Rol</label>
+          <select id="fieldRole" class="w-full border-b border-monolith-black bg-off-white px-0 py-2 text-monolith-black focus:outline-none"></select>
+        </div>
+        <div class="flex items-center gap-3 pt-4">
+          <button type="submit" class="flex-1 bg-monolith-black text-off-white font-label-caps text-label-caps h-11 hover:bg-monolith-black/80 transition-colors">GUARDAR</button>
+          <button type="button" id="modalCancel" class="flex-1 border border-monolith-black text-monolith-black font-label-caps text-label-caps h-11 hover:bg-monolith-black/5 transition-colors">CANCELAR</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script>
     // @ts-nocheck
     let availableRoles = [];
+    let currentUserEmail = '';
 
     function showMsg(text, type) {
       const el = document.getElementById("msg");
       el.textContent = text;
       el.className = "font-body text-body-md text-sm mt-4 block " + (type === 'error' ? 'text-error' : 'text-monolith-black');
+    }
+
+    function openModal(user) {
+      const modal = document.getElementById("userModal");
+      const title = document.getElementById("modalTitle");
+      const idField = document.getElementById("editUserId");
+      const emailField = document.getElementById("fieldEmail");
+      const nameField = document.getElementById("fieldName");
+      const pwField = document.getElementById("fieldPassword");
+      const roleField = document.getElementById("fieldRole");
+      const pwHint = document.getElementById("pwHint");
+
+      if (user) {
+        title.textContent = "Editar Usuario";
+        idField.value = user.id;
+        emailField.value = user.email;
+        nameField.value = user.name || '';
+        pwField.value = '';
+        pwField.required = false;
+        pwHint.textContent = '(dejar vacío para mantener)';
+      } else {
+        title.textContent = "Nuevo Usuario";
+        idField.value = '';
+        emailField.value = '';
+        nameField.value = '';
+        pwField.value = '';
+        pwField.required = true;
+        pwHint.textContent = '(mín. 6 caracteres)';
+      }
+
+      roleField.innerHTML = availableRoles.map(r =>
+        `<option value="${r.code}" ${user && r.code === user.role ? 'selected' : ''}>${r.name}</option>`
+      ).join("");
+
+      modal.classList.remove("hidden");
+      emailField.focus();
+    }
+
+    function closeModal() {
+      document.getElementById("userModal").classList.add("hidden");
+    }
+
+    async function deleteUser(id, email) {
+      if (!confirm(`¿Eliminar usuario "${email}"? Esta acción no se puede deshacer.`)) return;
+
+      try {
+        const res = await fetch("/api/admin/users.php?id=" + id, { method: "DELETE" });
+        if (res.ok) {
+          showMsg("Usuario eliminado correctamente", "success");
+          loadUsers();
+        } else {
+          const d = await res.json();
+          showMsg(d.error || "Error al eliminar", "error");
+          loadUsers();
+        }
+      } catch (err) {
+        showMsg(err.message, "error");
+      }
     }
 
     async function loadUsers() {
@@ -61,26 +159,29 @@ import AdminLayout from "./_layout.astro";
           return;
         }
 
-        const currentUserEmail = "{{email}}"; // will be replaced by verify response
-
-        const rowsHtml = users.map(u => `
-          <tr class="border-b border-outline-variant/50 hover:bg-monolith-black/[0.02] transition-colors">
+        const rowsHtml = users.map(u => {
+          const isSelf = u.email === currentUserEmail;
+          return `<tr class="border-b border-outline-variant/50 hover:bg-monolith-black/[0.02] transition-colors">
             <td class="p-4 font-body text-body-md text-monolith-black">${u.email}</td>
             <td class="p-4 font-body text-body-md text-secondary">${u.name || '—'}</td>
-            <td class="p-4">
-              <span class="inline-flex items-center gap-1 px-2.5 py-1 font-label-caps text-label-caps rounded-sm bg-monolith-black/10 text-monolith-black text-xs">${u.roleName || u.role}</span>
-            </td>
-            <td class="p-4 font-body text-body-md text-secondary text-sm">${new Date(u.createdAt).toLocaleDateString("es-ES", { year: "numeric", month: "short", day: "numeric" })}</td>
             <td class="p-4">
               <select class="role-select h-8 bg-transparent border border-outline-variant rounded-sm px-2 text-sm font-body text-body-md text-monolith-black focus:border-monolith-black focus:outline-none" data-user-id="${u.id}">
                 ${availableRoles.map(r => `<option value="${r.code}" ${r.code === u.role ? 'selected' : ''}>${r.name}</option>`).join("")}
               </select>
             </td>
-          </tr>
-        `).join("");
+            <td class="p-4 font-body text-body-md text-secondary text-sm">${new Date(u.createdAt).toLocaleDateString("es-ES", { year: "numeric", month: "short", day: "numeric" })}</td>
+            <td class="p-4">
+              <div class="flex items-center gap-2">
+                <button class="btn-edit inline-flex items-center gap-1 px-2.5 py-1 text-xs font-label-caps text-label-caps border border-monolith-black hover:bg-monolith-black hover:text-off-white transition-colors" data-user='${JSON.stringify(u).replace(/'/g, "&#39;")}'>EDITAR</button>
+                ${isSelf ? '' : `<button class="btn-delete inline-flex items-center gap-1 px-2.5 py-1 text-xs font-label-caps text-label-caps border border-red-700 text-red-700 hover:bg-red-700 hover:text-off-white transition-colors" data-user-id="${u.id}" data-user-email="${u.email}">ELIMINAR</button>`}
+              </div>
+            </td>
+          </tr>`;
+        }).join("");
 
-        const cardsHtml = users.map(u => `
-          <div class="bg-off-white border border-outline-variant border-l-2 border-l-monolith-black shadow-sm hover:shadow-md transition-all duration-200 rounded-sm p-4">
+        const cardsHtml = users.map(u => {
+          const isSelf = u.email === currentUserEmail;
+          return `<div class="bg-off-white border border-outline-variant border-l-2 border-l-monolith-black shadow-sm hover:shadow-md transition-all duration-200 rounded-sm p-4">
             <div class="flex items-start justify-between mb-2">
               <div>
                 <p class="font-body text-body-md text-monolith-black font-medium">${u.email}</p>
@@ -94,12 +195,17 @@ import AdminLayout from "./_layout.astro";
                 ${availableRoles.map(r => `<option value="${r.code}" ${r.code === u.role ? 'selected' : ''}>${r.name}</option>`).join("")}
               </select>
             </div>
-          </div>
-        `).join("");
+            <div class="flex items-center gap-2 mt-3 pt-3 border-t border-outline-variant/50">
+              <button class="btn-edit text-xs font-label-caps text-label-caps border border-monolith-black px-2.5 py-1 hover:bg-monolith-black hover:text-off-white transition-colors" data-user='${JSON.stringify(u).replace(/'/g, "&#39;")}'>EDITAR</button>
+              ${isSelf ? '' : `<button class="btn-delete text-xs font-label-caps text-label-caps border border-red-700 text-red-700 px-2.5 py-1 hover:bg-red-700 hover:text-off-white transition-colors" data-user-id="${u.id}" data-user-email="${u.email}">ELIMINAR</button>`}
+            </div>
+          </div>`;
+        }).join("");
 
         tbody.innerHTML = rowsHtml;
         cards.innerHTML = cardsHtml;
 
+        // Role change handler
         document.querySelectorAll(".role-select").forEach(sel => {
           sel.addEventListener("change", async function () {
             const userId = parseInt(this.dataset.userId);
@@ -124,6 +230,26 @@ import AdminLayout from "./_layout.astro";
             }
           });
         });
+
+        // Edit button handler
+        document.querySelectorAll(".btn-edit").forEach(btn => {
+          btn.addEventListener("click", function () {
+            const userData = this.dataset.user;
+            try {
+              const user = JSON.parse(userData);
+              openModal(user);
+            } catch (e) {
+              showMsg("Error parsing user data", "error");
+            }
+          });
+        });
+
+        // Delete button handler
+        document.querySelectorAll(".btn-delete").forEach(btn => {
+          btn.addEventListener("click", function () {
+            deleteUser(this.dataset.userId, this.dataset.userEmail);
+          });
+        });
       } catch (err) {
         document.getElementById("usersBody").innerHTML =
           `<tr><td colspan="5" class="p-8 text-center font-body text-body-md text-error">Error: ${err.message}</td></tr>`;
@@ -132,6 +258,71 @@ import AdminLayout from "./_layout.astro";
       }
     }
 
-    loadUsers();
+    // Modal handlers
+    document.getElementById("btnCreate").addEventListener("click", () => openModal(null));
+    document.getElementById("modalClose").addEventListener("click", closeModal);
+    document.getElementById("modalCancel").addEventListener("click", closeModal);
+    document.getElementById("userModal").addEventListener("click", function (e) {
+      if (e.target === this) closeModal();
+    });
+
+    document.getElementById("userForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      const userId = document.getElementById("editUserId").value;
+      const email = document.getElementById("fieldEmail").value.trim();
+      const name = document.getElementById("fieldName").value.trim();
+      const password = document.getElementById("fieldPassword").value;
+      const role = document.getElementById("fieldRole").value;
+
+      const btn = this.querySelector('button[type="submit"]');
+      btn.disabled = true;
+      btn.textContent = "GUARDANDO...";
+
+      try {
+        let res;
+        if (userId) {
+          // Edit
+          res = await fetch("/api/admin/users.php", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ user_id: parseInt(userId), email, name, password, role }),
+          });
+        } else {
+          // Create
+          res = await fetch("/api/admin/users.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "create", email, name, password, role }),
+          });
+        }
+
+        if (res.ok) {
+          showMsg(userId ? "Usuario actualizado" : "Usuario creado", "success");
+          closeModal();
+          loadUsers();
+        } else {
+          const d = await res.json();
+          showMsg(d.error || "Error", "error");
+        }
+      } catch (err) {
+        showMsg(err.message, "error");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "GUARDAR";
+      }
+    });
+
+    // Get current user email from verify endpoint
+    async function getCurrentUser() {
+      try {
+        const res = await fetch("/api/admin/verify.php");
+        const data = await res.json();
+        if (data.valid) currentUserEmail = data.email || '';
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    getCurrentUser().then(() => loadUsers());
   </script>
 </AdminLayout>

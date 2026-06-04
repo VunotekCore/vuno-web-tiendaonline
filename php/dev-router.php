@@ -40,7 +40,34 @@ if (preg_match('#^/(es|en)/blog/(.+)$#', $uri, $m)) {
 // Serve from dist/
 $file = $distPath . $uri;
 if (file_exists($file) && !is_dir($file)) {
-    return false; // Let PHP serve the static file
+    $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+    // Execute PHP files (APIs), readfile for static assets
+    if ($ext === 'php') {
+        require $file;
+        return true;
+    }
+    $mimeMap = [
+        'css'  => 'text/css',
+        'js'   => 'application/javascript',
+        'html' => 'text/html',
+        'json' => 'application/json',
+        'xml'  => 'application/xml',
+        'png'  => 'image/png',
+        'jpg'  => 'image/jpeg',
+        'jpeg' => 'image/jpeg',
+        'gif'  => 'image/gif',
+        'svg'  => 'image/svg+xml',
+        'ico'  => 'image/x-icon',
+        'webp' => 'image/webp',
+        'woff' => 'font/woff',
+        'woff2'=> 'font/woff2',
+        'ttf'  => 'font/ttf',
+    ];
+    if (isset($mimeMap[$ext])) {
+        header('Content-Type: ' . $mimeMap[$ext]);
+    }
+    readfile($file);
+    return true;
 }
 
 // Try index.html for directories
