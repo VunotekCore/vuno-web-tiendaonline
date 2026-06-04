@@ -44,9 +44,13 @@ try {
     saveOrder($order);
 
     if ($order['paymentMethod'] === 'transfer') {
-        $bankAccounts = getBankAccounts();
-        sendOrderConfirmation($order, $bankAccounts);
-        sendNewOrderNotification($order);
+        try {
+            $bankAccounts = getBankAccounts();
+            sendOrderConfirmation($order, $bankAccounts);
+            sendNewOrderNotification($order);
+        } catch (\Throwable $e) {
+            error_log('Order created but email failed: ' . $e->getMessage());
+        }
     }
 
     jsonResponse(['success' => true, 'id' => $order['id']]);
