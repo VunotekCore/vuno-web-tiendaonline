@@ -1061,7 +1061,7 @@ INSERT INTO admin_roles (code, name) VALUES
 
 -- Default admin user (password: admin123)
 INSERT INTO admin_users (email, password_hash, name, role_id, is_active) VALUES
-('admin@ramlop.com', '$2y$10$hUsf9ZB.niKasPacrOGobeCa2CmyQ6zlKyjZ26VrodXL7LutVDJOm', 'Administrador', 1, 1);
+('admin@vunotek.com', '$2y$10$oRW4DfzqhXvcXNbnln07AeKIKCnisf.kV84Jc0uNnLndrmk4SmAva', 'Administrador', 1, 1);
 
 -- Order statuses
 INSERT INTO order_statuses (code, name, sort_order) VALUES

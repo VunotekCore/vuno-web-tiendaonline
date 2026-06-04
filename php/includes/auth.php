@@ -24,8 +24,17 @@ function startAdminSession(): void
 
 function validateCredentials(string $email, string $password): bool
 {
-    return $email === env('ADMIN_EMAIL', 'admin@ramlop.com')
-        && $password === env('ADMIN_PASSWORD', 'ramlop2024');
+    try {
+        $db = getDb();
+        $stmt = $db->prepare(
+            'SELECT password_hash FROM admin_users WHERE email = ? AND is_active = 1'
+        );
+        $stmt->execute([$email]);
+        $hash = $stmt->fetchColumn();
+        return $hash !== false && password_verify($password, $hash);
+    } catch (\PDOException $e) {
+        return false;
+    }
 }
 
 function loginAdmin(string $email): array

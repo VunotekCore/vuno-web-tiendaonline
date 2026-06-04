@@ -15,6 +15,22 @@ function runMigration(): void
     $db = getDb();
     echo "=== Ram;Lop Database Migration ===\n\n";
 
+    // 0. Ensure admin_users has TOTP columns (schema v1.1.0+)
+    echo "--- Admin users TOTP columns ---\n";
+    try {
+        $db->exec("ALTER TABLE admin_users
+            ADD COLUMN totp_secret  VARCHAR(255) DEFAULT NULL AFTER is_active,
+            ADD COLUMN totp_enabled BOOLEAN DEFAULT FALSE AFTER totp_secret,
+            ADD COLUMN backup_codes TEXT DEFAULT NULL AFTER totp_enabled");
+        echo "  ✓ TOTP columns added\n";
+    } catch (\PDOException $e) {
+        if (str_contains($e->getMessage(), 'Duplicate column')) {
+            echo "  - already present, skipping\n";
+        } else {
+            echo "  ✗ " . $e->getMessage() . "\n";
+        }
+    }
+
     // 1. Translation tables
     echo "--- Translation tables ---\n";
     $translationTables = [

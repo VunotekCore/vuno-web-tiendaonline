@@ -729,5 +729,140 @@ El archivo `schema.sql` es **idempotente** — incluye `CREATE DATABASE IF NOT E
 
 ---
 
+## 14. Plan de Pruebas — Panel Administrador
+
+### 14.1 Fase 1 — Preparación y Autenticación (✓ Completada)
+
+| # | Prueba | Resultado |
+|---|--------|-----------|
+| 1 | Verificar credenciales admin en DB (`admin_users.password_hash`) | ✅ |
+| 2 | `validateCredentials()` usa solo DB con `password_verify()` (sin fallback `.env`) | ✅ |
+| 3 | Migrar columnas TOTP a `admin_users` (`totp_secret`, `totp_enabled`, `backup_codes`) | ✅ |
+| 4 | Corregir seed `schema.sql` (email + hash correctos) | ✅ |
+| 5 | Login `admin@vunotek.com` / `admin123` funciona con validación DB | ✅ |
+| 6 | Login con credenciales inválidas → 401 | ✅ |
+| 7 | Verificar que `2fa/setup.php` y `2fa/disable.php` también usan `validateCredentials()` DB | Pendiente |
+| 8 | Ejecutar `./dev.sh` y navegar a `/admin/login` | Pendiente |
+| 9 | Login real en navegador, confirmar sesión y Dashboard | Pendiente |
+
+### 14.2 Fase 2 — Dashboard
+
+| # | Prueba | Resultado |
+|---|--------|-----------|
+| 1 | Carga de 4 cards de estadísticas (total productos, pedidos, ingresos mes, pedidos recientes) | ⬜ |
+| 2 | Verificar pedidos recientes en tabla del dashboard | ⬜ |
+| 3 | Probar con DB vacía (sin seed) — manejo de error graceful | ⬜ |
+
+### 14.3 Fase 3 — Gestión de Productos
+
+| # | Prueba | Resultado |
+|---|--------|-----------|
+| 1 | Lista de productos con paginación, búsqueda, filtro por categoría | ⬜ |
+| 2 | Crear producto nuevo: llenar 4 tabs (Información, Precio/Categoría, Imágenes, Variantes) | ⬜ |
+| 3 | Subir imagen desde formulario | ⬜ |
+| 4 | Matriz stock color × talle en pestaña Variantes | ⬜ |
+| 5 | Editar producto existente (carga datos vía API) | ⬜ |
+| 6 | Eliminar producto con modal de confirmación | ⬜ |
+| 7 | Verificar slug auto-generado al escribir título | ⬜ |
+| 8 | Probar CRUD con rol `editor` (debería funcionar) | ⬜ |
+| 9 | Probar CRUD con rol `viewer` (debería denegar escritura) | ⬜ |
+
+### 14.4 Fase 4 — Categorías
+
+| # | Prueba | Resultado |
+|---|--------|-----------|
+| 1 | Lista de categorías paginada | ⬜ |
+| 2 | Crear categoría (nombre + slug auto) | ⬜ |
+| 3 | Editar categoría existente | ⬜ |
+| 4 | Eliminar categoría | ⬜ |
+
+### 14.5 Fase 5 — Cupones
+
+| # | Prueba | Resultado |
+|---|--------|-----------|
+| 1 | Lista de cupones con paginación y búsqueda | ⬜ |
+| 2 | Crear cupón: descuento porcentaje | ⬜ |
+| 3 | Crear cupón: descuento fijo | ⬜ |
+| 4 | Crear cupón con fechas de vigencia | ⬜ |
+| 5 | Crear cupón con límite de usos | ⬜ |
+| 6 | Editar cupón | ⬜ |
+| 7 | Eliminar cupón | ⬜ |
+| 8 | Verificar que cupón vencido no se aplica en checkout | ⬜ |
+| 9 | Verificar que cupón agotado no se aplica | ⬜ |
+
+### 14.6 Fase 6 — Reseñas
+
+| # | Prueba | Resultado |
+|---|--------|-----------|
+| 1 | Lista de reseñas con filtro por estado (pending/approved) | ⬜ |
+| 2 | Aprobar reseña pendiente | ⬜ |
+| 3 | Eliminar reseña | ⬜ |
+
+### 14.7 Fase 7 — Blog
+
+| # | Prueba | Resultado |
+|---|--------|-----------|
+| 1 | Lista de posts con búsqueda y filtro status (draft/published) | ⬜ |
+| 2 | Crear post: título, slug auto, extracto, contenido HTML, imagen, autor, categoría | ⬜ |
+| 3 | Editar post con carga de datos existentes | ⬜ |
+| 4 | Eliminar post (soft delete) | ⬜ |
+| 5 | Verificar blog público en `/blog/` y `/blog/{slug}` | ⬜ |
+
+### 14.8 Fase 8 — Pedidos
+
+| # | Prueba | Resultado |
+|---|--------|-----------|
+| 1 | Lista de pedidos con filtro por estado y búsqueda | ⬜ |
+| 2 | Ver badges de estado: pending (ocre), paid (negro), shipped (negro 80%), delivered (negro), cancelled (rojo) | ⬜ |
+| 3 | Detalle de pedido: datos cliente, items, totales | ⬜ |
+| 4 | Visualización de comprobante de transferencia (link ImageKit) | ⬜ |
+| 5 | Cambio de estado (pending → paid → shipped → delivered) | ⬜ |
+| 6 | Cancelar pedido | ⬜ |
+| 7 | Verificar registro en `admin_activity_log` al cambiar estado | ⬜ |
+
+### 14.9 Fase 9 — Seguridad (2FA)
+
+| # | Prueba | Resultado |
+|---|--------|-----------|
+| 1 | Ir a `/admin/seguridad` — ver estado 2FA (disabled inicialmente) | ⬜ |
+| 2 | Setup: ingresar password, escanear QR con app TOTP | ⬜ |
+| 3 | Verificar código TOTP, recibir 8 backup codes | ⬜ |
+| 4 | Cerrar sesión y login de nuevo — debe pedir TOTP después del password | ⬜ |
+| 5 | Login con código TOTP válido → Dashboard | ⬜ |
+| 6 | Login con código TOTP inválido → error | ⬜ |
+| 7 | Login con backup code → Dashboard | ⬜ |
+| 8 | Deshabilitar 2FA (password + código TOTP) | ⬜ |
+| 9 | Verificar que backup code usado no funciona de nuevo | ⬜ |
+
+### 14.10 Fase 10 — Usuarios (solo superadmin)
+
+| # | Prueba | Resultado |
+|---|--------|-----------|
+| 1 | Lista de usuarios con roles | ⬜ |
+| 2 | Crear usuario via modal (email, nombre, password, rol) | ⬜ |
+| 3 | Editar usuario (cambiar email, nombre, password, rol) | ⬜ |
+| 4 | Eliminar usuario con confirmación | ⬜ |
+| 5 | Login como `editor` — sidebar oculta "Usuarios" y "Configuración" | ⬜ |
+| 6 | Login como `viewer` — botones de crear/editar/eliminar deben ocultarse | ⬜ |
+
+### 14.11 Fase 11 — Configuración
+
+| # | Prueba | Resultado |
+|---|--------|-----------|
+| 1 | Abrir `/admin/configuracion` — carga todas las secciones (Store, Receipt, ImageKit, Stripe, Transfer, SMTP) | ⬜ |
+| 2 | Modificar valor en sección Store y guardar | ⬜ |
+| 3 | Verificar cambio persiste al recargar | ⬜ |
+
+### 14.12 Fase 12 — Issues de Seguridad (Hallazgos)
+
+| # | Issue | Archivo | Riesgo | Estado |
+|---|-------|---------|--------|--------|
+| 1 | ImageKit upload sin auth | `php/api/imagekit/upload.php` | ⚠️ Alto | ⬜ |
+| 2 | Pedidos API sin auth (`list`, `get`) | `php/api/pedidos/list.php`, `get.php` | ⚠️ Alto | ⬜ |
+| 3 | Rate-limit sin try/catch en DB connection | `php/includes/auth.php` | 🟡 Medio | ⬜ |
+| 4 | Dashboard sin fallback si DB vacía | `php/api/dashboard/stats.php` | 🟢 Bajo | ⬜ |
+
+---
+
 > **Documentación generada:** 02/06/2026
-> **Última actualización:** Migración a MySQL 8.0 — esquema 40 tablas normalizadas
+> **Última actualización:** 04/06/2026 — Plan de pruebas Panel Admin (Phase 1)
