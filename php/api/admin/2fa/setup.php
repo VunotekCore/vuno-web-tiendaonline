@@ -35,7 +35,7 @@ if ((bool)$stmt->fetchColumn()) {
 
 // Generate new secret (always regenerate on setup)
 $secret = generateTotpSecret();
-$email  = $_SESSION['admin_email'] ?? 'admin@ramlop.com';
+$email  = $_SESSION['admin_email'] ?? 'admin@vuno.com';
 $uri    = getTotpProvisioningUri($secret, $email);
 
 // Store secret temporarily (not yet enabled)

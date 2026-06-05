@@ -1,5 +1,5 @@
 (function () {
-  const STORAGE_KEY = "ramlop_wishlist";
+  const STORAGE_KEY = "vuno_wishlist";
 
   function getWishlist() {
     try {
@@ -19,7 +19,7 @@
     window.dispatchEvent(new CustomEvent("wishlist:updated", { detail: getWishlist() }));
   }
 
-  window.RamLopWishlist = {
+  window.VunoWishlist = {
     getItems() {
       return getWishlist();
     },
@@ -79,7 +79,7 @@
     if (btn) {
       e.preventDefault();
       const product = JSON.parse(btn.dataset.product || "{}");
-      const isNowIn = window.RamLopWishlist.toggleItem(product);
+      const isNowIn = window.VunoWishlist.toggleItem(product);
 
       const icon = btn.querySelector(".wishlist-icon");
       if (icon) {

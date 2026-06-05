@@ -237,7 +237,7 @@ a{text-decoration:none;color:inherit}
       <div>
         <h4 class="font-label-caps text-label-caps text-stone-gray mb-4">CONTACTO</h4>
         <div class="space-y-2 font-body text-body-md text-stone-gray">
-          <p>hola@ramlop.com</p>
+          <p>hola@vuno.com</p>
         </div>
       </div>
     </div>

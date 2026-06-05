@@ -7,11 +7,11 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   <script>
     // @ts-nocheck
     (function () {
-      var lang = localStorage.getItem("ramlop_lang");
+      var lang = localStorage.getItem("vuno_lang");
       if (!lang) {
         var navLang = (navigator.language || navigator.userLanguage || "es").substring(0, 2);
         lang = navLang === "en" ? "en" : "es";
-        localStorage.setItem("ramlop_lang", lang);
+        localStorage.setItem("vuno_lang", lang);
       }
       window.location.href = "/" + lang + "/";
     })();

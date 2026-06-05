@@ -11,7 +11,7 @@ export async function getStaticPaths() {
 
 const { lang } = Astro.params as { lang: Locale };
 const currentPath = Astro.url.pathname;
-const siteUrl = import.meta.env.PROD ? "https://ramlop.com" : "http://localhost:4321";
+const siteUrl = import.meta.env.PROD ? "https://vuno.com" : "http://localhost:4321";
 const alternateUrls = {
   es: `${siteUrl}/es/checkout`,
   en: `${siteUrl}/en/checkout`,
@@ -266,7 +266,7 @@ const i18n = {
         return;
       }
 
-      const subtotal = window.RamLopCart.getSubtotal();
+      const subtotal = window.VunoCart.getSubtotal();
       const email = getCustomerEmail();
 
       applyBtn.disabled = true;
@@ -320,7 +320,7 @@ const i18n = {
     }
 
     function renderSummaryTotal() {
-      const subtotal = window.RamLopCart.getSubtotal();
+      const subtotal = window.VunoCart.getSubtotal();
       const total = Math.max(0, subtotal - couponDiscount);
       document.getElementById("summaryTotal").textContent = "$" + total.toFixed(2);
     }
@@ -422,7 +422,7 @@ const i18n = {
 
     // --- Render Summary ---
     function renderSummary() {
-      const items = window.RamLopCart.getItems();
+      const items = window.VunoCart.getItems();
       const empty = document.getElementById("emptyCart");
       const form = document.getElementById("checkoutForm");
 
@@ -451,7 +451,7 @@ const i18n = {
         </div>
       `).join("");
 
-      document.getElementById("summarySubtotal").textContent = `$${window.RamLopCart.getSubtotal().toFixed(2)}`;
+      document.getElementById("summarySubtotal").textContent = `$${window.VunoCart.getSubtotal().toFixed(2)}`;
       renderSummaryTotal();
     }
 
@@ -491,13 +491,13 @@ const i18n = {
     }
 
     function buildOrderObject(payment) {
-      const items = window.RamLopCart.getItems();
+      const items = window.VunoCart.getItems();
       const name = document.getElementById("customerName").value.trim();
       const email = document.getElementById("customerEmail").value.trim();
       const address = document.getElementById("customerAddress").value.trim();
       const city = document.getElementById("customerCity").value.trim();
       const zip = document.getElementById("customerZip").value.trim();
-      const subtotal = window.RamLopCart.getSubtotal();
+      const subtotal = window.VunoCart.getSubtotal();
       const total = Math.max(0, subtotal - couponDiscount);
 
       const order = {
@@ -618,7 +618,7 @@ const i18n = {
       if (submitting) return;
       submitting = true;
 
-      const items = window.RamLopCart.getItems();
+      const items = window.VunoCart.getItems();
       if (items.length === 0) {
         submitting = false;
         showErrorMsg(checkoutI18n.cartEmpty);
@@ -687,9 +687,9 @@ const i18n = {
             order.paymentStatus = "completed";
             order.stripePaymentIntentId = paymentIntent.id;
 
-            localStorage.setItem("ramlop_cart_backup", JSON.stringify(window.RamLopCart.getItems()));
-            window.RamLopCart.clear();
-            localStorage.setItem("ramlop_last_order_" + order.id, JSON.stringify(order));
+            localStorage.setItem("vuno_cart_backup", JSON.stringify(window.VunoCart.getItems()));
+            window.VunoCart.clear();
+            localStorage.setItem("vuno_last_order_" + order.id, JSON.stringify(order));
             showOrderSuccessModal(order);
           } else {
             throw new Error("Payment was not successful: " + paymentIntent.status);
@@ -734,9 +734,9 @@ const i18n = {
           }
 
           // Save cart backup before clearing
-          localStorage.setItem("ramlop_cart_backup", JSON.stringify(window.RamLopCart.getItems()));
-          window.RamLopCart.clear();
-          localStorage.setItem("ramlop_last_order_" + order.id, JSON.stringify(order));
+          localStorage.setItem("vuno_cart_backup", JSON.stringify(window.VunoCart.getItems()));
+          window.VunoCart.clear();
+          localStorage.setItem("vuno_last_order_" + order.id, JSON.stringify(order));
           showOrderSuccessModal(order);
         } catch (err) {
           document.getElementById("paymentError").textContent = err.message;

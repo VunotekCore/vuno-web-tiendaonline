@@ -1,5 +1,5 @@
 (function () {
-  const STORAGE_KEY = "ramlop_cart";
+  const STORAGE_KEY = "vuno_cart";
 
   function getCart() {
     try {
@@ -12,14 +12,30 @@
 
   function saveCart(items) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    localStorage.removeItem("vuno_cart_backup");
     dispatchCartEvent();
+  }
+
+  function restoreFromBackup() {
+    try {
+      const backup = localStorage.getItem("vuno_cart_backup");
+      if (!backup) return;
+      const items = JSON.parse(backup);
+      if (Array.isArray(items) && items.length > 0) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+        localStorage.removeItem("vuno_cart_backup");
+        dispatchCartEvent();
+      }
+    } catch {
+      localStorage.removeItem("vuno_cart_backup");
+    }
   }
 
   function dispatchCartEvent() {
     window.dispatchEvent(new CustomEvent("cart:updated", { detail: getCart() }));
   }
 
-  window.RamLopCart = {
+  window.VunoCart = {
     getItems() {
       return getCart();
     },
@@ -100,6 +116,9 @@
     },
   };
 
+  // Auto-restore cart from backup if current cart is empty
+  if (getCart().length === 0) restoreFromBackup();
+
   document.addEventListener("click", function (e) {
     const btn = e.target.closest("[data-add-to-cart]");
     if (btn) {
@@ -108,14 +127,14 @@
       const quantity = parseInt(btn.dataset.quantity || "1", 10);
       const color = btn.dataset.color || "";
       const size = btn.dataset.size || "";
-      window.RamLopCart.addItem(product, quantity, color, size);
+      window.VunoCart.addItem(product, quantity, color, size);
       alert("Added to cart!");
     }
 
     const removeBtn = e.target.closest("[data-remove-item]");
     if (removeBtn) {
       e.preventDefault();
-      window.RamLopCart.removeItem(
+      window.VunoCart.removeItem(
         removeBtn.dataset.productId,
         removeBtn.dataset.color || "",
         removeBtn.dataset.size || ""

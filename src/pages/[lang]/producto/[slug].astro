@@ -35,7 +35,7 @@ const relatedImages = [
 ];
 
 const currentPath = Astro.url.pathname;
-const siteUrl = import.meta.env.PROD ? "https://ramlop.com" : "http://localhost:4321";
+const siteUrl = import.meta.env.PROD ? "https://vuno.com" : "http://localhost:4321";
 const alternateUrls = {
   es: `${siteUrl}/es/producto/${slug}`,
   en: `${siteUrl}/en/producto/${slug}`,
@@ -294,7 +294,7 @@ const i18n = {
         return;
       }
       const productData = JSON.parse(this.dataset.product);
-      window.RamLopCart.addItem(productData, 1, selectedColor, selectedSize);
+      window.VunoCart.addItem(productData, 1, selectedColor, selectedSize);
       alert(i18n.addedToCart);
     });
 
@@ -302,7 +302,7 @@ const i18n = {
       const btn = document.querySelector("[data-toggle-wishlist]");
       if (!btn) return;
       const product = JSON.parse(btn.dataset.product || "{}");
-      if (window.RamLopWishlist.isInWishlist(product.id)) {
+      if (window.VunoWishlist.isInWishlist(product.id)) {
         const icon = btn.querySelector(".wishlist-icon");
         if (icon) {
           icon.textContent = "favorite";

@@ -68,7 +68,7 @@ const navLinks = [
   function updateCartBadge() {
     const badge = document.getElementById("cartBadge");
     if (!badge) return;
-    const count = window.RamLopCart?.getCount() || 0;
+    const count = window.VunoCart?.getCount() || 0;
     if (count > 0) {
       badge.textContent = count > 9 ? "9+" : count;
       badge.classList.remove("hidden");
@@ -80,7 +80,7 @@ const navLinks = [
   function updateWishlistBadge() {
     const badge = document.getElementById("wishlistBadge");
     if (!badge) return;
-    const count = window.RamLopWishlist?.getCount() || 0;
+    const count = window.VunoWishlist?.getCount() || 0;
     if (count > 0) {
       badge.textContent = count > 9 ? "9+" : count;
       badge.classList.remove("hidden");

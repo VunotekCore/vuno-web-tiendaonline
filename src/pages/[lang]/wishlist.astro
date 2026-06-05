@@ -10,7 +10,7 @@ export async function getStaticPaths() {
 
 const { lang } = Astro.params as { lang: Locale };
 const currentPath = Astro.url.pathname;
-const siteUrl = import.meta.env.PROD ? "https://ramlop.com" : "http://localhost:4321";
+const siteUrl = import.meta.env.PROD ? "https://vuno.com" : "http://localhost:4321";
 const alternateUrls = {
   es: `${siteUrl}/es/wishlist`,
   en: `${siteUrl}/en/wishlist`,
@@ -52,7 +52,7 @@ const alternateUrls = {
     ];
 
     function renderWishlist() {
-      const items = window.RamLopWishlist.getItems();
+      const items = window.VunoWishlist.getItems();
       const container = document.getElementById("wishlistContainer");
       const grid = document.getElementById("wishlistItems");
       const empty = document.getElementById("emptyWishlist");
@@ -78,7 +78,7 @@ const alternateUrls = {
                 data-product='${JSON.stringify(item.product)}'
                 class="w-9 h-9 flex items-center justify-center bg-off-white/80 backdrop-blur-sm rounded-full hover:bg-off-white transition-colors border border-outline-variant/30 in-wishlist"
                 aria-label="Remove from wishlist"
-                onclick="window.RamLopWishlist.removeItem('${item.product.id}'); renderWishlist();"
+                onclick="window.VunoWishlist.removeItem('${item.product.id}'); renderWishlist();"
               >
                 <span class="material-symbols-outlined wishlist-icon text-[18px] text-monolith-black" style="font-variation-settings: 'FILL' 1">favorite</span>
               </button>
@@ -88,7 +88,7 @@ const alternateUrls = {
               data-product='${JSON.stringify(item.product)}'
               data-quantity="1"
               class="absolute bottom-4 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-off-white/90 backdrop-blur-sm px-6 py-2 font-label-caps text-label-caps text-monolith-black hover:bg-monolith-black hover:text-off-white transition-colors border border-outline-variant text-xs whitespace-nowrap hidden md:block"
-              onclick="event.stopPropagation(); window.RamLopCart.addItem(${JSON.stringify(item.product).replace(/"/g, "'")}, 1, '', ''); alert(wishlistI18n.addedToCart);"
+              onclick="event.stopPropagation(); window.VunoCart.addItem(${JSON.stringify(item.product).replace(/"/g, "'")}, 1, '', ''); alert(wishlistI18n.addedToCart);"
             >
               {t("wishlist.addToCart", lang)}
             </button>

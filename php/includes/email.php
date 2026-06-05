@@ -87,7 +87,7 @@ function sendTemplatedEmail(string $templateCode, string $to, array $vars, ?stri
 
     $host = env('SMTP_HOST');
     $user = env('SMTP_USER');
-    $from = $fromEmail ?: env('FROM_EMAIL', 'noreply@ramlop.com');
+    $from = $fromEmail ?: env('FROM_EMAIL', 'noreply@vuno.com');
 
     if (!$host || !$user) {
         error_log("[Ram;Lop Email] SMTP not configured. Would send to: $to, Subject: {$template['subject']}");
@@ -214,7 +214,7 @@ function sendNewOrderNotification(array $order): array
         'preheader'       => "New order #{$orderId}: {$name}",
     ];
 
-    $adminEmail = env('ADMIN_EMAIL', 'admin@ramlop.com');
+    $adminEmail = env('ADMIN_EMAIL', 'admin@vuno.com');
     return sendTemplatedEmail('new_order_notification', $adminEmail, $vars);
 }
 
@@ -225,7 +225,7 @@ function sendEmail(string $to, string $subject, string $html, ?string $fromEmail
 {
     $host = env('SMTP_HOST');
     $user = env('SMTP_USER');
-    $from = $fromEmail ?: env('FROM_EMAIL', 'noreply@ramlop.com');
+    $from = $fromEmail ?: env('FROM_EMAIL', 'noreply@vuno.com');
 
     if (!$host || !$user) {
         error_log("[Ram;Lop Email] SMTP not configured. Would send to: $to, Subject: $subject");

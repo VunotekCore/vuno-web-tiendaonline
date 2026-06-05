@@ -16,7 +16,7 @@ interface CartItem {
   selectedSize: string;
 }
 
-interface RamLopCart {
+interface VunoCart {
   getItems(): CartItem[];
   getCount(): number;
   addItem(
@@ -40,6 +40,17 @@ interface RamLopCart {
   getSubtotal(): number;
 }
 
+interface VunoWishlist {
+  getItems(): { product: CartItem["product"]; addedAt: number }[];
+  getCount(): number;
+  isInWishlist(productId: string): boolean;
+  addItem(product: CartItem["product"]): { product: CartItem["product"]; addedAt: number }[];
+  removeItem(productId: string): { product: CartItem["product"]; addedAt: number }[];
+  toggleItem(product: CartItem["product"]): boolean;
+  clear(): void;
+}
+
 interface Window {
-  RamLopCart: RamLopCart;
+  VunoCart: VunoCart;
+  VunoWishlist: VunoWishlist;
 }

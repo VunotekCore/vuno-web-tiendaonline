@@ -11,7 +11,7 @@ export async function getStaticPaths() {
 
 const { lang } = Astro.params as { lang: Locale };
 const currentPath = Astro.url.pathname;
-const siteUrl = import.meta.env.PROD ? "https://ramlop.com" : "http://localhost:4321";
+const siteUrl = import.meta.env.PROD ? "https://vuno.com" : "http://localhost:4321";
 const alternateUrls = {
   es: `${siteUrl}/es/carrito`,
   en: `${siteUrl}/en/carrito`,
@@ -87,7 +87,7 @@ const alternateUrls = {
     ];
 
     function renderCart() {
-      const items = window.RamLopCart.getItems();
+      const items = window.VunoCart.getItems();
       const container = document.getElementById("cartItems");
       const empty = document.getElementById("emptyCart");
       const cartContainer = document.getElementById("cartContainer");
@@ -130,18 +130,18 @@ const alternateUrls = {
         </div>
       `).join("");
 
-      document.getElementById("subtotal").textContent = `$${window.RamLopCart.getSubtotal().toFixed(2)}`;
-      document.getElementById("total").textContent = `$${window.RamLopCart.getSubtotal().toFixed(2)}`;
+      document.getElementById("subtotal").textContent = `$${window.VunoCart.getSubtotal().toFixed(2)}`;
+      document.getElementById("total").textContent = `$${window.VunoCart.getSubtotal().toFixed(2)}`;
     }
 
     function updateQty(id, color, size, qty) {
       if (qty < 1) qty = 1;
-      window.RamLopCart.updateQuantity(id, color, size, qty);
+      window.VunoCart.updateQuantity(id, color, size, qty);
       renderCart();
     }
 
     function removeItem(id, color, size) {
-      window.RamLopCart.removeItem(id, color, size);
+      window.VunoCart.removeItem(id, color, size);
       renderCart();
     }
 
