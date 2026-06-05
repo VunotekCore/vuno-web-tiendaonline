@@ -1,11 +1,8 @@
 <?php
-/**
- * POST /api/imagekit/upload.php
- * Uploads an image to ImageKit
- */
 
 require_once __DIR__ . '/../../config.php';
 require_once __DIR__ . '/../../includes/imagekit.php';
+require_once __DIR__ . '/../../includes/storage.php';
 
 setCorsHeaders();
 
@@ -20,12 +17,21 @@ if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
 $folder = $_POST['folder'] ?? 'products';
 
 try {
+    $settings = getSettings();
+    $ikSettings = $settings['imagekit'] ?? [];
+    $privateKey = $ikSettings['privateKey'] ?? $ikSettings['private_key'] ?? null;
+
+    if (!$privateKey) {
+        jsonError('ImageKit not configured', 500);
+    }
+
     $result = uploadImage(
         $_FILES['file']['tmp_name'],
         $_FILES['file']['name'],
-        $folder
+        $folder,
+        $privateKey
     );
     jsonResponse($result);
-} catch (\Exception $e) {
+} catch (\Throwable $e) {
     jsonError($e->getMessage(), 500);
 }

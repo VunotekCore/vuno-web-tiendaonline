@@ -535,7 +535,7 @@ const i18n = {
       const isTransfer = order.paymentMethod === "transfer";
       document.getElementById("successTitle").textContent = checkoutI18n.orderPlaced;
       document.getElementById("successMessage").textContent = isTransfer
-        ? "Te enviamos los datos bancarios por email. También puedes verlos abajo."
+        ? "Tu pedido está registrado. Usa los datos bancarios de abajo para realizar la transferencia."
         : "Gracias por tu compra. Recibirás una confirmación por email.";
       document.getElementById("successOrderId").textContent = "Orden: " + order.id;
       document.getElementById("successContinueBtn").href = "/" + LANG + "/";
@@ -687,6 +687,7 @@ const i18n = {
             order.paymentStatus = "completed";
             order.stripePaymentIntentId = paymentIntent.id;
 
+            localStorage.setItem("ramlop_cart_backup", JSON.stringify(window.RamLopCart.getItems()));
             window.RamLopCart.clear();
             localStorage.setItem("ramlop_last_order_" + order.id, JSON.stringify(order));
             showOrderSuccessModal(order);
@@ -732,6 +733,8 @@ const i18n = {
             }
           }
 
+          // Save cart backup before clearing
+          localStorage.setItem("ramlop_cart_backup", JSON.stringify(window.RamLopCart.getItems()));
           window.RamLopCart.clear();
           localStorage.setItem("ramlop_last_order_" + order.id, JSON.stringify(order));
           showOrderSuccessModal(order);

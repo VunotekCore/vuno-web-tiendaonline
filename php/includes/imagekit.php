@@ -1,20 +1,17 @@
 <?php
-/**
- * ImageKit Service - PHP
- * Uses cURL to interact with ImageKit REST API
- */
 
-function getImageKitAuth(): string
+function getImageKitAuth(?string $privateKey = null): string
 {
-    $privateKey = env('IMAGEKIT_PRIVATE_KEY');
+    $privateKey ??= env('IMAGEKIT_PRIVATE_KEY');
     if (!$privateKey) {
-        throw new \RuntimeException('IMAGEKIT_PRIVATE_KEY not configured');
+        throw new \RuntimeException('ImageKit private key not configured');
     }
     return 'Basic ' . base64_encode("{$privateKey}:");
 }
 
-function imageKitRequest(string $method, string $endpoint, array $options = []): array
+function imageKitRequest(string $method, string $endpoint, array $options = [], ?string $privateKey = null): array
 {
+    $privateKey ??= env('IMAGEKIT_PRIVATE_KEY');
     $urlEndpoint = env('IMAGEKIT_URL_ENDPOINT', 'https://ik.imagekit.io');
     $url = rtrim($urlEndpoint, '/') . $endpoint;
 
@@ -23,7 +20,7 @@ function imageKitRequest(string $method, string $endpoint, array $options = []):
         CURLOPT_URL => $url,
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_HTTPHEADER => [
-            'Authorization: ' . getImageKitAuth(),
+            'Authorization: ' . getImageKitAuth($privateKey),
             'Content-Type: application/json',
         ],
         CURLOPT_TIMEOUT => 30,
@@ -52,10 +49,10 @@ function imageKitRequest(string $method, string $endpoint, array $options = []):
     return $data ?: [];
 }
 
-function uploadImage(string $filePath, string $fileName, string $folder = ''): array
+function uploadImage(string $filePath, string $fileName, string $folder = '', ?string $privateKey = null): array
 {
-    $publicKey = env('IMAGEKIT_PUBLIC_KEY');
-    if (!$publicKey) throw new \RuntimeException('IMAGEKIT_PUBLIC_KEY not configured');
+    $privateKey ??= env('IMAGEKIT_PRIVATE_KEY');
+    if (!$privateKey) throw new \RuntimeException('ImageKit private key not configured');
 
     $data = [
         'file' => base64_encode(file_get_contents($filePath)),
@@ -68,7 +65,7 @@ function uploadImage(string $filePath, string $fileName, string $folder = ''): a
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_POST => true,
-        CURLOPT_HTTPHEADER => ['Authorization: ' . getImageKitAuth()],
+        CURLOPT_HTTPHEADER => ['Authorization: ' . getImageKitAuth($privateKey)],
         CURLOPT_POSTFIELDS => $data,
         CURLOPT_TIMEOUT => 60,
     ]);
