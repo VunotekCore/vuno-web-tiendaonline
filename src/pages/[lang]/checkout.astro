@@ -692,6 +692,8 @@ const i18n = {
 
             localStorage.setItem("vuno_cart_backup", JSON.stringify(window.VunoCart.getItems()));
             window.VunoCart.clear();
+            // Remove backup: order confirmed successfully
+            localStorage.removeItem("vuno_cart_backup");
             localStorage.setItem("vuno_last_order_" + order.id, JSON.stringify(order));
             showOrderSuccessModal(order);
           } else {
@@ -741,6 +743,8 @@ const i18n = {
           // Save cart backup before clearing
           localStorage.setItem("vuno_cart_backup", JSON.stringify(window.VunoCart.getItems()));
           window.VunoCart.clear();
+          // Remove backup: order confirmed successfully
+          localStorage.removeItem("vuno_cart_backup");
           localStorage.setItem("vuno_last_order_" + order.id, JSON.stringify(order));
           showOrderSuccessModal(order);
         } catch (err) {
