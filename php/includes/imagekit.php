@@ -54,10 +54,11 @@ function uploadImage(string $filePath, string $fileName, string $folder = '', ?s
     $privateKey ??= env('IMAGEKIT_PRIVATE_KEY');
     if (!$privateKey) throw new \RuntimeException('ImageKit private key not configured');
 
+    $mime = mime_content_type($filePath) ?: 'application/octet-stream';
     $data = [
-        'file' => base64_encode(file_get_contents($filePath)),
+        'file' => curl_file_create($filePath, $mime, $fileName),
         'fileName' => $fileName,
-        'useUniqueFileName' => true,
+        'useUniqueFileName' => 'true',
     ];
     if ($folder) $data['folder'] = $folder;
 
@@ -72,11 +73,18 @@ function uploadImage(string $filePath, string $fileName, string $folder = '', ?s
 
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+    $errno = curl_errno($ch);
+    $error = curl_error($ch);
     curl_close($ch);
+
+    if ($errno) {
+        throw new \RuntimeException('ImageKit cURL error: ' . $error);
+    }
 
     $result = json_decode($response, true);
     if ($httpCode >= 400) {
-        throw new \RuntimeException('ImageKit upload error: ' . ($result['message'] ?? $response ?? 'Unknown'));
+        throw new \RuntimeException('ImageKit upload error (HTTP ' . $httpCode . '): ' . ($result['message'] ?? $response ?? 'Unknown'));
     }
 
     return $result ?: [];

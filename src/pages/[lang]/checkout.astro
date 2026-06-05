@@ -594,12 +594,15 @@ const i18n = {
           msg.textContent = "¡Comprobante recibido!";
           msg.className = "font-body text-body-md text-xs mt-1 text-green-700";
         } else {
-          msg.textContent = "Error al subir. Puedes hacerlo después.";
+          const errMsg = uploadData?.error || "Error al subir";
+          msg.textContent = errMsg + ". Puedes hacerlo después desde el panel admin.";
           msg.className = "font-body text-body-md text-xs mt-1 text-error";
+          console.error("ImageKit upload error:", uploadData);
         }
-      } catch {
+      } catch (err) {
         msg.textContent = "Error de conexión. Puedes hacerlo después.";
         msg.className = "font-body text-body-md text-xs mt-1 text-error";
+        console.error("ImageKit upload exception:", err);
       }
     });
 
@@ -720,17 +723,19 @@ const i18n = {
             formData.append("folder", "receipts");
             const uploadRes = await fetch("/api/imagekit/upload.php", { method: "POST", body: formData });
             const uploadData = await uploadRes.json();
-            if (uploadRes.ok && uploadData.url) {
-              receiptUrl = uploadData.url;
-              await fetch("/api/pedidos/update-receipt.php", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ id: order.id, transferReceipt: receiptUrl })
-              });
-              showReceiptMsg(checkoutI18n.receiptReceived, false);
-            } else {
-              showReceiptMsg(checkoutI18n.receiptFailed, true);
-            }
+              if (uploadRes.ok && uploadData.url) {
+                receiptUrl = uploadData.url;
+                await fetch("/api/pedidos/update-receipt.php", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ id: order.id, transferReceipt: receiptUrl })
+                });
+                showReceiptMsg(checkoutI18n.receiptReceived, false);
+              } else {
+                const errMsg = uploadData?.error || checkoutI18n.receiptFailed;
+                showReceiptMsg(errMsg, true);
+                console.error("ImageKit upload error:", uploadData);
+              }
           }
 
           // Save cart backup before clearing
