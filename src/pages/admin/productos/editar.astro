@@ -20,7 +20,6 @@ const tabs = [
 
 <AdminLayout title="Editar Producto" currentPath="/admin/productos">
   <div id="loading" class="font-body text-body-md text-secondary p-4">Cargando producto...</div>
-  <div id="message" class="hidden font-body text-body-md p-3 mb-6 rounded-sm"></div>
 
   <form id="productForm" class="hidden max-w-2xl">
     <input type="hidden" id="fieldId" />
@@ -51,18 +50,24 @@ const tabs = [
         <div class="space-y-6">
           <div>
             <label class="font-label-caps text-label-caps text-secondary block mb-2">NOMBRE DEL PRODUCTO</label>
-            <input type="text" id="fieldName" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none" />
+            <div class="relative">
+              <input type="text" id="fieldName" required maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 pr-16 text-monolith-black focus:border-clay-accent focus:outline-none text-lg transition-colors" />
+              <span id="nameCounter" class="absolute right-0 bottom-2 text-xs font-body text-secondary pointer-events-none">0/255</span>
+            </div>
             <div id="slugPreview" class="font-body text-body-sm text-secondary mt-1 hidden">
               <span class="text-clay-accent">/producto/</span><span id="slugText"></span>
             </div>
           </div>
           <div>
             <label class="font-label-caps text-label-caps text-secondary block mb-2">DESCRIPCIÓN</label>
-            <textarea id="fieldDescription" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-monolith-black focus:outline-none resize-none h-32"></textarea>
+            <div class="relative">
+              <textarea id="fieldDescription" class="w-full bg-transparent border border-outline p-3 pb-8 text-monolith-black focus:border-clay-accent focus:outline-none resize-none h-32"></textarea>
+              <span id="descCounter" class="absolute right-2 bottom-2 text-xs font-body text-secondary pointer-events-none">0 caracteres</span>
+            </div>
           </div>
           <div>
             <label class="font-label-caps text-label-caps text-secondary block mb-2">DETALLES (uno por línea)</label>
-            <textarea id="fieldDetails" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-monolith-black focus:outline-none resize-none h-24"></textarea>
+            <textarea id="fieldDetails" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-clay-accent focus:outline-none resize-none h-24"></textarea>
           </div>
         </div>
       </div>
@@ -106,7 +111,6 @@ const tabs = [
         <div class="flex items-center justify-between mb-4">
           <div id="imageCounter" class="font-body text-body-sm text-secondary">0/5 imágenes</div>
         </div>
-        <div id="uploadMessage" class="hidden font-body text-body-md p-3 mb-4 rounded-sm"></div>
         <div id="imagePreviewList" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
       </div>
     </div>
@@ -120,9 +124,9 @@ const tabs = [
 
     <!-- Submit -->
     <div class="mt-8 pt-6 border-t border-outline-variant flex items-center gap-4">
-      <button type="submit" class="bg-monolith-black text-off-white font-label-caps text-label-caps h-12 px-8 inline-flex items-center justify-center gap-1.5 rounded-md hover:bg-monolith-black/90 hover:shadow-sm transition-all duration-200">
-        <span class="material-symbols-outlined text-lg">save</span>
-        GUARDAR CAMBIOS
+      <button type="submit" id="submitBtn" class="bg-monolith-black text-off-white font-label-caps text-label-caps h-12 px-8 inline-flex items-center justify-center gap-1.5 rounded-md hover:bg-monolith-black/90 hover:shadow-sm transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed">
+        <span class="material-symbols-outlined text-lg" id="submitIcon">save</span>
+        <span id="submitText">GUARDAR CAMBIOS</span>
       </button>
       <a href="/admin/productos" class="font-label-caps text-label-caps text-secondary hover:text-monolith-black transition-colors">CANCELAR</a>
     </div>
@@ -181,7 +185,6 @@ const tabs = [
     const imageInput = document.getElementById("imageInput");
     const imageZone = document.getElementById("imageUploadZone");
     const imagePreviewList = document.getElementById("imagePreviewList");
-    const uploadMsg = document.getElementById("uploadMessage");
     const imageCounter = document.getElementById("imageCounter");
 
     function updateImageUI() {
@@ -200,17 +203,26 @@ const tabs = [
     function addImages(newImages) {
       const remaining = MAX_IMAGES - uploadedImages.length;
       if (remaining <= 0) {
-        showUploadMsg("Máximo " + MAX_IMAGES + " imágenes permitidas", true);
+        window.VunoModal.alert({
+          type: "warning",
+          title: "Límite de imágenes",
+          message: "Máximo " + MAX_IMAGES + " imágenes permitidas por producto.",
+        });
         return [];
       }
       return newImages.slice(0, remaining);
     }
 
-    function showUploadMsg(text, isError) {
-      uploadMsg.textContent = text;
-      uploadMsg.className = "font-body text-body-md p-3 mb-4 rounded-sm " + (isError ? "bg-red-100 text-error block" : "bg-green-100 text-green-800 block");
-      uploadMsg.classList.remove("hidden");
-      setTimeout(() => uploadMsg.classList.add("hidden"), 4000);
+    function showUploadSuccess(name) {
+      window.VunoToast.success("Imagen subida", name);
+    }
+
+    function showUploadError(fileName, message) {
+      window.VunoModal.alert({
+        type: "error",
+        title: "Error al subir imagen",
+        message: fileName + ": " + message,
+      });
     }
 
     function renderImagePreviews() {
@@ -243,7 +255,11 @@ const tabs = [
 
     async function uploadFile(file) {
       if (uploadedImages.length >= MAX_IMAGES) {
-        showUploadMsg("Máximo " + MAX_IMAGES + " imágenes alcanzado", true);
+        window.VunoModal.alert({
+          type: "warning",
+          title: "Límite de imágenes",
+          message: "Máximo " + MAX_IMAGES + " imágenes alcanzado. Elimina alguna antes de subir más.",
+        });
         return;
       }
       const formData = new FormData();
@@ -252,12 +268,21 @@ const tabs = [
       try {
         const res = await fetch("/api/imagekit/upload.php", { method: "POST", body: formData });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Upload failed");
+        if (!res.ok) {
+          const isImageKit = res.status >= 500 || (data.error || "").toLowerCase().includes("imagekit");
+          showUploadError(
+            file.name,
+            isImageKit
+              ? "El servicio de ImageKit no respondió correctamente. Intenta de nuevo en unos segundos."
+              : (data.error || "Error desconocido")
+          );
+          return;
+        }
         uploadedImages.push({ url: data.url, name: data.name || file.name, fileId: data.fileId });
         renderImagePreviews();
-        showUploadMsg("Imagen subida: " + (data.name || file.name), false);
+        showUploadSuccess(data.name || file.name);
       } catch (err) {
-        showUploadMsg("Error al subir " + file.name + ": " + err.message, true);
+        showUploadError(file.name, "Sin conexión con el servicio de imágenes. Verifica tu red.");
       }
     }
 
@@ -287,6 +312,42 @@ const tabs = [
     });
 
     renderImagePreviews();
+
+    // --- Char counters ---
+    const NAME_MAX = 255;
+
+    function setupCharCount(inputId, counterId, max) {
+      const input = document.getElementById(inputId);
+      const counter = document.getElementById(counterId);
+      if (!input || !counter) return;
+      function update() {
+        const len = input.value.length;
+        counter.textContent = len + "/" + max;
+        counter.className = "absolute right-0 bottom-2 text-xs font-body pointer-events-none transition-colors duration-200 " +
+          (len >= max ? "text-error" : len >= max * 0.8 ? "text-clay-accent" : "text-secondary");
+      }
+      input.addEventListener("input", update);
+      update();
+    }
+
+    function setLoading(btnId, iconId, textId, loading, actionText) {
+      const btn = document.getElementById(btnId);
+      const icon = document.getElementById(iconId);
+      const text = document.getElementById(textId);
+      if (!btn || !icon || !text) return;
+      btn.disabled = loading;
+      if (loading) {
+        icon.textContent = "progress_activity";
+        icon.classList.add("animate-spin");
+        text.textContent = actionText || "Guardando...";
+      } else {
+        icon.textContent = icon.dataset.origIcon || "save";
+        icon.classList.remove("animate-spin");
+        text.textContent = text.dataset.original || "";
+      }
+    }
+
+    document.getElementById("submitIcon").dataset.origIcon = "save";
 
     // --- Load product + categories ---
     (async function () {
@@ -346,6 +407,13 @@ const tabs = [
         });
         renderImagePreviews();
 
+        // Init char counters with loaded values
+        setupCharCount("fieldName", "nameCounter", NAME_MAX);
+        document.getElementById("fieldDescription").addEventListener("input", function() {
+          document.getElementById("descCounter").textContent = this.value.length + " caracteres";
+        });
+        document.getElementById("descCounter").textContent = (p.description || "").length + " caracteres";
+
         document.getElementById("loading").classList.add("hidden");
         document.getElementById("productForm").classList.remove("hidden");
         document.querySelector(".tab-btn")?.click();
@@ -383,7 +451,7 @@ const tabs = [
         images: uploadedImages.map(i => i.url),
       };
 
-      const msg = document.getElementById("message");
+      setLoading("submitBtn", "submitIcon", "submitText", true, "Guardando...");
       try {
         const res = await fetch("/api/productos/update.php", {
           method: "POST",
@@ -391,14 +459,16 @@ const tabs = [
           body: JSON.stringify(payload),
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error);
-        msg.className = "font-body text-body-md p-3 mb-6 rounded-sm bg-green-100 text-green-800 block";
-        msg.textContent = "Producto actualizado correctamente.";
-        msg.classList.remove("hidden");
+        if (!res.ok) throw new Error(data.error || "Error al guardar el producto");
+        setLoading("submitBtn", "submitIcon", "submitText", false);
+        window.VunoToast.success("Producto actualizado", "Los cambios se han guardado correctamente.");
       } catch (err) {
-        msg.className = "font-body text-body-md p-3 mb-6 rounded-sm bg-red-100 text-error block";
-        msg.textContent = err.message;
-        msg.classList.remove("hidden");
+        setLoading("submitBtn", "submitIcon", "submitText", false);
+        window.VunoModal.alert({
+          type: "error",
+          title: "Error al guardar",
+          message: err.message || "No se pudo actualizar el producto. Intenta de nuevo.",
+        });
       }
     });
   </script>
