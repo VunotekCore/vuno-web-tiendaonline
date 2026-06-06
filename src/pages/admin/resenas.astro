@@ -142,23 +142,32 @@ import AdminLayout from "./_layout.astro";
               body: JSON.stringify({ id: parseInt(btn.dataset.id) }),
             });
             if (res.ok) loadReviews();
-            else alert("Error approving review");
-          } catch (err) { alert(err.message); }
+            else window.VunoModal.alert({ type: "error", title: "Error", message: "Error approving review" });
+          } catch (err) { window.VunoModal.alert({ type: "error", title: "Error", message: err.message }); }
         });
       });
 
       document.querySelectorAll(".delete-btn").forEach(btn => {
-        btn.addEventListener("click", async () => {
-          if (!confirm("¿Eliminar esta reseña?")) return;
-          try {
-            const res = await fetch("/api/resenas/delete.php", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ id: parseInt(btn.dataset.id) }),
-            });
-            if (res.ok) loadReviews();
-            else alert("Error deleting review");
-          } catch (err) { alert(err.message); }
+        btn.addEventListener("click", () => {
+          const id = parseInt(btn.dataset.id);
+          window.VunoModal.confirm({
+            type: "warning",
+            title: "Eliminar reseña",
+            message: "¿Eliminar esta reseña?",
+            confirmText: "ELIMINAR",
+            cancelText: "CANCELAR",
+            onConfirm: async () => {
+              try {
+                const res = await fetch("/api/resenas/delete.php", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ id }),
+                });
+                if (res.ok) loadReviews();
+                else window.VunoModal.alert({ type: "error", title: "Error", message: "Error deleting review" });
+              } catch (err) { window.VunoModal.alert({ type: "error", title: "Error", message: err.message }); }
+            },
+          });
         });
       });
     }

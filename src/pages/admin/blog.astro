@@ -173,7 +173,9 @@ import AdminLayout from "./_layout.astro";
         if (!res.ok) throw new Error("Delete failed");
         document.getElementById("deleteModal").classList.add("hidden");
         loadPosts(currentPage);
-      } catch { alert("Error deleting post"); }
+      } catch (err) {
+        window.VunoModal.alert({ type: "error", title: "Error al eliminar", message: err.message || "Error deleting post" });
+      }
     });
 
     document.getElementById("statusFilter").addEventListener("change", () => loadPosts(1));

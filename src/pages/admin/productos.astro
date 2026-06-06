@@ -100,7 +100,12 @@ import AdminLayout from "./_layout.astro";
       return `<span class="font-label-caps text-label-caps text-xs px-2 py-1 rounded-sm ${cls}">${label}</span>`;
     }
 
+    const isViewer = window.adminRole === "viewer";
+
     function actionLinks(p) {
+      if (isViewer) {
+        return '<span class="font-body text-body-sm text-secondary italic">Solo lectura</span>';
+      }
       const id = encodeURIComponent(p.id);
       const name = p.name;
       return `<div class="flex gap-2">
@@ -130,7 +135,6 @@ import AdminLayout from "./_layout.astro";
       `).join("");
 
       const cardsHtml = products.map(p => {
-        const id = encodeURIComponent(p.id);
         return `
           <div class="bg-off-white border border-outline-variant border-l-2 border-l-monolith-black shadow-sm hover:shadow-md transition-all duration-200 rounded-sm p-4 flex flex-col gap-3">
             <div class="flex items-start justify-between">
@@ -145,16 +149,7 @@ import AdminLayout from "./_layout.astro";
             </div>
             <div class="flex items-center justify-between pt-1">
               ${stockBadge(p.totalStock || 0)}
-              <div class="flex gap-2">
-                <a href="/admin/productos/editar?id=${id}" class="inline-flex items-center gap-1 px-3 py-1.5 font-label-caps text-label-caps border rounded-md transition-all duration-200 border-monolith-black/20 text-secondary hover:border-monolith-black hover:text-monolith-black hover:bg-monolith-black/5">
-                  <span class="material-symbols-outlined text-sm">edit</span>
-                  EDIT
-                </a>
-                <button data-delete-id="${id}" data-delete-name="${p.name}" class="delete-btn inline-flex items-center gap-1 px-3 py-1.5 font-label-caps text-label-caps border rounded-md transition-all duration-200 border-error/20 text-secondary hover:border-error hover:text-error hover:bg-error/5">
-                  <span class="material-symbols-outlined text-sm">delete</span>
-                  DELETE
-                </button>
-              </div>
+              <div class="flex gap-2">${actionLinks(p)}</div>
             </div>
           </div>`;
       }).join("");
@@ -278,10 +273,10 @@ import AdminLayout from "./_layout.astro";
           loadProducts();
         } else {
           const data = await res.json();
-          alert(data.error || "Delete failed");
+          window.VunoModal.alert({ type: "error", title: "Error al eliminar", message: data.error || "Delete failed" });
         }
       } catch (err) {
-        alert(err.message);
+        window.VunoModal.alert({ type: "error", title: "Error al eliminar", message: err.message });
       }
     });
 
@@ -294,5 +289,9 @@ import AdminLayout from "./_layout.astro";
     });
 
     loadProducts();
+
+    if (isViewer) {
+      document.querySelector('a[href="/admin/productos/nuevo"]')?.remove();
+    }
   </script>
 </AdminLayout>

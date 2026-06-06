@@ -111,3 +111,7 @@ html-designs/
 
 # PHP dependencies
 vendor/
+
+# Agent / IDE system files (opencode skills, not part of project)
+.agents/
+skills-lock.json

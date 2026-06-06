@@ -300,10 +300,10 @@ import AdminLayout from "./_layout.astro";
           loadCategories();
         } else {
           const d = await res.json();
-          alert(d.error || "Error al actualizar");
+          window.VunoModal.alert({ type: "error", title: "Error al actualizar", message: d.error || "Error al actualizar" });
         }
       } catch (err) {
-        alert(err.message);
+        window.VunoModal.alert({ type: "error", title: "Error al actualizar", message: err.message });
       }
     });
 
@@ -331,10 +331,10 @@ import AdminLayout from "./_layout.astro";
           loadCategories();
         } else {
           const d = await res.json();
-          alert(d.error || "Error al eliminar");
+          window.VunoModal.alert({ type: "error", title: "Error al eliminar", message: d.error || "Error al eliminar" });
         }
       } catch (err) {
-        alert(err.message);
+        window.VunoModal.alert({ type: "error", title: "Error al eliminar", message: err.message });
       }
     });
 

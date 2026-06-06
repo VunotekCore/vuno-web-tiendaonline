@@ -125,21 +125,28 @@ import AdminLayout from "./_layout.astro";
     }
 
     async function deleteUser(id, email) {
-      if (!confirm(`¿Eliminar usuario "${email}"? Esta acción no se puede deshacer.`)) return;
-
-      try {
-        const res = await fetch("/api/admin/users.php?id=" + id, { method: "DELETE" });
-        if (res.ok) {
-          showMsg("Usuario eliminado correctamente", "success");
-          loadUsers();
-        } else {
-          const d = await res.json();
-          showMsg(d.error || "Error al eliminar", "error");
-          loadUsers();
-        }
-      } catch (err) {
-        showMsg(err.message, "error");
-      }
+      window.VunoModal.confirm({
+        type: "warning",
+        title: "Eliminar usuario",
+        message: `¿Eliminar usuario "${email}"? Esta acción no se puede deshacer.`,
+        confirmText: "ELIMINAR",
+        cancelText: "CANCELAR",
+        onConfirm: async () => {
+          try {
+            const res = await fetch("/api/admin/users.php?id=" + id, { method: "DELETE" });
+            if (res.ok) {
+              showMsg("Usuario eliminado correctamente", "success");
+              loadUsers();
+            } else {
+              const d = await res.json();
+              showMsg(d.error || "Error al eliminar", "error");
+              loadUsers();
+            }
+          } catch (err) {
+            showMsg(err.message, "error");
+          }
+        },
+      });
     }
 
     async function loadUsers() {
