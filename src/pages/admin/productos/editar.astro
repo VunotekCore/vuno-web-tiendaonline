@@ -1,5 +1,6 @@
 ---
 import AdminLayout from "../_layout.astro";
+import VariantsMatrix from "../../../components/admin/VariantsMatrix.astro";
 
 const allSizes = ["36", "37", "38", "39", "40", "41"];
 const allColors = [
@@ -113,34 +114,7 @@ const tabs = [
     <!-- Tab: Variantes -->
     <div id="tab-variants" class="tab-content hidden">
       <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
-        <h2 class="font-headline text-headline-md mb-6 flex items-center gap-2">
-          <span class="material-symbols-outlined text-xl">palette</span>
-          Matriz de Inventario
-        </h2>
-        <p class="font-body text-body-md text-secondary mb-6">Ingresa el stock numérico para cada combinación de color y talle. Deja en 0 para deshabilitar.</p>
-        <div class="overflow-x-auto">
-          <div class="grid gap-3 min-w-[500px]" style="grid-template-columns: 60px repeat({allColors.length}, minmax(100px,1fr))">
-            <div></div>
-            {allColors.map(color => (
-              <div class="flex items-center gap-2 font-label-caps text-label-caps text-secondary">
-                <span class="w-4 h-4 rounded-full border border-outline-variant shrink-0" style={`background-color: ${color.hex}`}></span>
-                <span>{color.name}</span>
-              </div>
-            ))}
-            {allSizes.map(size => [
-              <div class="font-body text-body-md text-monolith-black font-medium self-center">{size}</div>,
-              ...allColors.map(color => {
-                const inputId = `stock-${color.name}-${size}`;
-                return (
-                  <input type="number" id={inputId} min="0" step="1" value="0"
-                    class="w-full h-10 px-2 text-center border border-outline-variant rounded-sm bg-white
-                           focus:border-monolith-black focus:outline-none transition-colors
-                           [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
-                );
-              })
-            ])}
-          </div>
-        </div>
+        <VariantsMatrix id="edit" colors={allColors} sizes={allSizes} />
       </div>
     </div>
 
@@ -351,10 +325,20 @@ const tabs = [
         }
 
         // Variants: populate stock matrix
+        const initialStocks = {};
         (p.variants || []).forEach(v => {
-          const el = document.getElementById("stock-" + v.color_name + "-" + v.size_value);
-          if (el) el.value = v.stock;
+          initialStocks[v.color_name + "_" + v.size_value] = v.stock;
         });
+        if (window.stockMatrix?.edit) {
+          if (typeof p.lowStockThreshold === "number") {
+            const thresholdInput = document.querySelector('[data-vm="threshold"]');
+            if (thresholdInput) {
+              thresholdInput.value = p.lowStockThreshold;
+              thresholdInput.dispatchEvent(new Event("input", { bubbles: true }));
+            }
+          }
+          window.stockMatrix.edit.setInitial(initialStocks);
+        }
 
         // Images: load existing
         (p.images || []).forEach(url => {
@@ -382,19 +366,8 @@ const tabs = [
       const details = document.getElementById("fieldDetails").value
         .split("\n").map(l => l.trim()).filter(Boolean);
 
-      // Collect colors that have any stock > 0
-      const colors = [];
-      const stocks = {};
-      allColors.forEach(c => {
-        let hasStock = false;
-        allSizes.forEach(s => {
-          const el = document.getElementById("stock-" + c.name + "-" + s);
-          const val = parseInt(el?.value) || 0;
-          stocks[c.name + "_" + s] = val;
-          if (val > 0) hasStock = true;
-        });
-        if (hasStock) colors.push(c);
-      });
+      const matrixPayload = window.stockMatrix?.edit?.toPayload() || { stocks: {}, activeColors: [], threshold: 5 };
+      const colors = matrixPayload.activeColors.length ? matrixPayload.activeColors : allColors;
 
       const payload = {
         id: document.getElementById("fieldId").value,
@@ -403,9 +376,10 @@ const tabs = [
         details: details.length ? details : null,
         price: parseFloat(document.getElementById("fieldPrice").value),
         category: document.getElementById("fieldCategory").value,
-        colors: colors.length ? colors : allColors,
+        colors,
         sizes: allSizes.map(s => ({ label: s, value: s })),
-        stocks,
+        stocks: matrixPayload.stocks,
+        lowStockThreshold: matrixPayload.threshold,
         images: uploadedImages.map(i => i.url),
       };
 

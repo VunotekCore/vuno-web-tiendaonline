@@ -204,6 +204,7 @@ function buildProduct(string $id, ?string $lang = null): array
         'sizes'       => $sizesArr,
         'variants'    => $variantRows,
         'totalStock'  => $totalStock,
+        'lowStockThreshold' => isset($row['low_stock_threshold']) ? (int)$row['low_stock_threshold'] : 5,
         'createdAt'   => date('c', strtotime($row['created_at'])),
     ];
 }
@@ -213,23 +214,28 @@ function saveProduct(array $product): void
     $db = getDb();
     $db->beginTransaction();
     try {
-        // Upsert product
-        $stmt = $db->prepare(
-            'INSERT INTO products (id, name, slug, description, price, currency, created_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?)
-             ON DUPLICATE KEY UPDATE name = VALUES(name), slug = VALUES(slug),
-             description = VALUES(description), price = VALUES(price), currency = VALUES(currency)'
-        );
-        $createdAt = $product['createdAt'] ?? date('c');
-        $stmt->execute([
-            $product['id'],
-            $product['name'],
-            $product['slug'],
-            $product['description'] ?? '',
-            $product['price'],
-            $product['currency'] ?? 'USD',
-            date('Y-m-d H:i:s', strtotime($createdAt)),
-        ]);
+    // Upsert product
+    $lowStockThreshold = isset($product['lowStockThreshold'])
+        ? max(0, min(99, (int)$product['lowStockThreshold']))
+        : 5;
+    $stmt = $db->prepare(
+        'INSERT INTO products (id, name, slug, description, price, currency, low_stock_threshold, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+         ON DUPLICATE KEY UPDATE name = VALUES(name), slug = VALUES(slug),
+         description = VALUES(description), price = VALUES(price), currency = VALUES(currency),
+         low_stock_threshold = VALUES(low_stock_threshold)'
+    );
+    $createdAt = $product['createdAt'] ?? date('c');
+    $stmt->execute([
+        $product['id'],
+        $product['name'],
+        $product['slug'],
+        $product['description'] ?? '',
+        $product['price'],
+        $product['currency'] ?? 'USD',
+        $lowStockThreshold,
+        date('Y-m-d H:i:s', strtotime($createdAt)),
+    ]);
 
         // Details: delete all, re-insert
         $db->prepare('DELETE FROM product_details WHERE product_id = ?')->execute([$product['id']]);

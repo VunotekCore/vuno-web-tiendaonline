@@ -109,6 +109,7 @@ CREATE TABLE products (
     height_cm           DECIMAL(8,2) DEFAULT NULL,
     is_active           BOOLEAN DEFAULT TRUE,
     is_featured         BOOLEAN DEFAULT FALSE,
+    low_stock_threshold TINYINT UNSIGNED DEFAULT 5,
     meta_title          VARCHAR(255),
     meta_description    VARCHAR(500),
     og_image_url        VARCHAR(500),
@@ -121,6 +122,14 @@ CREATE TABLE products (
     INDEX idx_featured (is_featured),
     FULLTEXT INDEX ft_search (name, description)
 ) ENGINE=InnoDB;
+
+-- Migration: add products.low_stock_threshold (idempotent for existing DBs)
+SET @col_exists = (SELECT COUNT(*) FROM information_schema.COLUMNS
+                   WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'products' AND COLUMN_NAME = 'low_stock_threshold');
+SET @sql = IF(@col_exists = 0,
+              'ALTER TABLE products ADD COLUMN low_stock_threshold TINYINT UNSIGNED DEFAULT 5 AFTER is_featured',
+              'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 CREATE TABLE product_details (
     id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

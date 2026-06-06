@@ -1,5 +1,6 @@
 ---
 import AdminLayout from "../_layout.astro";
+import VariantsMatrix from "../../../components/admin/VariantsMatrix.astro";
 
 const allSizes = ["36", "37", "38", "39", "40", "41"];
 const allColors = [
@@ -110,34 +111,7 @@ const tabs = [
     <!-- Tab: Variantes -->
     <div id="tab-variants" class="tab-content hidden">
       <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
-        <h2 class="font-headline text-headline-md mb-6 flex items-center gap-2">
-          <span class="material-symbols-outlined text-xl">palette</span>
-          Matriz de Inventario
-        </h2>
-        <p class="font-body text-body-md text-secondary mb-6">Ingresa el stock numérico para cada combinación de color y talle. Deja en 0 para deshabilitar.</p>
-        <div class="overflow-x-auto">
-          <div class="grid gap-3 min-w-[500px]" style="grid-template-columns: 60px repeat({allColors.length}, minmax(100px,1fr))">
-            <div></div>
-            {allColors.map(color => (
-              <div class="flex items-center gap-2 font-label-caps text-label-caps text-secondary">
-                <span class="w-4 h-4 rounded-full border border-outline-variant shrink-0" style={`background-color: ${color.hex}`}></span>
-                <span>{color.name}</span>
-              </div>
-            ))}
-            {allSizes.map(size => [
-              <div class="font-body text-body-md text-monolith-black font-medium self-center">{size}</div>,
-              ...allColors.map(color => {
-                const inputId = `stock-${color.name}-${size}`;
-                return (
-                  <input type="number" id={inputId} min="0" step="1" value="0"
-                    class="w-full h-10 px-2 text-center border border-outline-variant rounded-sm bg-white
-                           focus:border-monolith-black focus:outline-none transition-colors
-                           [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
-                );
-              })
-            ])}
-          </div>
-        </div>
+        <VariantsMatrix id="new" colors={allColors} sizes={allSizes} />
       </div>
     </div>
 
@@ -211,6 +185,10 @@ const tabs = [
 
     // --- Image Upload ---
     const MAX_IMAGES = 5;
+    const MIN_IMG_W = 800;
+    const MIN_IMG_H = 1000;
+    const MIN_RATIO = 0.76;
+    const MAX_RATIO = 0.84;
     const uploadedImages = [];
     const imageInput = document.getElementById("imageInput");
     const imageZone = document.getElementById("imageUploadZone");
@@ -229,15 +207,6 @@ const tabs = [
         imageZone.style.pointerEvents = "";
         imageZone.style.opacity = "";
       }
-    }
-
-    function addImages(newImages) {
-      const remaining = MAX_IMAGES - uploadedImages.length;
-      if (remaining <= 0) {
-        showUploadMsg("Máximo " + MAX_IMAGES + " imágenes permitidas", true);
-        return [];
-      }
-      return newImages.slice(0, remaining);
     }
 
     function showUploadMsg(text, isError) {
@@ -275,6 +244,31 @@ const tabs = [
       updateImageUI();
     }
 
+    function validateImageDimensions(file) {
+      return new Promise(function (resolve, reject) {
+        var img = new Image();
+        var url = URL.createObjectURL(file);
+        img.onload = function () {
+          URL.revokeObjectURL(url);
+          if (img.width < MIN_IMG_W || img.height < MIN_IMG_H) {
+            reject(new Error(file.name + " demasiado pequeña: " + img.width + "×" + img.height + ". Mínimo: " + MIN_IMG_W + "×" + MIN_IMG_H + "px"));
+          } else {
+            var ratio = img.width / img.height;
+            if (ratio < MIN_RATIO || ratio > MAX_RATIO) {
+              reject(new Error(file.name + " ratio " + ratio.toFixed(2) + " incorrecto. Debe ser 4:5 (0.80) ±5%"));
+            } else {
+              resolve();
+            }
+          }
+        };
+        img.onerror = function () {
+          URL.revokeObjectURL(url);
+          reject(new Error("No se pudo leer " + file.name));
+        };
+        img.src = url;
+      });
+    }
+
     async function uploadFile(file) {
       if (uploadedImages.length >= MAX_IMAGES) {
         showUploadMsg("Máximo " + MAX_IMAGES + " imágenes alcanzado", true);
@@ -295,29 +289,44 @@ const tabs = [
       }
     }
 
-    imageInput.addEventListener("change", () => {
-      const allowed = addImages(Array.from(imageInput.files));
-      allowed.forEach(f => uploadFile(f));
+    async function handleFiles(fileList) {
+      var files = Array.from(fileList).filter(function (f) { return f.type.startsWith("image/"); });
+      for (var i = 0; i < files.length; i++) {
+        var f = files[i];
+        if (uploadedImages.length >= MAX_IMAGES) {
+          showUploadMsg("Máximo " + MAX_IMAGES + " imágenes permitidas", true);
+          break;
+        }
+        try {
+          await validateImageDimensions(f);
+          await uploadFile(f);
+        } catch (err) {
+          showUploadMsg(err.message, true);
+        }
+      }
+    }
+
+    imageInput.addEventListener("change", function () {
+      handleFiles(imageInput.files);
       imageInput.value = "";
     });
 
-    imageZone.addEventListener("click", () => {
+    imageZone.addEventListener("click", function () {
       if (uploadedImages.length < MAX_IMAGES) imageInput.click();
     });
 
-    imageZone.addEventListener("dragover", (e) => {
+    imageZone.addEventListener("dragover", function (e) {
       if (uploadedImages.length >= MAX_IMAGES) return;
       e.preventDefault();
       imageZone.classList.add("border-monolith-black", "bg-monolith-black/5");
     });
-    imageZone.addEventListener("dragleave", () => {
+    imageZone.addEventListener("dragleave", function () {
       imageZone.classList.remove("border-monolith-black", "bg-monolith-black/5");
     });
-    imageZone.addEventListener("drop", (e) => {
+    imageZone.addEventListener("drop", function (e) {
       e.preventDefault();
       imageZone.classList.remove("border-monolith-black", "bg-monolith-black/5");
-      const allowed = addImages(Array.from(e.dataTransfer.files).filter(f => f.type.startsWith("image/")));
-      allowed.forEach(f => uploadFile(f));
+      handleFiles(e.dataTransfer.files);
     });
 
     renderImagePreviews();
@@ -332,18 +341,8 @@ const tabs = [
       const details = document.getElementById("fieldDetails").value
         .split("\n").map(l => l.trim()).filter(Boolean);
 
-      const colors = [];
-      const stocks = {};
-      allColors.forEach(c => {
-        let hasStock = false;
-        allSizes.forEach(s => {
-          const el = document.getElementById("stock-" + c.name + "-" + s);
-          const val = parseInt(el?.value) || 0;
-          stocks[c.name + "_" + s] = val;
-          if (val > 0) hasStock = true;
-        });
-        if (hasStock) colors.push(c);
-      });
+      const matrixPayload = window.stockMatrix?.new?.toPayload() || { stocks: {}, activeColors: [], threshold: 5 };
+      const colors = matrixPayload.activeColors.length ? matrixPayload.activeColors : allColors;
 
       const payload = {
         name: document.getElementById("fieldName").value,
@@ -351,9 +350,10 @@ const tabs = [
         details: details.length ? details : null,
         price: parseFloat(document.getElementById("fieldPrice").value),
         category: document.getElementById("fieldCategory").value,
-        colors: colors.length ? colors : allColors,
+        colors,
         sizes: allSizes.map(s => ({ label: s, value: s })),
-        stocks,
+        stocks: matrixPayload.stocks,
+        lowStockThreshold: matrixPayload.threshold,
         images: uploadedImages.map(i => i.url),
       };
 
