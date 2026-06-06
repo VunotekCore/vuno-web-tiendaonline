@@ -2,6 +2,7 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import Navbar from "../../components/organisms/Navbar.astro";
 import Footer from "../../components/organisms/Footer.astro";
+import AnimatedReveal from "../../components/atoms/AnimatedReveal.astro";
 import { t, type Locale, locales } from "../../i18n/utils";
 
 export async function getStaticPaths() {
@@ -15,90 +16,96 @@ const alternateUrls = {
   es: `${siteUrl}/es/wishlist`,
   en: `${siteUrl}/en/wishlist`,
 };
-
 ---
 
 <BaseLayout title={lang === "es" ? "Lista de Deseos | Ram;Lop" : "Wishlist | Ram;Lop"} lang={lang} alternateUrls={alternateUrls}>
   <Navbar lang={lang} currentPath={currentPath} />
   <main class="flex-grow w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-section-gap">
-    <div class="mb-gutter">
-      <h1 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg mb-unit">{t("wishlist.title", lang)}</h1>
-      <p class="font-body-md text-body-md text-secondary">{t("wishlist.subtitle", lang)}</p>
-    </div>
+    <AnimatedReveal>
+      <div class="mb-gutter">
+        <h1 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg mb-unit">{t("wishlist.title", lang)}</h1>
+        <p class="font-body-md text-body-md text-secondary">{t("wishlist.subtitle", lang)}</p>
+      </div>
+    </AnimatedReveal>
 
     <div id="wishlistContainer" class="hidden">
       <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-gutter gap-y-12" id="wishlistItems"></div>
     </div>
 
     <div id="emptyWishlist" class="text-center py-20">
-      <span class="material-symbols-outlined text-5xl text-outline mb-4" style="font-variation-settings: 'FILL' 0">favorite_border</span>
-      <p class="font-body-lg text-body-lg text-secondary mb-6">{t("wishlist.empty", lang)}</p>
-      <a href={`/${lang}/catalogo`} class="inline-flex items-center justify-center bg-monolith-black text-off-white font-label-caps text-label-caps h-14 px-10 hover:opacity-80 transition-opacity">
-        {t("wishlist.explore", lang)}
-      </a>
+      <AnimatedReveal>
+        <span class="material-symbols-outlined text-5xl text-outline mb-4" style="font-variation-settings: 'FILL' 0">favorite_border</span>
+        <p class="font-body-lg text-body-lg text-secondary mb-6">{t("wishlist.empty", lang)}</p>
+        <a href={`/${lang}/catalogo`} class="inline-flex items-center justify-center bg-monolith-black text-off-white font-label-caps text-label-caps h-14 px-10 hover:bg-on-surface hover:tracking-[0.15em] transition-all duration-300">
+          {t("wishlist.explore", lang)}
+        </a>
+      </AnimatedReveal>
     </div>
   </main>
   <Footer lang={lang} />
 
-  <script>
+  <script is:inline define:vars={{ lang, wishlistI18n: { addedToCart: t("wishlist.addedToCart", lang), addToCart: t("wishlist.addToCart", lang) } }}>
     // @ts-nocheck
-    const wishlistI18n = {
-      addedToCart: `{t("wishlist.addedToCart", lang)}`,
-    };
-
-    const wishlistImages = [
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuAOl0RnMHBcj_hVts-U-miZkKAedvVeFrbnJOQpYkYI9GkqEuV7dJe7QAMQQTg_Decv57zYF6I9Kguts0SGgGlQKIE2tlmfP1HErlORC7ZDnviFsSSPdr-aP_pynY9-4SvPA-U_9nYtfXRyeshBqrQfKMpFIbEVO47jXJ6MgLWcnhqjpChy9_x-hypykt8TANDlZ0-pTJOove9sZjmIssCHFF81nQcLFafDdxvdzlZp-o8vKzMYejEE_JA6_-HPcGdKzuaVnmHUD1Y",
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuDXhrdFhaduB1ZJGQ10Hpu_MTZQjacUqKvE3WTPzIS_qZqGBfXpjkZyUZ2HWjjVGi3CqmqShLdIZb4bntjE8RoWzvlI4tJ46mEe9uBrxNjJV1AGKlTbnmu6KURlL_f7MDRmU2m4IvIObrSms1PlYwuWv2AM7EZCS4jlGygKcR86pCosZWcsGyi4OdlyCydtaJ_BF2Ty2-MgxhRtHZJoL2l0BqC7d-6DaY8w55Lrewg2PdtpDG6wCFoEhivA8jQWx_vzeu1vsRvTSSs",
-    ];
-
     function renderWishlist() {
       const items = window.VunoWishlist.getItems();
       const container = document.getElementById("wishlistContainer");
       const grid = document.getElementById("wishlistItems");
       const empty = document.getElementById("emptyWishlist");
-
       if (items.length === 0) {
         container.classList.add("hidden");
         empty.classList.remove("hidden");
         return;
       }
-
       container.classList.remove("hidden");
       empty.classList.add("hidden");
-
-      grid.innerHTML = items.map((item, idx) => `
-        <div class="flex flex-col group" data-product-id="${item.product.id}">
+      grid.innerHTML = items.map((item, idx) => {
+        const img = item.product.images && item.product.images.length > 0 ? item.product.images[0] : "";
+        const slug = item.product.slug || "";
+        const productUrl = slug ? "/" + lang + "/producto/" + slug : "/" + lang + "/catalogo";
+        return `<div class="flex flex-col group product-card" data-product-id="${item.product.id}" style="animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) ${idx * 0.08}s both">
           <div class="relative bg-surface-container aspect-[4/5] overflow-hidden mb-4">
-            <a href="/${lang}/producto/${item.product.slug}">
-              <img src="${wishlistImages[idx % wishlistImages.length]}" alt="${item.product.name}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+            <a href="${productUrl}">
+              <img src="${img}" alt="${escapeHtml(item.product.name)}" class="w-full h-full object-cover img-lift" loading="lazy" />
             </a>
             <div class="absolute top-3 right-3 flex flex-col gap-2">
               <button
-                data-toggle-wishlist
-                data-product='${JSON.stringify(item.product)}'
-                class="w-9 h-9 flex items-center justify-center bg-off-white/80 backdrop-blur-sm rounded-full hover:bg-off-white transition-colors border border-outline-variant/30 in-wishlist"
-                aria-label="Remove from wishlist"
+                class="w-9 h-9 flex items-center justify-center bg-off-white/80 backdrop-blur-sm rounded-full hover:bg-off-white hover:scale-110 transition-all border border-outline-variant/30 in-wishlist"
+                aria-label="${lang === "es" ? "Eliminar de lista de deseos" : "Remove from wishlist"}"
                 onclick="window.VunoWishlist.removeItem('${item.product.id}'); renderWishlist();"
               >
                 <span class="material-symbols-outlined wishlist-icon text-[18px] text-monolith-black" style="font-variation-settings: 'FILL' 1">favorite</span>
               </button>
             </div>
             <button
-              data-add-to-cart
-              data-product='${JSON.stringify(item.product)}'
-              data-quantity="1"
-              class="absolute bottom-4 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-off-white/90 backdrop-blur-sm px-6 py-2 font-label-caps text-label-caps text-monolith-black hover:bg-monolith-black hover:text-off-white transition-colors border border-outline-variant text-xs whitespace-nowrap hidden md:block"
-              onclick="event.stopPropagation(); window.VunoCart.addItem(${JSON.stringify(item.product).replace(/"/g, "'")}, 1, '', ''); alert(wishlistI18n.addedToCart);"
+              class="absolute bottom-4 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0 bg-off-white/90 backdrop-blur-sm px-4 py-2 font-label-caps text-label-caps text-monolith-black hover:bg-monolith-black hover:text-off-white transition-all border border-outline-variant text-xs whitespace-nowrap hidden md:block"
+              onclick="addFromWishlist('${item.product.id}')"
             >
-              {t("wishlist.addToCart", lang)}
+              ${wishlistI18n.addToCart}
             </button>
           </div>
-          <a href="/${lang}/producto/${item.product.slug}" class="flex flex-col gap-1">
-            <h3 class="font-body-md text-body-md text-monolith-black">${item.product.name}</h3>
+          <a href="${productUrl}" class="flex flex-col gap-1">
+            <h3 class="font-body-md text-body-md text-monolith-black group-hover:text-clay-accent transition-colors duration-300">${escapeHtml(item.product.name)}</h3>
             <p class="font-price-display text-price-display text-secondary">$${parseFloat(item.product.price).toFixed(2)}</p>
           </a>
-        </div>
-      `).join("");
+        </div>`;
+      }).join("");
+    }
+
+    function addFromWishlist(productId) {
+      const items = window.VunoWishlist.getItems();
+      const item = items.find(function (i) { return i.product.id === productId; });
+      if (!item) return;
+      var slug = item.product.slug;
+      if (slug) {
+        window.location.href = "/" + lang + "/producto/" + slug;
+      } else {
+        window.location.href = "/" + lang + "/catalogo";
+      }
+    }
+
+    function escapeHtml(str) {
+      if (typeof str !== "string") return str || "";
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
 
     renderWishlist();

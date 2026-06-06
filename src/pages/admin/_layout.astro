@@ -113,6 +113,9 @@ const navItems = [
         const data = await res.json();
         if (!data.valid) window.location.href = "/admin/login";
 
+        // Expose role globally for child pages
+        window.adminRole = data.role;
+
         // Hide role-restricted nav items based on user role
         if (data.role !== "superadmin") {
           document.querySelectorAll(".nav-superadmin").forEach(el => el.remove());

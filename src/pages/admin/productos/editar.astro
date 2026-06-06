@@ -51,6 +51,9 @@ const tabs = [
           <div>
             <label class="font-label-caps text-label-caps text-secondary block mb-2">NOMBRE DEL PRODUCTO</label>
             <input type="text" id="fieldName" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none" />
+            <div id="slugPreview" class="font-body text-body-sm text-secondary mt-1 hidden">
+              <span class="text-clay-accent">/producto/</span><span id="slugText"></span>
+            </div>
           </div>
           <div>
             <label class="font-label-caps text-label-caps text-secondary block mb-2">DESCRIPCIÓN</label>
@@ -98,6 +101,9 @@ const tabs = [
           <p class="font-body text-body-md text-secondary mb-1">Arrastra imágenes aquí o haz clic para seleccionar</p>
           <p class="font-body text-body-md text-secondary text-sm">JPG, PNG, WebP · Máximo 5MB cada una</p>
           <input type="file" id="imageInput" accept="image/jpeg,image/png,image/webp" multiple class="hidden" />
+        </div>
+        <div class="flex items-center justify-between mb-4">
+          <div id="imageCounter" class="font-body text-body-sm text-secondary">0/5 imágenes</div>
         </div>
         <div id="uploadMessage" class="hidden font-body text-body-md p-3 mb-4 rounded-sm"></div>
         <div id="imagePreviewList" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
@@ -169,12 +175,62 @@ const tabs = [
       });
     });
 
+    // --- Slug auto-preview ---
+    function slugify(text) {
+      return text.toLowerCase()
+        .replace(/[^\w\s-]/g, "")
+        .replace(/[\s_]+/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "")
+        .substring(0, 80);
+    }
+    document.getElementById("fieldName").addEventListener("input", function () {
+      const preview = document.getElementById("slugPreview");
+      const slugText = document.getElementById("slugText");
+      const slug = slugify(this.value);
+      if (slug) {
+        slugText.textContent = slug;
+        preview.classList.remove("hidden");
+      } else {
+        preview.classList.add("hidden");
+      }
+    });
+
+    // --- Viewer role guard ---
+    if (window.adminRole === "viewer") {
+      document.getElementById("productForm").innerHTML = '<div class="font-body text-body-md text-error bg-error/10 p-4 rounded-sm">No tienes permisos para editar productos.</div>';
+    }
+
     // --- Image Upload ---
+    const MAX_IMAGES = 5;
     const uploadedImages = [];
     const imageInput = document.getElementById("imageInput");
     const imageZone = document.getElementById("imageUploadZone");
     const imagePreviewList = document.getElementById("imagePreviewList");
     const uploadMsg = document.getElementById("uploadMessage");
+    const imageCounter = document.getElementById("imageCounter");
+
+    function updateImageUI() {
+      const count = uploadedImages.length;
+      const remaining = MAX_IMAGES - count;
+      imageCounter.textContent = count + "/" + MAX_IMAGES + " imágenes";
+      if (remaining <= 0) {
+        imageZone.style.pointerEvents = "none";
+        imageZone.style.opacity = "0.4";
+      } else {
+        imageZone.style.pointerEvents = "";
+        imageZone.style.opacity = "";
+      }
+    }
+
+    function addImages(newImages) {
+      const remaining = MAX_IMAGES - uploadedImages.length;
+      if (remaining <= 0) {
+        showUploadMsg("Máximo " + MAX_IMAGES + " imágenes permitidas", true);
+        return [];
+      }
+      return newImages.slice(0, remaining);
+    }
 
     function showUploadMsg(text, isError) {
       uploadMsg.textContent = text;
@@ -186,6 +242,7 @@ const tabs = [
     function renderImagePreviews() {
       if (!uploadedImages.length) {
         imagePreviewList.innerHTML = '<p class="font-body text-body-md text-secondary col-span-full text-center py-4">No hay imágenes subidas</p>';
+        updateImageUI();
         return;
       }
       imagePreviewList.innerHTML = uploadedImages.map((img, i) => `
@@ -207,9 +264,14 @@ const tabs = [
           renderImagePreviews();
         });
       });
+      updateImageUI();
     }
 
     async function uploadFile(file) {
+      if (uploadedImages.length >= MAX_IMAGES) {
+        showUploadMsg("Máximo " + MAX_IMAGES + " imágenes alcanzado", true);
+        return;
+      }
       const formData = new FormData();
       formData.append("file", file);
       formData.append("folder", "products");
@@ -226,13 +288,17 @@ const tabs = [
     }
 
     imageInput.addEventListener("change", () => {
-      Array.from(imageInput.files).forEach(f => uploadFile(f));
+      const allowed = addImages(Array.from(imageInput.files));
+      allowed.forEach(f => uploadFile(f));
       imageInput.value = "";
     });
 
-    imageZone.addEventListener("click", () => imageInput.click());
+    imageZone.addEventListener("click", () => {
+      if (uploadedImages.length < MAX_IMAGES) imageInput.click();
+    });
 
     imageZone.addEventListener("dragover", (e) => {
+      if (uploadedImages.length >= MAX_IMAGES) return;
       e.preventDefault();
       imageZone.classList.add("border-monolith-black", "bg-monolith-black/5");
     });
@@ -242,7 +308,8 @@ const tabs = [
     imageZone.addEventListener("drop", (e) => {
       e.preventDefault();
       imageZone.classList.remove("border-monolith-black", "bg-monolith-black/5");
-      Array.from(e.dataTransfer.files).filter(f => f.type.startsWith("image/")).forEach(f => uploadFile(f));
+      const allowed = addImages(Array.from(e.dataTransfer.files).filter(f => f.type.startsWith("image/")));
+      allowed.forEach(f => uploadFile(f));
     });
 
     renderImagePreviews();
@@ -260,7 +327,8 @@ const tabs = [
       // Load categories first
       try {
         const catRes = await fetch("/api/categorias/list.php");
-        const cats = await catRes.json();
+        const data = await catRes.json();
+        const cats = data.items || [];
         const select = document.getElementById("fieldCategory");
         select.innerHTML = cats.map(c => `<option value="${c.name}">${c.name}</option>`).join("") || '<option value="" disabled>No categories</option>';
       } catch {

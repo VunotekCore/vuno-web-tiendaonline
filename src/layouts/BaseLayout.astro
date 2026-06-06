@@ -1,6 +1,7 @@
 ---
 import "../styles/global.css";
 import type { Locale } from "../i18n/utils";
+import Modal from "../components/molecules/Modal.astro";
 
 interface Props {
   title: string;
@@ -30,12 +31,12 @@ const siteUrl = import.meta.env.PROD ? "https://vuno.com" : "http://localhost:43
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;700&family=Playfair+Display:wght@500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@400;500;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
       rel="stylesheet"
     />
     <link
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
       rel="stylesheet"
+      href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap"
     />
     <script src="/js/cart.js" is:inline></script>
     <script src="/js/wishlist.js" is:inline></script>
@@ -43,5 +44,6 @@ const siteUrl = import.meta.env.PROD ? "https://vuno.com" : "http://localhost:43
   </head>
   <body class="bg-background text-on-surface font-body-md antialiased selection:bg-monolith-black selection:text-off-white min-h-screen flex flex-col">
     <slot />
+    <Modal />
   </body>
 </html>

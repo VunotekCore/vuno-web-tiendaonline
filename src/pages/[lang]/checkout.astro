@@ -3,6 +3,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import Navbar from "../../components/organisms/Navbar.astro";
 import Footer from "../../components/organisms/Footer.astro";
 import Button from "../../components/atoms/Button.astro";
+import AnimatedReveal from "../../components/atoms/AnimatedReveal.astro";
 import { t, type Locale, locales } from "../../i18n/utils";
 
 export async function getStaticPaths() {
@@ -57,12 +58,20 @@ const i18n = {
   noBanks: t("checkout.noBanks", lang),
   bankDetails: t("checkout.bankDetails", lang),
 };
+
+const steps = [
+  { key: "shipping", label: t("checkout.step1", lang) || "ENVÍO" },
+  { key: "payment", label: t("checkout.step2", lang) || "PAGO" },
+  { key: "confirm", label: t("checkout.step3", lang) || "CONFIRMAR" },
+];
 ---
 
 <BaseLayout title={lang === "es" ? "Checkout | Ram;Lop" : "Checkout | Ram;Lop"} lang={lang} alternateUrls={alternateUrls}>
   <Navbar lang={lang} currentPath={currentPath} />
   <main class="flex-grow w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-section-gap">
-    <h1 class="font-headline text-headline-lg-mobile md:text-headline-lg mb-12">{t("checkout.title", lang)}</h1>
+    <AnimatedReveal>
+      <h1 class="font-headline text-headline-lg-mobile md:text-headline-lg mb-12">{t("checkout.title", lang)}</h1>
+    </AnimatedReveal>
 
     <div id="emptyCart" class="hidden text-center py-20">
       <p class="font-body text-body-lg text-secondary mb-6">{t("checkout.empty", lang)}</p>
@@ -71,161 +80,167 @@ const i18n = {
 
     <div id="checkoutForm" class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
       <div class="lg:col-span-7 flex flex-col gap-8">
-        <div>
-          <h2 class="font-headline text-headline-md mb-6">{t("checkout.shipping", lang)}</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="md:col-span-2">
-              <label class="font-label-caps text-label-caps text-secondary block mb-2">{t("checkout.fullName", lang)}</label>
-              <input id="customerName" type="text" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
-            </div>
-            <div class="md:col-span-2">
-              <label class="font-label-caps text-label-caps text-secondary block mb-2">{t("checkout.email", lang)}</label>
-              <input id="customerEmail" type="email" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
-            </div>
-            <div class="md:col-span-2">
-              <label class="font-label-caps text-label-caps text-secondary block mb-2">{t("checkout.address", lang)}</label>
-              <input id="customerAddress" type="text" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
-            </div>
-            <div>
-              <label class="font-label-caps text-label-caps text-secondary block mb-2">{t("checkout.city", lang)}</label>
-              <input id="customerCity" type="text" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
-            </div>
-            <div>
-              <label class="font-label-caps text-label-caps text-secondary block mb-2">{t("checkout.zip", lang)}</label>
-              <input id="customerZip" type="text" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
+        <AnimatedReveal>
+          <div>
+            <h2 class="font-headline text-headline-md mb-6 flex items-center gap-3">
+              <span class="w-8 h-8 bg-monolith-black text-off-white flex items-center justify-center font-label-caps text-label-caps text-xs">01</span>
+              {t("checkout.shipping", lang)}
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="md:col-span-2">
+                <label class="font-label-caps text-label-caps text-secondary block mb-2 tracking-widest">{t("checkout.fullName", lang)}</label>
+                <input id="customerName" type="text" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
+              </div>
+              <div class="md:col-span-2">
+                <label class="font-label-caps text-label-caps text-secondary block mb-2 tracking-widest">{t("checkout.email", lang)}</label>
+                <input id="customerEmail" type="email" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
+              </div>
+              <div class="md:col-span-2">
+                <label class="font-label-caps text-label-caps text-secondary block mb-2 tracking-widest">{t("checkout.address", lang)}</label>
+                <input id="customerAddress" type="text" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
+              </div>
+              <div>
+                <label class="font-label-caps text-label-caps text-secondary block mb-2 tracking-widest">{t("checkout.city", lang)}</label>
+                <input id="customerCity" type="text" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
+              </div>
+              <div>
+                <label class="font-label-caps text-label-caps text-secondary block mb-2 tracking-widest">{t("checkout.zip", lang)}</label>
+                <input id="customerZip" type="text" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
+              </div>
             </div>
           </div>
-        </div>
+        </AnimatedReveal>
 
-        <div id="paymentSection">
-          <h2 class="font-headline text-headline-md mb-6">{t("checkout.payment", lang)}</h2>
-          <div id="noPaymentMethods" class="hidden font-body text-body-md text-error bg-error/10 p-3 text-center">{t("checkout.noPayment", lang)}</div>
-          <div id="paymentError" class="hidden font-body text-body-md text-error bg-error/10 p-3 mb-4 text-center"></div>
-          <div id="cardErrors" class="hidden font-body text-body-md text-error bg-error/10 p-3 mb-4 text-center"></div>
-          <div id="paymentMethods" class="flex flex-col gap-4">
-            <div id="stripeOption" class="hidden">
-              <label class="flex items-center gap-4 p-4 border border-outline-variant cursor-pointer hover:border-monolith-black transition-colors has-checked:border-monolith-black has-checked:bg-monolith-black/5">
-                <input type="radio" name="payment" value="stripe" class="accent-monolith-black" />
-                <div>
-                  <span class="font-label-caps text-label-caps text-monolith-black block">{t("checkout.card", lang)}</span>
-                  <span class="font-body text-body-md text-secondary">{t("checkout.cardDesc", lang)}</span>
+        <AnimatedReveal delay={2}>
+          <div id="paymentSection">
+            <h2 class="font-headline text-headline-md mb-6 flex items-center gap-3">
+              <span class="w-8 h-8 bg-monolith-black text-off-white flex items-center justify-center font-label-caps text-label-caps text-xs">02</span>
+              {t("checkout.payment", lang)}
+            </h2>
+            <div id="noPaymentMethods" class="hidden font-body text-body-md text-error bg-error/10 p-3 text-center">{t("checkout.noPayment", lang)}</div>
+            <div id="paymentError" class="hidden font-body text-body-md text-error bg-error/10 p-3 mb-4 text-center"></div>
+            <div id="cardErrors" class="hidden font-body text-body-md text-error bg-error/10 p-3 mb-4 text-center"></div>
+            <div id="paymentMethods" class="flex flex-col gap-4">
+              <div id="stripeOption" class="hidden">
+                <label class="flex items-center gap-4 p-4 border border-outline-variant cursor-pointer hover:border-monolith-black transition-colors has-checked:border-monolith-black has-checked:bg-monolith-black/5">
+                  <input type="radio" name="payment" value="stripe" class="accent-monolith-black" />
+                  <div>
+                    <span class="font-label-caps text-label-caps text-monolith-black block tracking-widest">{t("checkout.card", lang)}</span>
+                    <span class="font-body text-body-md text-secondary">{t("checkout.cardDesc", lang)}</span>
+                  </div>
+                </label>
+                <div id="stripeCardElement" class="hidden pl-14 pr-4 pb-4 border-l-2 border-monolith-black">
+                  <div id="cardElement" class="py-3 px-4 border border-outline-variant bg-white rounded"></div>
                 </div>
-              </label>
-              <div id="stripeCardElement" class="hidden pl-14 pr-4 pb-4 border-l-2 border-monolith-black">
-                <div id="cardElement" class="py-3 px-4 border border-outline-variant bg-white rounded"></div>
               </div>
-            </div>
-            <div id="transferOption" class="hidden">
-              <label class="flex items-center gap-4 p-4 border border-outline-variant cursor-pointer hover:border-monolith-black transition-colors has-checked:border-monolith-black has-checked:bg-monolith-black/5">
-                <input type="radio" name="payment" value="transfer" class="accent-monolith-black" />
-                <div>
-                  <span class="font-label-caps text-label-caps text-monolith-black block">{t("checkout.transfer", lang)}</span>
-                  <span class="font-body text-body-md text-secondary">{t("checkout.transferDesc", lang)}</span>
-                </div>
-              </label>
+              <div id="transferOption" class="hidden">
+                <label class="flex items-center gap-4 p-4 border border-outline-variant cursor-pointer hover:border-monolith-black transition-colors has-checked:border-monolith-black has-checked:bg-monolith-black/5">
+                  <input type="radio" name="payment" value="transfer" class="accent-monolith-black" />
+                  <div>
+                    <span class="font-label-caps text-label-caps text-monolith-black block tracking-widest">{t("checkout.transfer", lang)}</span>
+                    <span class="font-body text-body-md text-secondary">{t("checkout.transferDesc", lang)}</span>
+                  </div>
+                </label>
+              </div>
             </div>
           </div>
-          <div id="transferInfo" class="hidden mt-4 p-4 bg-surface-container-low">
-            <div id="receiptUploadSection">
-              <p class="font-label-caps text-label-caps text-secondary mb-3">{t("checkout.receipt", lang)}</p>
-              <div id="receiptUploadZone" class="border-2 border-dashed border-outline-variant rounded-sm p-6 text-center cursor-pointer hover:border-monolith-black transition-colors bg-white mb-3">
-                <span class="material-symbols-outlined text-3xl text-secondary mb-1 block">receipt_long</span>
-                <p class="font-body text-body-md text-secondary text-sm mb-1">{t("checkout.receipt.select", lang)}</p>
-                <p class="font-body text-body-md text-secondary text-xs">{t("checkout.receipt.hint", lang)}</p>
-                <input type="file" id="receiptInput" accept="image/jpeg,image/png,image/webp,application/pdf" class="hidden" />
-              </div>
-              <div id="receiptPreview" class="hidden flex items-center gap-3 p-3 bg-white border border-outline-variant rounded-sm">
-                <span class="material-symbols-outlined text-2xl text-secondary">description</span>
-                <span id="receiptFileName" class="font-body text-body-md text-monolith-black flex-1 truncate"></span>
-                <button type="button" id="receiptRemove" class="text-error hover:text-error/80 transition-colors">
-                  <span class="material-symbols-outlined text-lg">close</span>
-                </button>
-              </div>
-              <div id="receiptMessage" class="hidden font-body text-body-md text-xs mt-2"></div>
-            </div>
-          </div>
-        </div>
+        </AnimatedReveal>
 
-        <div id="orderButtonContainer">
-          <Button variant="primary" class="w-full" id="placeOrderBtn">
-            {i18n.placeOrder}
-          </Button>
-        </div>
+        <AnimatedReveal delay={3}>
+          <div id="orderButtonContainer">
+            <Button variant="primary" class="w-full" id="placeOrderBtn">
+              {i18n.placeOrder}
+            </Button>
+          </div>
+        </AnimatedReveal>
       </div>
 
       <div class="lg:col-span-4 lg:col-start-9">
-        <div class="bg-surface-container-low p-6 sticky top-[100px]">
-          <h2 class="font-headline text-headline-md mb-6 border-b border-outline-variant/30 pb-4">{i18n.orderSummary}</h2>
-          <div id="orderItems" class="mb-6 space-y-4"></div>
-          <div class="space-y-4 mb-8">
-            <div class="flex justify-between">
-              <span class="font-body text-body-md text-secondary">{t("cart.subtotal", lang)}</span>
-              <span class="font-price-display text-price-display text-base" id="summarySubtotal">$0.00</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="font-body text-body-md text-secondary">{t("cart.shipping", lang)}</span>
-              <span class="font-body text-body-md">{t("checkout.shippingFree", lang)}</span>
-            </div>
-
-            <!-- Coupon -->
-            <div class="border-t border-outline-variant/30 pt-4">
-              <div class="flex gap-2">
-                <input type="text" id="couponInput" class="flex-1 bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none text-sm uppercase font-mono" placeholder={t("checkout.couponCode", lang)} />
-                <button id="couponApplyBtn" class="font-label-caps text-label-caps bg-monolith-black text-off-white h-10 px-4 rounded-md hover:bg-monolith-black/90 transition-all shrink-0 text-xs">{t("checkout.couponApply", lang)}</button>
-              </div>
-              <div id="couponMessage" class="font-body text-body-md text-xs mt-2"></div>
-              <div id="couponDiscountRow" class="hidden flex justify-between mt-2">
-                <span class="font-body text-body-md text-clay-accent">{t("checkout.discount", lang)}</span>
-                <span class="font-price-display text-price-display text-base text-clay-accent" id="summaryDiscount">-$0.00</span>
-              </div>
-            </div>
-
-            <div class="border-t border-outline-variant/30 pt-4">
+        <AnimatedReveal delay={2}>
+          <div class="bg-surface-container-low p-6 sticky top-[100px]">
+            <h2 class="font-headline text-headline-md mb-6 border-b border-outline-variant/30 pb-4">{i18n.orderSummary}</h2>
+            <div id="orderItems" class="mb-6 space-y-4"></div>
+            <div class="space-y-4 mb-8">
               <div class="flex justify-between">
-                <span class="font-headline text-headline-md">{t("cart.total", lang)}</span>
-                <span class="font-price-display text-price-display text-2xl" id="summaryTotal">$0.00</span>
+                <span class="font-body text-body-md text-secondary">{t("cart.subtotal", lang)}</span>
+                <span class="font-price-display text-price-display text-base" id="summarySubtotal">$0.00</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="font-body text-body-md text-secondary">{t("cart.shipping", lang)}</span>
+                <span class="font-body text-body-md">{t("checkout.shippingFree", lang)}</span>
+              </div>
+
+              <div class="border-t border-outline-variant/30 pt-4">
+                <div class="flex gap-2">
+                  <input type="text" id="couponInput" class="flex-1 bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none text-sm uppercase font-mono" placeholder={t("checkout.couponCode", lang)} />
+                  <button id="couponApplyBtn" class="font-label-caps text-label-caps bg-monolith-black text-off-white h-10 px-4 hover:bg-monolith-black/90 transition-all shrink-0 text-xs">{t("checkout.couponApply", lang)}</button>
+                </div>
+                <div id="couponMessage" class="font-body text-body-md text-xs mt-2"></div>
+                <div id="couponDiscountRow" class="hidden flex justify-between items-center mt-2">
+                  <div class="flex items-center gap-2">
+                    <span class="font-body text-body-md text-clay-accent">{t("checkout.discount", lang)}</span>
+                    <button id="couponRemoveBtn" class="material-symbols-outlined text-sm text-secondary hover:text-error cursor-pointer transition-colors" title="Remove coupon">close</button>
+                  </div>
+                  <span class="font-price-display text-price-display text-base text-clay-accent" id="summaryDiscount">-$0.00</span>
+                </div>
+              </div>
+
+              <div class="border-t border-outline-variant/30 pt-4">
+                <div class="flex justify-between">
+                  <span class="font-headline text-headline-md">{t("cart.total", lang)}</span>
+                  <span class="font-price-display text-price-display text-2xl" id="summaryTotal">$0.00</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </AnimatedReveal>
       </div>
     </div>
   </main>
   <Footer lang={lang} />
 
-  <!-- Success modal -->
   <div id="successModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-    <div class="bg-off-white border border-outline-variant shadow-lg rounded-sm p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+    <div class="bg-off-white border border-outline-variant shadow-lg p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
       <div class="flex items-center gap-3 mb-4">
         <span class="material-symbols-outlined text-3xl text-green-600">check_circle</span>
         <h3 class="font-headline text-headline-md" id="successTitle">Pedido Realizado</h3>
       </div>
       <p class="font-body text-body-md text-secondary mb-2" id="successMessage"></p>
       <p class="font-body text-body-md text-sm text-secondary mb-4" id="successOrderId"></p>
-
-      <!-- Bank details for transfer -->
-      <div id="successBankInfo" class="hidden mb-4 p-4 bg-surface-container-low border border-outline-variant rounded-sm"></div>
-
-      <!-- Receipt upload after order -->
-      <div id="successReceiptSection" class="hidden mb-4 p-4 bg-surface-container-low border border-outline-variant rounded-sm">
-        <p class="font-label-caps text-label-caps text-secondary mb-3" id="successReceiptLabel">SUBIR COMPROBANTE DE PAGO</p>
-        <div id="successReceiptZone" class="border-2 border-dashed border-outline-variant rounded-sm p-4 text-center cursor-pointer hover:border-monolith-black transition-colors bg-white mb-2">
-          <span class="material-symbols-outlined text-2xl text-secondary mb-1 block">receipt_long</span>
-          <p class="font-body text-body-md text-secondary text-sm" id="successReceiptSelect">Selecciona el comprobante</p>
-          <input type="file" id="successReceiptInput" accept="image/jpeg,image/png,image/webp,application/pdf" class="hidden" />
-        </div>
-        <div id="successReceiptPreview" class="hidden flex items-center gap-3 p-3 bg-white border border-outline-variant rounded-sm">
-          <span class="material-symbols-outlined text-2xl text-secondary">description</span>
-          <span id="successReceiptName" class="font-body text-body-md text-monolith-black flex-1 truncate"></span>
-          <button type="button" id="successReceiptRemove" class="text-error hover:text-error/80 transition-colors"><span class="material-symbols-outlined text-lg">close</span></button>
-        </div>
-        <div id="successReceiptMsg" class="font-body text-body-md text-xs mt-1 hidden"></div>
-      </div>
-
       <div class="flex justify-end gap-3 mt-4">
-        <a id="successContinueBtn" href="/" class="font-label-caps text-label-caps bg-monolith-black text-off-white rounded-md px-6 h-10 inline-flex items-center hover:bg-monolith-black/90 transition-all">
+        <a id="successContinueBtn" href="/" class="font-label-caps text-label-caps bg-monolith-black text-off-white px-6 h-10 inline-flex items-center hover:bg-monolith-black/90 transition-all">
           CONTINUAR COMPRANDO
         </a>
+      </div>
+    </div>
+  </div>
+
+  <div id="transferModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+    <div class="bg-off-white border border-outline-variant shadow-lg p-6 w-full max-w-lg">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="material-symbols-outlined text-3xl text-monolith-black">account_balance</span>
+        <h3 class="font-headline text-headline-md">Transferencia Bancaria</h3>
+      </div>
+      <p class="font-label-caps text-label-caps text-monolith-black mb-3 tracking-widest">Selecciona tu banco</p>
+      <div id="transferBankOptions" class="mb-4"></div>
+      <p class="font-label-caps text-label-caps text-secondary mb-3 tracking-widest">Adjunta el comprobante de pago</p>
+      <div id="transferModalReceiptZone" class="border-2 border-dashed border-outline-variant p-6 text-center cursor-pointer hover:border-monolith-black transition-colors bg-white mb-2">
+        <span class="material-symbols-outlined text-3xl text-secondary mb-1 block">receipt_long</span>
+        <p class="font-body text-body-md text-secondary text-sm mb-1">Selecciona el comprobante</p>
+        <p class="font-body text-body-md text-secondary text-xs">JPG, PNG, WebP o PDF</p>
+        <input type="file" id="transferModalReceiptInput" accept="image/jpeg,image/png,image/webp,application/pdf" class="hidden" />
+      </div>
+      <div id="transferModalReceiptPreview" class="hidden flex items-center gap-3 p-3 bg-white border border-outline-variant">
+        <span class="material-symbols-outlined text-2xl text-secondary">description</span>
+        <span id="transferModalReceiptFileName" class="font-body text-body-md text-monolith-black flex-1 truncate"></span>
+        <button type="button" id="transferModalReceiptRemove" class="text-error hover:text-error/80 transition-colors">
+          <span class="material-symbols-outlined text-lg">close</span>
+        </button>
+      </div>
+      <div id="transferModalReceiptMsg" class="hidden font-body text-body-md text-xs mt-2"></div>
+      <div class="flex justify-end gap-3 mt-6">
+        <button id="transferModalCancelBtn" class="font-label-caps text-label-caps border border-monolith-black text-monolith-black px-6 h-10 inline-flex items-center hover:bg-monolith-black/5 transition-all">Cancelar</button>
+        <button id="transferModalConfirmBtn" class="font-label-caps text-label-caps bg-monolith-black text-off-white px-6 h-10 inline-flex items-center hover:bg-monolith-black/90 transition-all">CONFIRMAR PEDIDO</button>
       </div>
     </div>
   </div>
@@ -241,10 +256,8 @@ const i18n = {
     let card = null;
     let settings = null;
     let banks = [];
-
     const checkoutI18n = window.checkoutI18n;
-
-    // --- Coupon State ---
+    let pendingOrder = null;
     let appliedCoupon = null;
     let couponDiscount = 0;
 
@@ -259,21 +272,17 @@ const i18n = {
       const discountRow = document.getElementById("couponDiscountRow");
       const discountEl = document.getElementById("summaryDiscount");
       const applyBtn = document.getElementById("couponApplyBtn");
-
       if (!code) {
         msg.className = "font-body text-body-md text-xs mt-2 text-error";
         msg.textContent = checkoutI18n.couponEnter;
         return;
       }
-
       const subtotal = window.VunoCart.getSubtotal();
       const email = getCustomerEmail();
-
       applyBtn.disabled = true;
       applyBtn.textContent = "...";
       msg.className = "font-body text-body-md text-xs mt-2 text-secondary";
       msg.textContent = checkoutI18n.couponValidating;
-
       try {
         const res = await fetch("/api/cupones/validate.php", {
           method: "POST",
@@ -281,7 +290,6 @@ const i18n = {
           body: JSON.stringify({ code, subtotal, email }),
         });
         const data = await res.json();
-
         if (data.valid) {
           appliedCoupon = { code, discount: data.discount, couponId: data.coupon.id };
           couponDiscount = data.discount;
@@ -304,7 +312,6 @@ const i18n = {
         msg.className = "font-body text-body-md text-xs mt-2 text-error";
         msg.textContent = checkoutI18n.couponError;
       }
-
       applyBtn.disabled = false;
       applyBtn.textContent = checkoutI18n.couponApply;
     }
@@ -325,24 +332,30 @@ const i18n = {
       document.getElementById("summaryTotal").textContent = "$" + total.toFixed(2);
     }
 
-    function renderBankDetails() {
-      const container = document.getElementById("transferInfo");
+    let selectedBankId = null;
+    let transferModalReceiptFile = null;
+
+    function renderBankOptions() {
+      const container = document.getElementById("transferBankOptions");
       if (!banks.length) {
         container.innerHTML = '<p class="font-body text-body-md text-secondary">' + checkoutI18n.noBanks + '</p>';
         return;
       }
-      let html = '<p class="font-label-caps text-label-caps text-monolith-black mb-2">' + checkoutI18n.bankDetails + '</p>';
-      banks.forEach(b => {
-        html += '<div class="mb-3 pb-3 border-b border-outline-variant/30 last:border-0 last:mb-0 last:pb-0">';
-        if (b.bankName) html += `<p class="font-body text-body-md text-secondary mb-1"><strong>Bank:</strong> ${b.bankName}</p>`;
-        if (b.accountHolder) html += `<p class="font-body text-body-md text-secondary mb-1"><strong>Account Holder:</strong> ${b.accountHolder}</p>`;
-        if (b.accountNumber) html += `<p class="font-body text-body-md text-secondary mb-1"><strong>Account:</strong> ${b.accountNumber}</p>`;
-        if (b.accountType) html += `<p class="font-body text-body-md text-secondary mb-1"><strong>Type:</strong> ${b.accountType}</p>`;
-        if (b.routingNumber) html += `<p class="font-body text-body-md text-secondary mb-1"><strong>Routing:</strong> ${b.routingNumber}</p>`;
-        if (b.instructions) html += `<p class="font-body text-body-md text-secondary mt-2">${b.instructions}</p>`;
-        html += '</div>';
+      banks.forEach((b, i) => {
+        const checked = i === 0 ? 'checked' : '';
+        container.innerHTML += `<label class="flex items-center gap-3 p-3 mb-2 border border-outline-variant cursor-pointer hover:border-monolith-black transition-colors has-checked:border-monolith-black has-checked:bg-monolith-black/5">
+          <input type="radio" name="selectedBank" value="${b.id}" class="accent-monolith-black" ${checked} />
+          <div class="flex-1">
+            <p class="font-body text-body-md text-sm text-monolith-black font-semibold">${b.bankName || ''}</p>
+            <p class="font-body text-body-md text-xs text-secondary">${b.accountHolder || ''} · ${b.accountNumber || ''}</p>
+          </div>
+        </label>`;
       });
-      container.innerHTML = html;
+      const firstRadio = container.querySelector('input[name="selectedBank"]:checked');
+      selectedBankId = firstRadio ? parseInt(firstRadio.value) : (banks[0]?.id || null);
+      container.querySelectorAll('input[name="selectedBank"]').forEach(r => {
+        r.addEventListener('change', () => { selectedBankId = parseInt(r.value); });
+      });
     }
 
     async function loadSettings() {
@@ -352,7 +365,6 @@ const i18n = {
       } catch {
         settings = null;
       }
-
       const stripeEnabled = settings?.stripe?.enabled === true;
       const transferEnabled = settings?.transfer?.enabled === true;
       const stripeOption = document.getElementById("stripeOption");
@@ -360,10 +372,8 @@ const i18n = {
       const paymentMethods = document.getElementById("paymentMethods");
       const noPaymentMethods = document.getElementById("noPaymentMethods");
       const placeOrderBtn = document.getElementById("placeOrderBtn");
-
       if (stripeEnabled) stripeOption.classList.remove("hidden");
       if (transferEnabled) transferOption.classList.remove("hidden");
-
       if (!stripeEnabled && !transferEnabled) {
         paymentMethods.classList.add("hidden");
         noPaymentMethods.classList.remove("hidden");
@@ -371,18 +381,13 @@ const i18n = {
         placeOrderBtn.style.opacity = "0.5";
         return;
       }
-
       const radios = document.querySelectorAll('input[name="payment"]');
       if (stripeEnabled) {
         document.querySelector('#stripeOption input[type="radio"]').checked = true;
       } else {
         document.querySelector('#transferOption input[type="radio"]').checked = true;
-        document.getElementById("transferInfo").classList.remove("hidden");
-        renderBankDetails();
       }
-
       banks = settings?.transfer?.banks || [];
-
       const publishableKey = settings?.stripe?.publishableKey;
       if (publishableKey && stripeEnabled) {
         stripe = Stripe(publishableKey);
@@ -390,51 +395,40 @@ const i18n = {
       }
     }
 
-    // --- Receipt Upload ---
-    let receiptFile = null;
-    let receiptUrl = "";
-
-    document.getElementById("receiptUploadZone").addEventListener("click", () => document.getElementById("receiptInput").click());
-
-    document.getElementById("receiptInput").addEventListener("change", (e) => {
+    document.getElementById("transferModalReceiptZone").addEventListener("click", () => document.getElementById("transferModalReceiptInput").click());
+    document.getElementById("transferModalReceiptInput").addEventListener("change", (e) => {
       const file = e.target.files[0];
       if (!file) return;
-      receiptFile = file;
-      document.getElementById("receiptFileName").textContent = file.name;
-      document.getElementById("receiptPreview").classList.remove("hidden");
-      document.getElementById("receiptUploadZone").classList.add("hidden");
+      transferModalReceiptFile = file;
+      document.getElementById("transferModalReceiptFileName").textContent = file.name;
+      document.getElementById("transferModalReceiptPreview").classList.remove("hidden");
+      document.getElementById("transferModalReceiptZone").classList.add("hidden");
+    });
+    document.getElementById("transferModalReceiptRemove").addEventListener("click", () => {
+      transferModalReceiptFile = null;
+      document.getElementById("transferModalReceiptInput").value = "";
+      document.getElementById("transferModalReceiptPreview").classList.add("hidden");
+      document.getElementById("transferModalReceiptZone").classList.remove("hidden");
     });
 
-    document.getElementById("receiptRemove").addEventListener("click", () => {
-      receiptFile = null;
-      receiptUrl = "";
-      document.getElementById("receiptInput").value = "";
-      document.getElementById("receiptPreview").classList.add("hidden");
-      document.getElementById("receiptUploadZone").classList.remove("hidden");
-    });
-
-    function showReceiptMsg(text, isError) {
-      const el = document.getElementById("receiptMessage");
+    function showModalReceiptMsg(text, isError) {
+      const el = document.getElementById("transferModalReceiptMsg");
       el.textContent = text;
       el.className = "font-body text-body-md text-xs mt-2 " + (isError ? "text-error" : "text-green-700");
       el.classList.remove("hidden");
     }
 
-    // --- Render Summary ---
     function renderSummary() {
       const items = window.VunoCart.getItems();
       const empty = document.getElementById("emptyCart");
       const form = document.getElementById("checkoutForm");
-
       if (items.length === 0) {
         form.classList.add("hidden");
         empty.classList.remove("hidden");
         return;
       }
-
       form.classList.remove("hidden");
       empty.classList.add("hidden");
-
       const itemsContainer = document.getElementById("orderItems");
       itemsContainer.innerHTML = items.map(item => `
         <div class="flex justify-between items-center">
@@ -450,7 +444,6 @@ const i18n = {
           <span class="font-price-display text-price-display text-sm">$${(item.product.price * item.quantity).toFixed(2)}</span>
         </div>
       `).join("");
-
       document.getElementById("summarySubtotal").textContent = `$${window.VunoCart.getSubtotal().toFixed(2)}`;
       renderSummaryTotal();
     }
@@ -458,10 +451,13 @@ const i18n = {
     document.querySelectorAll('input[name="payment"]').forEach(radio => {
       radio.addEventListener("change", () => {
         const isStripe = radio.value === "stripe";
-        const isTransfer = radio.value === "transfer";
         document.getElementById("stripeCardElement").classList.toggle("hidden", !isStripe);
-        document.getElementById("transferInfo").classList.toggle("hidden", !isTransfer);
-        if (isTransfer && banks.length) renderBankDetails();
+        const btn = document.getElementById("placeOrderBtn");
+        if (radio.value === "transfer") {
+          btn.textContent = "PROCESAR COMPRA";
+        } else {
+          btn.textContent = checkoutI18n.placeOrder;
+        }
       });
     });
 
@@ -472,7 +468,7 @@ const i18n = {
         style: {
           base: {
             fontSize: "16px",
-            fontFamily: '"Hanken Grotesk", sans-serif',
+            fontFamily: '"Satoshi", "DM Sans", sans-serif',
             color: "#1A1A1A",
             "::placeholder": { color: "#9A9A9A" },
           },
@@ -499,7 +495,6 @@ const i18n = {
       const zip = document.getElementById("customerZip").value.trim();
       const subtotal = window.VunoCart.getSubtotal();
       const total = Math.max(0, subtotal - couponDiscount);
-
       const order = {
         id: "RL-" + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 5).toUpperCase(),
         items: items,
@@ -514,17 +509,11 @@ const i18n = {
         customer: { name, email, address, city, zip },
         createdAt: new Date().toISOString()
       };
-
       if (appliedCoupon) {
         order.couponCode = appliedCoupon.code;
       }
-
       return order;
     }
-
-    let successOrderId = null;
-    let successReceiptFile = null;
-    let successReceiptUrl = "";
 
     function showErrorMsg(msg) {
       document.getElementById("paymentError").textContent = msg;
@@ -532,122 +521,40 @@ const i18n = {
     }
 
     function showOrderSuccessModal(order) {
-      const isTransfer = order.paymentMethod === "transfer";
       document.getElementById("successTitle").textContent = checkoutI18n.orderPlaced;
-      document.getElementById("successMessage").textContent = isTransfer
-        ? "Tu pedido está registrado. Usa los datos bancarios de abajo para realizar la transferencia."
-        : "Gracias por tu compra. Recibirás una confirmación por email.";
+      document.getElementById("successMessage").textContent = "Gracias por tu compra. Recibirás una confirmación por email.";
       document.getElementById("successOrderId").textContent = "Orden: " + order.id;
       document.getElementById("successContinueBtn").href = "/" + LANG + "/";
-
-      if (isTransfer && banks.length) {
-        let html = '<p class="font-label-caps text-label-caps text-monolith-black mb-2">' + checkoutI18n.bankDetails + '</p>';
-        banks.forEach(b => {
-          html += '<div class="mb-2 pb-2 border-b border-outline-variant/30 last:border-0 last:mb-0 last:pb-0">';
-          if (b.bankName) html += '<p class="font-body text-body-md text-sm"><strong>Banco:</strong> ' + b.bankName + '</p>';
-          if (b.accountHolder) html += '<p class="font-body text-body-md text-sm"><strong>Titular:</strong> ' + b.accountHolder + '</p>';
-          if (b.accountNumber) html += '<p class="font-body text-body-md text-sm"><strong>Cuenta:</strong> ' + b.accountNumber + '</p>';
-          if (b.accountType) html += '<p class="font-body text-body-md text-sm"><strong>Tipo:</strong> ' + b.accountType + '</p>';
-          if (b.routingNumber) html += '<p class="font-body text-body-md text-sm"><strong>Routing:</strong> ' + b.routingNumber + '</p>';
-          if (b.instructions) html += '<p class="font-body text-body-md text-sm text-secondary mt-1">' + b.instructions + '</p>';
-          html += '</div>';
-        });
-        document.getElementById("successBankInfo").innerHTML = html;
-        document.getElementById("successBankInfo").classList.remove("hidden");
-        document.getElementById("successReceiptSection").classList.remove("hidden");
-        successOrderId = order.id;
-      }
-
       document.getElementById("successModal").classList.remove("hidden");
     }
-
-    // Success modal receipt upload
-    document.getElementById("successReceiptZone").addEventListener("click", () => document.getElementById("successReceiptInput").click());
-
-    document.getElementById("successReceiptInput").addEventListener("change", async (e) => {
-      const file = e.target.files[0];
-      if (!file || !successOrderId) return;
-      successReceiptFile = file;
-      document.getElementById("successReceiptName").textContent = file.name;
-      document.getElementById("successReceiptPreview").classList.remove("hidden");
-      document.getElementById("successReceiptZone").classList.add("hidden");
-
-      // Auto-upload
-      const msg = document.getElementById("successReceiptMsg");
-      msg.textContent = "Subiendo...";
-      msg.className = "font-body text-body-md text-xs mt-1 text-secondary";
-      msg.classList.remove("hidden");
-
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("folder", "receipts");
-      try {
-        const uploadRes = await fetch("/api/imagekit/upload.php", { method: "POST", body: formData });
-        const uploadData = await uploadRes.json();
-        if (uploadRes.ok && uploadData.url) {
-          successReceiptUrl = uploadData.url;
-          await fetch("/api/pedidos/update-receipt.php", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id: successOrderId, transferReceipt: successReceiptUrl })
-          });
-          msg.textContent = "¡Comprobante recibido!";
-          msg.className = "font-body text-body-md text-xs mt-1 text-green-700";
-        } else {
-          const errMsg = uploadData?.error || "Error al subir";
-          msg.textContent = errMsg + ". Puedes hacerlo después desde el panel admin.";
-          msg.className = "font-body text-body-md text-xs mt-1 text-error";
-          console.error("ImageKit upload error:", uploadData);
-        }
-      } catch (err) {
-        msg.textContent = "Error de conexión. Puedes hacerlo después.";
-        msg.className = "font-body text-body-md text-xs mt-1 text-error";
-        console.error("ImageKit upload exception:", err);
-      }
-    });
-
-    document.getElementById("successReceiptRemove").addEventListener("click", () => {
-      successReceiptFile = null;
-      successReceiptUrl = "";
-      document.getElementById("successReceiptInput").value = "";
-      document.getElementById("successReceiptPreview").classList.add("hidden");
-      document.getElementById("successReceiptZone").classList.remove("hidden");
-      document.getElementById("successReceiptMsg").classList.add("hidden");
-    });
 
     let submitting = false;
 
     document.getElementById("placeOrderBtn").addEventListener("click", async function () {
       if (submitting) return;
       submitting = true;
-
       const items = window.VunoCart.getItems();
       if (items.length === 0) {
         submitting = false;
         showErrorMsg(checkoutI18n.cartEmpty);
         return;
       }
-
       const name = document.getElementById("customerName").value.trim();
       const email = document.getElementById("customerEmail").value.trim();
       const address = document.getElementById("customerAddress").value.trim();
       const city = document.getElementById("customerCity").value.trim();
       const zip = document.getElementById("customerZip").value.trim();
       const payment = document.querySelector('input[name="payment"]:checked').value;
-
       if (!name || !email || !address || !city || !zip) {
         submitting = false;
         document.getElementById("paymentError").textContent = checkoutI18n.fillFields;
         document.getElementById("paymentError").classList.remove("hidden");
         return;
       }
-
       this.disabled = true;
       this.textContent = checkoutI18n.processing;
-
       const order = buildOrderObject(payment);
       const subtotal = order.subtotal;
-
       if (payment === "stripe") {
         try {
           const createRes = await fetch("/api/pedidos/create.php", {
@@ -659,7 +566,6 @@ const i18n = {
             const createErr = await createRes.json();
             throw new Error(createErr.error || "Failed to create order");
           }
-
           const piRes = await fetch("/api/stripe/create-payment-intent.php", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -667,15 +573,12 @@ const i18n = {
           });
           const piData = await piRes.json();
           if (!piRes.ok) throw new Error(piData.error);
-
           const { error, paymentIntent } = await stripe.confirmCardPayment(piData.clientSecret, {
             payment_method: { card: card },
           });
-
           if (error) {
             throw new Error(error.message);
           }
-
           if (paymentIntent.status === "succeeded") {
             const confirmRes = await fetch("/api/pedidos/confirm-payment.php", {
               method: "POST",
@@ -685,14 +588,11 @@ const i18n = {
             if (!confirmRes.ok) {
               console.warn("Payment confirmed but status update failed, webhook will reconcile");
             }
-
             order.status = "paid";
             order.paymentStatus = "completed";
             order.stripePaymentIntentId = paymentIntent.id;
-
             localStorage.setItem("vuno_cart_backup", JSON.stringify(window.VunoCart.getItems()));
             window.VunoCart.clear();
-            // Remove backup: order confirmed successfully
             localStorage.removeItem("vuno_cart_backup");
             localStorage.setItem("vuno_last_order_" + order.id, JSON.stringify(order));
             showOrderSuccessModal(order);
@@ -707,58 +607,69 @@ const i18n = {
           submitting = false;
         }
       } else {
-        try {
-          const createRes = await fetch("/api/pedidos/create.php", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(order)
-          });
-          if (!createRes.ok) {
-            const createErr = await createRes.json();
-            throw new Error(createErr.error || "Failed to create order");
-          }
+        pendingOrder = order;
+        this.disabled = false;
+        this.textContent = "PROCESAR COMPRA";
+        submitting = false;
+        document.getElementById("transferBankOptions").innerHTML = "";
+        renderBankOptions();
+        document.getElementById("transferModalReceiptMsg").classList.add("hidden");
+        document.getElementById("transferModal").classList.remove("hidden");
+      }
+    });
 
-          if (receiptFile) {
-            showReceiptMsg(checkoutI18n.uploading, false);
-            const formData = new FormData();
-            formData.append("file", receiptFile);
-            formData.append("folder", "receipts");
-            const uploadRes = await fetch("/api/imagekit/upload.php", { method: "POST", body: formData });
-            const uploadData = await uploadRes.json();
-              if (uploadRes.ok && uploadData.url) {
-                receiptUrl = uploadData.url;
-                await fetch("/api/pedidos/update-receipt.php", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ id: order.id, transferReceipt: receiptUrl })
-                });
-                showReceiptMsg(checkoutI18n.receiptReceived, false);
-              } else {
-                const errMsg = uploadData?.error || checkoutI18n.receiptFailed;
-                showReceiptMsg(errMsg, true);
-                console.error("ImageKit upload error:", uploadData);
-              }
-          }
+    document.getElementById("transferModalCancelBtn").addEventListener("click", () => {
+      document.getElementById("transferModal").classList.add("hidden");
+    });
 
-          // Save cart backup before clearing
-          localStorage.setItem("vuno_cart_backup", JSON.stringify(window.VunoCart.getItems()));
-          window.VunoCart.clear();
-          // Remove backup: order confirmed successfully
-          localStorage.removeItem("vuno_cart_backup");
-          localStorage.setItem("vuno_last_order_" + order.id, JSON.stringify(order));
-          showOrderSuccessModal(order);
-        } catch (err) {
-          document.getElementById("paymentError").textContent = err.message;
-          document.getElementById("paymentError").classList.remove("hidden");
-          this.disabled = false;
-          this.textContent = checkoutI18n.placeOrder;
-          submitting = false;
+    document.getElementById("transferModalConfirmBtn").addEventListener("click", async function () {
+      const btn = this;
+      if (btn.disabled) return;
+      btn.disabled = true;
+      if (!selectedBankId) {
+        showModalReceiptMsg("Debes seleccionar un banco", true);
+        btn.disabled = false;
+        return;
+      }
+      if (!transferModalReceiptFile) {
+        showModalReceiptMsg("Debes adjuntar el comprobante de pago", true);
+        btn.disabled = false;
+        return;
+      }
+      try {
+        showModalReceiptMsg(checkoutI18n.uploading, false);
+        const formData = new FormData();
+        formData.append("file", transferModalReceiptFile);
+        formData.append("folder", "receipts");
+        const uploadRes = await fetch("/api/imagekit/upload.php", { method: "POST", body: formData });
+        const uploadData = await uploadRes.json();
+        if (!uploadRes.ok || !uploadData.url) {
+          throw new Error(uploadData?.error || checkoutI18n.receiptFailed);
         }
+        pendingOrder.transferReceipt = uploadData.url;
+        pendingOrder.selectedBankId = selectedBankId;
+        const createRes = await fetch("/api/pedidos/create.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(pendingOrder)
+        });
+        if (!createRes.ok) {
+          const createErr = await createRes.json();
+          throw new Error(createErr.error || "Failed to save order");
+        }
+        localStorage.setItem("vuno_cart_backup", JSON.stringify(window.VunoCart.getItems()));
+        window.VunoCart.clear();
+        localStorage.removeItem("vuno_cart_backup");
+        localStorage.setItem("vuno_last_order_" + pendingOrder.id, JSON.stringify(pendingOrder));
+        window.location.href = "/" + LANG + "/catalogo";
+      } catch (err) {
+        showModalReceiptMsg(err.message, true);
+        btn.disabled = false;
       }
     });
 
     document.getElementById("couponApplyBtn").addEventListener("click", applyCoupon);
-
+    document.getElementById("couponRemoveBtn").addEventListener("click", removeCoupon);
     document.getElementById("couponInput").addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
         e.preventDefault();
@@ -766,14 +677,8 @@ const i18n = {
       }
     });
 
-    document.getElementById("customerEmail").addEventListener("change", () => {
-      if (appliedCoupon) {
-      }
-    });
-
     loadSettings().then(() => {
       renderSummary();
-
       const checked = document.querySelector('input[name="payment"]:checked');
       if (checked) {
         checked.dispatchEvent(new Event("change"));

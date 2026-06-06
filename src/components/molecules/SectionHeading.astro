@@ -1,0 +1,31 @@
+---
+import AnimatedReveal from "../atoms/AnimatedReveal.astro";
+
+interface Props {
+  label?: string;
+  title: string;
+  subtitle?: string;
+  align?: "left" | "center";
+  accent?: "black" | "clay";
+  class?: string;
+}
+
+const { label, title, subtitle, align = "left", accent = "black", class: className = "" } = Astro.props;
+---
+
+<AnimatedReveal class={`flex flex-col ${align === "center" ? "items-center text-center" : "items-start"} ${className}`}>
+  {
+    label && (
+      <span class="font-label-caps text-label-caps text-secondary tracking-widest mb-4">{label}</span>
+    )
+  }
+  <span class={`arch-line ${accent === "clay" ? "arch-line-clay" : ""} mb-5`}></span>
+  <h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-monolith-black leading-tight">
+    {title}
+  </h2>
+  {
+    subtitle && (
+      <p class="font-body-md text-body-md text-secondary mt-3 max-w-lg">{subtitle}</p>
+    )
+  }
+</AnimatedReveal>

@@ -128,7 +128,9 @@
       const color = btn.dataset.color || "";
       const size = btn.dataset.size || "";
       window.VunoCart.addItem(product, quantity, color, size);
-      alert("Added to cart!");
+      window.dispatchEvent(new CustomEvent("cart:item-added", {
+        detail: { product, quantity, selectedColor: color, selectedSize: size },
+      }));
     }
 
     const removeBtn = e.target.closest("[data-remove-item]");
@@ -139,7 +141,6 @@
         removeBtn.dataset.color || "",
         removeBtn.dataset.size || ""
       );
-      location.reload();
     }
   });
 })();

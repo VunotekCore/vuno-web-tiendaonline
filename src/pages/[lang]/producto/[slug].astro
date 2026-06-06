@@ -2,6 +2,7 @@
 import BaseLayout from "../../../layouts/BaseLayout.astro";
 import Navbar from "../../../components/organisms/Navbar.astro";
 import Footer from "../../../components/organisms/Footer.astro";
+import AnimatedReveal from "../../../components/atoms/AnimatedReveal.astro";
 import { getProducts } from "../../../lib/storage";
 import { t, type Locale } from "../../../i18n/utils";
 
@@ -21,18 +22,12 @@ const relatedProducts = products.filter((p) => p.slug !== slug).slice(0, 4);
 
 if (!product) return Astro.redirect("/404");
 
-const galleryImages = [
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuB1Tzls_kTSZ4dpdX9uqTsVjLuKkup7PYsstWGpN7bMNLgIfF0yR02BSNZTCNJy7AoyGOD9zBHKXrMjeIwfP74uZsvUYWbowXbkMv3VPCUPT6Iag6i8TTJxEkwT7wVuJnD2iDqLi2aD1h4xoxuyd9aXmbC-8iM3xqRK55xGrplTcwxStcy9Sp062bWGdqdXGyPqea672whnNLyL8WkBXNZcUDU4M1zXGpgFNkWQxdK2qD3AxzYqc3MRZ68Nla-ut-0wNYdgURyBfdM",
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuDcSgZBC7RYqIWdRspXD1VaSAbVvEUGE4rvlQuRTwxX2hRv3577mhuAt-pYwWU79iZqYeJhd5qNY3jCCohGZSi7_-SDLiR66Hh79qyBgVq-1B0eBzibeLXCIazoLaijqOdEFl2zORPcDng29pmBzLPcykk4olbckVMA5lgipzIwmAEcTMXHYGkTXQMsgVNDMFchgtVTW5pZ235U8bA07DlOxLP7q2Ny73yUdjR0OprOdAhs5HtyPoer-pntorOhwkxRab8JZvnYwQo",
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuAwhEgkFlMJiR1QjyRlglyS9AhQRIhQZtZ-LeF65wm1-cZv3jFiY66iR_pOCS6QPdc-f0_scTSLeFzP7o4lOKPpbCu8kfSGrY_LrGG9ZS0y95W_i6BOmfjT7-qWz9bhopPuPdv6_LEf7vmL3B55KIMbC6R-CFmwQ-oxi1wKPJktIDqYYG1ajYdMA9I0uyu2qAkYib9002zvvZIxhtSQ1JLGKS6ZqH5Eh0SvQ5oqj9MsVaR_0zhJ9P3YF4WbAL-VV5PS5ERw4e9Htss",
-];
-
-const relatedImages = [
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuA8nwUC9jV8CVpdO0n3Lv5gpFD36PPkkWQH_OmXUNXxSLBeMXCtohOZU0gIInuKueOzEH4E5uvZnyZQvOg4hz40H0gF4SgY_jM4GoZGiOZXsSPYpgoY6J8cQRl_6w9H5tQ1vVHas2h22JFVuMOzMOxWw4ISr8_F2j8lYPWnhozXm_TzaWDm4LNHDTLoam4PbrnYSfgNEXWoML0a9cfGR9BbcupOnBUrI_KnrzwSpN6fy0Elxxh62NWuvz3MFTMt81gT2DDtjmRRmaE",
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuA0lKy_9LQMocPDZrY7Wh0wPTZc6ghl71FGbZRt4OuF4TEaiUUWF5pv-Ab73AycfT1niXSuq8FRxKwHmJvsJBpIdlp8TVxauZ90ymKz9gBDBWJAGTk8cRk-62yl5OCkLCoYDpQyHkOyBZYsoEjt_AMoU5nEppSXTsyJyH7dcLbIUJ6OST1zE8J8iioA5jTRfWqtPC-lCCM7-G6VHylhv1tE4FATOcw3h1_i0CCwKZmuyqfnw8XNzuLI96LMTLkjQH3FIWnbzZ9loZ0",
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuC8G4xJdslolUNUSeDtUf43X2xGJbmUf3xd_G7mEtsiz-2-KoCdol811Lz3f3K7ky6O0yUdhNJcBkYEPRdjXtvbECNL2h0gFtx41gQCZdEgzfmVxV3wGNGAFsU2vFSiM64NfH6E3sHcsf3D_PqVAXA26vQs4l2uqJpOVtap_gdrHYHqpIe0hl1CHC4hX9_r-Tc8FUxMKrBIp_VxWPsRF1t01Bksonuh9vNwU5xNXRzSlJIrcNt6doh6FjFPkyWYVK5uXxCRsV7ZKJc",
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuBSqCuoHx7hJQq4a4OUuR1Bd4042acsqAx7U9AwWgbBe5xUvSLOBOPoForLj3msJ1cN1qFryLRKhu8qjfo_DfOEmQ11wC72IGRNToqLvaTYBWCJb6mosvu4VJ371AWbiXsnokovpkVvOrQMDTuzaXWlmjjn7F0JijgTHivuikbvuwCpblPfaBwBTP3ux16NORGCMiCaP_U9w04aZMNg9XYmJN6rln2O2I72qVP7j73Px7gbZ8pmS63_CVXOVR4D9TDkrTqIi9Ga9o8",
-];
+// Collect all gallery images per color for the frontend
+const colorGalleryMap: Record<string, string[]> = {};
+for (const c of product.colors) {
+  const colorImages = [c.image, ...product.images].filter(Boolean) as string[];
+  colorGalleryMap[c.name] = colorImages.length > 0 ? colorImages : product.images;
+}
 
 const currentPath = Astro.url.pathname;
 const siteUrl = import.meta.env.PROD ? "https://vuno.com" : "http://localhost:4321";
@@ -44,6 +39,7 @@ const alternateUrls = {
 const i18n = {
   selectSize: t("product.selectSize", lang),
   addedToCart: t("product.addedToCart", lang),
+  addToCart: t("product.addToCart", lang),
   reviewsTitle: t("product.reviews.title", lang),
   reviewsLeave: t("product.reviews.leave", lang),
   reviewsName: t("product.reviews.name", lang),
@@ -67,174 +63,259 @@ const i18n = {
 
 <BaseLayout title={`${product.name} | Ram;Lop`} lang={lang} alternateUrls={alternateUrls}>
   <Navbar lang={lang} currentPath={currentPath} />
+
   <main class="w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-section-gap">
+    <!-- Editorial Gallery Layout -->
     <section class="grid grid-cols-1 md:grid-cols-12 gap-gutter relative">
-      <div class="md:col-span-7 flex flex-col gap-unit">
-        {(galleryImages.length > 0 ? galleryImages : product.images).map((img, i) => (
-          <div class="w-full bg-surface-container aspect-[3/4] overflow-hidden relative">
-            <img src={img} alt={`${product.name} view ${i + 1}`} class="w-full h-full object-cover" loading={i === 0 ? "eager" : "lazy"} />
+      <!-- Gallery Column -->
+      <div class="md:col-span-7 relative" id="galleryColumn">
+        <div class="md:sticky md:top-[120px] md:pb-section-gap">
+          <!-- Main Image -->
+          <div class="w-full bg-surface-container aspect-[4/5] overflow-hidden relative cursor-zoom-in group" id="mainImageWrap">
+            <img
+              id="mainImage"
+              src={product.images[0]}
+              alt={product.name}
+              class="w-full h-full object-cover transition-all duration-500"
+              style="view-transition-name: product-main"
+            />
+            <div class="absolute inset-0 bg-monolith-black/0 group-hover:bg-monolith-black/5 transition-colors duration-300"></div>
+            <div id="imageCounter" class="absolute top-4 left-4 z-10">
+              <span class="bg-off-white/90 backdrop-blur-sm px-3 py-1.5 font-label-caps text-label-caps text-monolith-black text-xs">01 / {product.images.length}</span>
+            </div>
+            <button id="zoomBtn" class="absolute bottom-4 right-4 z-10 w-9 h-9 bg-off-white/80 backdrop-blur-sm flex items-center justify-center hover:bg-off-white transition-all border border-outline-variant/30" aria-label="Zoom">
+              <span class="material-symbols-outlined text-lg">fullscreen</span>
+            </button>
           </div>
-        ))}
+
+          <!-- Thumbnails -->
+          <div class="flex gap-2 mt-2" id="thumbnailStrip">
+            {product.images.map((img, i) => (
+              <button
+                data-thumb={i}
+                class={`w-16 h-20 bg-surface-container overflow-hidden flex-shrink-0 border-2 transition-all duration-300 hover:opacity-90 ${i === 0 ? "border-monolith-black" : "border-transparent opacity-60"}`}
+              >
+                <img src={img} alt="" class="w-full h-full object-cover" loading="lazy" />
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
+      <!-- Product Info Column -->
       <div class="md:col-span-4 md:col-start-9 relative">
-        <div class="sticky top-[100px] flex flex-col gap-8 pt-8 md:pt-0">
-          <div class="flex flex-col gap-2">
-            <span class="font-label-caps text-label-caps text-secondary tracking-widest uppercase">{product.category}</span>
-            <h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-monolith-black">{product.name}</h1>
-            <p class="font-price-display text-price-display text-monolith-black mt-2">${product.price.toFixed(2)} USD</p>
-          </div>
+        <div class="sticky top-[120px] flex flex-col gap-8 pt-8 md:pt-0" id="productInfo">
+          <!-- Breadcrumb -->
+          <AnimatedReveal>
+            <nav class="flex items-center gap-2 font-label-caps text-label-caps text-secondary">
+              <a href={`/${lang}/catalogo`} class="hover:text-monolith-black transition-colors">{t("product.collection", lang) || "COLLECTION"}</a>
+              <span class="text-outline">/</span>
+              <span class="text-monolith-black">{product.category}</span>
+            </nav>
+          </AnimatedReveal>
 
-          <div class="flex flex-col gap-3">
-            <span class="font-label-caps text-label-caps text-secondary">{t("product.color", lang)}: <span class="text-monolith-black ml-1" id="selectedColorName">{product.colors[0]?.name}</span></span>
-            <div class="flex gap-3" id="colorSelector">
-              {product.colors.map((c, i) => (
-                <button
-                  data-color={c.name}
-                  aria-label={c.name}
-                  class={`color-swatch w-6 h-6 rounded-full transition-all ${i === 0 ? "ring-1 ring-offset-2 ring-monolith-black ring-offset-background" : "border border-outline-variant hover:border-monolith-black"}`}
-                  style={`background-color: ${c.hex}`}
-                ></button>
-              ))}
+          <!-- Title & Price -->
+          <AnimatedReveal delay={1}>
+            <div class="flex flex-col gap-2">
+              <h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-monolith-black leading-tight">{product.name}</h1>
+              <p class="font-price-display text-price-display text-monolith-black mt-2">${product.price.toFixed(2)} USD</p>
             </div>
-          </div>
+          </AnimatedReveal>
 
-          <div class="flex flex-col gap-3">
-            <div class="flex justify-between items-end">
-              <span class="font-label-caps text-label-caps text-secondary">{t("product.size", lang)}</span>
-              <button class="font-body-md text-body-md text-secondary underline hover:text-monolith-black transition-colors text-sm">{t("product.sizeGuide", lang)}</button>
-            </div>
-            <div class="grid grid-cols-4 gap-2" id="sizeSelector">
-              {product.sizes.map((size) => (
-                size.inStock ? (
-                  <button data-size={size.value} class="size-btn py-3 px-1 border border-outline-variant text-center font-label-caps text-label-caps text-monolith-black hover:border-monolith-black transition-colors">{size.label}</button>
-                ) : (
-                  <button class="py-3 px-1 border border-outline-variant text-center font-label-caps text-label-caps text-outline opacity-50 cursor-not-allowed">{size.label}</button>
-                )
-              ))}
-            </div>
-          </div>
-
-          <div class="flex gap-3 mt-4">
-            <button
-              data-add-to-cart
-              data-product={JSON.stringify({
-                id: product.id,
-                name: product.name,
-                slug: product.slug,
-                price: product.price,
-                currency: product.currency,
-                images: [product.images[0]],
-                category: product.category,
-              })}
-              id="addToCartBtn"
-              class="flex-1 min-h-[56px] bg-monolith-black text-on-primary font-label-caps text-label-caps tracking-widest hover:opacity-80 transition-opacity flex items-center justify-center"
-            >
-              {t("product.addToCart", lang)}
-            </button>
-            <button
-              data-toggle-wishlist
-              data-product={JSON.stringify({
-                id: product.id,
-                name: product.name,
-                slug: product.slug,
-                price: product.price,
-                currency: product.currency,
-                images: [product.images[0]],
-                category: product.category,
-              })}
-              class="w-[56px] min-h-[56px] border border-outline-variant flex items-center justify-center hover:border-monolith-black transition-colors"
-              aria-label="Add to wishlist"
-            >
-              <span class="material-symbols-outlined wishlist-icon text-2xl text-monolith-black" style="font-variation-settings: 'FILL' 0">favorite_border</span>
-            </button>
-          </div>
-
-          <div class="flex flex-col mt-8 border-t border-outline-variant">
-            <details class="border-b border-outline-variant group open:pb-5">
-              <summary class="w-full py-5 flex justify-between items-center text-left cursor-pointer list-none">
-                <span class="font-label-caps text-label-caps text-monolith-black">{t("product.description", lang)}</span>
-                <span class="material-symbols-outlined text-secondary transition-transform group-open:hidden" data-icon="add">add</span>
-                <span class="material-symbols-outlined text-secondary transition-transform hidden group-open:block" data-icon="remove">remove</span>
-              </summary>
-              <div class="pb-5 font-body-md text-body-md text-secondary leading-relaxed">{product.description}</div>
-            </details>
-            <details class="border-b border-outline-variant group open:pb-5">
-              <summary class="w-full py-5 flex justify-between items-center text-left cursor-pointer list-none">
-                <span class="font-label-caps text-label-caps text-monolith-black">{t("product.care", lang)}</span>
-                <span class="material-symbols-outlined text-secondary transition-transform group-open:hidden" data-icon="add">add</span>
-                <span class="material-symbols-outlined text-secondary transition-transform hidden group-open:block" data-icon="remove">remove</span>
-              </summary>
-              <div class="pb-5 font-body-md text-body-md text-secondary leading-relaxed">
-                <ul class="list-disc pl-4 space-y-1">{product.details?.map((d) => <li>{d}</li>)}</ul>
+          <!-- Color Selector -->
+          <AnimatedReveal delay={2}>
+            <div class="flex flex-col gap-3">
+              <span class="font-label-caps text-label-caps text-secondary tracking-widest">{t("product.color", lang)}: <span class="text-monolith-black ml-1" id="selectedColorName">{product.colors[0]?.name}</span></span>
+              <div class="flex gap-3" id="colorSelector">
+                {product.colors.map((c, i) => (
+                  <button
+                    data-color={c.name}
+                    data-color-images={JSON.stringify(colorGalleryMap[c.name] || product.images)}
+                    aria-label={c.name}
+                    class={`color-swatch w-7 h-7 rounded-full transition-all duration-300 hover:scale-110 ${
+                      i === 0 ? "ring-1 ring-offset-2 ring-monolith-black ring-offset-background scale-110" : "border border-outline-variant hover:border-monolith-black"
+                    }`}
+                    style={`background-color: ${c.hex}`}
+                  ></button>
+                ))}
               </div>
-            </details>
-            <details class="border-b border-outline-variant group open:pb-5">
-              <summary class="w-full py-5 flex justify-between items-center text-left cursor-pointer list-none">
-                <span class="font-label-caps text-label-caps text-monolith-black">{t("product.shipping", lang)}</span>
-                <span class="material-symbols-outlined text-secondary transition-transform group-open:hidden" data-icon="add">add</span>
-                <span class="material-symbols-outlined text-secondary transition-transform hidden group-open:block" data-icon="remove">remove</span>
-              </summary>
-              <div class="pb-5 font-body-md text-body-md text-secondary leading-relaxed">
-                {t("product.shippingText", lang)}
+            </div>
+          </AnimatedReveal>
+
+          <!-- Size Selector -->
+          <AnimatedReveal delay={3}>
+            <div class="flex flex-col gap-3">
+              <div class="flex justify-between items-end">
+                <span class="font-label-caps text-label-caps text-secondary tracking-widest">{t("product.size", lang)}</span>
+                <button class="font-body-md text-body-md text-secondary underline hover:text-monolith-black transition-colors text-sm">{t("product.sizeGuide", lang)}</button>
               </div>
-            </details>
-          </div>
+              <div class="grid grid-cols-4 gap-2" id="sizeSelector">
+                {product.sizes.map((size) => (
+                  size.inStock ? (
+                    <button data-size={size.value} class="size-btn py-3 px-1 border border-outline-variant text-center font-label-caps text-label-caps text-monolith-black hover:border-monolith-black hover:bg-monolith-black hover:text-off-white transition-all duration-300">{size.label}</button>
+                  ) : (
+                    <button data-size={size.value} class="size-btn py-3 px-1 border border-outline-variant text-center font-label-caps text-label-caps text-outline opacity-50 cursor-not-allowed line-through" disabled>{size.label}</button>
+                  )
+                ))}
+              </div>
+            </div>
+          </AnimatedReveal>
+
+          <!-- Add to Cart -->
+          <AnimatedReveal delay={4}>
+            <div class="flex gap-3 mt-4">
+              <button
+                id="addToCartBtn"
+                class="flex-1 min-h-[56px] bg-monolith-black text-on-primary font-label-caps text-label-caps tracking-widest hover:bg-on-surface hover:tracking-[0.15em] transition-all duration-300 flex items-center justify-center gap-2"
+              >
+                <span id="addToCartText">{t("product.addToCart", lang)}</span>
+                <span id="addToCartSpinner" class="hidden material-symbols-outlined text-sm animate-spin" style="font-variation-settings: 'FILL' 0">refresh</span>
+              </button>
+              <button
+                data-toggle-wishlist
+                data-product={JSON.stringify({
+                  id: product.id,
+                  name: product.name,
+                  slug: product.slug,
+                  price: product.price,
+                  currency: product.currency,
+                  images: [product.images[0]],
+                  category: product.category,
+                })}
+                class="w-[56px] min-h-[56px] border border-outline-variant flex items-center justify-center hover:border-monolith-black hover:bg-monolith-black/5 transition-all duration-300 group"
+                aria-label="Add to wishlist"
+              >
+                <span class="material-symbols-outlined wishlist-icon text-2xl text-monolith-black group-hover:scale-110 transition-transform duration-300" style="font-variation-settings: 'FILL' 0">favorite_border</span>
+              </button>
+            </div>
+          </AnimatedReveal>
+
+          <!-- Accordion Details -->
+          <AnimatedReveal delay={5}>
+            <div class="flex flex-col mt-8 border-t border-outline-variant">
+              <details class="border-b border-outline-variant group open:pb-5">
+                <summary class="w-full py-5 flex justify-between items-center text-left cursor-pointer list-none">
+                  <span class="font-label-caps text-label-caps text-monolith-black tracking-widest">{t("product.description", lang)}</span>
+                  <span class="material-symbols-outlined text-secondary transition-transform duration-300 group-open:rotate-45" data-icon="add">add</span>
+                </summary>
+                <div class="pb-5 font-body-md text-body-md text-secondary leading-relaxed">{product.description}</div>
+              </details>
+              <details class="border-b border-outline-variant group open:pb-5">
+                <summary class="w-full py-5 flex justify-between items-center text-left cursor-pointer list-none">
+                  <span class="font-label-caps text-label-caps text-monolith-black tracking-widest">{t("product.care", lang)}</span>
+                  <span class="material-symbols-outlined text-secondary transition-transform duration-300 group-open:rotate-45" data-icon="add">add</span>
+                </summary>
+                <div class="pb-5 font-body-md text-body-md text-secondary leading-relaxed">
+                  <ul class="list-disc pl-4 space-y-1">{product.details?.map((d) => <li>{d}</li>)}</ul>
+                </div>
+              </details>
+              <details class="border-b border-outline-variant group open:pb-5">
+                <summary class="w-full py-5 flex justify-between items-center text-left cursor-pointer list-none">
+                  <span class="font-label-caps text-label-caps text-monolith-black tracking-widest">{t("product.shipping", lang)}</span>
+                  <span class="material-symbols-outlined text-secondary transition-transform duration-300 group-open:rotate-45" data-icon="add">add</span>
+                </summary>
+                <div class="pb-5 font-body-md text-body-md text-secondary leading-relaxed">
+                  {t("product.shippingText", lang)}
+                </div>
+              </details>
+            </div>
+          </AnimatedReveal>
         </div>
       </div>
     </section>
 
-    <!-- Reviews -->
-    <section class="mt-section-gap w-full border-t border-outline-variant pt-12">
-      <h2 class="font-headline-md text-headline-md text-monolith-black mb-2">{i18n.reviewsTitle}</h2>
-      <div id="reviewStats" class="flex items-center gap-4 mb-8">
-        <div class="flex items-center gap-1" id="reviewStars"></div>
-        <span class="font-body-md text-body-md text-secondary" id="reviewCount"></span>
+    <!-- Lightbox -->
+    <div id="lightbox" class="hidden fixed inset-0 z-[200] bg-black/95 items-center justify-center">
+      <button id="lightboxClose" class="absolute top-6 right-6 z-10 w-10 h-10 flex items-center justify-center text-off-white/70 hover:text-off-white transition-colors" aria-label="Close">
+        <span class="material-symbols-outlined text-3xl">close</span>
+      </button>
+      <button id="lightboxPrev" class="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-10 w-10 h-10 flex items-center justify-center text-off-white/50 hover:text-off-white transition-colors">
+        <span class="material-symbols-outlined text-3xl">chevron_left</span>
+      </button>
+      <button id="lightboxNext" class="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-10 w-10 h-10 flex items-center justify-center text-off-white/50 hover:text-off-white transition-colors">
+        <span class="material-symbols-outlined text-3xl">chevron_right</span>
+      </button>
+      <div class="w-full h-full flex items-center justify-center p-8 md:p-16">
+        <img id="lightboxImg" src="" alt="" class="max-w-full max-h-full object-contain select-none" />
       </div>
+      <div class="absolute bottom-6 left-1/2 -translate-x-1/2 font-label-caps text-label-caps text-off-white/50" id="lightboxCounter"></div>
+    </div>
 
-      <div id="reviewsList" class="grid grid-cols-1 md:grid-cols-2 gap-gutter mb-12"></div>
+    <!-- Reviews Section -->
+    <section class="mt-section-gap w-full border-t border-outline-variant pt-12">
+      <div class="max-w-4xl">
+        <AnimatedReveal>
+          <h2 class="font-headline-md text-headline-md text-monolith-black mb-2">{i18n.reviewsTitle}</h2>
+        </AnimatedReveal>
+        <AnimatedReveal delay={1}>
+          <div id="reviewStats" class="flex items-center gap-4 mb-8">
+            <div class="flex items-center gap-1" id="reviewStars"></div>
+            <span class="font-body-md text-body-md text-secondary" id="reviewCount"></span>
+          </div>
+        </AnimatedReveal>
 
-      <div class="bg-surface-container-low p-6 md:p-8 max-w-lg">
-        <h3 class="font-label-caps text-label-caps text-monolith-black mb-4 tracking-widest">{i18n.reviewsLeave}</h3>
-        <form id="reviewForm" class="flex flex-col gap-4">
-          <div class="grid grid-cols-2 gap-4">
-            <input type="text" id="reviewName" placeholder={i18n.reviewsName} required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none font-body-md text-body-md" />
-            <input type="email" id="reviewEmail" placeholder={i18n.reviewsEmail} class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none font-body-md text-body-md" />
+        <AnimatedReveal delay={2}>
+          <div id="reviewsList" class="grid grid-cols-1 md:grid-cols-2 gap-gutter mb-12"></div>
+        </AnimatedReveal>
+
+        <AnimatedReveal delay={3}>
+          <div class="bg-surface-container-low p-6 md:p-8 max-w-lg">
+            <h3 class="font-label-caps text-label-caps text-monolith-black mb-4 tracking-widest">{i18n.reviewsLeave}</h3>
+            <form id="reviewForm" class="flex flex-col gap-4">
+              <div class="grid grid-cols-2 gap-4">
+                <input type="text" id="reviewName" placeholder={i18n.reviewsName} required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none font-body-md text-body-md transition-colors" />
+                <input type="email" id="reviewEmail" placeholder={i18n.reviewsEmail} class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none font-body-md text-body-md transition-colors" />
+              </div>
+              <div>
+                <div class="flex items-center gap-1 mb-2">
+                  <span class="font-body-md text-body-md text-secondary mr-2">{i18n.reviewsRating}</span>
+                  {[1,2,3,4,5].map((star) => (
+                    <button type="button" data-review-star={star} class="review-star text-2xl text-outline hover:text-clay-accent transition-colors cursor-pointer" aria-label={`${star} star`}>
+                      <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0">star</span>
+                    </button>
+                  ))}
+                </div>
+                <input type="hidden" id="reviewRating" value="0" />
+              </div>
+              <input type="text" id="reviewTitle" placeholder={i18n.reviewsTitlePlaceholder} class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none font-body-md text-body-md transition-colors" />
+              <textarea id="reviewComment" placeholder={i18n.reviewsComment} rows="4" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-monolith-black focus:outline-none font-body-md text-body-md resize-none transition-colors"></textarea>
+              <div id="reviewMsg" class="hidden font-body-md text-body-md text-sm"></div>
+              <button type="submit" id="reviewSubmitBtn" class="bg-monolith-black text-on-primary font-label-caps text-label-caps h-12 px-8 hover:bg-on-surface hover:tracking-[0.15em] transition-all duration-300 self-start tracking-widest">
+                {i18n.reviewsSubmit}
+              </button>
+            </form>
           </div>
-          <div>
-            <div class="flex items-center gap-1 mb-2">
-              <span class="font-body-md text-body-md text-secondary mr-2">{i18n.reviewsRating}</span>
-              {[1,2,3,4,5].map((star) => (
-                <button type="button" data-review-star={star} class="review-star text-2xl text-outline hover:text-clay-accent transition-colors cursor-pointer" aria-label={`${star} star`}>
-                  <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0">star</span>
-                </button>
-              ))}
-            </div>
-            <input type="hidden" id="reviewRating" value="0" />
-          </div>
-          <input type="text" id="reviewTitle" placeholder={i18n.reviewsTitlePlaceholder} class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none font-body-md text-body-md" />
-          <textarea id="reviewComment" placeholder={i18n.reviewsComment} rows="4" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-monolith-black focus:outline-none font-body-md text-body-md resize-none"></textarea>
-          <div id="reviewMsg" class="hidden font-body-md text-body-md text-sm"></div>
-          <button type="submit" id="reviewSubmitBtn" class="bg-monolith-black text-on-primary font-label-caps text-label-caps h-12 px-8 hover:opacity-80 transition-opacity self-start tracking-widest">
-            {i18n.reviewsSubmit}
-          </button>
-        </form>
+        </AnimatedReveal>
       </div>
     </section>
 
+    <!-- Related Products -->
     <section class="mt-section-gap w-full">
       <div class="flex justify-between items-end mb-8 border-b border-outline-variant pb-4">
-        <h2 class="font-headline-md text-headline-md text-monolith-black">{t("product.related", lang)}</h2>
-        <a href={`/${lang}/catalogo`} class="font-label-caps text-label-caps text-secondary hover:text-monolith-black transition-colors hidden md:block">{t("product.related.viewAll", lang)}</a>
+        <AnimatedReveal>
+          <h2 class="font-headline-md text-headline-md text-monolith-black">{t("product.related", lang)}</h2>
+        </AnimatedReveal>
+        <AnimatedReveal delay={1}>
+          <a href={`/${lang}/catalogo`} class="font-label-caps text-label-caps text-secondary hover:text-monolith-black transition-colors hidden md:block">{t("product.related.viewAll", lang)}</a>
+        </AnimatedReveal>
       </div>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-x-gutter gap-y-12">
         {relatedProducts.map((p, i) => (
-          <a href={`/${lang}/producto/${p.slug}`} class={`group flex flex-col gap-4 ${i === 3 ? "hidden md:flex" : ""}`}>
+          <a
+            href={`/${lang}/producto/${p.slug}`}
+            class={`group flex flex-col gap-4 product-card reveal ${i === 3 ? "hidden md:flex" : ""}`}
+            style={`transition-delay: ${0.1 * i}s`}
+          >
             <div class="w-full bg-surface-container aspect-[3/4] overflow-hidden relative">
-              <img src={relatedImages[i] || p.images[0]} alt={p.name} class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+              <img
+                src={p.images[0] || ""}
+                alt={p.name}
+                class="w-full h-full object-cover img-lift"
+                loading="lazy"
+              />
             </div>
             <div class="flex flex-col gap-1">
-              <h3 class="font-body-md text-body-md text-monolith-black">{p.name}</h3>
+              <h3 class="font-body-md text-body-md text-monolith-black group-hover:text-clay-accent transition-colors duration-300">{p.name}</h3>
               <p class="font-price-display text-price-display text-secondary">${p.price.toFixed(2)} USD</p>
             </div>
           </a>
@@ -242,196 +323,378 @@ const i18n = {
       </div>
     </section>
   </main>
+
   <Footer lang={lang} />
 
-  <script>
+  <script id="productData" type="application/json" is:inline set:html={JSON.stringify({
+    id: product.id,
+    name: product.name,
+    slug: product.slug,
+    price: product.price,
+    currency: product.currency,
+    images: product.images,
+    category: product.category,
+    colors: product.colors,
+    sizes: product.sizes,
+    colorGalleryMap: colorGalleryMap,
+  })}></script>
+
+  <script is:inline define:vars={{ i18n }}>
     // @ts-nocheck
-    const i18n = {
-      selectSize: `{i18n.selectSize}`,
-      addedToCart: `{i18n.addedToCart}`,
-      reviewsSubmit: `{i18n.reviewsSubmit}`,
-      reviewsSending: `{i18n.reviewsSending}`,
-      reviewsSuccess: `{i18n.reviewsSuccess}`,
-      reviewsError: `{i18n.reviewsError}`,
-      reviewsNameRequired: `{i18n.reviewsNameRequired}`,
-      reviewsRatingRequired: `{i18n.reviewsRatingRequired}`,
-      reviewsAverage: `{i18n.reviewsAverage}`,
-      reviewsReview: `{i18n.reviewsReview}`,
-      reviewsReviews: `{i18n.reviewsReviews}`,
-      reviewsEmpty: `{i18n.reviewsEmpty}`,
-      reviewsAnonymous: `{i18n.reviewsAnonymous}`,
-    };
-
-    let selectedColor = "{product.colors[0]?.name || ''}";
-    let selectedSize = "";
-
-    document.querySelectorAll(".color-swatch").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        document.querySelectorAll(".color-swatch").forEach((b) => {
-          b.className = "color-swatch w-6 h-6 rounded-full transition-all border border-outline-variant hover:border-monolith-black";
-        });
-        btn.className = "color-swatch w-6 h-6 rounded-full transition-all ring-1 ring-offset-2 ring-monolith-black ring-offset-background";
-        selectedColor = btn.dataset.color;
-        document.getElementById("selectedColorName").textContent = selectedColor;
-      });
-    });
-
-    document.querySelectorAll(".size-btn").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        document.querySelectorAll(".size-btn").forEach((b) => {
-          b.classList.remove("bg-monolith-black", "text-off-white", "border-monolith-black");
-          b.classList.add("border-outline-variant", "text-monolith-black", "hover:border-monolith-black");
-        });
-        btn.classList.add("bg-monolith-black", "text-off-white", "border-monolith-black");
-        btn.classList.remove("border-outline-variant", "hover:border-monolith-black");
-        selectedSize = btn.dataset.size;
-      });
-    });
-
-    document.getElementById("addToCartBtn").addEventListener("click", function () {
-      if (!selectedSize) {
-        alert(i18n.selectSize);
-        return;
-      }
-      const productData = JSON.parse(this.dataset.product);
-      window.VunoCart.addItem(productData, 1, selectedColor, selectedSize);
-      alert(i18n.addedToCart);
-    });
-
     (function () {
-      const btn = document.querySelector("[data-toggle-wishlist]");
-      if (!btn) return;
-      const product = JSON.parse(btn.dataset.product || "{}");
-      if (window.VunoWishlist.isInWishlist(product.id)) {
-        const icon = btn.querySelector(".wishlist-icon");
-        if (icon) {
-          icon.textContent = "favorite";
-          icon.style.fontVariationSettings = "'FILL' 1";
-        }
-        btn.classList.add("in-wishlist");
-      }
-    })();
+      var data = JSON.parse(document.getElementById("productData").textContent);
+      var images = data.images || [];
+      var colors = data.colors || [];
+      var sizes = data.sizes || [];
+      var colorGalleryMap = data.colorGalleryMap || {};
+      var currentImages = images.slice();
+      var currentImageIndex = 0;
+      var selectedColor = colors.length > 0 ? colors[0].name : "";
+      var selectedSize = "";
 
-    (function () {
-      const productId = "{product.id}";
+      // =============================================================
+      //                      GALLERY — THUMBNAIL NAV
+      // =============================================================
 
-      function starsHtml(rating, filled = true) {
-        const color = filled ? "text-clay-accent" : "text-outline";
-        const fill = filled ? 1 : 0;
-        return Array(5).fill(0).map((_, i) =>
-          `<span class="material-symbols-outlined text-sm ${i < rating ? color : 'text-outline'}" style="font-variation-settings: 'FILL' ${i < rating ? fill : 0}">star</span>`
-        ).join("");
+      function updateGallery(imgArray, index) {
+        currentImages = imgArray;
+        currentImageIndex = Math.min(index, imgArray.length - 1);
+        renderMainImage();
+        renderThumbnails();
+        renderCounter();
       }
 
-      function renderStats(stats) {
-        const countLabel = stats.total === 1 ? i18n.reviewsReview : i18n.reviewsReviews;
-        document.getElementById("reviewStars").innerHTML = stats.total > 0 ? starsHtml(Math.round(stats.average)) : starsHtml(0);
-        document.getElementById("reviewCount").textContent = stats.total > 0
-          ? stats.average + " " + i18n.reviewsAverage + " · " + stats.total + " " + countLabel
-          : "0 " + countLabel;
-      }
-
-      function renderReviews(reviews) {
-        const container = document.getElementById("reviewsList");
-        if (reviews.length === 0) {
-          container.innerHTML = '<p class="font-body-md text-body-md text-secondary col-span-full">' + i18n.reviewsEmpty + '</p>';
-          return;
-        }
-        container.innerHTML = reviews.map(r => `
-          <div class="border border-outline-variant p-4">
-            <div class="flex items-center gap-2 mb-2">
-              <div class="flex items-center gap-0.5">${starsHtml(r.rating)}</div>
-              <span class="font-label-caps text-label-caps text-secondary text-xs">${r.reviewerName || i18n.reviewsAnonymous}</span>
-            </div>
-            ${r.title ? '<p class="font-body-md text-body-md text-monolith-black font-medium mb-1">' + r.title + '</p>' : ''}
-            ${r.comment ? '<p class="font-body-md text-body-md text-secondary">' + r.comment + '</p>' : ''}
-          </div>
-        `).join("");
-      }
-
-      async function loadReviews() {
-        try {
-          const res = await fetch("/api/resenas/list.php?product_id=" + encodeURIComponent(productId));
-          const data = await res.json();
-          renderStats(data.stats);
-          renderReviews(data.reviews);
-        } catch (err) {
-          document.getElementById("reviewsList").innerHTML = '<p class="font-body-md text-body-md text-error col-span-full">' + i18n.reviewsError + '</p>';
+      function renderMainImage() {
+        var img = document.getElementById("mainImage");
+        if (img && currentImages[currentImageIndex]) {
+          img.src = currentImages[currentImageIndex];
+          img.classList.remove("opacity-100");
+          img.classList.add("opacity-0");
+          requestAnimationFrame(function () {
+            img.classList.remove("opacity-0");
+            img.classList.add("opacity-100");
+          });
         }
       }
 
-      let selectedRating = 0;
-      document.querySelectorAll(".review-star").forEach(btn => {
-        btn.addEventListener("click", () => {
-          selectedRating = parseInt(btn.dataset.reviewStar);
-          document.getElementById("reviewRating").value = selectedRating;
-          document.querySelectorAll(".review-star").forEach((s, i) => {
-            const icon = s.querySelector(".material-symbols-outlined");
-            if (i < selectedRating) {
-              icon.style.fontVariationSettings = "'FILL' 1";
-              s.classList.remove("text-outline");
-              s.classList.add("text-clay-accent");
-            } else {
-              icon.style.fontVariationSettings = "'FILL' 0";
-              s.classList.remove("text-clay-accent");
-              s.classList.add("text-outline");
+      function renderThumbnails() {
+        var strip = document.getElementById("thumbnailStrip");
+        if (!strip) return;
+        strip.innerHTML = currentImages.map(function (src, i) {
+          var active = i === currentImageIndex ? "border-monolith-black" : "border-transparent opacity-60";
+          return '<button data-thumb="' + i + '" class="w-16 h-20 bg-surface-container overflow-hidden flex-shrink-0 border-2 transition-all duration-300 hover:opacity-90 ' + active + '">' +
+            '<img src="' + src + '" alt="" class="w-full h-full object-cover" loading="lazy" />' +
+            '</button>';
+        }).join("");
+
+        strip.querySelectorAll("[data-thumb]").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            var idx = parseInt(this.dataset.thumb);
+            if (!isNaN(idx) && idx >= 0 && idx < currentImages.length) {
+              currentImageIndex = idx;
+              renderMainImage();
+              renderThumbnails();
+              renderCounter();
             }
           });
         });
+      }
+
+      function renderCounter() {
+        var el = document.getElementById("imageCounter");
+        if (el) {
+          el.innerHTML = '<span class="bg-off-white/90 backdrop-blur-sm px-3 py-1.5 font-label-caps text-label-caps text-monolith-black text-xs">' +
+            String(currentImageIndex + 1).padStart(2, "0") + " / " + String(currentImages.length).padStart(2, "0") +
+            "</span>";
+        }
+      }
+
+      // =============================================================
+      //                   COLOR → IMAGE SWAP
+      // =============================================================
+
+      document.querySelectorAll(".color-swatch").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          document.querySelectorAll(".color-swatch").forEach(function (b) {
+            b.className = "color-swatch w-7 h-7 rounded-full transition-all duration-300 border border-outline-variant hover:border-monolith-black hover:scale-110";
+            b.classList.remove("ring-1", "ring-offset-2", "ring-monolith-black", "ring-offset-background", "scale-110");
+          });
+          btn.className = "color-swatch w-7 h-7 rounded-full transition-all duration-300 ring-1 ring-offset-2 ring-monolith-black ring-offset-background scale-110";
+          selectedColor = btn.dataset.color;
+          document.getElementById("selectedColorName").textContent = selectedColor;
+
+          // Swap gallery images
+          var colorImages = colorGalleryMap[selectedColor] || images;
+          updateGallery(colorImages, 0);
+        });
       });
 
-      document.getElementById("reviewForm").addEventListener("submit", async (e) => {
+      // =============================================================
+      //                      SIZE SELECTOR
+      // =============================================================
+
+      document.querySelectorAll(".size-btn").forEach(function (btn) {
+        if (btn.disabled) return;
+        btn.addEventListener("click", function () {
+          document.querySelectorAll(".size-btn").forEach(function (b) {
+            if (b.disabled) return;
+            b.classList.remove("bg-monolith-black", "text-off-white", "border-monolith-black");
+            b.classList.add("border-outline-variant", "text-monolith-black", "hover:border-monolith-black", "hover:bg-monolith-black", "hover:text-off-white");
+          });
+          btn.classList.add("bg-monolith-black", "text-off-white", "border-monolith-black");
+          btn.classList.remove("border-outline-variant", "hover:border-monolith-black", "hover:bg-monolith-black", "hover:text-off-white");
+          selectedSize = btn.dataset.size;
+        });
+      });
+
+      // =============================================================
+      //                      ADD TO CART
+      // =============================================================
+
+      document.getElementById("addToCartBtn").addEventListener("click", function (e) {
         e.preventDefault();
-        const msg = document.getElementById("reviewMsg");
-        const name = document.getElementById("reviewName").value.trim();
-        const rating = selectedRating;
-
-        if (!name) { msg.textContent = i18n.reviewsNameRequired; msg.className = "font-body-md text-body-md text-sm text-error block"; return; }
-        if (rating < 1) { msg.textContent = i18n.reviewsRatingRequired; msg.className = "font-body-md text-body-md text-sm text-error block"; return; }
-
-        const btn = document.getElementById("reviewSubmitBtn");
+        e.stopPropagation();
+        if (!selectedSize) {
+          window.VunoModal.alert({ type: "warning", title: i18n.selectSize });
+          return;
+        }
+        var btn = this;
+        var text = document.getElementById("addToCartText");
+        var spinner = document.getElementById("addToCartSpinner");
         btn.disabled = true;
-        btn.textContent = i18n.reviewsSending;
+        text.textContent = "";
+        spinner.classList.remove("hidden");
 
-        try {
-          const res = await fetch("/api/resenas/create.php", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              product_id: productId,
-              reviewer_name: name,
-              reviewer_email: document.getElementById("reviewEmail").value.trim(),
-              rating: rating,
-              title: document.getElementById("reviewTitle").value.trim(),
-              comment: document.getElementById("reviewComment").value.trim(),
-            }),
-          });
-          const data = await res.json();
-          if (!res.ok) throw new Error(data.error);
+        var productData = {
+          id: data.id,
+          name: data.name,
+          slug: data.slug,
+          price: data.price,
+          currency: data.currency,
+          images: data.images,
+          category: data.category,
+        };
 
-          msg.textContent = i18n.reviewsSuccess;
-          msg.className = "font-body-md text-body-md text-sm text-monolith-black block";
-          document.getElementById("reviewForm").reset();
-          selectedRating = 0;
-          document.getElementById("reviewRating").value = 0;
-          document.querySelectorAll(".review-star .material-symbols-outlined").forEach(icon => {
-            icon.style.fontVariationSettings = "'FILL' 0";
-          });
-          document.querySelectorAll(".review-star").forEach(s => {
-            s.classList.remove("text-clay-accent");
-            s.classList.add("text-outline");
-          });
-          loadReviews();
-        } catch (err) {
-          msg.textContent = err.message;
-          msg.className = "font-body-md text-body-md text-sm text-error block";
-        } finally {
+        // Simulate brief processing delay for UX
+        setTimeout(function () {
+          window.VunoCart.addItem(productData, 1, selectedColor, selectedSize);
+          spinner.classList.add("hidden");
+          text.textContent = i18n.addedToCart;
           btn.disabled = false;
-          btn.textContent = i18n.reviewsSubmit;
+          setTimeout(function () {
+            text.textContent = i18n.addToCart || "AÑADIR AL CARRITO";
+          }, 2000);
+        }, 300);
+      });
+
+      // =============================================================
+      //                      LIGHTBOX
+      // =============================================================
+
+      var lightboxEl = document.getElementById("lightbox");
+      var lightboxImg = document.getElementById("lightboxImg");
+      var lightboxCounter = document.getElementById("lightboxCounter");
+
+      function openLightbox(index) {
+        currentImageIndex = Math.min(index, currentImages.length - 1);
+        lightboxImg.src = currentImages[currentImageIndex];
+        lightboxCounter.textContent = String(currentImageIndex + 1) + " / " + currentImages.length;
+        lightboxEl.classList.remove("hidden");
+        lightboxEl.classList.add("flex");
+        document.body.style.overflow = "hidden";
+      }
+
+      function closeLightbox() {
+        lightboxEl.classList.add("hidden");
+        lightboxEl.classList.remove("flex");
+        document.body.style.overflow = "";
+      }
+
+      function navigateLightbox(dir) {
+        currentImageIndex = (currentImageIndex + dir + currentImages.length) % currentImages.length;
+        lightboxImg.src = currentImages[currentImageIndex];
+        lightboxCounter.textContent = String(currentImageIndex + 1) + " / " + currentImages.length;
+      }
+
+      document.getElementById("mainImageWrap").addEventListener("click", function () {
+        openLightbox(currentImageIndex);
+      });
+      document.getElementById("zoomBtn").addEventListener("click", function (e) {
+        e.stopPropagation();
+        openLightbox(currentImageIndex);
+      });
+      document.getElementById("lightboxClose").addEventListener("click", closeLightbox);
+      document.getElementById("lightboxPrev").addEventListener("click", function () { navigateLightbox(-1); });
+      document.getElementById("lightboxNext").addEventListener("click", function () { navigateLightbox(1); });
+
+      lightboxEl.addEventListener("click", function (e) {
+        if (e.target === lightboxEl) closeLightbox();
+      });
+
+      document.addEventListener("keydown", function (e) {
+        if (!lightboxEl.classList.contains("hidden")) {
+          if (e.key === "Escape") { closeLightbox(); e.preventDefault(); }
+          if (e.key === "ArrowLeft") { navigateLightbox(-1); e.preventDefault(); }
+          if (e.key === "ArrowRight") { navigateLightbox(1); e.preventDefault(); }
         }
       });
 
-      loadReviews();
+      // =============================================================
+      //                      WISHLIST TOGGLE
+      // =============================================================
+
+      (function () {
+        var btn = document.querySelector("[data-toggle-wishlist]");
+        if (!btn) return;
+        var product = JSON.parse(btn.dataset.product || "{}");
+        if (window.VunoWishlist.isInWishlist(product.id)) {
+          var icon = btn.querySelector(".wishlist-icon");
+          if (icon) {
+            icon.textContent = "favorite";
+            icon.style.fontVariationSettings = "'FILL' 1";
+          }
+          btn.classList.add("in-wishlist");
+        }
+      })();
+
+      // =============================================================
+      //                      PARALLAX / SCROLL REVEAL
+      // =============================================================
+
+      (function () {
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                entry.target.classList.add("revealed");
+                observer.unobserve(entry.target);
+              }
+            });
+          },
+          { threshold: 0.1, rootMargin: "0px 0px -40px 0px" }
+        );
+        document.querySelectorAll(".reveal").forEach(function (el) { observer.observe(el); });
+      })();
+
+      // =============================================================
+      //                      REVIEWS SYSTEM
+      // =============================================================
+
+      (function () {
+        function starsHtml(rating, filled) {
+          if (filled === undefined) filled = true;
+          var color = filled ? "text-clay-accent" : "text-outline";
+          return Array(5).fill(0).map(function (_, i) {
+            return '<span class="material-symbols-outlined text-sm ' + (i < rating ? color : "text-outline") + '" style="font-variation-settings: \'FILL\' ' + (i < rating ? 1 : 0) + '">star</span>';
+          }).join("");
+        }
+
+        function renderStats(stats) {
+          var countLabel = stats.total === 1 ? i18n.reviewsReview : i18n.reviewsReviews;
+          document.getElementById("reviewStars").innerHTML = stats.total > 0 ? starsHtml(Math.round(stats.average)) : starsHtml(0);
+          document.getElementById("reviewCount").textContent = stats.total > 0
+            ? stats.average + " " + i18n.reviewsAverage + " \u00b7 " + stats.total + " " + countLabel
+            : "0 " + countLabel;
+        }
+
+        function renderReviews(reviews) {
+          var container = document.getElementById("reviewsList");
+          if (reviews.length === 0) {
+            container.innerHTML = '<div class="col-span-full text-center py-8"><p class="font-body-md text-body-md text-secondary">' + i18n.reviewsEmpty + '</p></div>';
+            return;
+          }
+          container.innerHTML = reviews.map(function (r) {
+            return '<div class="border border-outline-variant p-4 hover:border-monolith-black transition-colors duration-300">' +
+              '<div class="flex items-center gap-2 mb-2">' +
+              '<div class="flex items-center gap-0.5">' + starsHtml(r.rating) + '</div>' +
+              '<span class="font-label-caps text-label-caps text-secondary text-xs">' + (r.reviewerName || i18n.reviewsAnonymous) + '</span>' +
+              '</div>' +
+              (r.title ? '<p class="font-body-md text-body-md text-monolith-black font-medium mb-1">' + r.title + '</p>' : "") +
+              (r.comment ? '<p class="font-body-md text-body-md text-secondary">' + r.comment + '</p>' : "") +
+              '</div>';
+          }).join("");
+        }
+
+        async function loadReviews() {
+          try {
+            var res = await fetch("/api/resenas/list.php?product_id=" + encodeURIComponent(data.id));
+            var result = await res.json();
+            renderStats(result.stats);
+            renderReviews(result.reviews);
+          } catch (err) {
+            document.getElementById("reviewsList").innerHTML = '<div class="col-span-full text-center py-8"><p class="font-body-md text-body-md text-error">' + i18n.reviewsError + '</p></div>';
+          }
+        }
+
+        var selectedRating = 0;
+        document.querySelectorAll(".review-star").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            selectedRating = parseInt(btn.dataset.reviewStar);
+            document.getElementById("reviewRating").value = selectedRating;
+            document.querySelectorAll(".review-star").forEach(function (s, i) {
+              var icon = s.querySelector(".material-symbols-outlined");
+              if (i < selectedRating) {
+                icon.style.fontVariationSettings = "'FILL' 1";
+                s.classList.remove("text-outline");
+                s.classList.add("text-clay-accent");
+              } else {
+                icon.style.fontVariationSettings = "'FILL' 0";
+                s.classList.remove("text-clay-accent");
+                s.classList.add("text-outline");
+              }
+            });
+          });
+        });
+
+        document.getElementById("reviewForm").addEventListener("submit", async function (e) {
+          e.preventDefault();
+          var msg = document.getElementById("reviewMsg");
+          var name = document.getElementById("reviewName").value.trim();
+          var rating = selectedRating;
+          if (!name) { msg.textContent = i18n.reviewsNameRequired; msg.className = "font-body-md text-body-md text-sm text-error block"; return; }
+          if (rating < 1) { msg.textContent = i18n.reviewsRatingRequired; msg.className = "font-body-md text-body-md text-sm text-error block"; return; }
+          var submitBtn = document.getElementById("reviewSubmitBtn");
+          submitBtn.disabled = true;
+          submitBtn.textContent = i18n.reviewsSending;
+          try {
+            var res = await fetch("/api/resenas/create.php", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                product_id: data.id,
+                reviewer_name: name,
+                reviewer_email: document.getElementById("reviewEmail").value.trim(),
+                rating: rating,
+                title: document.getElementById("reviewTitle").value.trim(),
+                comment: document.getElementById("reviewComment").value.trim(),
+              }),
+            });
+            var result = await res.json();
+            if (!res.ok) throw new Error(result.error);
+            msg.textContent = i18n.reviewsSuccess;
+            msg.className = "font-body-md text-body-md text-sm text-monolith-black block";
+            document.getElementById("reviewForm").reset();
+            selectedRating = 0;
+            document.getElementById("reviewRating").value = 0;
+            document.querySelectorAll(".review-star .material-symbols-outlined").forEach(function (icon) {
+              icon.style.fontVariationSettings = "'FILL' 0";
+            });
+            document.querySelectorAll(".review-star").forEach(function (s) {
+              s.classList.remove("text-clay-accent");
+              s.classList.add("text-outline");
+            });
+            loadReviews();
+          } catch (err) {
+            msg.textContent = err.message;
+            msg.className = "font-body-md text-body-md text-sm text-error block";
+          } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = i18n.reviewsSubmit;
+          }
+        });
+
+        loadReviews();
+      })();
     })();
   </script>
 </BaseLayout>
