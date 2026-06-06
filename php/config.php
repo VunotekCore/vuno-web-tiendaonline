@@ -27,6 +27,9 @@ function env(string $key, mixed $default = null): mixed
     return $value !== false && $value !== null ? $value : $default;
 }
 
+// --- Product Constraints ---
+define('MAX_PRODUCT_IMAGES', 5);
+
 // --- Database Constants ---
 define('DB_HOST', env('DB_HOST', 'localhost'));
 define('DB_PORT', env('DB_PORT', '3306'));

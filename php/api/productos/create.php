@@ -21,6 +21,9 @@ $name = $input['name'] ?? '';
 $price = (float)($input['price'] ?? 0);
 if (empty($name) || $price <= 0) jsonError('Name and price required');
 
+$images = $input['images'] ?? [];
+if (count($images) > MAX_PRODUCT_IMAGES) jsonError('Maximum ' . MAX_PRODUCT_IMAGES . ' images allowed');
+
 $product = [
     'id' => $input['id'] ?? ('prod-' . bin2hex(random_bytes(4))),
     'name' => $name,
@@ -29,7 +32,7 @@ $product = [
     'details' => $input['details'] ?? null,
     'price' => $price,
     'currency' => 'USD',
-    'images' => $input['images'] ?? [],
+    'images' => $images,
     'category' => $input['category'] ?? 'Heels',
     'colors' => $input['colors'] ?? [],
     'sizes' => $input['sizes'] ?? [],

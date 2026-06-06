@@ -16,11 +16,12 @@ if (!$data || empty($data['id']) || empty($data['name'])) jsonError('ID and name
 $existing = getCategoryById($data['id']);
 if (!$existing) jsonError('Category not found', 404);
 
+$oldName = $existing['name'];
 $existing['name'] = $data['name'];
 $existing['slug'] = slugify($data['name']);
 saveCategory($existing);
 logAdminAction('update', 'category', $data['id'], 'Updated category: ' . $data['name'], [
-    'from' => $existing['name'],
+    'from' => $oldName,
     'to' => $data['name'],
 ]);
 jsonResponse($existing);

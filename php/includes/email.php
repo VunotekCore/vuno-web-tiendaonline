@@ -125,7 +125,7 @@ function sendTemplatedEmail(string $templateCode, string $to, array $vars, ?stri
 /**
  * Send order confirmation email to the customer.
  */
-function sendOrderConfirmation(array $order, array $bankAccounts = []): array
+function sendOrderConfirmation(array $order): array
 {
     $name = htmlspecialchars($order['customer']['name'] ?? 'Customer');
     $orderId = htmlspecialchars($order['id']);
@@ -143,28 +143,6 @@ function sendOrderConfirmation(array $order, array $bankAccounts = []): array
         $couponBlock = '<p style="margin:-16px 0 24px;font-size:13px;color:#6b6b6b">Discount applied: -$' . number_format($discount, 2) . '</p>';
     }
 
-    $transferBlock = '';
-    if (($order['paymentMethod'] ?? '') === 'transfer' && !empty($bankAccounts)) {
-        $transferHtml = '';
-        foreach ($bankAccounts as $b) {
-            $transferHtml .= '<p style="margin:0 0 4px;font-size:13px;color:#6b6b6b">';
-            if (!empty($b['bankName'])) $transferHtml .= 'Bank: ' . htmlspecialchars($b['bankName']) . '<br>';
-            if (!empty($b['accountNumber'])) $transferHtml .= 'Account: ' . htmlspecialchars($b['accountNumber']) . '<br>';
-            if (!empty($b['accountHolder'])) $transferHtml .= 'Holder: ' . htmlspecialchars($b['accountHolder']);
-            $transferHtml .= '</p>';
-        }
-        $receiptUrl = $order['transferReceipt'] ?? '';
-        $receiptLink = $receiptUrl
-            ? '<p style="margin:8px 0 0;font-size:13px"><a href="' . htmlspecialchars($receiptUrl) . '" style="color:#1a1a1a">View payment receipt</a></p>'
-            : '';
-        $transferBlock = '
-            <div style="margin-top:24px;padding-top:24px;border-top:1px solid #f0eeeb">
-                <h2 style="font-family:\'Playfair Display\',Georgia,serif;font-size:18px;color:#1a1a1a;margin:0 0 12px;font-weight:400">Bank Transfer Details</h2>
-                <p style="margin:0 0 12px;font-size:14px;color:#6b6b6b">Please complete your transfer to the following account:</p>
-                ' . $transferHtml . $receiptLink . '
-            </div>';
-    }
-
     $vars = [
         'customer_name'        => $name,
         'order_id'             => $orderId,
@@ -173,7 +151,7 @@ function sendOrderConfirmation(array $order, array $bankAccounts = []): array
         'order_shipping'       => $shipping,
         'order_total'          => $total,
         'coupon_discount_block' => $couponBlock,
-        'transfer_details_block' => $transferBlock,
+        'transfer_details_block' => '',
         'preheader'            => "Your order #{$orderId} has been confirmed",
     ];
 

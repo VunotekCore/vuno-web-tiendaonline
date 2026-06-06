@@ -21,6 +21,9 @@ $existing = getProductById($input['id']);
 if (!$existing) jsonError('Product not found', 404);
 
 $name = $input['name'] ?? $existing['name'];
+$images = $input['images'] ?? $existing['images'];
+if (count($images) > MAX_PRODUCT_IMAGES) jsonError('Maximum ' . MAX_PRODUCT_IMAGES . ' images allowed');
+
 $product = [
     'id' => $existing['id'],
     'name' => $name,
@@ -29,7 +32,7 @@ $product = [
     'details' => $input['details'] ?? $existing['details'],
     'price' => (float)($input['price'] ?? $existing['price']),
     'currency' => 'USD',
-    'images' => $input['images'] ?? $existing['images'],
+    'images' => $images,
     'category' => $input['category'] ?? $existing['category'],
     'colors' => $input['colors'] ?? $existing['colors'],
     'sizes' => $input['sizes'] ?? $existing['sizes'],

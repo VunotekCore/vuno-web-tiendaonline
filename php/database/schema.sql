@@ -512,11 +512,13 @@ CREATE TABLE order_status_history (
 ) ENGINE=InnoDB;
 
 CREATE TABLE coupon_usage (
-    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    coupon_id   INT UNSIGNED NOT NULL,
-    order_id    INT UNSIGNED NOT NULL,
-    customer_id INT UNSIGNED DEFAULT NULL,
-    used_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    id              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    coupon_id       INT UNSIGNED NOT NULL,
+    order_id        INT UNSIGNED NOT NULL,
+    customer_email  VARCHAR(255) DEFAULT NULL,
+    discount_amount DECIMAL(10,2) DEFAULT 0.00,
+    customer_id     INT UNSIGNED DEFAULT NULL,
+    used_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (coupon_id) REFERENCES coupons(id) ON DELETE CASCADE,
     FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
     FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE SET NULL,

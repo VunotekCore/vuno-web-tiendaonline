@@ -238,35 +238,43 @@ function ensureLoginAttemptsTable(): void
 
 function recordLoginAttempt(bool $success): void
 {
-    ensureLoginAttemptsTable();
-    $db = getDb();
-    $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
-    $stmt = $db->prepare('INSERT INTO admin_login_attempts (ip_address, success) VALUES (?, ?)');
-    $stmt->execute([$ip, $success ? 1 : 0]);
+    try {
+        ensureLoginAttemptsTable();
+        $db = getDb();
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+        $stmt = $db->prepare('INSERT INTO admin_login_attempts (ip_address, success) VALUES (?, ?)');
+        $stmt->execute([$ip, $success ? 1 : 0]);
+    } catch (\Throwable $e) {
+        error_log('Record login attempt failed: ' . $e->getMessage());
+    }
 }
 
 function checkLoginRateLimit(): void
 {
-    ensureLoginAttemptsTable();
-    $db = getDb();
-    $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
-    $since = date('Y-m-d H:i:s', time() - RATE_LIMIT_WINDOW);
+    try {
+        ensureLoginAttemptsTable();
+        $db = getDb();
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+        $since = date('Y-m-d H:i:s', time() - RATE_LIMIT_WINDOW);
 
-    $stmt = $db->prepare(
-        'SELECT COUNT(*) FROM admin_login_attempts
-         WHERE ip_address = ? AND success = 0 AND attempted_at >= ?'
-    );
-    $stmt->execute([$ip, $since]);
-    $failedAttempts = (int)$stmt->fetchColumn();
-
-    if ($failedAttempts >= MAX_LOGIN_ATTEMPTS) {
-        $retryAfter = RATE_LIMIT_WINDOW;
-        http_response_code(429);
-        header('Retry-After: ' . $retryAfter);
-        jsonError(
-            'Demasiados intentos fallidos. Intenta de nuevo en 15 minutos.',
-            429
+        $stmt = $db->prepare(
+            'SELECT COUNT(*) FROM admin_login_attempts
+             WHERE ip_address = ? AND success = 0 AND attempted_at >= ?'
         );
+        $stmt->execute([$ip, $since]);
+        $failedAttempts = (int)$stmt->fetchColumn();
+
+        if ($failedAttempts >= MAX_LOGIN_ATTEMPTS) {
+            $retryAfter = RATE_LIMIT_WINDOW;
+            http_response_code(429);
+            header('Retry-After: ' . $retryAfter);
+            jsonError(
+                'Demasiados intentos fallidos. Intenta de nuevo en 15 minutos.',
+                429
+            );
+        }
+    } catch (\Throwable $e) {
+        error_log('Rate limit check failed: ' . $e->getMessage());
     }
 }
 

@@ -37,6 +37,7 @@ try {
         'paymentStatus' => $input['paymentStatus'] ?? 'pending',
         'stripePaymentIntentId' => $input['stripePaymentIntentId'] ?? null,
         'transferReceipt' => $input['transferReceipt'] ?? null,
+        'selectedBankId' => $input['selectedBankId'] ?? null,
         'customer' => $input['customer'] ?? [],
         'createdAt' => $input['createdAt'] ?? date('c'),
     ];
@@ -45,8 +46,7 @@ try {
 
     if ($order['paymentMethod'] === 'transfer') {
         try {
-            $bankAccounts = getBankAccounts();
-            sendOrderConfirmation($order, $bankAccounts);
+            sendOrderConfirmation($order);
             sendNewOrderNotification($order);
         } catch (\Throwable $e) {
             error_log('Order created but email failed: ' . $e->getMessage());

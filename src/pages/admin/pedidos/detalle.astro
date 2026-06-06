@@ -38,8 +38,13 @@ const validStatuses = ["pending", "paid", "shipped", "delivered", "cancelled"];
           </div>
           <div id="receiptRow" class="flex items-center gap-2 hidden">
             <span class="material-symbols-outlined text-base text-secondary">description</span>
-            <span class="text-secondary">Receipt:</span>
-            <a id="receiptLink" href="#" target="_blank" class="text-monolith-black underline hover:no-underline">View Receipt</a>
+            <span class="text-secondary">Comprobante:</span>
+            <a id="receiptLink" href="#" target="_blank" class="text-monolith-black underline hover:no-underline">Ver comprobante</a>
+          </div>
+          <div id="selectedBankRow" class="flex items-center gap-2 hidden">
+            <span class="material-symbols-outlined text-base text-secondary">account_balance</span>
+            <span class="text-secondary">Bank:</span>
+            <span id="selectedBankName" class="text-monolith-black"></span>
           </div>
         </div>
       </div>
@@ -194,6 +199,10 @@ const validStatuses = ["pending", "paid", "shipped", "delivered", "cancelled"];
         if (o.transferReceipt) {
           document.getElementById("receiptRow").classList.remove("hidden");
           document.getElementById("receiptLink").href = o.transferReceipt;
+        }
+        if (o.selectedBankName) {
+          document.getElementById("selectedBankRow").classList.remove("hidden");
+          document.getElementById("selectedBankName").textContent = o.selectedBankName;
         }
 
         // Customer

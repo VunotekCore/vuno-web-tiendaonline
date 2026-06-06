@@ -28,6 +28,9 @@ if (preg_match('#^/(es|en)/blog/(.+)$#', $uri, $m)) {
     $_GET['lang'] = $locale;
     require __DIR__ . '/blog/index.php';
     return true;
+} elseif (preg_match('#^/blog/?$#', $uri)) {
+    require __DIR__ . '/blog/index.php';
+    return true;
 } elseif (preg_match('#^/blog/(.+)$#', $uri, $m)) {
     $slug = $m[1];
     if ($slug !== 'post.php' && $slug !== 'index.php' && !file_exists($distPath . $uri)) {

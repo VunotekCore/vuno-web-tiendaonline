@@ -460,8 +460,12 @@ function buildOrder(array $row): array
         'status'         => $row['status_code'],
         'paymentMethod'  => $row['payment_method_code'],
         'paymentStatus'  => $row['payment_status_code'],
-        'transferReceipt' => $row['transfer_receipt_url'],
-        'customer'       => [
+        'transferReceipt'  => $row['transfer_receipt_url'],
+        'selectedBankId'  => $row['selected_bank_id'] ? (int)$row['selected_bank_id'] : null,
+        'selectedBankName' => !empty($row['selected_bank_id'])
+            ? (($bnStmt = $db->prepare('SELECT bank_name FROM bank_accounts WHERE id = ?')) && $bnStmt->execute([(int)$row['selected_bank_id']]) ? ($bnStmt->fetchColumn() ?: '') : '')
+            : '',
+        'customer'        => [
             'name'    => $row['customer_name'],
             'email'   => $row['customer_email'],
             'phone'   => $row['customer_phone'] ?? '',
@@ -502,9 +506,9 @@ function saveOrder(array $order): void
             shipping_line1, shipping_city, shipping_state, shipping_zip, shipping_country,
             subtotal, shipping_total, tax_total, discount_total, total, currency,
             status_id, payment_method_id, payment_status_id,
-            stripe_payment_intent_id, transfer_receipt_url, coupon_id,
+            stripe_payment_intent_id, transfer_receipt_url, selected_bank_id, coupon_id,
             created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     );
 
     $stmt->execute([
@@ -528,6 +532,7 @@ function saveOrder(array $order): void
         $paymentStatusId,
         $order['stripePaymentIntentId'] ?? null,
         $order['transferReceipt'] ?? null,
+        $order['selectedBankId'] ?? null,
         $couponId,
         date('Y-m-d H:i:s', strtotime($order['createdAt'] ?? 'now')),
     ]);
@@ -1094,6 +1099,7 @@ function getBankAccounts(): array
     $db = getDb();
     $rows = $db->query('SELECT * FROM bank_accounts WHERE is_active = 1 ORDER BY sort_order')->fetchAll();
     return array_map(fn($r) => [
+        'id'             => (int)$r['id'],
         'bankName'       => $r['bank_name'],
         'accountHolder'  => $r['account_holder'],
         'accountNumber'  => $r['account_number'],
@@ -1132,86 +1138,92 @@ function saveBankAccounts(array $banks): void
 
 function getDashboardStats(): array
 {
-    $db = getDb();
+    try {
+        $db = getDb();
 
-    $totalProducts = (int)$db->query('SELECT COUNT(*) FROM products WHERE deleted_at IS NULL')->fetchColumn();
-    $totalOrders   = (int)$db->query('SELECT COUNT(*) FROM orders')->fetchColumn();
+        $totalProducts = (int)$db->query('SELECT COUNT(*) FROM products WHERE deleted_at IS NULL')->fetchColumn();
+        $totalOrders   = (int)$db->query('SELECT COUNT(*) FROM orders')->fetchColumn();
 
-    // Monthly revenue (paid orders)
-    $monthStart = date('Y-m-01 00:00:00');
-    $monthEnd   = date('Y-m-t 23:59:59');
+        // Monthly revenue (paid orders)
+        $monthStart = date('Y-m-01 00:00:00');
+        $monthEnd   = date('Y-m-t 23:59:59');
 
-    $paidStatusId = (int)$db->query("SELECT id FROM order_statuses WHERE code = 'paid'")->fetchColumn();
-    $stmt = $db->prepare(
-        'SELECT COUNT(*), COALESCE(SUM(total), 0) FROM orders WHERE status_id = ? AND created_at BETWEEN ? AND ?'
-    );
-    $stmt->execute([$paidStatusId, $monthStart, $monthEnd]);
-    $monthlyData = $stmt->fetch();
+        $paidStatusId = (int)$db->query("SELECT id FROM order_statuses WHERE code = 'paid'")->fetchColumn();
+        $stmt = $db->prepare(
+            'SELECT COUNT(*), COALESCE(SUM(total), 0) FROM orders WHERE status_id = ? AND created_at BETWEEN ? AND ?'
+        );
+        $stmt->execute([$paidStatusId, $monthStart, $monthEnd]);
+        $monthlyData = $stmt->fetch();
 
-    // Recent orders
-    $recent = $db->query(
-        'SELECT o.order_number, o.customer_name, o.total, os.code AS status_code, o.created_at, pm.code AS payment_method_code
-         FROM orders o
-         JOIN order_statuses os ON os.id = o.status_id
-         JOIN payment_methods pm ON pm.id = o.payment_method_id
-         ORDER BY o.created_at DESC LIMIT 5'
-    )->fetchAll();
+        // Recent orders
+        $recent = $db->query(
+            'SELECT o.order_number, o.customer_name, o.total, os.code AS status_code, o.created_at, pm.code AS payment_method_code
+             FROM orders o
+             JOIN order_statuses os ON os.id = o.status_id
+             JOIN payment_methods pm ON pm.id = o.payment_method_id
+             ORDER BY o.created_at DESC LIMIT 5'
+        )->fetchAll();
 
-    // Status counts
-    $statusCounts = [];
-    $scRows = $db->query(
-        'SELECT os.code, COUNT(*) AS cnt
-         FROM orders o JOIN order_statuses os ON os.id = o.status_id
-         GROUP BY os.code'
-    )->fetchAll();
-    foreach ($scRows as $sc) {
-        $statusCounts[$sc['code']] = (int)$sc['cnt'];
+        // Status counts
+        $statusCounts = [];
+        $scRows = $db->query(
+            'SELECT os.code, COUNT(*) AS cnt
+             FROM orders o JOIN order_statuses os ON os.id = o.status_id
+             GROUP BY os.code'
+        )->fetchAll();
+        foreach ($scRows as $sc) {
+            $statusCounts[$sc['code']] = (int)$sc['cnt'];
+        }
+
+        // Low stock products: variants with stock <= 1
+        $lowStockProds = $db->query(
+            'SELECT DISTINCT p.id, p.name
+             FROM products p
+             JOIN product_variants pv ON pv.product_id = p.id
+             WHERE p.deleted_at IS NULL AND pv.stock <= 1 AND pv.is_active = 1
+             ORDER BY p.name'
+        )->fetchAll();
+
+        $monthlyRevenue = (float)$monthlyData['SUM(o.total)'];
+
+        // All orders this month (includes all statuses)
+        $stmt3 = $db->prepare(
+            'SELECT COUNT(*) FROM orders WHERE created_at BETWEEN ? AND ?'
+        );
+        $stmt3->execute([$monthStart, $monthEnd]);
+        $monthlyOrderCount = (int)$stmt3->fetchColumn();
+
+        return [
+            'totalProducts'    => $totalProducts,
+            'totalOrders'      => $totalOrders,
+            'monthlyRevenue'   => $monthlyRevenue,
+            'monthlyOrderCount' => $monthlyOrderCount,
+            'statusCounts'     => $statusCounts,
+            'recentOrders'     => array_map(fn($r) => [
+                'id'            => $r['order_number'],
+                'customerName'  => $r['customer_name'],
+                'total'         => (float)$r['total'],
+                'status'        => $r['status_code'],
+                'createdAt'     => date('c', strtotime($r['created_at'])),
+                'paymentMethod' => $r['payment_method_code'],
+            ], $recent),
+            'lowStockProducts' => array_map(fn($p) => [
+                'id'   => $p['id'],
+                'name' => $p['name'],
+            ], $lowStockProds),
+        ];
+    } catch (\PDOException $e) {
+        error_log('Dashboard stats error: ' . $e->getMessage());
+        return [
+            'totalProducts'    => 0,
+            'totalOrders'      => 0,
+            'monthlyRevenue'   => 0.0,
+            'monthlyOrderCount' => 0,
+            'statusCounts'     => [],
+            'recentOrders'     => [],
+            'lowStockProducts' => [],
+        ];
     }
-
-    // Low stock products: variants with stock <= 1
-    $lowStockProds = $db->query(
-        'SELECT DISTINCT p.id, p.name
-         FROM products p
-         JOIN product_variants pv ON pv.product_id = p.id
-         WHERE p.deleted_at IS NULL AND pv.stock <= 1 AND pv.is_active = 1
-         ORDER BY p.name'
-    )->fetchAll();
-
-    $monthlyRevenue = (float)$monthlyData['SUM(o.total)'];
-    // also count pending orders in monthly
-    $pendingStatusId = (int)$db->query("SELECT id FROM order_statuses WHERE code = 'pending'")->fetchColumn();
-    $stmt2 = $db->prepare(
-        'SELECT COUNT(*) FROM orders WHERE status_id = ? AND created_at BETWEEN ? AND ?'
-    );
-    $stmt2->execute([$pendingStatusId, $monthStart, $monthEnd]);
-    $monthlyPending = (int)$stmt2->fetchColumn();
-
-    // Actually, include pending as well in monthlyOrderCount
-    $stmt3 = $db->prepare(
-        'SELECT COUNT(*) FROM orders WHERE created_at BETWEEN ? AND ?'
-    );
-    $stmt3->execute([$monthStart, $monthEnd]);
-    $monthlyOrderCount = (int)$stmt3->fetchColumn();
-
-    return [
-        'totalProducts'    => $totalProducts,
-        'totalOrders'      => $totalOrders,
-        'monthlyRevenue'   => $monthlyRevenue,
-        'monthlyOrderCount' => $monthlyOrderCount,
-        'statusCounts'     => $statusCounts,
-        'recentOrders'     => array_map(fn($r) => [
-            'id'            => $r['order_number'],
-            'customerName'  => $r['customer_name'],
-            'total'         => (float)$r['total'],
-            'status'        => $r['status_code'],
-            'createdAt'     => date('c', strtotime($r['created_at'])),
-            'paymentMethod' => $r['payment_method_code'],
-        ], $recent),
-        'lowStockProducts' => array_map(fn($p) => [
-            'id'   => $p['id'],
-            'name' => $p['name'],
-        ], $lowStockProds),
-    ];
 }
 
 // =============================================================================
@@ -1673,8 +1685,8 @@ function createBlogPost(array $data): int
 {
     $db = getDb();
     $stmt = $db->prepare(
-        'INSERT INTO blog_posts (title, slug, excerpt, content, featured_image, author, status, category_id, published_at, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())'
+        'INSERT INTO blog_posts (title, slug, excerpt, content, featured_image, author, status, category_id, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())'
     );
     $stmt->execute([
         $data['title'],

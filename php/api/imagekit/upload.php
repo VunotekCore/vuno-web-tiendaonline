@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../../config.php';
+require_once __DIR__ . '/../../includes/auth.php';
 require_once __DIR__ . '/../../includes/imagekit.php';
 require_once __DIR__ . '/../../includes/storage.php';
 
@@ -9,6 +10,9 @@ setCorsHeaders();
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     jsonError('Method not allowed', 405);
 }
+
+if (!isAdminLoggedIn()) jsonError('Unauthorized', 401);
+requireRole('superadmin', 'editor');
 
 if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
     jsonError('No file uploaded or upload error');
