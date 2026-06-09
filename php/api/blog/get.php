@@ -20,7 +20,7 @@ if ($slug) {
     jsonError('Provide id or slug parameter');
 }
 
-if (!$post) {
+if (!$post || ($post['status'] ?? '') !== 'published') {
     jsonError('Post not found', 404);
 }
 
