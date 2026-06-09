@@ -200,6 +200,7 @@ CREATE TABLE product_images (
     product_id  VARCHAR(50) NOT NULL,
     color_id    INT UNSIGNED DEFAULT NULL,
     url         VARCHAR(500) NOT NULL,
+    file_id     VARCHAR(100) DEFAULT NULL,
     alt_text    VARCHAR(255),
     sort_order  INT DEFAULT 0,
     is_primary  BOOLEAN DEFAULT FALSE,
@@ -648,7 +649,27 @@ CREATE TABLE settings (
 ) ENGINE=InnoDB;
 
 -- =============================================================================
--- 13. Traducciones (i18n)
+-- 13. Monedas (multi-currency)
+-- =============================================================================
+
+CREATE TABLE currencies (
+    id              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    code            CHAR(3) NOT NULL UNIQUE,
+    name            VARCHAR(100) NOT NULL,
+    symbol          VARCHAR(10) NOT NULL,
+    exchange_rate   DECIMAL(12,6) NOT NULL DEFAULT 1.000000,
+    decimal_places  TINYINT UNSIGNED NOT NULL DEFAULT 2,
+    is_active       TINYINT(1) NOT NULL DEFAULT 1,
+    sort_order      INT UNSIGNED NOT NULL DEFAULT 0,
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Add exchange_rate column to orders (for historical tracking)
+ALTER TABLE orders ADD COLUMN exchange_rate DECIMAL(12,6) DEFAULT 1.000000 AFTER currency;
+
+-- =============================================================================
+-- 14. Traducciones (i18n)
 -- =============================================================================
 
 CREATE TABLE product_translations (
@@ -1127,6 +1148,19 @@ INSERT INTO settings (section, `key`, value) VALUES
 INSERT INTO bank_accounts (bank_name, account_holder, account_number, account_type, routing_number, instructions, is_active, sort_order) VALUES
 ('Banco Nacional', 'Ram;Lop S.A.S.', '1234567890', 'Corriente', 'BNC-001', 'Depósito en ventanilla o transferencia electrónica', TRUE, 1),
 ('Banco del Estado', 'Ram;Lop S.A.S.', '0987654321', 'Ahorros', 'BDE-001', 'Transferencia inmediata desde cualquier banco nacional', TRUE, 2);
+
+-- Currencies (multi-currency support, base = USD)
+INSERT INTO currencies (code, name, symbol, exchange_rate, decimal_places, is_active, sort_order) VALUES
+('USD', 'US Dollar',          '$',    1.000000, 2, TRUE,  1),
+('MXN', 'Peso Mexicano',      'Mex$', 20.000000, 2, TRUE,  2),
+('GTQ', 'Quetzal Guatemalteco', 'Q', 7.800000,  2, TRUE,  3),
+('HNL', 'Lempira Hondureño',  'L',    24.700000, 2, TRUE,  4),
+('NIO', 'Córdoba Nicaragüense', 'C$', 36.500000, 2, TRUE, 5),
+('CRC', 'Colón Costarricense', '₡',   525.000000, 2, TRUE, 6),
+('COP', 'Peso Colombiano',    '$',    4000.000000, 2, TRUE, 7);
+
+-- Default store currency
+INSERT INTO settings (section, `key`, value) VALUES ('currency', 'code', 'USD');
 
 -- Sample customer
 INSERT INTO customers (email, name, phone, is_verified) VALUES
