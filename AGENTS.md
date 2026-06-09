@@ -858,12 +858,20 @@ El archivo `schema.sql` es **idempotente** — incluye `CREATE DATABASE IF NOT E
 
 | # | Issue | Archivo | Riesgo | Estado |
 |---|-------|---------|--------|--------|
-| 1 | ImageKit upload sin auth | `php/api/imagekit/upload.php` | ⚠️ Alto | ⬜ |
-| 2 | Pedidos API sin auth (`list`, `get`) | `php/api/pedidos/list.php`, `get.php` | ⚠️ Alto | ⬜ |
-| 3 | Rate-limit sin try/catch en DB connection | `php/includes/auth.php` | 🟡 Medio | ⬜ |
-| 4 | Dashboard sin fallback si DB vacía | `php/api/dashboard/stats.php` | 🟢 Bajo | ⬜ |
+| 1 | ImageKit upload sin auth | `php/api/imagekit/upload.php` | ⚠️ Alto | ✅ Ya tenía `isAdminLoggedIn()` + `requireRole()` |
+| 2 | Pedidos API sin auth (`list`, `get`) | `php/api/pedidos/list.php`, `get.php` | ⚠️ Alto | ✅ Ya tenían `isAdminLoggedIn()` + `requireRole()` |
+| 3 | Rate-limit sin try/catch en DB connection | `php/includes/auth.php` | 🟡 Medio | ✅ Ya tenía try/catch en `checkLoginRateLimit()` y `recordLoginAttempt()` |
+| 4 | Dashboard sin fallback si DB vacía | `php/api/dashboard/stats.php` | 🟢 Bajo | ✅ `getDashboardStats()` tenía try/catch con return de valores por defecto |
+
+### 14.13 Seguridad — Issues Descubiertos en Auditoría (06/06/2026)
+
+| # | Issue | Archivo | Riesgo | Estado |
+|---|-------|---------|--------|--------|
+| 1 | Open SMTP relay — endpoint sin uso ni auth, acepta `to`/`subject`/`html` arbitrarios | `php/api/email/send.php` | 🔴 Alto | ✅ Eliminado |
+| 2 | Blog list expone drafts — `?status=` permite ver posts no publicados | `php/api/blog/list.php` | 🟡 Medio | ✅ Forzado a `status='published'` |
+| 3 | Blog get no filtra `status` — drafts accesibles por slug/ID | `php/api/blog/get.php` | 🟡 Medio | ✅ Validación `$post['status'] === 'published'` |
 
 ---
 
 > **Documentación generada:** 02/06/2026
-> **Última actualización:** 04/06/2026 — Plan de pruebas Panel Admin (Phase 1)
+> **Última actualización:** 06/06/2026 — Seguridad: auditoría completa de APIs + fixes
