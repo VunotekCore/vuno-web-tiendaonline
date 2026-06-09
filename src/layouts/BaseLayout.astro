@@ -45,5 +45,49 @@ const siteUrl = import.meta.env.PROD ? "https://vuno.com" : "http://localhost:43
   <body class="bg-background text-on-surface font-body-md antialiased selection:bg-monolith-black selection:text-off-white min-h-screen flex flex-col">
     <slot />
     <Modal />
+    <script is:inline>
+      // Inyecta nombre/slogan/logo desde la base de datos
+      (function () {
+        fetch("/api/configuracion/public.php")
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            var store = data.store || {};
+            var name = store.name || "Ram;Lop";
+            var slogan = store.slogan || "";
+            var logo = store.logo || "";
+
+            // Título de la página
+            var titleEl = document.querySelector("title");
+            if (titleEl) {
+              titleEl.textContent = titleEl.textContent.replace("Ram;Lop", name);
+            }
+
+            // Elementos con data-store-name
+            document.querySelectorAll("[data-store-name]").forEach(function (el) {
+              el.textContent = name;
+            });
+
+            // Elementos con data-store-slogan
+            document.querySelectorAll("[data-store-slogan]").forEach(function (el) {
+              el.textContent = slogan;
+            });
+
+            // Elementos con data-store-logo
+            if (logo) {
+              document.querySelectorAll("[data-store-logo]").forEach(function (el) {
+                if (el.tagName === "IMG") {
+                  el.src = logo;
+                  el.classList.remove("hidden");
+                } else if (el.tagName === "SOURCE") {
+                  el.srcset = logo;
+                }
+              });
+            }
+          })
+          .catch(function () {
+            // Fallback: mantener el HTML estático
+          });
+      })();
+    </script>
   </body>
 </html>

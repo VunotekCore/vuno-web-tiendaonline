@@ -294,9 +294,16 @@ const steps = [
           appliedCoupon = { code, discount: data.discount, couponId: data.coupon.id };
           couponDiscount = data.discount;
           msg.className = "font-body text-body-md text-xs mt-2 text-green-700";
-          msg.textContent = checkoutI18n.couponApplied + " " + (data.coupon.discount_type === "percentage" ? data.coupon.discount_value + "%" : "$" + data.discount.toFixed(2));
+          const symbol = getDisplaySymbol(window.VunoCart.getItems());
+          const rate = window.VunoCart.getItems().length > 0
+            ? (window.VunoCart.getItems()[0].product.display_price && window.VunoCart.getItems()[0].product.price
+              ? window.VunoCart.getItems()[0].product.display_price / window.VunoCart.getItems()[0].product.price
+              : 1)
+            : 1;
+          const displayDiscount = data.discount * rate;
+          msg.textContent = checkoutI18n.couponApplied + " " + (data.coupon.discount_type === "percentage" ? data.coupon.discount_value + "%" : symbol + displayDiscount.toFixed(2));
           discountRow.classList.remove("hidden");
-          discountEl.textContent = "-$" + data.discount.toFixed(2);
+          discountEl.textContent = "-" + symbol + displayDiscount.toFixed(2);
           renderSummaryTotal();
         } else {
           appliedCoupon = null;
@@ -327,9 +334,16 @@ const steps = [
     }
 
     function renderSummaryTotal() {
-      const subtotal = window.VunoCart.getSubtotal();
-      const total = Math.max(0, subtotal - couponDiscount);
-      document.getElementById("summaryTotal").textContent = "$" + total.toFixed(2);
+      const items = window.VunoCart.getItems();
+      const symbol = getDisplaySymbol(items);
+      const displaySubtotal = getDisplaySubtotal(items);
+      // couponDiscount is in USD; we need to convert to display
+      const rate = items[0]?.product?.display_price && items[0]?.product?.price
+        ? (items[0].product.display_price / items[0].product.price)
+        : 1;
+      const displayDiscount = couponDiscount * rate;
+      const total = Math.max(0, displaySubtotal - displayDiscount);
+      document.getElementById("summaryTotal").textContent = symbol + total.toFixed(2);
     }
 
     let selectedBankId = null;
@@ -418,6 +432,17 @@ const steps = [
       el.classList.remove("hidden");
     }
 
+    function getDisplaySymbol(items) {
+      return items[0]?.product?.display_symbol || "$";
+    }
+
+    function getDisplaySubtotal(items) {
+      return items.reduce((sum, item) => {
+        const dp = item.product.display_price ?? item.product.price;
+        return sum + dp * item.quantity;
+      }, 0);
+    }
+
     function renderSummary() {
       const items = window.VunoCart.getItems();
       const empty = document.getElementById("emptyCart");
@@ -430,21 +455,25 @@ const steps = [
       form.classList.remove("hidden");
       empty.classList.add("hidden");
       const itemsContainer = document.getElementById("orderItems");
-      itemsContainer.innerHTML = items.map(item => `
+      const symbol = getDisplaySymbol(items);
+      itemsContainer.innerHTML = items.map(item => {
+        const displayPrice = item.product.display_price ?? item.product.price;
+        return `
         <div class="flex justify-between items-center">
           <div class="flex gap-3 items-center">
             <div class="w-12 h-12 bg-surface-container overflow-hidden shrink-0">
-              <img src="${item.product.images[0]}" alt="${item.product.name}" class="w-full h-full object-cover" />
+              <img src="${window.imgTransform(item.product.images[0], 60, 75)}" alt="${item.product.name}" class="w-full h-full object-cover" />
             </div>
             <div>
               <p class="font-body text-body-md text-monolith-black text-sm">${item.product.name}</p>
               <p class="font-body text-body-md text-secondary text-xs">Qty: ${item.quantity} / ${item.selectedSize}</p>
             </div>
           </div>
-          <span class="font-price-display text-price-display text-sm">$${(item.product.price * item.quantity).toFixed(2)}</span>
+          <span class="font-price-display text-price-display text-sm">${symbol}${(displayPrice * item.quantity).toFixed(2)}</span>
         </div>
-      `).join("");
-      document.getElementById("summarySubtotal").textContent = `$${window.VunoCart.getSubtotal().toFixed(2)}`;
+      `}).join("");
+      const displaySubtotal = getDisplaySubtotal(items);
+      document.getElementById("summarySubtotal").textContent = `${symbol}${displaySubtotal.toFixed(2)}`;
       renderSummaryTotal();
     }
 
@@ -493,8 +522,14 @@ const steps = [
       const address = document.getElementById("customerAddress").value.trim();
       const city = document.getElementById("customerCity").value.trim();
       const zip = document.getElementById("customerZip").value.trim();
-      const subtotal = window.VunoCart.getSubtotal();
-      const total = Math.max(0, subtotal - couponDiscount);
+      const subtotal = window.VunoCart.getSubtotal(); // USD
+      const total = Math.max(0, subtotal - couponDiscount); // USD
+      const firstItem = items[0]?.product;
+      const displayCurrency = firstItem?.display_currency || "USD";
+      const displaySymbol = firstItem?.display_symbol || "$";
+      const rate = firstItem?.display_price && firstItem?.price
+        ? (firstItem.display_price / firstItem.price)
+        : 1;
       const order = {
         id: "RL-" + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 5).toUpperCase(),
         items: items,
@@ -503,6 +538,8 @@ const steps = [
         tax: 0,
         discountTotal: couponDiscount,
         total: total,
+        currency: displayCurrency,
+        exchange_rate: rate,
         status: "pending",
         paymentMethod: payment,
         paymentStatus: "pending",

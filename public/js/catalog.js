@@ -312,13 +312,13 @@
     // Gallery
     html += '<div class="md:w-1/2 flex flex-col gap-2">';
     html += '<div class="aspect-[4/5] bg-surface-container overflow-hidden">';
-    html += '<img src="' + escapeHtml(mainImage) + '" alt="' + escapeHtml(product.name) + '" class="w-full h-full object-cover" />';
+    html += '<img src="' + escapeHtml(window.imgTransform(mainImage, 400, 500)) + '" alt="' + escapeHtml(product.name) + '" class="w-full h-full object-cover" />';
     html += '</div>';
     if (moreImages.length > 0) {
       html += '<div class="flex gap-2">';
       moreImages.forEach(function (img) {
         html += '<div class="w-20 h-20 bg-surface-container overflow-hidden flex-shrink-0">';
-        html += '<img src="' + escapeHtml(img) + '" alt="" class="w-full h-full object-cover" />';
+        html += '<img src="' + escapeHtml(window.imgTransform(img, 160, 200)) + '" alt="" class="w-full h-full object-cover" />';
         html += '</div>';
       });
       html += '</div>';
@@ -329,7 +329,7 @@
     html += '<div>';
     html += '<p class="font-label-caps text-label-caps text-secondary mb-1">' + escapeHtml(product.category || "") + '</p>';
     html += '<h3 class="font-headline-md text-headline-md text-monolith-black">' + escapeHtml(product.name) + '</h3>';
-    html += '<p class="font-price-display text-price-display text-monolith-black mt-2">$' + product.price.toFixed(2) + ' USD</p>';
+    html += '<p class="font-price-display text-price-display text-monolith-black mt-2">' + (product.display_symbol || '$') + (product.display_price || product.price).toFixed(2) + ' ' + (product.display_currency || 'USD') + '</p>';
     html += '</div>';
     // Colors
     if (product.colors && product.colors.length > 0) {
@@ -409,6 +409,9 @@
       slug: p.slug,
       price: p.price,
       currency: p.currency || "USD",
+      display_price: p.display_price,
+      display_currency: p.display_currency,
+      display_symbol: p.display_symbol,
       images: p.images || [],
       category: p.category || "",
     };
@@ -480,6 +483,9 @@
         slug: p.slug,
         price: p.price,
         currency: p.currency || "USD",
+        display_price: p.display_price,
+        display_currency: p.display_currency,
+        display_symbol: p.display_symbol,
         images: [img],
         category: p.category || "",
       }));
@@ -488,7 +494,7 @@
       html += '<div class="aspect-[4/5] bg-surface-container mb-4 overflow-hidden relative">';
       html += '<div class="absolute inset-0 bg-monolith-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10 pointer-events-none"></div>';
       html += '<a href="/' + state.lang + '/producto/' + encodeURIComponent(p.slug) + '" class="block w-full h-full overflow-hidden">';
-      html += '<img src="' + escapeHtml(img) + '" alt="' + escapeHtml(p.name) + '" class="w-full h-full object-cover object-center img-lift" loading="lazy" />';
+      html += '<img src="' + escapeHtml(window.imgTransform(img, 400, 500)) + '" alt="' + escapeHtml(p.name) + '" class="w-full h-full object-cover object-center img-lift" loading="lazy" />';
       html += '</a>';
       html += '<button data-toggle-wishlist data-product=\'' + productJson + '\' class="absolute top-3 right-3 z-20 w-9 h-9 flex items-center justify-center bg-off-white/80 backdrop-blur-sm rounded-full hover:bg-off-white hover:scale-110 transition-all border border-outline-variant/30" aria-label="' + (state.lang === "es" ? "Añadir a lista de deseos" : "Add to wishlist") + '">';
       html += '<span class="material-symbols-outlined wishlist-icon text-[18px] text-monolith-black" style="font-variation-settings: \'FILL\' 0">favorite_border</span>';
@@ -499,7 +505,7 @@
       html += '</div>';
       html += '<a href="/' + state.lang + '/producto/' + encodeURIComponent(p.slug) + '" class="block">';
       html += '<h3 class="font-body-md text-body-md text-monolith-black group-hover:text-clay-accent transition-colors duration-300">' + escapeHtml(p.name) + '</h3>';
-      html += '<p class="font-price-display text-price-display text-secondary mt-1">$' + p.price.toFixed(2) + '</p>';
+      html += '<p class="font-price-display text-price-display text-secondary mt-1">' + (p.display_symbol || '$') + (p.display_price || p.price).toFixed(2) + '</p>';
       if (p.colors && p.colors.length > 0) {
         html += '<div class="flex gap-2 mt-3">';
         p.colors.forEach(function (c) {

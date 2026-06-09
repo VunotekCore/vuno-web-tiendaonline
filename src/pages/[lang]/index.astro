@@ -121,7 +121,7 @@ const alternateUrls = {
             <span class="font-label-caps text-label-caps text-clay-accent tracking-widest">NEW</span>
           </div>
           <h3 class="font-headline-md text-headline-md text-off-white">{newArrivals[0]?.name}</h3>
-          <p class="font-price-display text-price-display text-off-white/70 mt-1">${newArrivals[0]?.price}</p>
+          <p class="font-price-display text-price-display text-off-white/70 mt-1">{newArrivals[0]?.display_symbol || '$'}{((newArrivals[0]?.display_price || newArrivals[0]?.price) || 0).toFixed(2)}</p>
         </div>
       </a>
 
@@ -211,13 +211,16 @@ const alternateUrls = {
         <div class={`reveal ${i === 0 ? "reveal-delay-1" : i === 1 ? "reveal-delay-2" : i === 2 ? "reveal-delay-3" : "reveal-delay-4"}`}>
           <ProductCard
             name={p.name}
-            price={`$${p.price.toFixed(2)}`}
+            price={`${p.display_symbol || '$'}${(p.display_price || p.price).toFixed(2)}`}
             image={curatedImages[i] || p.images[0]}
             href={`/${lang}/producto/${p.slug}`}
             colors={p.colors.map((c) => c.hex)}
             productId={p.id}
             productSlug={p.slug}
             productPrice={p.price}
+            productDisplayPrice={p.display_price}
+            productDisplayCurrency={p.display_currency}
+            productDisplaySymbol={p.display_symbol}
           />
         </div>
       ))}

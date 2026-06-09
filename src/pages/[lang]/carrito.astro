@@ -116,7 +116,7 @@ const alternateUrls = {
         const size = escapeHtml(item.selectedSize);
         return `<div class="flex gap-6 items-start pb-6 border-b border-outline-variant/30 cart-item" style="animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) ${idx * 0.1}s both">
           <div class="w-32 h-40 bg-surface-container overflow-hidden shrink-0">
-            <img src="${escapeHtml(img)}" alt="${escapeHtml(item.product.name)}" class="w-full h-full object-cover" loading="lazy" />
+            <img src="${escapeHtml(window.imgTransform(img, 128, 160))}" alt="${escapeHtml(item.product.name)}" class="w-full h-full object-cover" loading="lazy" />
           </div>
           <div class="flex-grow flex flex-col justify-between h-full">
             <div class="flex justify-between items-start">
@@ -124,7 +124,7 @@ const alternateUrls = {
                 <h3 class="font-headline-md text-headline-md mb-1">${escapeHtml(item.product.name)}</h3>
                 <p class="font-body-md text-body-md text-secondary mb-2">${color} / ${cartI18n.sizeLabel} ${size}</p>
               </div>
-              <span class="font-price-display text-price-display">$${(item.product.price * item.quantity).toFixed(2)}</span>
+              <span class="font-price-display text-price-display">${item.product.display_symbol || '$'}${((item.product.display_price ?? item.product.price) * item.quantity).toFixed(2)}</span>
             </div>
             <div class="flex justify-between items-end mt-4">
               <div class="flex items-center border-b border-monolith-black pb-1 w-24 justify-between">
@@ -142,9 +142,15 @@ const alternateUrls = {
         </div>`;
       }).join("");
 
-      const subtotal = window.VunoCart.getSubtotal();
-      document.getElementById("subtotal").textContent = `$${subtotal.toFixed(2)}`;
-      document.getElementById("total").textContent = `$${subtotal.toFixed(2)}`;
+      const items = window.VunoCart.getItems();
+      const first = items[0]?.product;
+      const symbol = first?.display_symbol || '$';
+      const displaySubtotal = items.reduce((sum, item) => {
+        const dp = item.product.display_price ?? item.product.price;
+        return sum + dp * item.quantity;
+      }, 0);
+      document.getElementById("subtotal").textContent = `${symbol}${displaySubtotal.toFixed(2)}`;
+      document.getElementById("total").textContent = `${symbol}${displaySubtotal.toFixed(2)}`;
     }
 
     container.addEventListener("click", (e) => {

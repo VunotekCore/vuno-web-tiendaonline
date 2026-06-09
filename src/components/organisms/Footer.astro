@@ -13,7 +13,11 @@ const { lang = "es" } = Astro.props;
   <div class="noise-overlay opacity-[0.08]"></div>
   <div class="grid grid-cols-1 md:grid-cols-4 gap-gutter px-margin-mobile md:px-margin-desktop py-section-gap w-full max-w-container-max mx-auto text-off-white/70 font-body-md text-body-md relative z-10">
     <div class="md:col-span-1 flex flex-col mb-8 md:mb-0">
-      <span class="font-headline-md text-headline-md text-off-white mb-6">Ram;Lop</span>
+      <span class="font-headline-md text-headline-md text-off-white mb-2">
+        <img data-store-logo alt="" class="h-10 w-auto hidden object-contain brightness-0 invert mb-2" />
+        <span data-store-name>Ram;Lop</span>
+      </span>
+      <span data-store-slogan class="font-body-md text-body-md text-off-white/60 block mb-3"></span>
       <p class="text-sm max-w-xs text-off-white/60">{t("footer.tagline", lang)}</p>
     </div>
 
@@ -41,7 +45,7 @@ const { lang = "es" } = Astro.props;
     </div>
 
     <div class="md:col-span-4 mt-16 pt-8 border-t border-off-white/10 text-xs text-off-white/40">
-      &copy; 2024 Ram;Lop. {t("footer.copyright", lang)}
+      &copy; 2024 <span data-store-name>Ram;Lop</span>. {t("footer.copyright", lang)}
     </div>
   </div>
 </footer>

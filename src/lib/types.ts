@@ -7,7 +7,11 @@ export interface Product {
   careInstructions?: string;
   price: number;
   currency: string;
+  display_price?: number;
+  display_currency?: string;
+  display_symbol?: string;
   images: string[];
+  imagesByColor?: Record<string, string[]>;
   category: string;
   colors: ProductColor[];
   sizes: ProductSize[];
@@ -40,6 +44,9 @@ export interface Order {
   shipping: number;
   tax: number;
   total: number;
+  display_total?: number;
+  display_currency?: string;
+  display_symbol?: string;
   status: OrderStatus;
   paymentMethod: "stripe" | "transfer";
   paymentStatus: PaymentStatus;

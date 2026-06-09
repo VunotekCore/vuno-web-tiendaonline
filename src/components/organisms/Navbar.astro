@@ -39,9 +39,11 @@ const navLinks = [
 
     <a
       href={`/${lang}/`}
-      class="font-headline-md text-headline-md tracking-tight text-monolith-black hover:opacity-70 transition-opacity absolute left-1/2 -translate-x-1/2 md:static md:transform-none"
+      class="font-headline-md text-headline-md tracking-tight text-monolith-black hover:opacity-70 transition-opacity absolute left-1/2 -translate-x-1/2 md:static md:transform-none inline-flex items-center gap-2"
     >
-      Ram;Lop
+      <img data-store-logo alt="" class="h-8 w-auto hidden object-contain" />
+      <span data-store-name>Ram;Lop</span>
+      <span data-store-slogan class="hidden md:inline font-body-md text-body-md text-secondary font-normal tracking-normal max-w-48 truncate"></span>
     </a>
 
     <div class="flex items-center gap-1 md:gap-4 text-primary">

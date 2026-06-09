@@ -8,16 +8,22 @@ interface Props {
   productId?: string;
   productSlug?: string;
   productPrice?: number;
+  productDisplayPrice?: number;
+  productDisplayCurrency?: string;
+  productDisplaySymbol?: string;
 }
 
-const { name, price, image, href, colors = [], productId, productSlug, productPrice } = Astro.props;
+const { name, price, image, href, colors = [], productId, productSlug, productPrice, productDisplayPrice, productDisplayCurrency, productDisplaySymbol } = Astro.props;
 
 const productJson = productId ? JSON.stringify({
   id: productId,
   name,
   slug: productSlug || '',
   price: productPrice || 0,
-  currency: 'USD',
+  currency: productDisplayCurrency || 'USD',
+  display_price: productDisplayPrice,
+  display_currency: productDisplayCurrency,
+  display_symbol: productDisplaySymbol,
   images: [image],
   category: '',
 }) : '';

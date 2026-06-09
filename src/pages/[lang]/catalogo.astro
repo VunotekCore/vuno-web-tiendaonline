@@ -4,6 +4,7 @@ import Navbar from "../../components/organisms/Navbar.astro";
 import Footer from "../../components/organisms/Footer.astro";
 import AnimatedReveal from "../../components/atoms/AnimatedReveal.astro";
 import { getProducts } from "../../lib/storage";
+import { imgTransform } from "../../lib/images";
 import { t, type Locale, locales } from "../../i18n/utils";
 
 export async function getStaticPaths() {
@@ -138,6 +139,9 @@ const styleCounts = styles.map((style) => {
               slug: product.slug,
               price: product.price,
               currency: product.currency,
+              display_price: product.display_price,
+              display_currency: product.display_currency,
+              display_symbol: product.display_symbol,
               images: [img],
               category: product.category,
             });
@@ -149,12 +153,12 @@ const styleCounts = styles.map((style) => {
                 <div class="aspect-[4/5] bg-surface-container mb-4 overflow-hidden relative">
                   <div class="absolute inset-0 bg-monolith-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10 pointer-events-none"></div>
                   <a href={`/${lang}/producto/${product.slug}`} class="block w-full h-full overflow-hidden">
-                    <img
-                      src={img}
-                      alt={product.name}
-                      class="w-full h-full object-cover object-center img-lift"
-                      loading="lazy"
-                    />
+              <img
+                src={imgTransform(img, 400, 500)}
+                alt={product.name}
+                class="w-full h-full object-cover object-center img-lift"
+                loading="lazy"
+              />
                   </a>
                   <button
                     data-toggle-wishlist
@@ -170,7 +174,7 @@ const styleCounts = styles.map((style) => {
                 </div>
                 <a href={`/${lang}/producto/${product.slug}`} class="block">
                   <h3 class="font-body-md text-body-md text-monolith-black group-hover:text-clay-accent transition-colors duration-300">{product.name}</h3>
-                  <p class="font-price-display text-price-display text-secondary mt-1">${product.price.toFixed(2)}</p>
+                  <p class="font-price-display text-price-display text-secondary mt-1">{product.display_symbol || '$'}{(product.display_price || product.price).toFixed(2)}</p>
                   {product.colors.length > 0 && (
                     <div class="flex gap-2 mt-3">
                       {product.colors.map((c) => (
@@ -265,6 +269,9 @@ const styleCounts = styles.map((style) => {
   slug: p.slug,
   price: p.price,
   currency: p.currency,
+  display_price: p.display_price,
+  display_currency: p.display_currency,
+  display_symbol: p.display_symbol,
   images: p.images,
   category: p.category,
   description: p.description,
