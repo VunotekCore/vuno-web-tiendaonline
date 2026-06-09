@@ -1,4 +1,4 @@
-Subject: New Order #{{order_id}} — Ram;Lop Admin
+Subject: New Order #{{order_id}} — {{store_name}} Admin
 Preheader: New order #{{order_id}}: {{customer_name}}
 
 <!DOCTYPE html>
@@ -33,7 +33,7 @@ p{display:block;margin:13px 0}
         <table role="presentation" cellpadding="0" cellspacing="0" border="0">
           <tr>
             <td style="background-color:#1a1a1a;padding:12px 32px;border-radius:2px">
-              <p style="margin:0;font-family:'Playfair Display',Georgia,serif;font-size:20px;color:#f5f3f0;letter-spacing:0.02em">Ram;Lop</p>
+              {{store_logo_block}}
             </td>
           </tr>
         </table>
@@ -51,7 +51,7 @@ p{display:block;margin:13px 0}
 
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:16px">
                 <tr><td style="padding:4px 0;font-size:14px;color:#6b6b6b">Customer</td><td style="padding:4px 0;font-size:14px;color:#1a1a1a">{{customer_name}} ({{customer_email}})</td></tr>
-                <tr><td style="padding:4px 0;font-size:14px;color:#6b6b6b">Total</td><td style="padding:4px 0;font-size:14px;color:#1a1a1a;font-weight:600">${{order_total}}</td></tr>
+                <tr><td style="padding:4px 0;font-size:14px;color:#6b6b6b">Total</td><td style="padding:4px 0;font-size:14px;color:#1a1a1a;font-weight:600">{{currency_symbol}}{{order_total}}</td></tr>
                 <tr><td style="padding:4px 0;font-size:14px;color:#6b6b6b">Payment</td><td style="padding:4px 0;font-size:14px;color:#1a1a1a;text-transform:capitalize">{{payment_method}}</td></tr>
                 <tr><td style="padding:4px 0;font-size:14px;color:#6b6b6b">Status</td><td style="padding:4px 0;font-size:14px;color:#1a1a1a;text-transform:capitalize">{{order_status}}</td></tr>
                 <tr><td style="padding:4px 0;font-size:14px;color:#6b6b6b">Items</td><td style="padding:4px 0;font-size:14px;color:#1a1a1a">{{items_count}} product(s)</td></tr>
@@ -69,7 +69,7 @@ p{display:block;margin:13px 0}
     <!-- Footer -->
     <tr>
       <td style="padding:24px 0 0 0;font-family:'Hanken Grotesk',Arial,Helvetica,sans-serif;font-size:12px;line-height:1.5;color:#9A9A9A;text-align:center">
-        <p style="margin:0 0 4px">&copy; 2026 Ram;Lop. Architectural Minimalism in Footwear.</p>
+        <p style="margin:0 0 4px">&copy; 2026 {{store_name}}. {{store_slogan}}.</p>
         <p style="margin:0">Este es un correo automático, por favor no respondas a este mensaje.</p>
       </td>
     </tr>

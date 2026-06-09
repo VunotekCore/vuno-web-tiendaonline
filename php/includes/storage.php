@@ -4,6 +4,9 @@
  * Replaces the legacy JSON file storage.
  */
 
+require_once __DIR__ . '/currency.php';
+require_once __DIR__ . '/imagekit.php';
+
 // =============================================================================
 //  Products
 // =============================================================================
@@ -115,9 +118,34 @@ function buildProduct(string $id, ?string $lang = null): array
     }
 
     // Images
-    $img = $db->prepare('SELECT url FROM product_images WHERE product_id = ? ORDER BY sort_order');
+    $img = $db->prepare(
+        'SELECT pi.id, pi.url, pi.file_id, pi.color_id, pc.name AS color_name
+         FROM product_images pi
+         LEFT JOIN product_colors pc ON pc.id = pi.color_id
+         WHERE pi.product_id = ?
+         ORDER BY pi.sort_order'
+    );
     $img->execute([$id]);
-    $images = array_column($img->fetchAll(), 'url');
+    $imageRows = $img->fetchAll();
+    $images = [];          // Global images only (no color)
+    $imageDetails = [];
+    $imagesByColor = [];   // color_name → url[]
+    foreach ($imageRows as $r) {
+        $colorName = $r['color_name'] ?? null;
+        $url = $r['url'];
+        if ($colorName) {
+            if (!isset($imagesByColor[$colorName])) $imagesByColor[$colorName] = [];
+            $imagesByColor[$colorName][] = $url;
+        } else {
+            $images[] = $url;
+        }
+        $imageDetails[] = [
+            'id'        => (int)$r['id'],
+            'url'       => $url,
+            'fileId'    => $r['file_id'] ?? '',
+            'colorName' => $colorName,
+        ];
+    }
 
     // Categories (first one as string for backward compat)
     $catStmt = $db->prepare(
@@ -190,7 +218,7 @@ function buildProduct(string $id, ?string $lang = null): array
         ];
     }, $sizes);
 
-    return [
+    $result = [
         'id'          => $row['id'],
         'name'        => $row['name'],
         'slug'        => $row['slug'],
@@ -198,8 +226,10 @@ function buildProduct(string $id, ?string $lang = null): array
         'details'     => $details ?: null,
         'price'       => (float)$row['price'],
         'currency'    => $row['currency'] ?: 'USD',
-        'images'      => $images,
-        'category'    => $category,
+        'images'       => $images,
+        'imageDetails' => $imageDetails,
+        'imagesByColor' => $imagesByColor,
+        'category'     => $category,
         'colors'      => $colorsArr,
         'sizes'       => $sizesArr,
         'variants'    => $variantRows,
@@ -207,6 +237,8 @@ function buildProduct(string $id, ?string $lang = null): array
         'lowStockThreshold' => isset($row['low_stock_threshold']) ? (int)$row['low_stock_threshold'] : 5,
         'createdAt'   => date('c', strtotime($row['created_at'])),
     ];
+
+    return addDisplayPricesToProduct($result);
 }
 
 function saveProduct(array $product): void
@@ -311,9 +343,19 @@ function saveProduct(array $product): void
         // Images: delete all, re-insert
         $db->prepare('DELETE FROM product_images WHERE product_id = ?')->execute([$product['id']]);
         if (!empty($product['images']) && is_array($product['images'])) {
-            $ins = $db->prepare('INSERT INTO product_images (product_id, url, sort_order, is_primary) VALUES (?, ?, ?, ?)');
+            $ins = $db->prepare('INSERT INTO product_images (product_id, url, file_id, sort_order, is_primary, color_id) VALUES (?, ?, ?, ?, ?, ?)');
+            $globalPrimarySet = false;
             foreach (array_values($product['images']) as $i => $img) {
-                $ins->execute([$product['id'], $img, $i, $i === 0 ? 1 : 0]);
+                $url = is_string($img) ? $img : ($img['url'] ?? '');
+                $fileId = is_string($img) ? null : ($img['fileId'] ?? null);
+                $colorName = is_string($img) ? null : ($img['colorName'] ?? null);
+                $colorId = $colorName ? ($colorIdMap[$colorName] ?? null) : null;
+                $isPrimary = 0;
+                if ($colorId === null && !$globalPrimarySet) {
+                    $isPrimary = 1;
+                    $globalPrimarySet = true;
+                }
+                $ins->execute([$product['id'], $url, $fileId, $i, $isPrimary, $colorId]);
             }
         }
 
@@ -327,6 +369,21 @@ function saveProduct(array $product): void
 function deleteProduct(string $id): void
 {
     $db = getDb();
+
+    // Clean up associated images from ImageKit before soft-delete
+    $stmt = $db->prepare('SELECT id, file_id FROM product_images WHERE product_id = ? AND file_id IS NOT NULL');
+    $stmt->execute([$id]);
+    $images = $stmt->fetchAll();
+
+    foreach ($images as $img) {
+        try {
+            deleteImageKitFile($img['file_id']);
+        } catch (\Exception $e) {
+            error_log('ImageKit cleanup failed for product ' . $id . ', file ' . $img['file_id'] . ': ' . $e->getMessage());
+        }
+        $db->prepare('DELETE FROM product_images WHERE id = ?')->execute([$img['id']]);
+    }
+
     $db->prepare('UPDATE products SET deleted_at = NOW() WHERE id = ?')->execute([$id]);
 }
 
@@ -455,7 +512,7 @@ function buildOrder(array $row): array
         ];
     }
 
-    return [
+    $baseOrder = [
         'id'             => $row['order_number'],
         'items'          => $items,
         'subtotal'       => (float)$row['subtotal'],
@@ -463,6 +520,8 @@ function buildOrder(array $row): array
         'tax'            => (float)$row['tax_total'],
         'discountTotal'  => (float)$row['discount_total'],
         'total'          => (float)$row['total'],
+        'currency'       => $row['currency'] ?: 'USD',
+        'exchange_rate'  => $row['exchange_rate'] ? (float)$row['exchange_rate'] : 1.0,
         'status'         => $row['status_code'],
         'paymentMethod'  => $row['payment_method_code'],
         'paymentStatus'  => $row['payment_status_code'],
@@ -483,6 +542,8 @@ function buildOrder(array $row): array
         ],
         'createdAt'      => date('c', strtotime($row['created_at'])),
     ];
+
+    return addDisplayPricesToOrder($baseOrder);
 }
 
 function saveOrder(array $order): void
@@ -510,11 +571,11 @@ function saveOrder(array $order): void
         'INSERT INTO orders (
             order_number, customer_name, customer_email, customer_phone,
             shipping_line1, shipping_city, shipping_state, shipping_zip, shipping_country,
-            subtotal, shipping_total, tax_total, discount_total, total, currency,
+            subtotal, shipping_total, tax_total, discount_total, total, currency, exchange_rate,
             status_id, payment_method_id, payment_status_id,
             stripe_payment_intent_id, transfer_receipt_url, selected_bank_id, coupon_id,
             created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     );
 
     $stmt->execute([
@@ -532,7 +593,8 @@ function saveOrder(array $order): void
         $order['tax'] ?? 0,
         $discountTotal,
         $order['total'] ?? 0,
-        'USD',
+        $order['currency'] ?? 'USD',
+        $order['exchange_rate'] ?? 1.0,
         $statusId,
         $paymentMethodId,
         $paymentStatusId,
@@ -1748,4 +1810,144 @@ function deleteBlogPost(int $id): void
 {
     $db = getDb();
     $db->prepare('UPDATE blog_posts SET deleted_at = NOW() WHERE id = ?')->execute([$id]);
+}
+
+// =============================================================================
+//  Email Templates
+// =============================================================================
+
+function getEmailTemplates(int $page = 1, int $limit = 10, string $search = ''): array
+{
+    $db = getDb();
+    $where = ['1=1'];
+    $params = [];
+
+    if ($search) {
+        $where[] = '(code LIKE ? OR name LIKE ? OR subject LIKE ?)';
+        $like = '%' . $search . '%';
+        $params[] = $like;
+        $params[] = $like;
+        $params[] = $like;
+    }
+
+    $whereClause = implode(' AND ', $where);
+    $offset = ($page - 1) * $limit;
+
+    $stmt = $db->prepare(
+        "SELECT * FROM email_templates
+         WHERE {$whereClause}
+         ORDER BY created_at DESC
+         LIMIT ? OFFSET ?"
+    );
+    $params[] = $limit;
+    $params[] = $offset;
+    $stmt->execute($params);
+    $items = $stmt->fetchAll();
+
+    $countStmt = $db->prepare(
+        "SELECT COUNT(*) FROM email_templates WHERE {$whereClause}"
+    );
+    $countParams = array_slice($params, 0, -2);
+    $countStmt->execute($countParams);
+    $total = (int)$countStmt->fetchColumn();
+
+    return ['items' => $items, 'total' => $total, 'page' => $page, 'pages' => (int)ceil($total / $limit)];
+}
+
+function getEmailTemplateById(int $id): ?array
+{
+    $db = getDb();
+    $stmt = $db->prepare('SELECT * FROM email_templates WHERE id = ?');
+    $stmt->execute([$id]);
+    return $stmt->fetch() ?: null;
+}
+
+function getEmailTemplateByCode(string $code): ?array
+{
+    $db = getDb();
+    $stmt = $db->prepare('SELECT * FROM email_templates WHERE code = ?');
+    $stmt->execute([$code]);
+    return $stmt->fetch() ?: null;
+}
+
+function createEmailTemplate(array $data): int
+{
+    $db = getDb();
+    $stmt = $db->prepare(
+        'INSERT INTO email_templates (code, name, subject, body_html, body_text, is_active, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, NOW())'
+    );
+    $stmt->execute([
+        $data['code'],
+        $data['name'],
+        $data['subject'],
+        $data['body_html'],
+        $data['body_text'] ?? null,
+        !empty($data['is_active']) ? 1 : 0,
+    ]);
+    return (int)$db->lastInsertId();
+}
+
+function updateEmailTemplate(int $id, array $data): void
+{
+    $db = getDb();
+    $fields = [];
+    $params = [];
+
+    foreach (['code', 'name', 'subject', 'body_html', 'body_text'] as $key) {
+        if (array_key_exists($key, $data)) {
+            $fields[] = "{$key} = ?";
+            $params[] = $data[$key];
+        }
+    }
+
+    if (array_key_exists('is_active', $data)) {
+        $fields[] = 'is_active = ?';
+        $params[] = !empty($data['is_active']) ? 1 : 0;
+    }
+
+    if (empty($fields)) return;
+
+    $fields[] = 'updated_at = NOW()';
+    $params[] = $id;
+
+    $db->prepare('UPDATE email_templates SET ' . implode(', ', $fields) . ' WHERE id = ?')
+       ->execute($params);
+}
+
+function deleteEmailTemplate(int $id): void
+{
+    $db = getDb();
+    $db->prepare('DELETE FROM email_templates WHERE id = ?')->execute([$id]);
+}
+
+function emailTemplateFileExists(string $code): ?string
+{
+    $path = __DIR__ . '/../email-templates/' . $code . '.html';
+    return file_exists($path) ? $path : null;
+}
+
+function loadEmailTemplateFromFile(string $code): ?array
+{
+    $path = emailTemplateFileExists($code);
+    if (!$path) return null;
+
+    $raw = file_get_contents($path);
+
+    $subject = '';
+    $preheader = '';
+    if (preg_match('/^Subject:\s*(.+)$/m', $raw, $m)) $subject = trim($m[1]);
+    if (preg_match('/^Preheader:\s*(.+)$/m', $raw, $m)) $preheader = trim($m[1]);
+
+    $body = preg_replace('/^(Subject|Preheader):\s*.+\n+/m', '', $raw);
+    $body = trim($body);
+
+    return [
+        'code'      => $code,
+        'name'      => str_replace('_', ' ', ucfirst($code)),
+        'subject'   => $subject,
+        'preheader' => $preheader,
+        'body_html' => $body,
+        'is_active' => true,
+    ];
 }

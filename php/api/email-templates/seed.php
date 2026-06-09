@@ -1,18 +1,25 @@
 <?php
 /**
- * Seed initial HTML email templates from file-based sources into the database.
- * Run: php php/database/seed-templates.php
- *
- * Also available via admin: POST /api/email-templates/seed.php (superadmin only)
+ * Seed/Reseed all email templates from file-based sources into DB.
+ * Only superadmin can run this.
  */
+require_once __DIR__ . '/../../config.php';
+require_once __DIR__ . '/../../includes/storage.php';
+require_once __DIR__ . '/../../includes/auth.php';
 
-require_once __DIR__ . '/../config.php';
-require_once __DIR__ . '/../includes/storage.php';
+setCorsHeaders();
+startAdminSession();
+if (!isAdminLoggedIn()) jsonError('Unauthorized', 401);
+requireRole('superadmin');
 
-$dir = __DIR__ . '/../email-templates';
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    jsonError('Method not allowed', 405);
+}
+
+$dir = __DIR__ . '/../../email-templates';
 $files = glob($dir . '/*.html');
-
-$count = 0;
+$seeded = 0;
+$updated = 0;
 $errors = [];
 
 foreach ($files as $file) {
@@ -33,7 +40,7 @@ foreach ($files as $file) {
                 'name'      => $fileTemplate['name'],
                 'is_active' => true,
             ]);
-            echo "Updated: {$code}\n";
+            $updated++;
         } else {
             createEmailTemplate([
                 'code'      => $fileTemplate['code'],
@@ -42,16 +49,18 @@ foreach ($files as $file) {
                 'body_html' => $fileTemplate['body_html'],
                 'is_active' => true,
             ]);
-            echo "Seeded: {$code}\n";
+            $seeded++;
         }
-        $count++;
     } catch (\Exception $e) {
         $errors[] = "{$code}: " . $e->getMessage();
     }
 }
 
-echo "Done. {$count} templates processed.\n";
-if ($errors) {
-    echo "Errors:\n";
-    foreach ($errors as $e) echo "  - {$e}\n";
-}
+logAdminAction('seed', 'email_templates', 'bulk', "Seeded {$seeded} new, updated {$updated} templates from files");
+
+jsonResponse([
+    'success' => true,
+    'seeded'  => $seeded,
+    'updated' => $updated,
+    'errors'  => $errors,
+]);
