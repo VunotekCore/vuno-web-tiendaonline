@@ -12,8 +12,7 @@ function getImageKitAuth(?string $privateKey = null): string
 function imageKitRequest(string $method, string $endpoint, array $options = [], ?string $privateKey = null): array
 {
     $privateKey ??= env('IMAGEKIT_PRIVATE_KEY');
-    $urlEndpoint = env('IMAGEKIT_URL_ENDPOINT', 'https://ik.imagekit.io');
-    $url = rtrim($urlEndpoint, '/') . $endpoint;
+    $url = 'https://api.imagekit.io' . $endpoint;
 
     $ch = curl_init();
     curl_setopt_array($ch, [
@@ -92,16 +91,16 @@ function uploadImage(string $filePath, string $fileName, string $folder = '', ?s
 
 function getImageKitFile(string $fileId): array
 {
-    return imageKitRequest('GET', "/api/v1/files/{$fileId}");
+    return imageKitRequest('GET', "/v1/files/{$fileId}");
 }
 
 function getImageKitFiles(array $options = []): array
 {
     $query = http_build_query($options);
-    return imageKitRequest('GET', "/api/v1/files?{$query}");
+    return imageKitRequest('GET', "/v1/files?{$query}");
 }
 
-function deleteImageKitFile(string $fileId): array
+function deleteImageKitFile(string $fileId, ?string $privateKey = null): array
 {
-    return imageKitRequest('DELETE', "/api/v1/files/{$fileId}");
+    return imageKitRequest('DELETE', "/v1/files/{$fileId}", [], $privateKey);
 }

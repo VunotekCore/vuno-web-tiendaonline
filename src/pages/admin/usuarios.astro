@@ -39,39 +39,61 @@ import AdminLayout from "./_layout.astro";
   <div id="msg" class="hidden font-body text-body-md text-sm mt-4"></div>
 
   <!-- Create/Edit Modal -->
-  <div id="userModal" class="fixed inset-0 z-50 hidden bg-monolith-black/40 flex items-center justify-center p-4">
-    <div class="bg-off-white w-full max-w-md p-8 shadow-xl">
+  <div id="userModal" class="fixed inset-0 z-50 hidden bg-monolith-black/40 items-center justify-center p-4">
+    <div class="modal-content bg-off-white w-full max-w-md p-8 shadow-xl border border-outline-variant">
       <div class="flex items-center justify-between mb-6">
         <h3 class="font-headline-md text-headline-md text-monolith-black" id="modalTitle">Nuevo Usuario</h3>
-        <button id="modalClose" class="text-secondary hover:text-monolith-black transition-colors">
-          <span class="material-symbols-outlined">close</span>
+        <button id="modalClose" class="w-8 h-8 flex items-center justify-center text-secondary hover:text-monolith-black transition-colors rounded-sm hover:bg-monolith-black/5 cursor-pointer">
+          <span class="material-symbols-outlined text-lg">close</span>
         </button>
       </div>
       <form id="userForm" class="space-y-4">
         <input type="hidden" id="editUserId" value="">
         <div>
-          <label class="block font-label-caps text-label-caps text-secondary mb-1">Email</label>
-          <input type="email" id="fieldEmail" required class="w-full border-b border-monolith-black bg-transparent px-0 py-2 text-monolith-black placeholder:text-secondary focus:outline-none focus:border-monolith-black">
+          <label class="block font-label-caps text-label-caps text-secondary mb-1">Email *</label>
+          <div class="relative">
+            <input type="email" id="fieldEmail" required maxlength="255" class="w-full border-b border-monolith-black bg-transparent px-0 py-2 pr-16 text-monolith-black placeholder:text-secondary focus:outline-none focus:border-clay-accent transition-colors">
+            <span id="emailCounter" class="absolute right-0 bottom-2 text-xs font-body text-secondary pointer-events-none">0/255</span>
+          </div>
         </div>
         <div>
           <label class="block font-label-caps text-label-caps text-secondary mb-1">Nombre</label>
-          <input type="text" id="fieldName" class="w-full border-b border-monolith-black bg-transparent px-0 py-2 text-monolith-black placeholder:text-secondary focus:outline-none focus:border-monolith-black" placeholder="Opcional">
+          <div class="relative">
+            <input type="text" id="fieldName" maxlength="200" class="w-full border-b border-monolith-black bg-transparent px-0 py-2 pr-16 text-monolith-black placeholder:text-secondary focus:outline-none focus:border-clay-accent transition-colors" placeholder="Opcional">
+            <span id="nameCounter" class="absolute right-0 bottom-2 text-xs font-body text-secondary pointer-events-none">0/200</span>
+          </div>
         </div>
         <div>
           <label class="block font-label-caps text-label-caps text-secondary mb-1">Contraseña <span id="pwHint" class="text-xs text-secondary font-normal">(mín. 6 caracteres)</span></label>
-          <input type="password" id="fieldPassword" class="w-full border-b border-monolith-black bg-transparent px-0 py-2 text-monolith-black placeholder:text-secondary focus:outline-none focus:border-monolith-black">
+          <input type="password" id="fieldPassword" maxlength="255" class="w-full border-b border-monolith-black bg-transparent px-0 py-2 text-monolith-black placeholder:text-secondary focus:outline-none focus:border-clay-accent transition-colors">
         </div>
         <div>
           <label class="block font-label-caps text-label-caps text-secondary mb-1">Rol</label>
-          <select id="fieldRole" class="w-full border-b border-monolith-black bg-off-white px-0 py-2 text-monolith-black focus:outline-none"></select>
+          <select id="fieldRole" class="w-full border-b border-monolith-black bg-off-white px-0 py-2 text-monolith-black focus:outline-none focus:border-clay-accent transition-colors"></select>
         </div>
         <div class="flex items-center gap-3 pt-4">
-          <button type="submit" class="flex-1 bg-monolith-black text-off-white font-label-caps text-label-caps h-11 hover:bg-monolith-black/80 transition-colors">GUARDAR</button>
+          <button type="submit" id="submitBtn" class="flex-1 bg-monolith-black text-off-white font-label-caps text-label-caps h-11 inline-flex items-center justify-center gap-1.5 hover:bg-monolith-black/80 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+            <span class="material-symbols-outlined text-lg" id="submitIcon">save</span>
+            <span id="submitText">GUARDAR</span>
+          </button>
           <button type="button" id="modalCancel" class="flex-1 border border-monolith-black text-monolith-black font-label-caps text-label-caps h-11 hover:bg-monolith-black/5 transition-colors">CANCELAR</button>
         </div>
       </form>
     </div>
   </div>
+
+  <style>
+    .modal-content {
+      animation: modalIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.95) translateY(8px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    #userModal:not(.hidden) {
+      display: flex;
+    }
+  </style>
 
   <script>
     // @ts-nocheck
@@ -82,6 +104,37 @@ import AdminLayout from "./_layout.astro";
       const el = document.getElementById("msg");
       el.textContent = text;
       el.className = "font-body text-body-md text-sm mt-4 block " + (type === 'error' ? 'text-error' : 'text-monolith-black');
+    }
+
+    function setupCharCount(inputId, counterId, max) {
+      const input = document.getElementById(inputId);
+      const counter = document.getElementById(counterId);
+      if (!input || !counter) return;
+      function update() {
+        const len = input.value.length;
+        counter.textContent = len + "/" + max;
+        counter.className = "absolute right-0 bottom-2 text-xs font-body pointer-events-none transition-colors duration-200 " +
+          (len >= max ? "text-error" : len >= max * 0.8 ? "text-clay-accent" : "text-secondary");
+      }
+      input.addEventListener("input", update);
+      update();
+    }
+
+    function setLoading(btnId, iconId, textId, loading, actionText) {
+      const btn = document.getElementById(btnId);
+      const icon = document.getElementById(iconId);
+      const text = document.getElementById(textId);
+      if (!btn || !icon || !text) return;
+      btn.disabled = loading;
+      if (loading) {
+        icon.textContent = "progress_activity";
+        icon.classList.add("animate-spin");
+        text.textContent = actionText || "Guardando...";
+      } else {
+        icon.textContent = icon.dataset.origIcon || "save";
+        icon.classList.remove("animate-spin");
+        text.textContent = text.dataset.original || "";
+      }
     }
 
     function openModal(user) {
@@ -117,11 +170,22 @@ import AdminLayout from "./_layout.astro";
       ).join("");
 
       modal.classList.remove("hidden");
+      modal.classList.add("flex");
+      const content = modal.querySelector(".modal-content");
+      if (content) {
+        content.style.animation = "none";
+        void content.offsetHeight;
+        content.style.animation = "";
+      }
+      setupCharCount("fieldEmail", "emailCounter", 255);
+      setupCharCount("fieldName", "nameCounter", 200);
       emailField.focus();
+      setLoading("submitBtn", "submitIcon", "submitText", false);
     }
 
     function closeModal() {
       document.getElementById("userModal").classList.add("hidden");
+      document.getElementById("userModal").classList.remove("flex");
     }
 
     async function deleteUser(id, email) {
@@ -161,8 +225,8 @@ import AdminLayout from "./_layout.astro";
         const cards = document.getElementById("userCards");
 
         if (users.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center font-body text-body-md text-secondary">No users</td></tr>';
-          cards.innerHTML = '<p class="font-body text-body-md text-secondary p-4">No users</p>';
+          tbody.innerHTML = '<tr><td colspan="5" class="p-12 text-center"><div class="flex flex-col items-center gap-3"><span class="material-symbols-outlined text-5xl text-secondary/30">manage_accounts</span><p class="font-body text-body-md text-secondary">No hay usuarios aún</p><p class="font-body text-body-sm text-secondary/60">Crea tu primer usuario para empezar</p></div></td></tr>';
+          cards.innerHTML = '<div class="flex flex-col items-center gap-3 p-12 text-center"><span class="material-symbols-outlined text-5xl text-secondary/30">manage_accounts</span><p class="font-body text-body-md text-secondary">No hay usuarios aún</p><p class="font-body text-body-sm text-secondary/60">Crea tu primer usuario para empezar</p></div>';
           return;
         }
 
@@ -281,9 +345,8 @@ import AdminLayout from "./_layout.astro";
       const password = document.getElementById("fieldPassword").value;
       const role = document.getElementById("fieldRole").value;
 
-      const btn = this.querySelector('button[type="submit"]');
-      btn.disabled = true;
-      btn.textContent = "GUARDANDO...";
+      const btn = document.getElementById("submitBtn");
+      setLoading("submitBtn", "submitIcon", "submitText", true, "Guardando...");
 
       try {
         let res;
@@ -308,14 +371,13 @@ import AdminLayout from "./_layout.astro";
           closeModal();
           loadUsers();
         } else {
+          setLoading("submitBtn", "submitIcon", "submitText", false);
           const d = await res.json();
           showMsg(d.error || "Error", "error");
         }
       } catch (err) {
+        setLoading("submitBtn", "submitIcon", "submitText", false);
         showMsg(err.message, "error");
-      } finally {
-        btn.disabled = false;
-        btn.textContent = "GUARDAR";
       }
     });
 
@@ -330,6 +392,9 @@ import AdminLayout from "./_layout.astro";
       }
     }
 
-    getCurrentUser().then(() => loadUsers());
+    getCurrentUser().then(() => {
+      document.getElementById("submitIcon").dataset.origIcon = "save";
+      loadUsers();
+    });
   </script>
 </AdminLayout>

@@ -16,9 +16,21 @@ $id = (int)$data['id'];
 $existing = getCouponById($id);
 if (!$existing) jsonError('Coupon not found', 404);
 
+$code = !empty($data['code']) ? strtoupper(trim($data['code'])) : $existing['code'];
+
+if (strlen($code) > 50) jsonError('Code must be 50 characters or less');
+if (!empty($data['discount_type']) && !in_array($data['discount_type'], ['percentage', 'fixed'], true)) jsonError('Invalid discount type');
+if (array_key_exists('description', $data) && strlen((string)$data['description']) > 255) jsonError('Description must be 255 characters or less');
+if (!empty($data['discount_value']) && !empty($data['discount_type']) && $data['discount_type'] === 'percentage' && (float)$data['discount_value'] > 100) jsonError('Percentage discount cannot exceed 100%');
+if (!empty($data['max_uses']) && (int)$data['max_uses'] < 0) jsonError('Max uses must be a positive number');
+if (!empty($data['max_uses_per_customer']) && (int)$data['max_uses_per_customer'] < 0) jsonError('Max uses per customer must be a positive number');
+if (!empty($data['starts_at']) && !empty($data['expires_at']) && $data['expires_at'] <= $data['starts_at']) {
+    jsonError('Expiry date must be after the start date');
+}
+
 $coupon = [
     'id' => $id,
-    'code' => !empty($data['code']) ? strtoupper(trim($data['code'])) : $existing['code'],
+    'code' => $code,
     'description' => $data['description'] ?? $existing['description'],
     'discount_type' => $data['discount_type'] ?? $existing['discount_type'],
     'discount_value' => isset($data['discount_value']) ? (float)$data['discount_value'] : $existing['discount_value'],

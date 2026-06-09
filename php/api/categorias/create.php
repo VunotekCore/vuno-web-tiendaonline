@@ -12,6 +12,7 @@ requireRole('superadmin', 'editor');
 
 $data = json_decode(file_get_contents('php://input'), true);
 if (!$data || empty($data['name'])) jsonError('Name is required');
+if (strlen($data['name']) > 100) jsonError('Name must be 100 characters or less');
 
 $id = 'cat-' . slugify($data['name']);
 $category = [

@@ -12,6 +12,7 @@ requireRole('superadmin', 'editor');
 
 $data = json_decode(file_get_contents('php://input'), true);
 if (!$data || empty($data['id']) || empty($data['name'])) jsonError('ID and name are required');
+if (strlen($data['name']) > 100) jsonError('Name must be 100 characters or less');
 
 $existing = getCategoryById($data['id']);
 if (!$existing) jsonError('Category not found', 404);

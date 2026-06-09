@@ -5,22 +5,25 @@ interface Props {
   sizes: string[];
   lowStockThreshold?: number;
   readonly?: boolean;
+  sizePrefix?: string;
 }
 
-const { id, colors, sizes, lowStockThreshold = 5, readonly = false } = Astro.props;
+const { id, colors, sizes, lowStockThreshold = 5, readonly = false, sizePrefix = "EU" } = Astro.props;
 const matrixId = `vm-${id}`;
 ---
 
 <div
   id={matrixId}
-  class="variants-matrix"
+  class="variants-matrix w-full"
+  data-id={id}
   data-colors={JSON.stringify(colors)}
   data-sizes={JSON.stringify(sizes)}
   data-threshold={lowStockThreshold}
   data-readonly={readonly ? "1" : "0"}
+  data-size-prefix={sizePrefix}
 >
   <!-- Header: title + threshold + grand total -->
-  <div class="vm-header flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-5">
+  <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3 lg:gap-4 mb-5">
     <div>
       <h3 class="font-headline text-headline-md flex items-center gap-2 text-monolith-black">
         <span class="material-symbols-outlined text-xl">inventory</span>
@@ -30,9 +33,9 @@ const matrixId = `vm-${id}`;
         Define el stock por color y talle. Click en el círculo de un color para activar/desactivar la fila completa.
       </p>
     </div>
-    <div class="flex items-center gap-5 shrink-0">
-      <label class="flex items-center gap-2 cursor-pointer">
-        <span class="font-label-caps text-label-caps text-secondary whitespace-nowrap">Alerta bajo stock</span>
+    <div class="flex items-center gap-3 lg:gap-5 shrink-0">
+      <label class="flex items-center gap-2 cursor-pointer whitespace-nowrap">
+        <span class="font-label-caps text-label-caps text-secondary">Alerta bajo stock</span>
         <div class="relative">
           <input
             type="number"
@@ -41,71 +44,71 @@ const matrixId = `vm-${id}`;
             step="1"
             value={lowStockThreshold}
             data-vm="threshold"
-            class="vm-threshold-input w-14 h-9 px-2 pr-6 text-center font-price-display text-base bg-white border border-outline-variant rounded-sm focus:border-monolith-black focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            class="w-20 h-9 pl-2 pr-10 text-center font-price-display text-base bg-white border border-outline-variant rounded-sm focus:border-monolith-black focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             disabled={readonly}
           />
-          <span class="absolute right-2 top-1/2 -translate-y-1/2 font-label-caps text-label-caps text-secondary text-[10px] pointer-events-none">uds</span>
+          <span class="absolute right-2 top-1/2 -translate-y-1/2 font-label-caps text-label-caps text-secondary text-[10px] pointer-events-none">und</span>
         </div>
       </label>
       <div class="text-right">
-        <div class="font-label-caps text-label-caps text-secondary">Total</div>
-        <div class="flex items-baseline gap-1.5">
-          <span data-vm="grandTotal" class="font-price-display text-price-display text-2xl text-monolith-black leading-none">0</span>
-          <span class="font-label-caps text-label-caps text-secondary text-[10px]">uds</span>
+        <div class="font-label-caps text-label-caps text-secondary whitespace-nowrap">Total</div>
+        <div class="flex items-baseline gap-1.5 justify-end">
+          <span data-vm="grandTotal" class="font-price-display text-price-display text-xl lg:text-2xl text-monolith-black leading-none">0</span>
+          <span class="font-label-caps text-label-caps text-secondary text-[10px]">und</span>
         </div>
-        <div data-vm="activeCount" class="font-body text-body-sm text-secondary mt-0.5">0 variantes activas</div>
+        <div data-vm="activeCount" class="font-body text-body-sm text-secondary mt-0.5 whitespace-nowrap">0 variantes activas</div>
       </div>
     </div>
   </div>
 
   <!-- Legend -->
-  <div class="vm-legend flex flex-wrap items-center gap-x-5 gap-y-2 mb-5 pb-5 border-b border-outline-variant/40">
+  <div class="flex flex-wrap items-center gap-x-5 gap-y-2 mb-5 pb-5 border-b border-outline-variant/40">
     <span class="font-label-caps text-label-caps text-secondary">Estados</span>
     <span class="flex items-center gap-1.5">
-      <span class="vm-dot vm-dot-empty"></span>
+      <span class="w-2.5 h-2.5 rounded-full inline-block bg-transparent border border-outline-variant"></span>
       <span class="font-body text-body-sm text-secondary">Sin stock</span>
     </span>
     <span class="flex items-center gap-1.5">
-      <span class="vm-dot vm-dot-low"></span>
+      <span class="w-2.5 h-2.5 rounded-full inline-block bg-clay-accent"></span>
       <span class="font-body text-body-sm text-secondary">Bajo (≤ <span data-vm="legendThreshold">{lowStockThreshold}</span>)</span>
     </span>
     <span class="flex items-center gap-1.5">
-      <span class="vm-dot vm-dot-ok"></span>
+      <span class="w-2.5 h-2.5 rounded-full inline-block bg-monolith-black"></span>
       <span class="font-body text-body-sm text-secondary">Disponible</span>
     </span>
   </div>
 
   <!-- Desktop matrix (≥md) -->
-  <div class="vm-desktop hidden md:block overflow-x-auto pb-2">
-    <table class="vm-table w-full border-separate border-spacing-2">
+  <div class="hidden md:block overflow-x-auto pb-2">
+    <table data-vm-table class="vm-table w-full border-separate border-spacing-1">
       <thead>
         <tr>
-          <th class="vm-corner w-16"></th>
+          <th class="w-16 p-0"></th>
           {colors.map((color) => (
-            <th class="vm-color-head" data-color={color.name}>
-              <div class="vm-color-card">
+            <th class="p-0 align-top whitespace-nowrap" data-color={color.name}>
+              <div data-vm-role="colorCard" class="flex flex-col items-center gap-1.5 p-3 bg-[#f4f3f2] border border-outline-variant rounded-sm min-w-[130px] transition-colors duration-200 data-[state=empty]:opacity-50 data-[state=low]:border-clay-accent data-[state=low]:shadow-[inset_3px_0_0_#C18C7E] data-[state=ok]:shadow-[inset_3px_0_0_#1A1A1A]">
                 <button
                   type="button"
-                  class="vm-color-swatch group"
+                  class="relative w-9 h-9 inline-flex items-center justify-center border border-outline-variant rounded-full bg-transparent cursor-pointer p-1 shrink-0 transition-all duration-200 hover:enabled:border-monolith-black hover:enabled:bg-monolith-black disabled:opacity-70 disabled:cursor-default group"
                   data-vm-action="toggle-color"
                   data-color={color.name}
                   aria-label={`Alternar color ${color.name}`}
                   disabled={readonly}
                 >
-                  <span class="vm-color-chip" style={`background-color: ${color.hex};`}></span>
-                  <span class="vm-color-status" data-vm="colorStatus" data-color={color.name}></span>
+                  <span class="block w-full h-full rounded-full shadow-[inset_0_0_0_1px_rgba(0,0,0,0.06)] transition-transform duration-200 group-hover:scale-85" style={`background-color: ${color.hex};`}></span>
+                  <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-off-white data-[state=ok]:bg-monolith-black data-[state=low]:bg-clay-accent data-[state=empty]:bg-transparent data-[state=empty]:border-outline-variant" data-vm="colorStatus" data-color={color.name}></span>
                 </button>
-                <div class="vm-color-meta">
+                <div class="text-center w-full">
                   <div class="font-label-caps text-label-caps text-monolith-black truncate">{color.name}</div>
                   <div class="flex items-center gap-1">
                     <span data-vm="colorTotal" data-color={color.name} class="font-price-display text-price-display text-base text-monolith-black leading-none">0</span>
-                    <span class="font-label-caps text-label-caps text-secondary text-[9px]">UDS</span>
+                    <span class="font-label-caps text-label-caps text-secondary text-[9px]">UND</span>
                   </div>
                 </div>
-                <div class="vm-color-actions">
+                <div class="flex gap-1 mt-0.5">
                   <button
                     type="button"
-                    class="vm-mini-btn"
+                    class="w-7 h-7 inline-flex items-center justify-center bg-transparent border border-outline-variant rounded-sm text-secondary cursor-pointer transition-all duration-200 hover:enabled:border-monolith-black hover:enabled:bg-monolith-black hover:enabled:text-off-white disabled:opacity-40 disabled:cursor-not-allowed"
                     data-vm-action="fill-color"
                     data-color={color.name}
                     title="Aplicar N a todas las talles"
@@ -115,7 +118,7 @@ const matrixId = `vm-${id}`;
                   </button>
                   <button
                     type="button"
-                    class="vm-mini-btn"
+                    class="w-7 h-7 inline-flex items-center justify-center bg-transparent border border-outline-variant rounded-sm text-secondary cursor-pointer transition-all duration-200 hover:enabled:border-monolith-black hover:enabled:bg-monolith-black hover:enabled:text-off-white disabled:opacity-40 disabled:cursor-not-allowed"
                     data-vm-action="clear-color"
                     data-color={color.name}
                     title="Limpiar color"
@@ -132,20 +135,20 @@ const matrixId = `vm-${id}`;
       <tbody>
         {sizes.map((size) => (
           <tr>
-            <th class="vm-size-head">
-              <div class="vm-size-card">
-                <div class="font-label-caps text-label-caps text-secondary text-[9px]">EU</div>
+            <th class="p-0 align-middle" data-size={size}>
+              <div class="text-right py-1.5 pr-2 border-r-2 border-outline-variant">
+                <div class="font-label-caps text-label-caps text-secondary text-[9px]">{sizePrefix}</div>
                 <div class="font-price-display text-price-display text-base text-monolith-black leading-none">{size}</div>
-                <div class="flex items-center gap-1 mt-1">
+                <div class="flex items-center gap-1 mt-1 justify-end">
                   <span data-vm="sizeTotal" data-size={size} class="font-body text-body-sm text-secondary leading-none">0</span>
-                  <span class="font-label-caps text-label-caps text-secondary text-[9px]">uds</span>
+                  <span class="font-label-caps text-label-caps text-secondary text-[9px]">und</span>
                 </div>
               </div>
             </th>
             {colors.map((color) => (
-              <td class="vm-cell-wrap">
+              <td class="p-0" data-vm-role="cell">
                 <div
-                  class="vm-stepper"
+                  class="inline-flex items-stretch w-full h-[36px] bg-white border border-outline-variant rounded-sm transition-all duration-150 overflow-hidden data-[state=ok]:border-monolith-black data-[state=ok]:shadow-[inset_0_-2px_0_#1A1A1A] data-[state=low]:border-clay-accent data-[state=low]:shadow-[inset_0_-2px_0_#C18C7E] data-[state=empty]:bg-transparent data-[state=empty]:border-dashed focus-within:border-monolith-black focus-within:shadow-[0_0_0_2px_rgba(26,26,26,0.08)]"
                   role="group"
                   aria-label={`Stock ${color.name} talle ${size}`}
                   data-vm-cell={color.name}
@@ -153,7 +156,7 @@ const matrixId = `vm-${id}`;
                 >
                   <button
                     type="button"
-                    class="vm-step-btn"
+                    class="w-8 shrink-0 inline-flex items-center justify-center bg-transparent border-0 text-secondary cursor-pointer transition-all duration-150 hover:enabled:bg-monolith-black hover:enabled:text-off-white disabled:opacity-40 disabled:cursor-not-allowed"
                     data-vm-action="dec"
                     data-color={color.name}
                     data-size={size}
@@ -167,7 +170,7 @@ const matrixId = `vm-${id}`;
                     min="0"
                     step="1"
                     value="0"
-                    class="vm-step-input"
+                    class="vm-step-input flex-1 min-w-[40px] text-center font-price-display text-sm bg-transparent border-0 text-monolith-black p-0 outline-none focus:bg-monolith-black/5"
                     data-vm-input={color.name}
                     data-size={size}
                     aria-label={`Cantidad ${color.name} ${size}`}
@@ -175,7 +178,7 @@ const matrixId = `vm-${id}`;
                   />
                   <button
                     type="button"
-                    class="vm-step-btn"
+                    class="w-8 shrink-0 inline-flex items-center justify-center bg-transparent border-0 text-secondary cursor-pointer transition-all duration-150 hover:enabled:bg-monolith-black hover:enabled:text-off-white disabled:opacity-40 disabled:cursor-not-allowed"
                     data-vm-action="inc"
                     data-color={color.name}
                     data-size={size}
@@ -192,11 +195,11 @@ const matrixId = `vm-${id}`;
       </tbody>
       <tfoot>
         <tr>
-          <th class="vm-foot-label text-right">
+          <th class="text-right align-top pt-3 pr-2">
             <span class="font-label-caps text-label-caps text-secondary text-[10px] tracking-widest">TOTAL</span>
           </th>
           {colors.map((color) => (
-            <td class="vm-foot-cell" data-vm="footTotal" data-color={color.name}>
+            <td class="pt-3 text-center border-t border-outline-variant" data-vm="footTotal" data-color={color.name}>
               <span data-vm="colorTotalFoot" data-color={color.name} class="font-price-display text-price-display text-base text-monolith-black">0</span>
             </td>
           ))}
@@ -206,36 +209,36 @@ const matrixId = `vm-${id}`;
   </div>
 
   <!-- Mobile cards (<md) -->
-  <div class="vm-mobile md:hidden space-y-4">
+  <div data-vm="mobileContainer" class="md:hidden space-y-4">
     {colors.map((color) => (
       <div
-        class="vm-mobile-card"
+        class="p-4 bg-[#f4f3f2] border border-outline-variant rounded-sm transition-all duration-200 data-[state=empty]:opacity-55 data-[state=low]:border-clay-accent data-[state=ok]:border-monolith-black"
         data-vm-mobile={color.name}
         data-vm-color={color.name}
       >
         <div class="flex items-center gap-3 mb-4">
           <button
             type="button"
-            class="vm-color-swatch group"
+            class="relative w-9 h-9 inline-flex items-center justify-center border border-outline-variant rounded-full bg-transparent cursor-pointer p-1 shrink-0 transition-all duration-200 hover:enabled:border-monolith-black hover:enabled:bg-monolith-black disabled:opacity-70 disabled:cursor-default group"
             data-vm-action="toggle-color"
             data-color={color.name}
             aria-label={`Alternar color ${color.name}`}
             disabled={readonly}
           >
-            <span class="vm-color-chip" style={`background-color: ${color.hex};`}></span>
-            <span class="vm-color-status" data-vm="colorStatus" data-color={color.name}></span>
+            <span class="block w-full h-full rounded-full shadow-[inset_0_0_0_1px_rgba(0,0,0,0.06)] transition-transform duration-200 group-hover:scale-85" style={`background-color: ${color.hex};`}></span>
+            <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-off-white data-[state=ok]:bg-monolith-black data-[state=low]:bg-clay-accent data-[state=empty]:bg-transparent data-[state=empty]:border-outline-variant" data-vm="colorStatus" data-color={color.name}></span>
           </button>
           <div class="flex-1">
             <div class="font-headline text-headline-sm text-monolith-black">{color.name}</div>
             <div class="flex items-center gap-1.5 mt-0.5">
               <span data-vm="colorTotal" data-color={color.name} class="font-price-display text-price-display text-base text-monolith-black leading-none">0</span>
-              <span class="font-label-caps text-label-caps text-secondary text-[10px]">UDS TOTAL</span>
+              <span class="font-label-caps text-label-caps text-secondary text-[10px]">UND TOTAL</span>
             </div>
           </div>
-          <div class="vm-color-actions">
+          <div class="flex gap-1 mt-0.5">
             <button
               type="button"
-              class="vm-mini-btn"
+              class="w-7 h-7 inline-flex items-center justify-center bg-transparent border border-outline-variant rounded-sm text-secondary cursor-pointer transition-all duration-200 hover:enabled:border-monolith-black hover:enabled:bg-monolith-black hover:enabled:text-off-white disabled:opacity-40 disabled:cursor-not-allowed"
               data-vm-action="fill-color"
               data-color={color.name}
               disabled={readonly}
@@ -245,7 +248,7 @@ const matrixId = `vm-${id}`;
             </button>
             <button
               type="button"
-              class="vm-mini-btn"
+              class="w-7 h-7 inline-flex items-center justify-center bg-transparent border border-outline-variant rounded-sm text-secondary cursor-pointer transition-all duration-200 hover:enabled:border-monolith-black hover:enabled:bg-monolith-black hover:enabled:text-off-white disabled:opacity-40 disabled:cursor-not-allowed"
               data-vm-action="clear-color"
               data-color={color.name}
               disabled={readonly}
@@ -255,16 +258,16 @@ const matrixId = `vm-${id}`;
             </button>
           </div>
         </div>
-        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-1.5">
           {sizes.map((size) => (
             <div
-              class="vm-stepper vm-stepper-mobile"
+              class="inline-flex items-stretch w-full h-auto min-h-[52px] bg-white flex-row items-center p-1.5 gap-1 border border-outline-variant rounded-sm transition-all duration-150 overflow-hidden data-[state=ok]:border-monolith-black data-[state=ok]:shadow-[inset_0_-2px_0_#1A1A1A] data-[state=low]:border-clay-accent data-[state=low]:shadow-[inset_0_-2px_0_#C18C7E] data-[state=empty]:bg-transparent data-[state=empty]:border-dashed focus-within:border-monolith-black focus-within:shadow-[0_0_0_2px_rgba(26,26,26,0.08)]"
               data-vm-cell={color.name}
               data-vm-size={size}
             >
               <button
                 type="button"
-                class="vm-step-btn"
+                class="w-9 shrink-0 inline-flex items-center justify-center bg-transparent border-0 text-secondary cursor-pointer transition-all duration-150 hover:enabled:bg-monolith-black hover:enabled:text-off-white disabled:opacity-40 disabled:cursor-not-allowed"
                 data-vm-action="dec"
                 data-color={color.name}
                 data-size={size}
@@ -274,13 +277,13 @@ const matrixId = `vm-${id}`;
                 <span class="material-symbols-outlined text-base">remove</span>
               </button>
               <div class="flex flex-col items-center flex-1">
-                <span class="font-label-caps text-label-caps text-secondary text-[9px]">EU {size}</span>
+                <span class="font-label-caps text-label-caps text-secondary text-[9px]">{sizePrefix} {size}</span>
                 <input
                   type="number"
                   min="0"
                   step="1"
                   value="0"
-                  class="vm-step-input vm-step-input-mobile"
+                  class="vm-step-input flex-1 min-w-[40px] text-center font-price-display text-base font-semibold bg-transparent border-0 text-monolith-black p-0 outline-none focus:bg-monolith-black/5"
                   data-vm-input={color.name}
                   data-size={size}
                   aria-label={`Cantidad ${color.name} ${size}`}
@@ -289,7 +292,7 @@ const matrixId = `vm-${id}`;
               </div>
               <button
                 type="button"
-                class="vm-step-btn"
+                class="w-9 shrink-0 inline-flex items-center justify-center bg-transparent border-0 text-secondary cursor-pointer transition-all duration-150 hover:enabled:bg-monolith-black hover:enabled:text-off-white disabled:opacity-40 disabled:cursor-not-allowed"
                 data-vm-action="inc"
                 data-color={color.name}
                 data-size={size}
@@ -309,7 +312,7 @@ const matrixId = `vm-${id}`;
   <div
     data-vm="fillPrompt"
     data-color=""
-    class="vm-fill-prompt hidden items-center gap-2 mt-3 p-3 bg-monolith-black/5 border border-monolith-black/10 rounded-sm"
+    class="hidden items-center gap-2 mt-3 p-3 bg-monolith-black/5 border border-monolith-black/10 rounded-sm animate-[vm-slide-down_200ms_ease-out]"
   >
     <span class="font-label-caps text-label-caps text-monolith-black text-sm">Aplicar a <span data-vm="fillColorLabel"></span>:</span>
     <input
@@ -320,7 +323,7 @@ const matrixId = `vm-${id}`;
       data-vm="fillInput"
       class="w-16 h-8 px-2 text-center font-price-display text-base bg-white border border-outline-variant rounded-sm focus:border-monolith-black focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
     />
-    <span class="font-label-caps text-label-caps text-secondary text-sm">uds a cada talle</span>
+    <span class="font-label-caps text-label-caps text-secondary text-sm">und a cada talle</span>
     <button
       type="button"
       class="ml-auto font-label-caps text-label-caps text-monolith-black border border-monolith-black px-3 h-8 hover:bg-monolith-black hover:text-off-white transition-all"
@@ -339,244 +342,14 @@ const matrixId = `vm-${id}`;
 </div>
 
 <style>
-  /* ============ VariantsMatrix component styles ============ */
-
-  .variants-matrix {
-    --vm-cell-size: 80px;
-    --vm-stepper-h: 36px;
-  }
-
-  /* Color swatch button */
-  .vm-color-swatch {
-    position: relative;
-    width: 36px;
-    height: 36px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid var(--color-outline-variant, #c4c7c7);
-    background: transparent;
-    cursor: pointer;
-    border-radius: 9999px;
-    transition: all 200ms;
-    padding: 4px;
-    flex-shrink: 0;
-  }
-  .vm-color-swatch:hover:not(:disabled) {
-    border-color: var(--color-monolith-black, #1A1A1A);
-    background: var(--color-monolith-black, #1A1A1A);
-  }
-  .vm-color-swatch:hover:not(:disabled) .vm-color-chip {
-    transform: scale(0.85);
-  }
-  .vm-color-swatch:disabled {
-    cursor: default;
-    opacity: 0.7;
-  }
-  .vm-color-chip {
-    display: block;
-    width: 100%;
-    height: 100%;
-    border-radius: 9999px;
-    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
-    transition: transform 200ms;
-  }
-  .vm-color-status {
-    position: absolute;
-    bottom: -2px;
-    right: -2px;
-    width: 10px;
-    height: 10px;
-    border-radius: 9999px;
-    border: 2px solid var(--color-off-white, #faf9f8);
-    background: var(--color-outline-variant, #c4c7c7);
-  }
-  .vm-color-status[data-state="ok"] { background: var(--color-monolith-black, #1A1A1A); }
-  .vm-color-status[data-state="low"] { background: var(--color-clay-accent, #C18C7E); }
-  .vm-color-status[data-state="empty"] { background: transparent; border-color: var(--color-outline-variant, #c4c7c7); }
-
-  /* Color head (desktop) */
-  .vm-color-head {
-    padding: 0;
-    vertical-align: top;
-  }
-  .vm-color-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    padding: 12px 6px 10px;
-    background: var(--color-surface-container-low, #f4f3f2);
-    border: 1px solid var(--color-outline-variant, #c4c7c7);
-    border-radius: 2px;
-    min-width: 100px;
-    transition: border-color 200ms;
-  }
-  .vm-color-card[data-state="empty"] { opacity: 0.5; }
-  .vm-color-card[data-state="low"] {
-    border-color: var(--color-clay-accent, #C18C7E);
-    box-shadow: inset 3px 0 0 var(--color-clay-accent, #C18C7E);
-  }
-  .vm-color-card[data-state="ok"] {
-    box-shadow: inset 3px 0 0 var(--color-monolith-black, #1A1A1A);
-  }
-  .vm-color-meta {
-    text-align: center;
-    width: 100%;
-  }
-  .vm-color-actions {
-    display: flex;
-    gap: 4px;
-    margin-top: 2px;
-  }
-  .vm-mini-btn {
-    width: 24px;
-    height: 24px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
-    border: 1px solid var(--color-outline-variant, #c4c7c7);
-    border-radius: 2px;
-    color: var(--color-secondary, #6b6b6b);
-    cursor: pointer;
-    transition: all 200ms;
-  }
-  .vm-mini-btn:hover:not(:disabled) {
-    border-color: var(--color-monolith-black, #1A1A1A);
-    color: var(--color-monolith-black, #1A1A1A);
-    background: var(--color-monolith-black, #1A1A1A);
-  }
-  .vm-mini-btn:hover:not(:disabled) span { color: var(--color-off-white, #faf9f8); }
-  .vm-mini-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-  /* Size head (desktop) */
-  .vm-size-head {
-    padding: 0;
-    vertical-align: middle;
-  }
-  .vm-size-card {
-    text-align: right;
-    padding: 6px 8px 6px 0;
-    border-right: 2px solid var(--color-outline-variant, #c4c7c7);
-  }
-
-  /* Stepper cell */
-  .vm-cell-wrap { padding: 0; }
-  .vm-stepper {
-    display: inline-flex;
-    align-items: stretch;
-    width: 100%;
-    height: var(--vm-stepper-h);
-    background: var(--color-surface-container-lowest, #ffffff);
-    border: 1px solid var(--color-outline-variant, #c4c7c7);
-    border-radius: 2px;
-    transition: all 150ms;
-    overflow: hidden;
-  }
-  .vm-stepper[data-state="ok"] {
-    border-color: var(--color-monolith-black, #1A1A1A);
-    box-shadow: inset 0 -2px 0 var(--color-monolith-black, #1A1A1A);
-  }
-  .vm-stepper[data-state="low"] {
-    border-color: var(--color-clay-accent, #C18C7E);
-    box-shadow: inset 0 -2px 0 var(--color-clay-accent, #C18C7E);
-  }
-  .vm-stepper[data-state="empty"] {
-    background: transparent;
-    border-style: dashed;
-  }
-  .vm-stepper:focus-within {
-    border-color: var(--color-monolith-black, #1A1A1A);
-    box-shadow: 0 0 0 2px rgba(26, 26, 26, 0.08);
-  }
-  .vm-step-btn {
-    width: 32px;
-    flex-shrink: 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
-    border: 0;
-    color: var(--color-secondary, #6b6b6b);
-    cursor: pointer;
-    transition: all 150ms;
-  }
-  .vm-step-btn:hover:not(:disabled) {
-    background: var(--color-monolith-black, #1A1A1A);
-    color: var(--color-off-white, #faf9f8);
-  }
-  .vm-step-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-  .vm-step-input {
-    flex: 1;
-    min-width: 0;
-    text-align: center;
-    font-family: var(--font-price-display, inherit);
-    font-size: 14px;
-    background: transparent;
-    border: 0;
-    color: var(--color-monolith-black, #1A1A1A);
-    padding: 0;
-    outline: none;
-    [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none;
-  }
-  .vm-step-input:focus { background: rgba(26, 26, 26, 0.04); }
-  .vm-step-input[data-state="low"] { color: var(--color-clay-accent, #C18C7E); font-weight: 500; }
-
-  /* Mobile stepper */
-  .vm-stepper-mobile {
-    height: auto;
-    min-height: 52px;
-    flex-direction: row;
-    align-items: center;
-    padding: 6px;
-    gap: 4px;
-  }
-  .vm-step-input-mobile {
-    font-size: 16px;
-    font-weight: 600;
-  }
-
-  /* Mobile card */
-  .vm-mobile-card {
-    padding: 16px;
-    background: var(--color-surface-container-low, #f4f3f2);
-    border: 1px solid var(--color-outline-variant, #c4c7c7);
-    border-radius: 2px;
-    transition: all 200ms;
-  }
-  .vm-mobile-card[data-state="empty"] { opacity: 0.55; }
-  .vm-mobile-card[data-state="low"] { border-color: var(--color-clay-accent, #C18C7E); }
-  .vm-mobile-card[data-state="ok"] { border-color: var(--color-monolith-black, #1A1A1A); }
-
-  /* Foot row */
-  .vm-foot-label { padding: 12px 8px 0 0; vertical-align: top; }
-  .vm-foot-cell {
-    padding: 12px 0 0;
-    text-align: center;
-    border-top: 1px solid var(--color-outline-variant, #c4c7c7);
-  }
-
-  /* Status dots (legend) */
-  .vm-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 9999px;
-    display: inline-block;
-  }
-  .vm-dot-empty { background: transparent; border: 1px solid var(--color-outline-variant, #c4c7c7); }
-  .vm-dot-low { background: var(--color-clay-accent, #C18C7E); }
-  .vm-dot-ok { background: var(--color-monolith-black, #1A1A1A); }
-
-  /* Threshold input */
-  .vm-threshold-input { padding-right: 28px; }
-
-  /* Fill prompt */
-  .vm-fill-prompt { animation: vm-slide-down 200ms ease-out; }
   @keyframes vm-slide-down {
     from { opacity: 0; transform: translateY(-4px); }
     to { opacity: 1; transform: translateY(0); }
   }
+  .vm-step-input { appearance: textfield; }
+  .vm-step-input::-webkit-outer-spin-button,
+  .vm-step-input::-webkit-inner-spin-button { appearance: none; }
+  .vm-table { border-spacing: 4px; }
 </style>
 
 <script is:inline>
@@ -588,6 +361,8 @@ const matrixId = `vm-${id}`;
       var colors = JSON.parse(root.dataset.colors || "[]");
       var sizes = JSON.parse(root.dataset.sizes || "[]");
       var readonly = root.dataset.readonly === "1";
+      var sizePrefix = root.dataset.sizePrefix || "EU";
+      var id = root.dataset.id;
       var state = {}; // { color_size: stock }
       var subscribers = [];
 
@@ -691,11 +466,11 @@ const matrixId = `vm-${id}`;
         });
 
         // Update color cards state
-        root.querySelectorAll(".vm-color-card").forEach(function (card) {
+        root.querySelectorAll("[data-vm-role=\"colorCard\"]").forEach(function (card) {
           var color = card.parentElement.dataset.color;
           card.dataset.state = getColorState(color);
         });
-        root.querySelectorAll(".vm-mobile-card").forEach(function (card) {
+        root.querySelectorAll("[data-vm-mobile]").forEach(function (card) {
           card.dataset.state = getColorState(card.dataset.vmColor);
         });
 
@@ -841,6 +616,77 @@ const matrixId = `vm-${id}`;
         return String(s).replace(/[^a-zA-Z0-9_-]/g, function (c) { return "\\" + c; });
       }
 
+      function escHtml(s) {
+        return String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      }
+
+      // === HTML builders ===
+      function stpHTML(color, size) {
+        var col = escHtml(color);
+        var d = readonly ? " disabled" : "";
+        var r = readonly ? " readonly" : "";
+        return '<div class="inline-flex items-stretch w-full h-[36px] bg-white border border-outline-variant rounded-sm transition-all duration-150 overflow-hidden data-[state=ok]:border-monolith-black data-[state=ok]:shadow-[inset_0_-2px_0_#1A1A1A] data-[state=low]:border-clay-accent data-[state=low]:shadow-[inset_0_-2px_0_#C18C7E] data-[state=empty]:bg-transparent data-[state=empty]:border-dashed focus-within:border-monolith-black focus-within:shadow-[0_0_0_2px_rgba(26,26,26,0.08)]" role="group" aria-label="Stock ' + col + ' talle ' + size + '" data-vm-cell="' + col + '" data-vm-size="' + size + '">'
+          + '<button type="button" class="w-8 shrink-0 inline-flex items-center justify-center bg-transparent border-0 text-secondary cursor-pointer transition-all duration-150 hover:enabled:bg-monolith-black hover:enabled:text-off-white disabled:opacity-40 disabled:cursor-not-allowed"' + d + ' data-vm-action="dec" data-color="' + col + '" data-size="' + size + '" aria-label="Disminuir"><span class="material-symbols-outlined text-base">remove</span></button>'
+          + '<input type="number" min="0" step="1" value="0" class="vm-step-input flex-1 min-w-[40px] text-center font-price-display text-sm bg-transparent border-0 text-monolith-black p-0 outline-none focus:bg-monolith-black/5"' + r + ' data-vm-input="' + col + '" data-size="' + size + '" aria-label="Cantidad ' + col + ' ' + size + '" />'
+          + '<button type="button" class="w-8 shrink-0 inline-flex items-center justify-center bg-transparent border-0 text-secondary cursor-pointer transition-all duration-150 hover:enabled:bg-monolith-black hover:enabled:text-off-white disabled:opacity-40 disabled:cursor-not-allowed"' + d + ' data-vm-action="inc" data-color="' + col + '" data-size="' + size + '" aria-label="Aumentar"><span class="material-symbols-outlined text-base">add</span></button>'
+          + "</div>";
+      }
+
+      function mstpHTML(color, size) {
+        var col = escHtml(color);
+        var d = readonly ? " disabled" : "";
+        var r = readonly ? " readonly" : "";
+        return '<div class="inline-flex items-stretch w-full h-auto min-h-[52px] bg-white flex-row items-center p-1.5 gap-1 border border-outline-variant rounded-sm transition-all duration-150 overflow-hidden data-[state=ok]:border-monolith-black data-[state=ok]:shadow-[inset_0_-2px_0_#1A1A1A] data-[state=low]:border-clay-accent data-[state=low]:shadow-[inset_0_-2px_0_#C18C7E] data-[state=empty]:bg-transparent data-[state=empty]:border-dashed focus-within:border-monolith-black focus-within:shadow-[0_0_0_2px_rgba(26,26,26,0.08)]" data-vm-cell="' + col + '" data-vm-size="' + size + '">'
+          + '<button type="button" class="w-9 shrink-0 inline-flex items-center justify-center bg-transparent border-0 text-secondary cursor-pointer transition-all duration-150 hover:enabled:bg-monolith-black hover:enabled:text-off-white disabled:opacity-40 disabled:cursor-not-allowed"' + d + ' data-vm-action="dec" data-color="' + col + '" data-size="' + size + '" aria-label="Disminuir"><span class="material-symbols-outlined text-base">remove</span></button>'
+          + '<div class="flex flex-col items-center flex-1"><span class="font-label-caps text-label-caps text-secondary text-[9px]">' + sizePrefix + ' ' + size + '</span>'
+          + '<input type="number" min="0" step="1" value="0" class="vm-step-input flex-1 min-w-[40px] text-center font-price-display text-base font-semibold bg-transparent border-0 text-monolith-black p-0 outline-none focus:bg-monolith-black/5"' + r + ' data-vm-input="' + col + '" data-size="' + size + '" aria-label="Cantidad ' + col + ' ' + size + '" /></div>'
+          + '<button type="button" class="w-9 shrink-0 inline-flex items-center justify-center bg-transparent border-0 text-secondary cursor-pointer transition-all duration-150 hover:enabled:bg-monolith-black hover:enabled:text-off-white disabled:opacity-40 disabled:cursor-not-allowed"' + d + ' data-vm-action="inc" data-color="' + col + '" data-size="' + size + '" aria-label="Aumentar"><span class="material-symbols-outlined text-base">add</span></button>'
+          + "</div>";
+      }
+
+      function colorHeadHTML(name, hex) {
+        var col = escHtml(name);
+        var d = readonly ? " disabled" : "";
+        return '<div data-vm-role="colorCard" class="flex flex-col items-center gap-1.5 p-3 bg-[#f4f3f2] border border-outline-variant rounded-sm min-w-[130px] transition-colors duration-200 data-[state=empty]:opacity-50 data-[state=low]:border-clay-accent data-[state=low]:shadow-[inset_3px_0_0_#C18C7E] data-[state=ok]:shadow-[inset_3px_0_0_#1A1A1A]">'
+          + '<button type="button" class="relative w-9 h-9 inline-flex items-center justify-center border border-outline-variant rounded-full bg-transparent cursor-pointer p-1 shrink-0 transition-all duration-200 hover:enabled:border-monolith-black hover:enabled:bg-monolith-black disabled:opacity-70 disabled:cursor-default group"' + d + ' data-vm-action="toggle-color" data-color="' + col + '" aria-label="Alternar color ' + col + '">'
+          + '<span class="block w-full h-full rounded-full shadow-[inset_0_0_0_1px_rgba(0,0,0,0.06)] transition-transform duration-200 group-hover:scale-85" style="background-color:' + hex + ';"></span>'
+          + '<span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-off-white data-[state=ok]:bg-monolith-black data-[state=low]:bg-clay-accent data-[state=empty]:bg-transparent data-[state=empty]:border-outline-variant" data-vm="colorStatus" data-color="' + col + '"></span></button>'
+          + '<div class="text-center w-full"><div class="font-label-caps text-label-caps text-monolith-black truncate">' + col + '</div>'
+          + '<div class="flex items-center gap-1"><span data-vm="colorTotal" data-color="' + col + '" class="font-price-display text-price-display text-base text-monolith-black leading-none">0</span>'
+          + '<span class="font-label-caps text-label-caps text-secondary text-[9px]">UND</span></div></div>'
+          + '<div class="flex gap-1 mt-0.5">'
+          + '<button type="button" class="w-7 h-7 inline-flex items-center justify-center bg-transparent border border-outline-variant rounded-sm text-secondary cursor-pointer transition-all duration-200 hover:enabled:border-monolith-black hover:enabled:bg-monolith-black hover:enabled:text-off-white disabled:opacity-40 disabled:cursor-not-allowed"' + d + ' data-vm-action="fill-color" data-color="' + col + '" title="Aplicar N a todas las talles"><span class="material-symbols-outlined text-sm">deblur</span></button>'
+          + '<button type="button" class="w-7 h-7 inline-flex items-center justify-center bg-transparent border border-outline-variant rounded-sm text-secondary cursor-pointer transition-all duration-200 hover:enabled:border-monolith-black hover:enabled:bg-monolith-black hover:enabled:text-off-white disabled:opacity-40 disabled:cursor-not-allowed"' + d + ' data-vm-action="clear-color" data-color="' + col + '" title="Limpiar color"><span class="material-symbols-outlined text-sm">backspace</span></button>'
+          + "</div></div>";
+      }
+
+      function mobileCardHTML(name, hex) {
+        var col = escHtml(name);
+        var d = readonly ? " disabled" : "";
+        var sizesHTML = "";
+        sizes.forEach(function (s) { sizesHTML += mstpHTML(name, s); });
+        return '<div class="p-4 bg-[#f4f3f2] border border-outline-variant rounded-sm transition-all duration-200 data-[state=empty]:opacity-55 data-[state=low]:border-clay-accent data-[state=ok]:border-monolith-black" data-vm-mobile="' + col + '" data-vm-color="' + col + '">'
+          + '<div class="flex items-center gap-3 mb-4">'
+          + '<button type="button" class="relative w-9 h-9 inline-flex items-center justify-center border border-outline-variant rounded-full bg-transparent cursor-pointer p-1 shrink-0 transition-all duration-200 hover:enabled:border-monolith-black hover:enabled:bg-monolith-black disabled:opacity-70 disabled:cursor-default group"' + d + ' data-vm-action="toggle-color" data-color="' + col + '" aria-label="Alternar color ' + col + '">'
+          + '<span class="block w-full h-full rounded-full shadow-[inset_0_0_0_1px_rgba(0,0,0,0.06)] transition-transform duration-200 group-hover:scale-85" style="background-color:' + hex + ';"></span>'
+          + '<span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-off-white data-[state=ok]:bg-monolith-black data-[state=low]:bg-clay-accent data-[state=empty]:bg-transparent data-[state=empty]:border-outline-variant" data-vm="colorStatus" data-color="' + col + '"></span></button>'
+          + '<div class="flex-1"><div class="font-headline text-headline-sm text-monolith-black">' + col + '</div>'
+          + '<div class="flex items-center gap-1.5 mt-0.5"><span data-vm="colorTotal" data-color="' + col + '" class="font-price-display text-base text-monolith-black leading-none">0</span>'
+          + '<span class="font-label-caps text-label-caps text-secondary text-[10px]">UND TOTAL</span></div></div>'
+          + '<div class="flex gap-1 mt-0.5">'
+          + '<button type="button" class="w-7 h-7 inline-flex items-center justify-center bg-transparent border border-outline-variant rounded-sm text-secondary cursor-pointer transition-all duration-200 hover:enabled:border-monolith-black hover:enabled:bg-monolith-black hover:enabled:text-off-white disabled:opacity-40 disabled:cursor-not-allowed"' + d + ' data-vm-action="fill-color" data-color="' + col + '"><span class="material-symbols-outlined text-base">deblur</span></button>'
+          + '<button type="button" class="w-7 h-7 inline-flex items-center justify-center bg-transparent border border-outline-variant rounded-sm text-secondary cursor-pointer transition-all duration-200 hover:enabled:border-monolith-black hover:enabled:bg-monolith-black hover:enabled:text-off-white disabled:opacity-40 disabled:cursor-not-allowed"' + d + ' data-vm-action="clear-color" data-color="' + col + '"><span class="material-symbols-outlined text-base">backspace</span></button>'
+          + "</div></div>"
+          + '<div class="grid grid-cols-2 md:grid-cols-3 gap-1.5">' + sizesHTML + "</div></div>";
+      }
+
+      function sizeHeadHTML(value) {
+        return '<div class="text-right py-1.5 pr-2 border-r-2 border-outline-variant"><div class="font-label-caps text-label-caps text-secondary text-[9px]">' + sizePrefix + '</div>'
+          + '<div class="font-price-display text-price-display text-base text-monolith-black leading-none">' + value + "</div>"
+          + '<div class="flex items-center gap-1 mt-1 justify-end"><span data-vm="sizeTotal" data-size="' + value + '" class="font-body text-body-sm text-secondary leading-none">0</span>'
+          + '<span class="font-label-caps text-label-caps text-secondary text-[9px]">und</span></div></div>';
+      }
+
       // === Public API ===
       var api = {
         set: setStock,
@@ -852,6 +698,126 @@ const matrixId = `vm-${id}`;
         getThreshold: getThreshold,
         getActiveColors: function () {
           return colors.filter(function (c) { return getColorTotal(c.name) > 0; });
+        },
+        addColor: function (name, hex) {
+          if (!name || !hex) return;
+          if (colors.some(function (c) { return c.name === name; })) return;
+          colors.push({ name: name, hex: hex });
+          sizes.forEach(function (s) { state[key(name, s)] = 0; });
+
+          // thead column
+          var theadTr = root.querySelector("[data-vm-table] thead tr");
+          var th = document.createElement("th");
+          th.className = "p-0 align-top whitespace-nowrap";
+          th.setAttribute("data-color", name);
+          th.innerHTML = colorHeadHTML(name, hex);
+          theadTr.appendChild(th);
+
+          // tbody cells — append to each row
+          root.querySelectorAll("[data-vm-table] tbody tr").forEach(function (tr) {
+            var td = document.createElement("td");
+            td.className = "p-0";
+            td.setAttribute("data-vm-role", "cell");
+            td.innerHTML = stpHTML(name, tr.querySelector("th[data-size]").dataset.size);
+            tr.appendChild(td);
+          });
+
+          // tfoot cell
+          var tfootTr = root.querySelector("[data-vm-table] tfoot tr");
+          var footTd = document.createElement("td");
+          footTd.className = "pt-3 text-center border-t border-outline-variant";
+          footTd.setAttribute("data-vm", "footTotal");
+          footTd.setAttribute("data-color", name);
+          footTd.innerHTML = '<span data-vm="colorTotalFoot" data-color="' + escHtml(name) + '" class="font-price-display text-price-display text-base text-monolith-black">0</span>';
+          tfootTr.appendChild(footTd);
+
+          // mobile card
+          root.querySelector("[data-vm=\"mobileContainer\"]").insertAdjacentHTML("beforeend", mobileCardHTML(name, hex));
+
+          render();
+          notify();
+        },
+        removeColor: function (name) {
+          var idx = colors.findIndex(function (c) { return c.name === name; });
+          if (idx === -1) return;
+          colors.splice(idx, 1);
+          var keys = Object.keys(state);
+          keys.forEach(function (k) {
+            if (k.indexOf(name + "_") === 0) delete state[k];
+          });
+
+          // remove thead column
+          var th = root.querySelector('th[data-color="' + cssEscape(name) + '"]');
+          if (th) th.remove();
+
+          // remove tbody cells for this color
+          root.querySelectorAll("[data-vm-table] tbody tr").forEach(function (tr) {
+            var td = tr.querySelector('td[data-vm-role="cell"]:nth-child(' + (idx + 2) + ')');
+            if (td) td.remove();
+          });
+
+          // remove tfoot cell
+          var footTd = root.querySelector('td[data-vm="footTotal"][data-color="' + cssEscape(name) + '"]');
+          if (footTd) footTd.remove();
+
+          // remove mobile card
+          var card = root.querySelector('[data-vm-mobile="' + cssEscape(name) + '"]');
+          if (card) card.remove();
+
+          render();
+          notify();
+        },
+        addSize: function (value) {
+          if (sizes.indexOf(value) !== -1) return;
+          sizes.push(value);
+          colors.forEach(function (c) { state[key(c.name, value)] = 0; });
+
+          // new tbody row
+          var tr = document.createElement("tr");
+          var th = document.createElement("th");
+          th.className = "p-0 align-middle";
+          th.setAttribute("data-size", value);
+          th.innerHTML = sizeHeadHTML(value);
+          tr.appendChild(th);
+          colors.forEach(function (c) {
+            var td = document.createElement("td");
+            td.className = "p-0";
+            td.setAttribute("data-vm-role", "cell");
+            td.innerHTML = stpHTML(c.name, value);
+            tr.appendChild(td);
+          });
+          root.querySelector("[data-vm-table] tbody").appendChild(tr);
+
+          // steppers in each mobile card
+          root.querySelectorAll("[data-vm-mobile]").forEach(function (card) {
+            var color = card.dataset.vmColor;
+            var grid = card.querySelector(".grid");
+            if (grid) grid.insertAdjacentHTML("beforeend", mstpHTML(color, value));
+          });
+
+          render();
+          notify();
+        },
+        removeSize: function (value) {
+          var idx = sizes.indexOf(value);
+          if (idx === -1) return;
+          sizes.splice(idx, 1);
+          var keys = Object.keys(state);
+          keys.forEach(function (k) {
+            if (k.indexOf("_" + value) !== -1) delete state[k];
+          });
+
+          // remove tbody row
+          var row = root.querySelector('tr th[data-size="' + value + '"]');
+          if (row) row.parentElement.remove();
+
+          // remove steppers from mobile cards
+          root.querySelectorAll('[data-vm-mobile] [data-vm-size="' + value + '"]').forEach(function (el) {
+            el.remove();
+          });
+
+          render();
+          notify();
         },
         toPayload: function () {
           var payload = { stocks: {} };
@@ -879,6 +845,11 @@ const matrixId = `vm-${id}`;
           render();
           notify();
         },
+        setSizePrefix: function (prefix) {
+          sizePrefix = prefix || "EU";
+          root.dataset.sizePrefix = sizePrefix;
+          render();
+        },
         subscribe: function (fn) {
           subscribers.push(fn);
           return function () {
@@ -887,9 +858,10 @@ const matrixId = `vm-${id}`;
         }
       };
 
-      // Expose globally with matrix id
+      // Expose globally with both raw id and vm-{id}
       window.stockMatrix = window.stockMatrix || {};
-      window.stockMatrix[root.id] = api;
+      window.stockMatrix[root.id] = api;       // "vm-new" / "vm-edit"
+      window.stockMatrix[id] = api;            // "new" / "edit"
 
       // Initial render
       render();

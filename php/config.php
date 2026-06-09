@@ -28,7 +28,7 @@ function env(string $key, mixed $default = null): mixed
 }
 
 // --- Product Constraints ---
-define('MAX_PRODUCT_IMAGES', 5);
+define('MAX_PRODUCT_IMAGES', 20);
 
 // --- Database Constants ---
 define('DB_HOST', env('DB_HOST', 'localhost'));

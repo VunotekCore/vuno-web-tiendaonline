@@ -48,24 +48,46 @@ import AdminLayout from "./_layout.astro";
   </div>
 
   <!-- Delete Modal -->
-  <div id="deleteModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-    <div class="bg-off-white border border-outline-variant shadow-lg rounded-sm p-6 w-full max-w-md">
-      <div class="flex items-center gap-3 mb-4">
-        <span class="material-symbols-outlined text-3xl text-error">warning</span>
-        <h3 class="font-headline text-headline-md">Eliminar Producto</h3>
+  <div id="deleteModal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+    <div class="modal-content bg-off-white border border-outline-variant shadow-lg rounded-sm p-6 w-full max-w-md">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-3">
+          <span class="material-symbols-outlined text-3xl text-error">warning</span>
+          <h3 class="font-headline text-headline-md">Eliminar Producto</h3>
+        </div>
+        <button id="deleteCloseX" class="w-8 h-8 flex items-center justify-center text-secondary hover:text-monolith-black transition-colors rounded-sm hover:bg-monolith-black/5 cursor-pointer">
+          <span class="material-symbols-outlined text-lg">close</span>
+        </button>
       </div>
       <p class="font-body text-body-md text-secondary mb-6">
         ¿Estás seguro de eliminar <strong id="deleteItemName" class="text-monolith-black"></strong>?
       </p>
+      <p class="font-body text-body-md text-xs text-error/70 mb-6 flex items-center gap-1">
+        <span class="material-symbols-outlined text-sm">info</span>
+        Esta acción no se puede deshacer.
+      </p>
       <div class="flex justify-end gap-3">
         <button id="deleteCancelBtn" class="font-label-caps text-label-caps text-secondary border border-monolith-black/20 rounded-md px-4 h-10 hover:border-monolith-black hover:text-monolith-black transition-all">CANCELAR</button>
-        <button id="deleteConfirmBtn" class="bg-error text-off-white font-label-caps text-label-caps rounded-md px-4 h-10 inline-flex items-center gap-1.5 hover:bg-error/90 transition-all">
-          <span class="material-symbols-outlined text-lg">delete</span>
-          ELIMINAR
+        <button id="deleteConfirmBtn" class="bg-error text-off-white font-label-caps text-label-caps rounded-md px-5 h-10 inline-flex items-center gap-1.5 hover:bg-error/90 hover:shadow-sm transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed">
+          <span class="material-symbols-outlined text-lg" id="deleteIcon">delete</span>
+          <span id="deleteBtnText">ELIMINAR</span>
         </button>
       </div>
     </div>
   </div>
+
+  <style>
+    .modal-content {
+      animation: modalIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.95) translateY(8px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    #deleteModal:not(.hidden) {
+      display: flex;
+    }
+  </style>
 
   <!-- Pagination -->
   <div id="pagination" class="hidden mt-6 flex items-center justify-center gap-2"></div>
@@ -85,13 +107,40 @@ import AdminLayout from "./_layout.astro";
       deleteTargetId = id;
       deleteTargetEncodedId = encodeURIComponent(id);
       document.getElementById("deleteItemName").textContent = name;
-      document.getElementById("deleteModal").classList.remove("hidden");
+      const el = document.getElementById("deleteModal");
+      el.classList.remove("hidden");
+      el.classList.add("flex");
+      const content = el.querySelector(".modal-content");
+      if (content) {
+        content.style.animation = "none";
+        void content.offsetHeight;
+        content.style.animation = "";
+      }
+      setLoading("deleteConfirmBtn", "deleteIcon", "deleteBtnText", false);
     }
 
     function closeDeleteModal() {
       document.getElementById("deleteModal").classList.add("hidden");
+      document.getElementById("deleteModal").classList.remove("flex");
       deleteTargetId = null;
       deleteTargetEncodedId = null;
+    }
+
+    function setLoading(btnId, iconId, textId, loading, actionText) {
+      const btn = document.getElementById(btnId);
+      const icon = document.getElementById(iconId);
+      const text = document.getElementById(textId);
+      if (!btn || !icon || !text) return;
+      btn.disabled = loading;
+      if (loading) {
+        icon.textContent = "progress_activity";
+        icon.classList.add("animate-spin");
+        text.textContent = actionText || "Procesando...";
+      } else {
+        icon.textContent = icon.dataset.origIcon || "delete";
+        icon.classList.remove("animate-spin");
+        text.textContent = text.dataset.original || "";
+      }
     }
 
     function stockBadge(stock) {
@@ -127,7 +176,7 @@ import AdminLayout from "./_layout.astro";
       const rowsHtml = products.map(p => `
         <tr class="border-b border-outline-variant/50 hover:bg-monolith-black/[0.02] transition-colors">
           <td class="p-4 font-body text-body-md text-monolith-black font-medium">${p.name}</td>
-          <td class="p-4 font-price-display text-price-display">$${p.price.toFixed(2)}</td>
+          <td class="p-4 font-price-display text-price-display">${p.display_symbol || '$'}${(p.display_price || p.price).toFixed(2)}</td>
           <td class="p-4 font-body text-body-md text-secondary">${p.category || '—'}</td>
           <td class="p-4">${stockBadge(p.totalStock || 0)}</td>
           <td class="p-4">${actionLinks(p)}</td>
@@ -145,7 +194,7 @@ import AdminLayout from "./_layout.astro";
                   <p class="font-body text-body-md text-secondary text-sm">${p.category || '—'}</p>
                 </div>
               </div>
-              <span class="font-price-display text-price-display whitespace-nowrap ml-3">$${p.price.toFixed(2)}</span>
+              <span class="font-price-display text-price-display whitespace-nowrap ml-3">${p.display_symbol || '$'}${(p.display_price || p.price).toFixed(2)}</span>
             </div>
             <div class="flex items-center justify-between pt-1">
               ${stockBadge(p.totalStock || 0)}
@@ -261,6 +310,7 @@ import AdminLayout from "./_layout.astro";
     document.getElementById("deleteConfirmBtn").addEventListener("click", async () => {
       if (!deleteTargetId) return;
 
+      setLoading("deleteConfirmBtn", "deleteIcon", "deleteBtnText", true, "Eliminando...");
       try {
         const res = await fetch("/api/productos/delete.php", {
           method: "POST",
@@ -272,15 +322,18 @@ import AdminLayout from "./_layout.astro";
           currentOffset = 0;
           loadProducts();
         } else {
+          setLoading("deleteConfirmBtn", "deleteIcon", "deleteBtnText", false);
           const data = await res.json();
           window.VunoModal.alert({ type: "error", title: "Error al eliminar", message: data.error || "Delete failed" });
         }
       } catch (err) {
+        setLoading("deleteConfirmBtn", "deleteIcon", "deleteBtnText", false);
         window.VunoModal.alert({ type: "error", title: "Error al eliminar", message: err.message });
       }
     });
 
     document.getElementById("deleteCancelBtn").addEventListener("click", closeDeleteModal);
+    document.getElementById("deleteCloseX").addEventListener("click", closeDeleteModal);
     document.getElementById("deleteModal").addEventListener("click", (e) => {
       if (e.target === e.currentTarget) closeDeleteModal();
     });
@@ -288,6 +341,7 @@ import AdminLayout from "./_layout.astro";
       if (e.key === "Escape") closeDeleteModal();
     });
 
+    document.getElementById("deleteIcon").dataset.origIcon = "delete";
     loadProducts();
 
     if (isViewer) {

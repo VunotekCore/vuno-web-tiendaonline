@@ -13,15 +13,15 @@ const allColors = [
 const tabs = [
   { id: "info", label: "Información", icon: "description" },
   { id: "pricing", label: "Precio & Categoría", icon: "sell" },
-  { id: "images", label: "Imágenes", icon: "photo_library" },
   { id: "variants", label: "Variantes", icon: "palette" },
+  { id: "images", label: "Imágenes", icon: "photo_library" },
 ];
 ---
 
 <AdminLayout title="Editar Producto" currentPath="/admin/productos">
   <div id="loading" class="font-body text-body-md text-secondary p-4">Cargando producto...</div>
 
-  <form id="productForm" class="hidden max-w-2xl">
+  <form id="productForm" class="hidden">
     <input type="hidden" id="fieldId" />
 
     <!-- Tabs -->
@@ -42,7 +42,7 @@ const tabs = [
 
     <!-- Tab: Información -->
     <div id="tab-info" class="tab-content">
-      <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
+      <div class="max-w-2xl bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
         <h2 class="font-headline text-headline-md mb-6 flex items-center gap-2">
           <span class="material-symbols-outlined text-xl">description</span>
           Información del Producto
@@ -75,7 +75,7 @@ const tabs = [
 
     <!-- Tab: Precio & Categoría -->
     <div id="tab-pricing" class="tab-content hidden">
-      <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
+      <div class="max-w-2xl bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
         <h2 class="font-headline text-headline-md mb-6 flex items-center gap-2">
           <span class="material-symbols-outlined text-xl">sell</span>
           Precio y Categoría
@@ -95,9 +95,80 @@ const tabs = [
       </div>
     </div>
 
+    <!-- Tab: Variantes -->
+    <div id="tab-variants" class="tab-content hidden">
+      <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
+
+        <!-- Help guidance -->
+        <details class="mb-6 group">
+          <summary class="cursor-pointer font-label-caps text-label-caps text-secondary hover:text-monolith-black transition-colors flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-lg group-open:rotate-90 transition-transform">help</span>
+            ¿Cómo funciona la matriz de inventario?
+          </summary>
+          <div class="mt-3 pl-6 space-y-1 font-body text-body-sm text-secondary">
+            <p>• Cada celda representa el <strong class="text-monolith-black">stock de un color × talle</strong></p>
+            <p>• Usá los botones <strong class="text-monolith-black">+ / −</strong> o escribí el número directamente en cada celda</p>
+            <p>• <strong class="text-monolith-black">Flechas del teclado</strong> navegan entre celdas; ↑ suma 1, ↓ resta 1</p>
+            <p>• Click en el <strong class="text-monolith-black">círculo del color</strong>: si tiene stock lo limpia; si está vacío abre un prompt para llenar</p>
+            <p>• Botón <strong class="text-monolith-black">◕</strong> llena todos los talles de un color con un valor fijo</p>
+            <p>• Agregá o eliminá colores y talles abajo según las variantes reales del producto</p>
+          </div>
+        </details>
+
+        <!-- Color Manager -->
+        <div class="mb-8">
+          <h4 class="font-headline text-headline-sm mb-3 flex items-center gap-2">
+            <span class="material-symbols-outlined text-lg">palette</span>
+            Colores disponibles
+          </h4>
+          <div id="colorChips" class="flex flex-wrap gap-2 mb-3"></div>
+          <div class="flex items-end gap-3">
+            <div>
+              <label class="font-label-caps text-label-caps text-secondary block mb-1 text-xs">NOMBRE</label>
+              <input type="text" id="colorNameInput" placeholder="Ej: Noir" maxlength="50" class="w-32 h-9 px-3 bg-white border border-outline-variant text-monolith-black text-sm focus:border-monolith-black focus:outline-none rounded-sm" />
+            </div>
+            <div>
+              <label class="font-label-caps text-label-caps text-secondary block mb-1 text-xs">COLOR</label>
+              <input type="color" id="colorHexInput" value="#1A1A1A" class="w-9 h-9 p-0.5 border border-outline-variant cursor-pointer rounded-sm" />
+            </div>
+            <button type="button" id="addColorBtn" class="h-9 px-4 bg-monolith-black text-off-white font-label-caps text-label-caps text-xs rounded-sm hover:bg-monolith-black/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed">AGREGAR</button>
+          </div>
+        </div>
+
+        <!-- Size Manager -->
+        <div class="mb-8">
+          <h4 class="font-headline text-headline-sm mb-3 flex items-center gap-2">
+            <span class="material-symbols-outlined text-lg">straighten</span>
+            Talles disponibles
+          </h4>
+          <div class="flex flex-wrap gap-2 mb-3">
+            <button type="button" class="size-preset h-8 px-3 bg-monolith-black/5 text-monolith-black font-label-caps text-label-caps text-xs rounded-sm hover:bg-monolith-black/10 transition-all border border-outline-variant cursor-pointer" data-sizes="35,36,37,38,39,40,41" data-prefix="EU">Mujer 35-41</button>
+            <button type="button" class="size-preset h-8 px-3 bg-monolith-black/5 text-monolith-black font-label-caps text-label-caps text-xs rounded-sm hover:bg-monolith-black/10 transition-all border border-outline-variant cursor-pointer" data-sizes="39,40,41,42,43,44,45,46" data-prefix="EU">Hombre 39-46</button>
+            <button type="button" class="size-preset h-8 px-3 bg-monolith-black/5 text-monolith-black font-label-caps text-label-caps text-xs rounded-sm hover:bg-monolith-black/10 transition-all border border-outline-variant cursor-pointer" data-sizes="28,29,30,31,32,33,34" data-prefix="EU">Niño 28-34</button>
+            <button type="button" class="size-preset h-8 px-3 bg-monolith-black/5 text-monolith-black font-label-caps text-label-caps text-xs rounded-sm hover:bg-monolith-black/10 transition-all border border-outline-variant cursor-pointer" data-sizes="5,6,7,8,9,10,11" data-prefix="US">US Women 5-11</button>
+            <button type="button" class="size-preset h-8 px-3 bg-monolith-black/5 text-monolith-black font-label-caps text-label-caps text-xs rounded-sm hover:bg-monolith-black/10 transition-all border border-outline-variant cursor-pointer" data-sizes="33,34,35,36,37,38,39" data-prefix="BR">BR 33-39</button>
+          </div>
+          <div id="sizeChips" class="flex flex-wrap gap-2 mb-3"></div>
+          <div class="flex flex-wrap items-end gap-3">
+            <div>
+              <label class="font-label-caps text-label-caps text-secondary block mb-1 text-xs">PREFIJO</label>
+              <input type="text" id="sizePrefixInput" value="EU" maxlength="10" class="w-14 h-9 px-2 bg-white border border-outline-variant text-monolith-black text-sm text-center focus:border-monolith-black focus:outline-none rounded-sm" />
+            </div>
+            <div>
+              <label class="font-label-caps text-label-caps text-secondary block mb-1 text-xs">AGREGAR TALLE</label>
+              <input type="number" id="sizeInput" placeholder="Ej: 37" min="1" max="99" class="w-20 h-9 px-3 bg-white border border-outline-variant text-monolith-black text-sm focus:border-monolith-black focus:outline-none rounded-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+            </div>
+            <button type="button" id="addSizeBtn" class="h-9 px-4 bg-monolith-black text-off-white font-label-caps text-label-caps text-xs rounded-sm hover:bg-monolith-black/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed">AGREGAR</button>
+          </div>
+        </div>
+
+        <VariantsMatrix id="edit" colors={allColors} sizes={allSizes} sizePrefix="EU" />
+      </div>
+    </div>
+
     <!-- Tab: Imágenes -->
     <div id="tab-images" class="tab-content hidden">
-      <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
+      <div class="max-w-2xl bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
         <h2 class="font-headline text-headline-md mb-6 flex items-center gap-2">
           <span class="material-symbols-outlined text-xl">photo_library</span>
           Imágenes del Producto
@@ -109,16 +180,9 @@ const tabs = [
           <input type="file" id="imageInput" accept="image/jpeg,image/png,image/webp" multiple class="hidden" />
         </div>
         <div class="flex items-center justify-between mb-4">
-          <div id="imageCounter" class="font-body text-body-sm text-secondary">0/5 imágenes</div>
+          <div id="imageCounter" class="font-body text-body-sm text-secondary">0/20 imágenes</div>
         </div>
         <div id="imagePreviewList" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
-      </div>
-    </div>
-
-    <!-- Tab: Variantes -->
-    <div id="tab-variants" class="tab-content hidden">
-      <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
-        <VariantsMatrix id="edit" colors={allColors} sizes={allSizes} />
       </div>
     </div>
 
@@ -132,11 +196,148 @@ const tabs = [
     </div>
   </form>
 
+  <!-- Upload Modal -->
+  <div id="uploadModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center hidden transition-all duration-300">
+    <div class="bg-white max-w-sm w-full mx-4 border-t-2 border-clay-accent shadow-lg">
+      <div class="p-8 text-center">
+        <div class="relative w-10 h-10 mx-auto mb-6">
+          <div class="absolute inset-0 rounded-full border-2 border-sand-nude"></div>
+          <div class="absolute inset-0 rounded-full border-2 border-transparent border-t-monolith-black animate-spin"></div>
+        </div>
+        <p class="font-headline text-headline-sm text-monolith-black mb-2" id="uploadModalTitle">Subiendo imágenes</p>
+        <p class="font-body text-body-sm text-secondary mb-6" id="uploadModalProgress"></p>
+        <div class="h-0.5 bg-sand-nude rounded-full overflow-hidden">
+          <div id="uploadProgressBar" class="h-full bg-gradient-to-r from-monolith-black to-clay-accent rounded-full transition-all duration-500" style="width: 0%"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="error" class="hidden font-body text-body-md text-error bg-error/10 p-3 rounded-sm"></div>
 
   <script>
     // @ts-nocheck
-    const allSizes = ["36", "37", "38", "39", "40", "41"];
+    var currentColors = [
+      { name: "Noir", hex: "#1A1A1A" },
+      { name: "White", hex: "#FFFFFF" },
+      { name: "Nude", hex: "#E6DED5" },
+      { name: "Arcilla", hex: "#C18C7E" },
+    ];
+    var currentSizes = ["36", "37", "38", "39", "40", "41"];
+
+    function escHtml(s) {
+      return String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    function renderColorChips() {
+      var container = document.getElementById("colorChips");
+      if (!container) return;
+      container.innerHTML = currentColors.map(function (c) {
+        return '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white border border-outline-variant rounded-sm text-xs font-body">'
+          + '<span class="w-3 h-3 rounded-full inline-block" style="background-color:' + c.hex + ";border:1px solid rgba(0,0,0,0.1)\"></span>"
+          + escHtml(c.name)
+          + '<button type="button" class="color-chip-remove text-secondary hover:text-error transition-colors cursor-pointer" data-color="' + escHtml(c.name) + '"><span class="material-symbols-outlined text-sm">close</span></button>'
+          + "</span>";
+      }).join("");
+      container.querySelectorAll(".color-chip-remove").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          removeColorFromMatrix(this.dataset.color);
+        });
+      });
+    }
+
+    function addColorToMatrix(name, hex) {
+      if (currentColors.some(function (c) { return c.name === name; })) return;
+      currentColors.push({ name: name, hex: hex });
+      if (window.stockMatrix?.edit) window.stockMatrix.edit.addColor(name, hex);
+      renderColorChips();
+      renderImagePreviews();
+    }
+
+    function removeColorFromMatrix(name) {
+      var idx = currentColors.findIndex(function (c) { return c.name === name; });
+      if (idx === -1) return;
+      // Reset colorName on images that were assigned to this color
+      uploadedImages.forEach(function (img) {
+        if (img.colorName === name) img.colorName = null;
+      });
+      currentColors.splice(idx, 1);
+      if (window.stockMatrix?.edit) window.stockMatrix.edit.removeColor(name);
+      renderColorChips();
+      renderImagePreviews();
+    }
+
+    document.getElementById("addColorBtn").addEventListener("click", function () {
+      var name = document.getElementById("colorNameInput").value.trim();
+      var hex = document.getElementById("colorHexInput").value;
+      if (!name) { window.VunoToast.warning("Nombre requerido", "Ingresá un nombre para el color."); return; }
+      addColorToMatrix(name, hex);
+      document.getElementById("colorNameInput").value = "";
+    });
+    document.getElementById("colorNameInput").addEventListener("keydown", function (e) {
+      if (e.key === "Enter") { e.preventDefault(); document.getElementById("addColorBtn").click(); }
+    });
+
+    function renderSizeChips() {
+      var container = document.getElementById("sizeChips");
+      if (!container) return;
+      container.innerHTML = currentSizes.map(function (s) {
+        return '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white border border-outline-variant rounded-sm text-xs font-body">'
+          + "EU " + escHtml(s)
+          + '<button type="button" class="size-chip-remove text-secondary hover:text-error transition-colors cursor-pointer" data-size="' + escHtml(s) + '"><span class="material-symbols-outlined text-sm">close</span></button>'
+          + "</span>";
+      }).join("");
+      container.querySelectorAll(".size-chip-remove").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          removeSizeFromMatrix(this.dataset.size);
+        });
+      });
+    }
+
+    function addSizeToMatrix(value) {
+      if (currentSizes.indexOf(value) !== -1) return;
+      currentSizes.push(value);
+      currentSizes.sort(function (a, b) { return parseInt(a, 10) - parseInt(b, 10); });
+      if (window.stockMatrix?.edit) window.stockMatrix.edit.addSize(value);
+      renderSizeChips();
+    }
+
+    function removeSizeFromMatrix(value) {
+      var idx = currentSizes.indexOf(value);
+      if (idx === -1) return;
+      currentSizes.splice(idx, 1);
+      if (window.stockMatrix?.edit) window.stockMatrix.edit.removeSize(value);
+      renderSizeChips();
+    }
+
+    function setSizesPreset(values, prefix) {
+      var toRemove = currentSizes.slice();
+      toRemove.forEach(function (s) { removeSizeFromMatrix(s); });
+      values.forEach(function (v) { addSizeToMatrix(v); });
+      if (prefix) {
+        document.getElementById("sizePrefixInput").value = prefix;
+        if (window.stockMatrix?.edit) window.stockMatrix.edit.setSizePrefix(prefix);
+      }
+    }
+
+    document.getElementById("addSizeBtn").addEventListener("click", function () {
+      var val = document.getElementById("sizeInput").value.trim();
+      if (!val) { window.VunoToast.warning("Valor requerido", "Ingresá un número de talle."); return; }
+      addSizeToMatrix(val);
+      document.getElementById("sizeInput").value = "";
+    });
+    document.getElementById("sizeInput").addEventListener("keydown", function (e) {
+      if (e.key === "Enter") { e.preventDefault(); document.getElementById("addSizeBtn").click(); }
+    });
+    document.querySelectorAll(".size-preset").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        setSizesPreset(this.dataset.sizes.split(","), this.dataset.prefix);
+      });
+    });
+
+    document.getElementById("sizePrefixInput").addEventListener("input", function () {
+      if (window.stockMatrix?.edit) window.stockMatrix.edit.setSizePrefix(this.value.trim() || "");
+    });
 
     // --- Tab switching ---
     document.querySelectorAll(".tab-btn").forEach(btn => {
@@ -180,8 +381,9 @@ const tabs = [
     }
 
     // --- Image Upload ---
-    const MAX_IMAGES = 5;
+    const MAX_IMAGES = 20;
     const uploadedImages = [];
+    let deletingIndex = -1;
     const imageInput = document.getElementById("imageInput");
     const imageZone = document.getElementById("imageUploadZone");
     const imagePreviewList = document.getElementById("imagePreviewList");
@@ -225,70 +427,142 @@ const tabs = [
       });
     }
 
+    function addFileToPreview(file) {
+      if (uploadedImages.length >= MAX_IMAGES) {
+        window.VunoModal.alert({
+          type: "warning",
+          title: "Límite de imágenes",
+          message: "Máximo " + MAX_IMAGES + " imágenes permitidas por producto.",
+        });
+        return;
+      }
+      uploadedImages.push({ _local: true, objectUrl: URL.createObjectURL(file), file, name: file.name, colorName: null });
+      renderImagePreviews();
+    }
+
+    function removeLocalImage(img) {
+      URL.revokeObjectURL(img.objectUrl);
+    }
+
+    async function deleteImageFromKit(img) {
+      if (!img.fileId) {
+        window.VunoToast.info("Imagen eliminada", "No se pudo identificar el archivo en ImageKit. Se eliminará solo del producto.");
+        return true;
+      }
+      const payload = { fileId: img.fileId };
+      if (img.imageId) payload.imageId = img.imageId;
+      try {
+        const url = img.imageId ? "/api/imagekit/delete-image.php" : "/api/imagekit/delete.php";
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({ error: "Error al eliminar" }));
+          window.VunoToast.error("Error al eliminar", err.error || "No se pudo eliminar la imagen de ImageKit");
+          return false;
+        }
+        return true;
+      } catch {
+        window.VunoToast.error("Error de red", "No se pudo conectar con ImageKit");
+        return false;
+      }
+    }
+
     function renderImagePreviews() {
       if (!uploadedImages.length) {
         imagePreviewList.innerHTML = '<p class="font-body text-body-md text-secondary col-span-full text-center py-4">No hay imágenes subidas</p>';
         updateImageUI();
         return;
       }
-      imagePreviewList.innerHTML = uploadedImages.map((img, i) => `
-        <div class="relative group border border-outline-variant rounded-sm overflow-hidden bg-white">
-          <img src="${img.url}" alt="${img.name}" class="w-full h-32 object-cover" />
-          <div class="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
-            <button type="button" class="delete-image-btn opacity-0 group-hover:opacity-100 bg-error text-off-white rounded-full w-8 h-8 flex items-center justify-center transition-all" data-index="${i}">
-              <span class="material-symbols-outlined text-sm">close</span>
-            </button>
-          </div>
-          <p class="text-xs truncate px-2 py-1 text-secondary">${img.name}</p>
-        </div>
-      `).join("");
+      imagePreviewList.innerHTML = uploadedImages.map((img, i) => {
+        const src = img._local ? img.objectUrl : img.url;
+        var colorOpts = ['<option value="">Todas</option>'];
+        currentColors.forEach(function (c) {
+          var sel = (img.colorName || '') === c.name ? ' selected' : '';
+          colorOpts.push('<option value="' + escHtml(c.name) + '"' + sel + '>' + escHtml(c.name) + '</option>');
+        });
+        return '<div class="relative group border border-outline-variant rounded-sm overflow-hidden bg-white">' +
+          '<div class="relative">' +
+            '<img src="' + src + '" alt="' + img.name + '" class="w-full h-32 object-cover" />' +
+            '<div class="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center pointer-events-none">' +
+              '<button type="button" class="delete-image-btn bg-error text-off-white rounded-full w-8 h-8 flex items-center justify-center transition-all pointer-events-auto" data-index="' + i + '" ' + (deletingIndex === i ? 'disabled' : '') + '>' +
+                (deletingIndex === i
+                  ? '<span class="material-symbols-outlined text-sm animate-spin">progress_activity</span>'
+                  : '<span class="material-symbols-outlined text-sm">close</span>'
+                ) +
+              '</button>' +
+            '</div>' +
+          '</div>' +
+          '<div class="px-2 py-1.5">' +
+            '<p class="text-xs truncate text-secondary mb-1">' + escHtml(img.name) + '</p>' +
+            '<select class="img-color-select w-full text-xs font-body bg-transparent border border-outline-variant rounded-sm px-1 py-0.5 text-monolith-black focus:border-monolith-black focus:outline-none" data-index="' + i + '">' +
+              colorOpts.join('') +
+            '</select>' +
+          '</div>' +
+        '</div>';
+      }).join("");
 
       document.querySelectorAll(".delete-image-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
+        btn.addEventListener("click", async () => {
+          if (btn.disabled) return;
           const idx = parseInt(btn.dataset.index);
-          uploadedImages.splice(idx, 1);
+          const img = uploadedImages[idx];
+
+          if (img._local) {
+            removeLocalImage(img);
+            uploadedImages.splice(idx, 1);
+            renderImagePreviews();
+            return;
+          }
+
+          if (idx !== deletingIndex) {
+            deletingIndex = idx;
+            renderImagePreviews();
+          }
+          const ok = await deleteImageFromKit(img);
+          deletingIndex = -1;
+          if (ok) {
+            window.VunoToast.success("Imagen eliminada", img.name);
+            uploadedImages.splice(idx, 1);
+          }
           renderImagePreviews();
         });
       });
+
+      document.querySelectorAll(".img-color-select").forEach(function (sel) {
+        sel.addEventListener("change", function () {
+          var idx = parseInt(this.dataset.index);
+          if (!isNaN(idx) && uploadedImages[idx]) {
+            uploadedImages[idx].colorName = this.value || null;
+          }
+        });
+      });
+
       updateImageUI();
     }
 
     async function uploadFile(file) {
-      if (uploadedImages.length >= MAX_IMAGES) {
-        window.VunoModal.alert({
-          type: "warning",
-          title: "Límite de imágenes",
-          message: "Máximo " + MAX_IMAGES + " imágenes alcanzado. Elimina alguna antes de subir más.",
-        });
-        return;
-      }
       const formData = new FormData();
       formData.append("file", file);
       formData.append("folder", "products");
-      try {
-        const res = await fetch("/api/imagekit/upload.php", { method: "POST", body: formData });
-        const data = await res.json();
-        if (!res.ok) {
-          const isImageKit = res.status >= 500 || (data.error || "").toLowerCase().includes("imagekit");
-          showUploadError(
-            file.name,
-            isImageKit
-              ? "El servicio de ImageKit no respondió correctamente. Intenta de nuevo en unos segundos."
-              : (data.error || "Error desconocido")
-          );
-          return;
-        }
-        uploadedImages.push({ url: data.url, name: data.name || file.name, fileId: data.fileId });
-        renderImagePreviews();
-        showUploadSuccess(data.name || file.name);
-      } catch (err) {
-        showUploadError(file.name, "Sin conexión con el servicio de imágenes. Verifica tu red.");
+      const res = await fetch("/api/imagekit/upload.php", { method: "POST", body: formData });
+      const data = await res.json();
+      if (!res.ok) {
+        const isImageKit = res.status >= 500 || (data.error || "").toLowerCase().includes("imagekit");
+        throw new Error(isImageKit
+          ? "El servicio de ImageKit no respondió correctamente. Intenta de nuevo en unos segundos."
+          : (data.error || "Error desconocido"));
       }
+      return data;
     }
 
     imageInput.addEventListener("change", () => {
       const allowed = addImages(Array.from(imageInput.files));
-      allowed.forEach(f => uploadFile(f));
+      allowed.forEach(function (f) {
+        addFileToPreview(f);
+      });
       imageInput.value = "";
     });
 
@@ -308,7 +582,9 @@ const tabs = [
       e.preventDefault();
       imageZone.classList.remove("border-monolith-black", "bg-monolith-black/5");
       const allowed = addImages(Array.from(e.dataTransfer.files).filter(f => f.type.startsWith("image/")));
-      allowed.forEach(f => uploadFile(f));
+      allowed.forEach(function (f) {
+        addFileToPreview(f);
+      });
     });
 
     renderImagePreviews();
@@ -343,11 +619,12 @@ const tabs = [
       } else {
         icon.textContent = icon.dataset.origIcon || "save";
         icon.classList.remove("animate-spin");
-        text.textContent = text.dataset.original || "";
+        text.textContent = text.dataset.original || "GUARDAR CAMBIOS";
       }
     }
 
     document.getElementById("submitIcon").dataset.origIcon = "save";
+    document.getElementById("submitText").dataset.original = "GUARDAR CAMBIOS";
 
     // --- Load product + categories ---
     (async function () {
@@ -385,11 +662,50 @@ const tabs = [
           if (opt) document.getElementById("fieldCategory").value = p.category;
         }
 
-        // Variants: populate stock matrix
+        // Variants: populate stock matrix + color/size managers
         const initialStocks = {};
         (p.variants || []).forEach(v => {
           initialStocks[v.color_name + "_" + v.size_value] = v.stock;
         });
+
+        // Build unique colors and sizes from variants
+        var loadedColors = [];
+        var loadedColorMap = {};
+        var loadedSizes = [];
+        (p.variants || []).forEach(function (v) {
+          if (!loadedColorMap[v.color_name]) {
+            loadedColorMap[v.color_name] = true;
+            loadedColors.push({ name: v.color_name, hex: v.color_hex || "#000000" });
+          }
+          if (loadedSizes.indexOf(v.size_value) === -1) {
+            loadedSizes.push(v.size_value);
+          }
+        });
+        loadedSizes.sort(function (a, b) { return parseInt(a, 10) - parseInt(b, 10); });
+
+        // Replace defaults with loaded data
+        if (loadedColors.length) {
+          // Remove all default colors from matrix
+          currentColors.forEach(function (c) {
+            if (window.stockMatrix?.edit) window.stockMatrix.edit.removeColor(c.name);
+          });
+          currentColors = loadedColors;
+          loadedColors.forEach(function (c) {
+            if (window.stockMatrix?.edit) window.stockMatrix.edit.addColor(c.name, c.hex);
+          });
+        }
+        if (loadedSizes.length) {
+          currentSizes.forEach(function (s) {
+            if (window.stockMatrix?.edit) window.stockMatrix.edit.removeSize(s);
+          });
+          currentSizes = loadedSizes;
+          loadedSizes.forEach(function (s) {
+            if (window.stockMatrix?.edit) window.stockMatrix.edit.addSize(s);
+          });
+        }
+        renderColorChips();
+        renderSizeChips();
+
         if (window.stockMatrix?.edit) {
           if (typeof p.lowStockThreshold === "number") {
             const thresholdInput = document.querySelector('[data-vm="threshold"]');
@@ -401,9 +717,17 @@ const tabs = [
           window.stockMatrix.edit.setInitial(initialStocks);
         }
 
-        // Images: load existing
-        (p.images || []).forEach(url => {
-          uploadedImages.push({ url, name: url.split("/").pop() || "image", fileId: "" });
+        // Images: load existing (use imageDetails for fileId, id, and colorName)
+        var imageList = p.imageDetails || p.images || [];
+        imageList.forEach(function (img) {
+          var url = typeof img === "string" ? img : img.url;
+          uploadedImages.push({
+            url: url,
+            name: url.split("/").pop() || "image",
+            fileId: (typeof img === "string" ? "" : (img.fileId || "")),
+            imageId: (typeof img === "string" ? null : (img.id || null)),
+            colorName: (typeof img === "string" ? null : (img.colorName || null)),
+          });
         });
         renderImagePreviews();
 
@@ -424,18 +748,75 @@ const tabs = [
       }
     })();
 
+    const uploadModal = document.getElementById("uploadModal");
+    const uploadModalTitle = document.getElementById("uploadModalTitle");
+    const uploadModalProgress = document.getElementById("uploadModalProgress");
+    const uploadProgressBar = document.getElementById("uploadProgressBar");
+
+    function updateProgressBar(current, total) {
+      var pct = total > 0 ? Math.round((current / total) * 100) : 0;
+      uploadProgressBar.style.width = pct + "%";
+    }
+
+    function showUploadModal(total) {
+      uploadModal.classList.remove("hidden");
+      uploadModalTitle.textContent = "Subiendo imágenes";
+      uploadModalProgress.textContent = "0 de " + total;
+      updateProgressBar(0, total);
+    }
+
+    function updateUploadModalProgress(current, total) {
+      uploadModalProgress.textContent = current + " de " + total;
+      updateProgressBar(current, total);
+    }
+
+    function hideUploadModal() {
+      uploadModal.classList.add("hidden");
+    }
+
     // --- Submit ---
     document.getElementById("productForm").addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      const allColors = [{"name":"Noir","hex":"#1A1A1A"},{"name":"White","hex":"#FFFFFF"},{"name":"Nude","hex":"#E6DED5"},{"name":"Arcilla","hex":"#C18C7E"}];
-      const allSizes = ["36","37","38","39","40","41"];
+      const imagesToUpload = uploadedImages.filter(function (i) { return i._local; });
+
+      if (imagesToUpload.length > 0) {
+        showUploadModal(imagesToUpload.length);
+        const uploadedIds = [];
+        var uploadOk = true;
+
+        for (var u = 0; u < imagesToUpload.length; u++) {
+          updateUploadModalProgress(u + 1, imagesToUpload.length);
+          var localImg = imagesToUpload[u];
+          var idx = uploadedImages.indexOf(localImg);
+          try {
+            var data = await uploadFile(localImg.file);
+            URL.revokeObjectURL(localImg.objectUrl);
+            uploadedImages[idx] = { url: data.url, name: data.name || localImg.name, fileId: data.fileId, colorName: localImg.colorName || null };
+            uploadedIds.push(data.fileId);
+          } catch (err) {
+            uploadOk = false;
+            for (var c = 0; c < uploadedIds.length; c++) {
+              try { await fetch("/api/imagekit/delete.php", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fileId: uploadedIds[c] }) }); } catch (e) {}
+            }
+            hideUploadModal();
+            window.VunoModal.alert({
+              type: "error",
+              title: "Error al subir imágenes",
+              message: "No se pudieron subir todas las imágenes. " + (err.message || "Intenta de nuevo."),
+            });
+            renderImagePreviews();
+            return;
+          }
+        }
+
+        hideUploadModal();
+      }
 
       const details = document.getElementById("fieldDetails").value
         .split("\n").map(l => l.trim()).filter(Boolean);
 
-      const matrixPayload = window.stockMatrix?.edit?.toPayload() || { stocks: {}, activeColors: [], threshold: 5 };
-      const colors = matrixPayload.activeColors.length ? matrixPayload.activeColors : allColors;
+      const matrixPayload = window.stockMatrix?.edit?.toPayload() || { stocks: {}, threshold: 5 };
 
       const payload = {
         id: document.getElementById("fieldId").value,
@@ -444,11 +825,11 @@ const tabs = [
         details: details.length ? details : null,
         price: parseFloat(document.getElementById("fieldPrice").value),
         category: document.getElementById("fieldCategory").value,
-        colors,
-        sizes: allSizes.map(s => ({ label: s, value: s })),
+        colors: currentColors,
+        sizes: currentSizes.map(function (s) { return { label: s, value: s }; }),
         stocks: matrixPayload.stocks,
         lowStockThreshold: matrixPayload.threshold,
-        images: uploadedImages.map(i => i.url),
+        images: uploadedImages.map(i => ({ url: i.url, fileId: i.fileId || null, colorName: i.colorName || null })),
       };
 
       setLoading("submitBtn", "submitIcon", "submitText", true, "Guardando...");
@@ -462,8 +843,17 @@ const tabs = [
         if (!res.ok) throw new Error(data.error || "Error al guardar el producto");
         setLoading("submitBtn", "submitIcon", "submitText", false);
         window.VunoToast.success("Producto actualizado", "Los cambios se han guardado correctamente.");
+        setTimeout(function () { window.location.href = "/admin/productos"; }, 800);
       } catch (err) {
         setLoading("submitBtn", "submitIcon", "submitText", false);
+        // Clean up uploaded images if save failed
+        if (typeof imagesToUpload !== "undefined" && imagesToUpload.length > 0) {
+          for (var c = 0; c < uploadedImages.length; c++) {
+            if (uploadedImages[c] && uploadedImages[c].fileId && !uploadedImages[c]._local) {
+              try { await fetch("/api/imagekit/delete.php", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fileId: uploadedImages[c].fileId }) }); } catch (e) {}
+            }
+          }
+        }
         window.VunoModal.alert({
           type: "error",
           title: "Error al guardar",
@@ -471,5 +861,18 @@ const tabs = [
         });
       }
     });
+
+    // Cleanup local ObjectURLs on page unload
+    window.addEventListener("beforeunload", function () {
+      for (var i = 0; i < uploadedImages.length; i++) {
+        if (uploadedImages[i]._local) {
+          URL.revokeObjectURL(uploadedImages[i].objectUrl);
+        }
+      }
+    });
+
+    // Initial render of color/size chips (defaults)
+    renderColorChips();
+    renderSizeChips();
   </script>
 </AdminLayout>

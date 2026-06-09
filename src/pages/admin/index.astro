@@ -47,7 +47,7 @@ import AdminLayout from "./_layout.astro";
         const cards = [
           { label: "Productos", value: stats.totalProducts || 0, icon: "inventory_2" },
           { label: "Pedidos Total", value: stats.totalOrders || 0, icon: "receipt_long" },
-          { label: "Ingresos del Mes", value: "$" + (stats.monthlyRevenue || 0).toFixed(2), icon: "trending_up" },
+          { label: "Ingresos del Mes", value: (stats.displaySymbol || "$") + ((stats.displayMonthlyRevenue ?? stats.monthlyRevenue) || 0).toFixed(2), icon: "trending_up" },
           { label: "Pedidos del Mes", value: stats.monthlyOrderCount || 0, icon: "shopping_cart" },
         ];
 
@@ -72,7 +72,7 @@ import AdminLayout from "./_layout.astro";
                 <p class="font-body text-body-md text-secondary text-sm">${o.customerName || '—'}</p>
               </div>
               <div class="text-right">
-                <span class="font-price-display text-price-display text-sm">$${(o.total || 0).toFixed(2)}</span>
+                <span class="font-price-display text-price-display text-sm">${o.displaySymbol || '$'}${((o.displayTotal ?? o.total) || 0).toFixed(2)}</span>
                 <span class="font-label-caps text-label-caps text-xs text-secondary block capitalize">${o.status}</span>
               </div>
             </div>

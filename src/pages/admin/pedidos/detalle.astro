@@ -140,9 +140,9 @@ const validStatuses = ["pending", "paid", "shipped", "delivered", "cancelled"];
             {validStatuses.map(s => <option value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
           </select>
         </div>
-        <button type="submit" class="bg-monolith-black text-off-white font-label-caps text-label-caps min-h-[42px] px-5 inline-flex items-center justify-center gap-1.5 rounded-md hover:bg-monolith-black/90 hover:shadow-sm transition-all duration-200 whitespace-nowrap">
-          <span class="material-symbols-outlined text-lg">save</span>
-          UPDATE
+        <button type="submit" id="statusSubmitBtn" class="bg-monolith-black text-off-white font-label-caps text-label-caps min-h-[42px] px-5 inline-flex items-center justify-center gap-1.5 rounded-md hover:bg-monolith-black/90 hover:shadow-sm transition-all duration-200 whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed">
+          <span class="material-symbols-outlined text-lg" id="statusSubmitIcon">save</span>
+          <span id="statusSubmitText">UPDATE</span>
         </button>
       </form>
     </div>
@@ -172,6 +172,23 @@ const validStatuses = ["pending", "paid", "shipped", "delivered", "cancelled"];
         <span class="w-1.5 h-1.5 rounded-full ${status === 'cancelled' ? 'bg-error' : status === 'pending' ? 'bg-clay-accent' : 'bg-off-white'}"></span>
         ${(status || '').toUpperCase()}
       </span>`;
+    }
+
+    function setLoading(btnId, iconId, textId, loading, actionText) {
+      const btn = document.getElementById(btnId);
+      const icon = document.getElementById(iconId);
+      const text = document.getElementById(textId);
+      if (!btn || !icon || !text) return;
+      btn.disabled = loading;
+      if (loading) {
+        icon.textContent = "progress_activity";
+        icon.classList.add("animate-spin");
+        text.textContent = actionText || "Processing...";
+      } else {
+        icon.textContent = icon.dataset.origIcon || "save";
+        icon.classList.remove("animate-spin");
+        text.textContent = text.dataset.original || "";
+      }
     }
 
     (async function () {
@@ -224,8 +241,8 @@ const validStatuses = ["pending", "paid", "shipped", "delivered", "cancelled"];
             <td class="p-4 font-body text-body-md text-secondary">${item.selectedColor || '—'}</td>
             <td class="p-4 font-body text-body-md text-secondary">${item.selectedSize || '—'}</td>
             <td class="p-4 font-body text-body-md">${item.quantity || 1}</td>
-            <td class="p-4 font-price-display text-price-display">$${(item.product?.price || 0).toFixed(2)}</td>
-            <td class="p-4 font-price-display text-price-display">$${((item.product?.price || 0) * (item.quantity || 1)).toFixed(2)}</td>
+            <td class="p-4 font-price-display text-price-display">${o.display_symbol || '$'}${((item.product?.display_price ?? item.product?.price) || 0).toFixed(2)}</td>
+            <td class="p-4 font-price-display text-price-display">${o.display_symbol || '$'}${(((item.product?.display_price ?? item.product?.price) || 0) * (item.quantity || 1)).toFixed(2)}</td>
           </tr>
         `).join("");
 
@@ -237,13 +254,13 @@ const validStatuses = ["pending", "paid", "shipped", "delivered", "cancelled"];
                 <span class="material-symbols-outlined text-lg text-monolith-black">check_indeterminate_small</span>
                 <span class="font-body text-body-md text-monolith-black font-medium">${item.product?.name || ''}</span>
               </div>
-              <span class="font-price-display text-price-display whitespace-nowrap ml-3">$${((item.product?.price || 0) * (item.quantity || 1)).toFixed(2)}</span>
+              <span class="font-price-display text-price-display whitespace-nowrap ml-3">${o.display_symbol || '$'}${(((item.product?.display_price ?? item.product?.price) || 0) * (item.quantity || 1)).toFixed(2)}</span>
             </div>
             <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm font-body text-body-md text-secondary ml-8">
               <span>Color: <span class="text-monolith-black">${item.selectedColor || '—'}</span></span>
               <span>Size: <span class="text-monolith-black">${item.selectedSize || '—'}</span></span>
               <span>Qty: <span class="text-monolith-black">${item.quantity || 1}</span></span>
-              <span>@ <span class="text-monolith-black">$${(item.product?.price || 0).toFixed(2)}</span></span>
+              <span>@ <span class="text-monolith-black">${o.display_symbol || '$'}${((item.product?.display_price ?? item.product?.price) || 0).toFixed(2)}</span></span>
             </div>
           </div>
         `).join("");
@@ -255,12 +272,13 @@ const validStatuses = ["pending", "paid", "shipped", "delivered", "cancelled"];
         const discountElMobile = document.getElementById("orderDiscountMobile");
         if (o.discountTotal && o.discountTotal > 0) {
           if (discountRow) discountRow.classList.remove("hidden");
-          if (discountEl) discountEl.textContent = "-$" + o.discountTotal.toFixed(2);
+          var sym = o.display_symbol || "$";
+          if (discountEl) discountEl.textContent = "-" + sym + o.discountTotal.toFixed(2);
           if (discountRowMobile) discountRowMobile.classList.remove("hidden");
-          if (discountElMobile) discountElMobile.textContent = "-$" + o.discountTotal.toFixed(2);
+          if (discountElMobile) discountElMobile.textContent = "-" + sym + o.discountTotal.toFixed(2);
         }
 
-        const total = "$" + (o.total || 0).toFixed(2);
+        const total = (o.display_symbol || "$") + (o.display_total || o.total || 0).toFixed(2);
         document.getElementById("orderTotal").textContent = total;
         document.getElementById("orderTotalMobile").textContent = total;
 
@@ -283,6 +301,7 @@ const validStatuses = ["pending", "paid", "shipped", "delivered", "cancelled"];
       const status = document.getElementById("statusSelect").value;
 
       const msg = document.getElementById("message");
+      setLoading("statusSubmitBtn", "statusSubmitIcon", "statusSubmitText", true, "Updating...");
       try {
         const res = await fetch("/api/pedidos/update-status.php", {
           method: "POST",
@@ -296,10 +315,13 @@ const validStatuses = ["pending", "paid", "shipped", "delivered", "cancelled"];
         msg.classList.remove("hidden");
         location.reload();
       } catch (err) {
+        setLoading("statusSubmitBtn", "statusSubmitIcon", "statusSubmitText", false);
         msg.className = "font-body text-body-md p-3 mb-6 bg-red-100 text-error rounded-sm";
         msg.textContent = err.message;
         msg.classList.remove("hidden");
       }
     });
+
+    document.getElementById("statusSubmitIcon").dataset.origIcon = "save";
   </script>
 </AdminLayout>
