@@ -1,0 +1,76 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Navbar from "../../components/organisms/Navbar.astro";
+import Footer from "../../components/organisms/Footer.astro";
+import { t, type Locale, locales } from "../../i18n/utils";
+
+export async function getStaticPaths() {
+  return locales.map((lang) => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params as { lang: Locale };
+const currentPath = Astro.url.pathname;
+---
+
+<BaseLayout title={lang === "es" ? "Iniciar Sesión | Ram;Lop" : "Sign In | Ram;Lop"} lang={lang}>
+  <Navbar lang={lang} currentPath={currentPath} />
+  <main class="flex-grow w-full max-w-md mx-auto px-margin-mobile md:px-margin-desktop py-section-gap">
+    <div class="text-center mb-10">
+      <h1 class="font-headline text-headline-lg-mobile md:text-headline-lg mb-3">{t("auth.loginTitle", lang)}</h1>
+      <p class="font-body text-body-md text-secondary">{t("auth.loginSubtitle", lang)}</p>
+    </div>
+
+    <div id="loginError" class="hidden font-body text-body-md text-error bg-error/10 p-3 mb-6 text-center"></div>
+
+    <form id="loginForm" class="flex flex-col gap-6">
+      <div>
+        <label class="font-label-caps text-label-caps text-secondary block mb-2 tracking-widest">{t("auth.email", lang)}</label>
+        <input id="loginEmail" type="email" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
+      </div>
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <label class="font-label-caps text-label-caps text-secondary tracking-widest">{t("auth.password", lang)}</label>
+          <a href={`/${lang}/forgot-password`} class="font-label-caps text-label-caps text-xs text-secondary hover:text-monolith-black transition-colors tracking-widest">{t("auth.forgotPassword", lang)}</a>
+        </div>
+        <input id="loginPassword" type="password" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
+      </div>
+      <button type="submit" id="loginBtn" class="w-full bg-monolith-black text-off-white font-label-caps text-label-caps h-12 inline-flex items-center justify-center hover:bg-monolith-black/90 transition-all tracking-widest">
+        {t("auth.signIn", lang)}
+      </button>
+    </form>
+
+    <p class="font-body text-body-md text-secondary text-center mt-8">
+      {t("auth.noAccount", lang)}{" "}
+      <a href={`/${lang}/register`} class="text-monolith-black underline hover:no-underline font-medium">{t("auth.createAccount", lang)}</a>
+    </p>
+  </main>
+  <Footer lang={lang} />
+
+  <script src="/js/auth.js" is:inline></script>
+  <script>
+    // @ts-nocheck
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("loginEmail").value.trim();
+      const password = document.getElementById("loginPassword").value;
+      const btn = document.getElementById("loginBtn");
+      const errorEl = document.getElementById("loginError");
+
+      errorEl.classList.add("hidden");
+      btn.disabled = true;
+      btn.textContent = "...";
+
+      try {
+        await window.VunoAuth.login(email, password);
+        const params = new URLSearchParams(window.location.search);
+        const redirect = params.get("redirect") || document.querySelector("html").getAttribute("lang") + "/account";
+        window.location.href = "/" + redirect.replace(/^\//, "");
+      } catch (err) {
+        errorEl.textContent = err.message;
+        errorEl.classList.remove("hidden");
+        btn.disabled = false;
+        btn.textContent = document.querySelector('[data-signin-text]')?.getAttribute('data-signin-text') || "SIGN IN";
+      }
+    });
+  </script>
+</BaseLayout>

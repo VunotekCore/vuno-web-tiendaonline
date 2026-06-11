@@ -1,0 +1,222 @@
+---
+import BaseLayout from "../../../../layouts/BaseLayout.astro";
+import Navbar from "../../../../components/organisms/Navbar.astro";
+import Footer from "../../../../components/organisms/Footer.astro";
+import { t, type Locale, locales } from "../../../../i18n/utils";
+
+export async function getStaticPaths() {
+  return locales.map((lang) => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params as { lang: Locale };
+const currentPath = Astro.url.pathname;
+---
+
+<BaseLayout title={lang === "es" ? "Detalle del Pedido | Ram;Lop" : "Order Detail | Ram;Lop"} lang={lang}>
+  <Navbar lang={lang} currentPath={currentPath} />
+  <main class="flex-grow w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-section-gap">
+    <div id="notLoggedIn" class="hidden text-center py-20">
+      <p class="font-body text-body-lg text-secondary mb-6">{t("auth.login", lang)}</p>
+      <a href={`/${lang}/login`} class="inline-block bg-monolith-black text-off-white font-label-caps text-label-caps h-12 px-8 leading-[48px] hover:bg-monolith-black/90 transition-all tracking-widest">{t("auth.signIn", lang)}</a>
+    </div>
+
+    <div id="loading" class="font-body text-body-md text-secondary p-4">{t("checkout.loading", lang) || "Loading..."}</div>
+
+    <div id="orderContent" class="hidden">
+      <div class="flex items-center gap-4 mb-8">
+        <a href={`/${lang}/account/orders`} class="font-label-caps text-label-caps text-secondary hover:text-monolith-black transition-colors flex items-center gap-1">
+          <span class="material-symbols-outlined text-lg">arrow_back</span>
+          {t("account.orders", lang)}
+        </a>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div class="bg-off-white border border-outline-variant p-6">
+          <h2 class="font-headline text-headline-md mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-xl">receipt</span>
+            {t("account.orderDetail", lang)} <span id="orderId" class="text-secondary font-body text-body-md"></span>
+          </h2>
+          <div class="space-y-3 font-body text-body-md">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-base text-secondary">calendar_today</span>
+              <span id="orderDate" class="text-secondary"></span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-base text-secondary">info</span>
+              <span id="orderStatus"></span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-base text-secondary">credit_card</span>
+              <span id="orderPayment"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-off-white border border-outline-variant p-6">
+          <h2 class="font-headline text-headline-md mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-xl">local_shipping</span>
+            {t("checkout.shipping", lang)}
+          </h2>
+          <div class="space-y-2 font-body text-body-md" id="shippingInfo"></div>
+        </div>
+      </div>
+
+      <div class="bg-off-white border border-outline-variant mb-8">
+        <h2 class="font-headline text-headline-md p-6 pb-0 flex items-center gap-2">
+          <span class="material-symbols-outlined text-xl">shopping_bag</span>
+          Items
+        </h2>
+        <div class="hidden md:block p-6 pt-4">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left">
+              <thead>
+                <tr class="bg-monolith-black/5 font-label-caps text-label-caps text-secondary">
+                  <th class="p-4 font-medium">PRODUCT</th>
+                  <th class="p-4 font-medium">COLOR</th>
+                  <th class="p-4 font-medium">SIZE</th>
+                  <th class="p-4 font-medium">QTY</th>
+                  <th class="p-4 font-medium">PRICE</th>
+                  <th class="p-4 font-medium">SUBTOTAL</th>
+                </tr>
+              </thead>
+              <tbody id="orderItemsBody"></tbody>
+              <tfoot>
+                <tr id="discountRow" class="hidden border-t border-outline-variant/50">
+                  <td colspan="5" class="p-4 text-right font-body text-body-md text-clay-accent">{t("checkout.discount", lang)}</td>
+                  <td class="p-4 font-price-display text-price-display text-clay-accent" id="orderDiscount"></td>
+                </tr>
+                <tr class="font-headline text-headline-md border-t border-outline-variant">
+                  <td colspan="5" class="p-4 text-right">{t("cart.total", lang)}</td>
+                  <td class="p-4 font-price-display text-price-display" id="orderTotal"></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+        <div id="orderItemsCards" class="block md:hidden divide-y divide-outline-variant/50 px-6"></div>
+        <div id="discountRowMobile" class="hidden md:hidden border-t border-outline-variant/50 px-6 py-3 flex justify-between items-center">
+          <span class="font-body text-body-md text-clay-accent">{t("checkout.discount", lang)}</span>
+          <span class="font-price-display text-price-display text-clay-accent" id="orderDiscountMobile"></span>
+        </div>
+        <div class="block md:hidden border-t border-outline-variant px-6 py-4 flex justify-between items-center">
+          <span class="font-headline text-headline-md">{t("cart.total", lang)}</span>
+          <span class="font-price-display text-price-display" id="orderTotalMobile"></span>
+        </div>
+      </div>
+    </div>
+
+    <div id="error" class="hidden font-body text-body-md text-error bg-error/10 p-3"></div>
+  </main>
+  <Footer lang={lang} />
+
+  <script src="/js/auth.js" is:inline></script>
+  <script>
+    // @ts-nocheck
+    const LANG = document.querySelector("html").getAttribute("lang") || "es";
+    const statusStyles = {
+      pending: "bg-clay-accent/20 text-clay-accent",
+      paid: "bg-monolith-black text-off-white",
+      shipped: "bg-monolith-black/80 text-off-white",
+      delivered: "bg-monolith-black text-off-white",
+      cancelled: "bg-error/20 text-error",
+    };
+
+    function statusBadge(status) {
+      const cls = statusStyles[status] || "";
+      return `<span class="inline-flex items-center gap-1 font-label-caps text-label-caps text-xs px-2 py-0.5 ${cls}">${(status || "").toUpperCase()}</span>`;
+    }
+
+    (async function () {
+      if (!window.VunoAuth) {
+        document.getElementById("notLoggedIn").classList.remove("hidden");
+        return;
+      }
+
+      const customer = await window.VunoAuth.verify();
+      if (!customer) {
+        document.getElementById("notLoggedIn").classList.remove("hidden");
+        return;
+      }
+
+      const params = new URLSearchParams(window.location.search);
+      const orderId = params.get("id");
+
+      if (!orderId) {
+        document.getElementById("loading").textContent = "No order ID specified.";
+        return;
+      }
+
+      try {
+        const res = await window.VunoAuth.authFetch("/api/customer/get-order.php?id=" + encodeURIComponent(orderId));
+        if (!res.ok) throw new Error("Order not found");
+        const o = await res.json();
+
+        document.getElementById("orderId").textContent = "#" + o.id;
+        document.getElementById("orderDate").textContent = o.createdAt
+          ? new Date(o.createdAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" })
+          : "";
+        document.getElementById("orderStatus").innerHTML = statusBadge(o.status);
+        document.getElementById("orderPayment").textContent = o.paymentMethod === "stripe" ? "Card (Stripe)" : "Bank Transfer";
+
+        document.getElementById("shippingInfo").innerHTML = `
+          <p><strong>${o.customer?.name || ""}</strong></p>
+          <p>${o.customer?.email || ""}</p>
+          <p>${o.customer?.address || ""}</p>
+          <p>${o.customer?.city || ""} ${o.customer?.zip || ""}</p>
+        `;
+
+        const sym = o.display_symbol || "$";
+        const items = o.items || [];
+
+        const tbody = document.getElementById("orderItemsBody");
+        const cards = document.getElementById("orderItemsCards");
+
+        tbody.innerHTML = items.map(item => `
+          <tr class="border-b border-outline-variant/50">
+            <td class="p-4 font-body text-body-md text-monolith-black font-medium">${item.product?.name || ""}</td>
+            <td class="p-4 font-body text-body-md text-secondary">${item.selectedColor || "—"}</td>
+            <td class="p-4 font-body text-body-md text-secondary">${item.selectedSize || "—"}</td>
+            <td class="p-4 font-body text-body-md">${item.quantity || 1}</td>
+            <td class="p-4 font-price-display">${sym}${((item.product?.display_price ?? item.product?.price) || 0).toFixed(2)}</td>
+            <td class="p-4 font-price-display">${sym}${(((item.product?.display_price ?? item.product?.price) || 0) * (item.quantity || 1)).toFixed(2)}</td>
+          </tr>
+        `).join("");
+
+        cards.innerHTML = items.map(item => `
+          <div class="py-4 flex flex-col gap-2 first:pt-0 last:pb-0">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-2">
+                <span class="font-body text-body-md text-monolith-black font-medium">${item.product?.name || ""}</span>
+              </div>
+              <span class="font-price-display whitespace-nowrap ml-3">${sym}${(((item.product?.display_price ?? item.product?.price) || 0) * (item.quantity || 1)).toFixed(2)}</span>
+            </div>
+            <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm font-body text-body-md text-secondary ml-0">
+              <span>Color: <span class="text-monolith-black">${item.selectedColor || "—"}</span></span>
+              <span>Size: <span class="text-monolith-black">${item.selectedSize || "—"}</span></span>
+              <span>Qty: <span class="text-monolith-black">${item.quantity || 1}</span></span>
+              <span>@ <span class="text-monolith-black">${sym}${((item.product?.display_price ?? item.product?.price) || 0).toFixed(2)}</span></span>
+            </div>
+          </div>
+        `).join("");
+
+        if (o.discountTotal && o.discountTotal > 0) {
+          document.getElementById("discountRow").classList.remove("hidden");
+          document.getElementById("discountRowMobile").classList.remove("hidden");
+          document.getElementById("orderDiscount").textContent = "-" + sym + o.discountTotal.toFixed(2);
+          document.getElementById("orderDiscountMobile").textContent = "-" + sym + o.discountTotal.toFixed(2);
+        }
+
+        const total = sym + (o.display_total || o.total || 0).toFixed(2);
+        document.getElementById("orderTotal").textContent = total;
+        document.getElementById("orderTotalMobile").textContent = total;
+
+        document.getElementById("loading").classList.add("hidden");
+        document.getElementById("orderContent").classList.remove("hidden");
+      } catch (err) {
+        document.getElementById("loading").textContent = "";
+        document.getElementById("error").textContent = err.message;
+        document.getElementById("error").classList.remove("hidden");
+      }
+    })();
+  </script>
+</BaseLayout>

@@ -1,0 +1,107 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import Navbar from "../../../components/organisms/Navbar.astro";
+import Footer from "../../../components/organisms/Footer.astro";
+import { t, type Locale, locales } from "../../../i18n/utils";
+
+export async function getStaticPaths() {
+  return locales.map((lang) => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params as { lang: Locale };
+const currentPath = Astro.url.pathname;
+---
+
+<BaseLayout title={lang === "es" ? "Mis Pedidos | Ram;Lop" : "My Orders | Ram;Lop"} lang={lang}>
+  <Navbar lang={lang} currentPath={currentPath} />
+  <main class="flex-grow w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-section-gap">
+    <div id="notLoggedIn" class="hidden text-center py-20">
+      <p class="font-body text-body-lg text-secondary mb-6">{t("auth.login", lang)}</p>
+      <a href={`/${lang}/login`} class="inline-block bg-monolith-black text-off-white font-label-caps text-label-caps h-12 px-8 leading-[48px] hover:bg-monolith-black/90 transition-all tracking-widest">{t("auth.signIn", lang)}</a>
+    </div>
+
+    <div id="ordersContent" class="hidden">
+      <div class="flex items-center justify-between mb-8">
+        <div>
+          <h1 class="font-headline text-headline-lg-mobile md:text-headline-lg">{t("account.orders", lang)}</h1>
+          <p class="font-body text-body-md text-secondary mt-1"><span id="orderCount"></span></p>
+        </div>
+        <a href={`/${lang}/account`} class="font-label-caps text-label-caps text-secondary hover:text-monolith-black transition-colors flex items-center gap-1">
+          <span class="material-symbols-outlined text-lg">arrow_back</span>
+          {t("account.dashboard", lang)}
+        </a>
+      </div>
+
+      <div id="ordersList" class="space-y-3"></div>
+      <div id="noOrders" class="hidden text-center py-20">
+        <p class="font-body text-body-md text-secondary mb-6">{t("account.noOrders", lang)}</p>
+        <a href={`/${lang}/catalogo`} class="inline-block bg-monolith-black text-off-white font-label-caps text-label-caps h-10 px-6 leading-[40px] hover:bg-monolith-black/90 transition-all tracking-widest text-sm">EXPLORAR</a>
+      </div>
+    </div>
+  </main>
+  <Footer lang={lang} />
+
+  <script src="/js/auth.js" is:inline></script>
+  <script>
+    // @ts-nocheck
+    const LANG = document.querySelector("html").getAttribute("lang") || "es";
+    const statusStyles = {
+      pending: "bg-clay-accent/20 text-clay-accent",
+      paid: "bg-monolith-black text-off-white",
+      shipped: "bg-monolith-black/80 text-off-white",
+      delivered: "bg-monolith-black text-off-white",
+      cancelled: "bg-error/20 text-error",
+    };
+
+    function renderOrderRow(o) {
+      const sym = o.display_symbol || "$";
+      const total = o.display_total || o.total || 0;
+      const statusClass = statusStyles[o.status] || "";
+      const date = o.createdAt ? new Date(o.createdAt).toLocaleDateString() : "";
+      return `<a href="/${LANG}/account/orders/detalle?id=${o.id}" class="flex items-center justify-between p-4 bg-off-white border border-outline-variant hover:border-monolith-black transition-colors group">
+        <div class="flex items-center gap-6 flex-wrap">
+          <span class="font-label-caps text-label-caps text-secondary text-xs">#${o.id}</span>
+          <span class="font-body text-body-md text-secondary text-sm">${date}</span>
+          <span class="inline-flex items-center gap-1 font-label-caps text-label-caps text-xs px-2 py-0.5 ${statusClass}">${(o.status || "").toUpperCase()}</span>
+          <span class="font-body text-body-md text-secondary text-sm">${o.items?.length || 0} item(s)</span>
+        </div>
+        <div class="flex items-center gap-4">
+          <span class="font-price-display text-price-display">${sym}${total.toFixed(2)}</span>
+          <span class="material-symbols-outlined text-lg text-secondary group-hover:text-monolith-black transition-colors">chevron_right</span>
+        </div>
+      </a>`;
+    }
+
+    (async function () {
+      if (!window.VunoAuth) {
+        document.getElementById("notLoggedIn").classList.remove("hidden");
+        return;
+      }
+
+      const customer = await window.VunoAuth.verify();
+      if (!customer) {
+        document.getElementById("notLoggedIn").classList.remove("hidden");
+        return;
+      }
+
+      document.getElementById("ordersContent").classList.remove("hidden");
+
+      try {
+        const res = await window.VunoAuth.authFetch("/api/customer/orders.php");
+        const data = await res.json();
+        const orders = data.orders || [];
+
+        document.getElementById("orderCount").textContent = orders.length + " order(s)";
+
+        if (orders.length === 0) {
+          document.getElementById("noOrders").classList.remove("hidden");
+          return;
+        }
+
+        document.getElementById("ordersList").innerHTML = orders.map(renderOrderRow).join("");
+      } catch (err) {
+        document.getElementById("ordersList").innerHTML = '<p class="font-body text-body-md text-error">Error loading orders.</p>';
+      }
+    })();
+  </script>
+</BaseLayout>

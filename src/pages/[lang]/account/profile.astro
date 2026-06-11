@@ -1,0 +1,144 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import Navbar from "../../../components/organisms/Navbar.astro";
+import Footer from "../../../components/organisms/Footer.astro";
+import { t, type Locale, locales } from "../../../i18n/utils";
+
+export async function getStaticPaths() {
+  return locales.map((lang) => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params as { lang: Locale };
+const currentPath = Astro.url.pathname;
+---
+
+<BaseLayout title={lang === "es" ? "Mi Perfil | Ram;Lop" : "My Profile | Ram;Lop"} lang={lang}>
+  <Navbar lang={lang} currentPath={currentPath} />
+  <main class="flex-grow w-full max-w-2xl mx-auto px-margin-mobile md:px-margin-desktop py-section-gap">
+    <div id="notLoggedIn" class="hidden text-center py-20">
+      <p class="font-body text-body-lg text-secondary mb-6">{t("auth.login", lang)}</p>
+      <a href={`/${lang}/login`} class="inline-block bg-monolith-black text-off-white font-label-caps text-label-caps h-12 px-8 leading-[48px] hover:bg-monolith-black/90 transition-all tracking-widest">{t("auth.signIn", lang)}</a>
+    </div>
+
+    <div id="profileContent" class="hidden">
+      <div class="flex items-center justify-between mb-8">
+        <div>
+          <h1 class="font-headline text-headline-lg-mobile md:text-headline-lg">{t("account.profile", lang)}</h1>
+        </div>
+        <a href={`/${lang}/account`} class="font-label-caps text-label-caps text-secondary hover:text-monolith-black transition-colors flex items-center gap-1">
+          <span class="material-symbols-outlined text-lg">arrow_back</span>
+          {t("account.dashboard", lang)}
+        </a>
+      </div>
+
+      <div id="profileMsg" class="hidden font-body text-body-md p-3 mb-6"></div>
+
+      <form id="profileForm" class="bg-off-white border border-outline-variant p-6 mb-8">
+        <h2 class="font-headline text-headline-md mb-6">{t("account.editProfile", lang)}</h2>
+        <div class="flex flex-col gap-6">
+          <div>
+            <label class="font-label-caps text-label-caps text-secondary block mb-2 tracking-widest">{t("auth.name", lang)}</label>
+            <input id="profileName" type="text" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
+          </div>
+          <div>
+            <label class="font-label-caps text-label-caps text-secondary block mb-2 tracking-widest">{t("auth.email", lang)}</label>
+            <input id="profileEmail" type="email" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
+          </div>
+          <button type="submit" class="w-full bg-monolith-black text-off-white font-label-caps text-label-caps h-12 inline-flex items-center justify-center hover:bg-monolith-black/90 transition-all tracking-widest">
+            {t("account.saveChanges", lang)}
+          </button>
+        </div>
+      </form>
+
+      <form id="passwordForm" class="bg-off-white border border-outline-variant p-6">
+        <h2 class="font-headline text-headline-md mb-6">{t("account.changePassword", lang)}</h2>
+        <div class="flex flex-col gap-6">
+          <div>
+            <label class="font-label-caps text-label-caps text-secondary block mb-2 tracking-widest">{t("account.currentPassword", lang)}</label>
+            <input id="currentPassword" type="password" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
+          </div>
+          <div>
+            <label class="font-label-caps text-label-caps text-secondary block mb-2 tracking-widest">{t("account.newPassword", lang)}</label>
+            <input id="newPassword" type="password" required minlength="6" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
+          </div>
+          <button type="submit" class="w-full bg-monolith-black text-off-white font-label-caps text-label-caps h-12 inline-flex items-center justify-center hover:bg-monolith-black/90 transition-all tracking-widest">
+            {t("account.saveChanges", lang)}
+          </button>
+        </div>
+      </form>
+    </div>
+  </main>
+  <Footer lang={lang} />
+
+  <script src="/js/auth.js" is:inline></script>
+  <script>
+    // @ts-nocheck
+    function showMsg(el, text, isError) {
+      el.textContent = text;
+      el.className = "font-body text-body-md p-3 mb-6 " + (isError ? "bg-red-100 text-error" : "bg-green-100 text-green-800");
+      el.classList.remove("hidden");
+    }
+
+    (async function () {
+      if (!window.VunoAuth) {
+        document.getElementById("notLoggedIn").classList.remove("hidden");
+        return;
+      }
+
+      const customer = await window.VunoAuth.verify();
+      if (!customer) {
+        document.getElementById("notLoggedIn").classList.remove("hidden");
+        return;
+      }
+
+      document.getElementById("profileContent").classList.remove("hidden");
+      document.getElementById("profileName").value = customer.name;
+      document.getElementById("profileEmail").value = customer.email;
+
+      document.getElementById("profileForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const msg = document.getElementById("profileMsg");
+        const name = document.getElementById("profileName").value.trim();
+        const email = document.getElementById("profileEmail").value.trim();
+
+        try {
+          const res = await window.VunoAuth.authFetch("/api/customer/update.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, email }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error);
+          window.VunoAuth.verify(); // refresh stored customer
+          showMsg(msg, data.customer?.name ? "Profile updated" : "Error", false);
+          setTimeout(() => msg.classList.add("hidden"), 3000);
+        } catch (err) {
+          showMsg(msg, err.message, true);
+        }
+      });
+
+      document.getElementById("passwordForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const msg = document.getElementById("profileMsg");
+        const currentPassword = document.getElementById("currentPassword").value;
+        const newPassword = document.getElementById("newPassword").value;
+
+        try {
+          const res = await window.VunoAuth.authFetch("/api/customer/update.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ currentPassword, newPassword }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error);
+          showMsg(msg, "Password changed successfully", false);
+          document.getElementById("currentPassword").value = "";
+          document.getElementById("newPassword").value = "";
+          setTimeout(() => msg.classList.add("hidden"), 3000);
+        } catch (err) {
+          showMsg(msg, err.message, true);
+        }
+      });
+    })();
+  </script>
+</BaseLayout>

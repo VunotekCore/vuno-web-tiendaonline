@@ -1,0 +1,296 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import Navbar from "../../../components/organisms/Navbar.astro";
+import Footer from "../../../components/organisms/Footer.astro";
+import { t, type Locale, locales } from "../../../i18n/utils";
+
+export async function getStaticPaths() {
+  return locales.map((lang) => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params as { lang: Locale };
+const currentPath = Astro.url.pathname;
+---
+
+<BaseLayout title={lang === "es" ? "Mis Direcciones | Ram;Lop" : "My Addresses | Ram;Lop"} lang={lang}>
+  <Navbar lang={lang} currentPath={currentPath} />
+  <main class="flex-grow w-full max-w-2xl mx-auto px-margin-mobile md:px-margin-desktop py-section-gap">
+    <div id="notLoggedIn" class="hidden text-center py-20">
+      <p class="font-body text-body-lg text-secondary mb-6">{t("auth.login", lang)}</p>
+      <a href={`/${lang}/login`} class="inline-block bg-monolith-black text-off-white font-label-caps text-label-caps h-12 px-8 leading-[48px] hover:bg-monolith-black/90 transition-all tracking-widest">{t("auth.signIn", lang)}</a>
+    </div>
+
+    <div id="addressesContent" class="hidden">
+      <div class="flex items-center justify-between mb-8">
+        <div>
+          <h1 class="font-headline text-headline-lg-mobile md:text-headline-lg">{t("account.addresses", lang)}</h1>
+        </div>
+        <a href={`/${lang}/account`} class="font-label-caps text-label-caps text-secondary hover:text-monolith-black transition-colors flex items-center gap-1">
+          <span class="material-symbols-outlined text-lg">arrow_back</span>
+          {t("account.dashboard", lang)}
+        </a>
+      </div>
+
+      <div id="addressesMsg" class="hidden font-body text-body-md p-3 mb-6"></div>
+
+      <div class="flex justify-end mb-6">
+        <button id="addAddressBtn" class="bg-monolith-black text-off-white font-label-caps text-label-caps h-10 px-6 inline-flex items-center hover:bg-monolith-black/90 transition-all tracking-widest text-sm gap-2">
+          <span class="material-symbols-outlined text-lg">add</span>
+          {t("account.addAddress", lang)}
+        </button>
+      </div>
+
+      <div id="noAddresses" class="hidden text-center py-16 bg-off-white border border-outline-variant">
+        <span class="material-symbols-outlined text-4xl text-secondary block mb-3">location_off</span>
+        <p class="font-body text-body-md text-secondary">{t("account.noAddresses", lang)}</p>
+      </div>
+
+      <div id="addressesList" class="hidden space-y-4"></div>
+    </div>
+
+    <!-- Address Modal -->
+    <div id="addressModal" class="hidden fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+      <div class="bg-white w-full max-w-lg max-h-[90vh] overflow-y-auto p-6">
+        <div class="flex items-center justify-between mb-6">
+          <h2 id="addressModalTitle" class="font-headline text-headline-md">{t("account.addAddress", lang)}</h2>
+          <button id="addressModalClose" class="material-symbols-outlined text-2xl text-secondary hover:text-monolith-black">close</button>
+        </div>
+
+        <form id="addressForm" class="flex flex-col gap-5">
+          <input type="hidden" id="addressId" value="" />
+
+          <div>
+            <label class="font-label-caps text-label-caps text-secondary block mb-1 tracking-widest text-xs">{t("account.addressLabel", lang)}</label>
+            <input id="addrLabel" type="text" placeholder="Home / Office" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
+          </div>
+
+          <div>
+            <label class="font-label-caps text-label-caps text-secondary block mb-1 tracking-widest text-xs">{t("account.street", lang)} *</label>
+            <input id="addrLine1" type="text" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
+          </div>
+
+          <div>
+            <label class="font-label-caps text-label-caps text-secondary block mb-1 tracking-widest text-xs">{t("account.streetOptional", lang)}</label>
+            <input id="addrLine2" type="text" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="font-label-caps text-label-caps text-secondary block mb-1 tracking-widest text-xs">{t("account.city", lang)} *</label>
+              <input id="addrCity" type="text" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
+            </div>
+            <div>
+              <label class="font-label-caps text-label-caps text-secondary block mb-1 tracking-widest text-xs">{t("account.state", lang)}</label>
+              <input id="addrState" type="text" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="font-label-caps text-label-caps text-secondary block mb-1 tracking-widest text-xs">{t("account.zip", lang)}</label>
+              <input id="addrZip" type="text" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
+            </div>
+            <div>
+              <label class="font-label-caps text-label-caps text-secondary block mb-1 tracking-widest text-xs">{t("account.country", lang)} *</label>
+              <input id="addrCountry" type="text" required value="GT" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
+            </div>
+          </div>
+
+          <div>
+            <label class="font-label-caps text-label-caps text-secondary block mb-1 tracking-widest text-xs">{t("account.phone", lang)}</label>
+            <input id="addrPhone" type="text" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
+          </div>
+
+          <div class="flex items-center gap-6">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input id="addrDefaultShipping" type="checkbox" class="accent-monolith-black" />
+              <span class="font-body text-body-sm text-secondary">{t("account.defaultShipping", lang)}</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input id="addrDefaultBilling" type="checkbox" class="accent-monolith-black" />
+              <span class="font-body text-body-sm text-secondary">{t("account.defaultBilling", lang)}</span>
+            </label>
+          </div>
+
+          <button type="submit" class="w-full bg-monolith-black text-off-white font-label-caps text-label-caps h-12 inline-flex items-center justify-center hover:bg-monolith-black/90 transition-all tracking-widest">
+            {t("account.saveChanges", lang)}
+          </button>
+        </form>
+      </div>
+    </div>
+  </main>
+  <Footer lang={lang} />
+
+  <script src="/js/auth.js" is:inline></script>
+  <script>
+    // @ts-nocheck
+    const LANG = document.querySelector("html").getAttribute("lang") || "es";
+
+    function showMsg(text, isError) {
+      const msg = document.getElementById("addressesMsg");
+      msg.textContent = text;
+      msg.className = "font-body text-body-md p-3 mb-6 " + (isError ? "bg-red-100 text-error" : "bg-green-100 text-green-800");
+      msg.classList.remove("hidden");
+      setTimeout(function () { msg.classList.add("hidden"); }, 4000);
+    }
+
+    function openModal(address) {
+      document.getElementById("addressId").value = address ? address.id : "";
+      document.getElementById("addrLabel").value = address ? address.label : "";
+      document.getElementById("addrLine1").value = address ? address.address_line1 : "";
+      document.getElementById("addrLine2").value = address ? address.address_line2 || "" : "";
+      document.getElementById("addrCity").value = address ? address.city : "";
+      document.getElementById("addrState").value = address ? address.state || "" : "";
+      document.getElementById("addrZip").value = address ? address.zip || "" : "";
+      document.getElementById("addrCountry").value = address ? address.country : "GT";
+      document.getElementById("addrPhone").value = address ? address.phone || "" : "";
+      document.getElementById("addrDefaultShipping").checked = address ? !!address.is_default_shipping : false;
+      document.getElementById("addrDefaultBilling").checked = address ? !!address.is_default_billing : false;
+      document.getElementById("addressModalTitle").textContent = address ? "Edit Address" : "Add Address";
+      document.getElementById("addressModal").classList.remove("hidden");
+    }
+
+    function closeModal() {
+      document.getElementById("addressModal").classList.add("hidden");
+    }
+
+    function renderAddressCard(addr) {
+      var label = addr.label ? '<span class="font-label-caps text-label-caps text-xs text-secondary tracking-widest">' + addr.label + "</span>" : "";
+      var shippingBadge = addr.is_default_shipping ? '<span class="inline-flex items-center gap-1 font-label-caps text-label-caps text-xs px-2 py-0.5 bg-monolith-black text-off-white">Shipping</span>' : "";
+      var billingBadge = addr.is_default_billing ? '<span class="inline-flex items-center gap-1 font-label-caps text-label-caps text-xs px-2 py-0.5 bg-clay-accent/20 text-clay-accent">Billing</span>' : "";
+      var line2 = addr.address_line2 ? "<br>" + addr.address_line2 : "";
+      var state = addr.state ? ", " + addr.state : "";
+      var phone = addr.phone ? "<br><span class='text-secondary text-sm'>" + addr.phone + "</span>" : "";
+
+      return '<div class="bg-off-white border border-outline-variant p-5 hover:border-monolith-black transition-colors">' +
+        '<div class="flex items-start justify-between mb-3">' +
+        '<div class="flex items-center gap-2 flex-wrap">' + label + " " + shippingBadge + " " + billingBadge + "</div>" +
+        '<div class="flex items-center gap-2">' +
+        '<button data-edit-addr="' + addr.id + '" class="material-symbols-outlined text-lg text-secondary hover:text-monolith-black transition-colors">edit</button>' +
+        '<button data-delete-addr="' + addr.id + '" class="material-symbols-outlined text-lg text-secondary hover:text-error transition-colors">delete</button>' +
+        "</div>" +
+        "</div>" +
+        '<p class="font-body text-body-md">' + addr.address_line1 + line2 + "<br>" +
+        addr.city + state + " " + (addr.zip || "") + "<br>" +
+        addr.country + phone + "</p>" +
+        "</div>";
+    }
+
+    function loadAddresses() {
+      window.VunoAuth.authFetch("/api/customer/addresses.php", { method: "GET" })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          var addrs = data.addresses || [];
+          var list = document.getElementById("addressesList");
+          var empty = document.getElementById("noAddresses");
+
+          if (addrs.length === 0) {
+            list.classList.add("hidden");
+            empty.classList.remove("hidden");
+          } else {
+            empty.classList.add("hidden");
+            list.classList.remove("hidden");
+            list.innerHTML = addrs.map(renderAddressCard).join("");
+          }
+        })
+        .catch(function () {});
+    }
+
+    (async function () {
+      if (!window.VunoAuth) {
+        document.getElementById("notLoggedIn").classList.remove("hidden");
+        return;
+      }
+
+      var customer = await window.VunoAuth.verify();
+      if (!customer) {
+        document.getElementById("notLoggedIn").classList.remove("hidden");
+        return;
+      }
+
+      document.getElementById("addressesContent").classList.remove("hidden");
+      loadAddresses();
+
+      // Add / Edit
+      document.getElementById("addAddressBtn").addEventListener("click", function () { openModal(null); });
+      document.getElementById("addressModalClose").addEventListener("click", closeModal);
+      document.getElementById("addressModal").addEventListener("click", function (e) {
+        if (e.target === this) closeModal();
+      });
+
+      document.getElementById("addressForm").addEventListener("submit", async function (e) {
+        e.preventDefault();
+        var id = document.getElementById("addressId").value;
+        var isEdit = !!id;
+        var payload = {
+          id: id ? parseInt(id, 10) : undefined,
+          label: document.getElementById("addrLabel").value.trim(),
+          address_line1: document.getElementById("addrLine1").value.trim(),
+          address_line2: document.getElementById("addrLine2").value.trim(),
+          city: document.getElementById("addrCity").value.trim(),
+          state: document.getElementById("addrState").value.trim(),
+          zip: document.getElementById("addrZip").value.trim(),
+          country: document.getElementById("addrCountry").value.trim().toUpperCase(),
+          phone: document.getElementById("addrPhone").value.trim(),
+          is_default_shipping: document.getElementById("addrDefaultShipping").checked,
+          is_default_billing: document.getElementById("addrDefaultBilling").checked,
+        };
+
+        if (!payload.address_line1 || !payload.city || !payload.country) {
+          showMsg("Please fill required fields", true);
+          return;
+        }
+
+        try {
+          var method = isEdit ? "PUT" : "POST";
+          var res = await window.VunoAuth.authFetch("/api/customer/addresses.php", {
+            method: method,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          var data = await res.json();
+          if (!res.ok) throw new Error(data.error);
+          closeModal();
+          showMsg(isEdit ? "Address updated" : "Address saved", false);
+          loadAddresses();
+        } catch (err) {
+          showMsg(err.message, true);
+        }
+      });
+
+      // Delete and Edit click delegation
+      document.getElementById("addressesList").addEventListener("click", function (e) {
+        var editBtn = e.target.closest("[data-edit-addr]");
+        if (editBtn) {
+          var addrId = editBtn.getAttribute("data-edit-addr");
+          window.VunoAuth.authFetch("/api/customer/addresses.php?id=" + addrId, { method: "GET" })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+              var addr = (data.addresses || []).find(function (a) { return String(a.id) === addrId; });
+              if (addr) openModal(addr);
+            })
+            .catch(function () {});
+          return;
+        }
+
+        var delBtn = e.target.closest("[data-delete-addr]");
+        if (delBtn) {
+          var addrId = delBtn.getAttribute("data-delete-addr");
+          if (!confirm("Delete this address?")) return;
+          window.VunoAuth.authFetch("/api/customer/addresses.php", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: parseInt(addrId, 10) }),
+          })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+              if (data.error) { showMsg(data.error, true); return; }
+              showMsg("Address deleted", false);
+              loadAddresses();
+            })
+            .catch(function () { showMsg("Error deleting address", true); });
+        }
+      });
+    })();
+  </script>
+</BaseLayout>

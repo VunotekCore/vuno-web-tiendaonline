@@ -1,0 +1,82 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Navbar from "../../components/organisms/Navbar.astro";
+import Footer from "../../components/organisms/Footer.astro";
+import { t, type Locale, locales } from "../../i18n/utils";
+
+export async function getStaticPaths() {
+  return locales.map((lang) => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params as { lang: Locale };
+const currentPath = Astro.url.pathname;
+---
+
+<BaseLayout title={lang === "es" ? "Crear Cuenta | Ram;Lop" : "Create Account | Ram;Lop"} lang={lang}>
+  <Navbar lang={lang} currentPath={currentPath} />
+  <main class="flex-grow w-full max-w-md mx-auto px-margin-mobile md:px-margin-desktop py-section-gap">
+    <div class="text-center mb-10">
+      <h1 class="font-headline text-headline-lg-mobile md:text-headline-lg mb-3">{t("auth.registerTitle", lang)}</h1>
+      <p class="font-body text-body-md text-secondary">{t("auth.registerSubtitle", lang)}</p>
+    </div>
+
+    <div id="registerError" class="hidden font-body text-body-md text-error bg-error/10 p-3 mb-6 text-center"></div>
+
+    <form id="registerForm" class="flex flex-col gap-6">
+      <div>
+        <label class="font-label-caps text-label-caps text-secondary block mb-2 tracking-widest">{t("auth.name", lang)}</label>
+        <input id="regName" type="text" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
+      </div>
+      <div>
+        <label class="font-label-caps text-label-caps text-secondary block mb-2 tracking-widest">{t("auth.email", lang)}</label>
+        <input id="regEmail" type="email" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
+      </div>
+      <div>
+        <label class="font-label-caps text-label-caps text-secondary block mb-2 tracking-widest">{t("auth.password", lang)}</label>
+        <input id="regPassword" type="password" required minlength="6" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
+      </div>
+      <button type="submit" id="registerBtn" class="w-full bg-monolith-black text-off-white font-label-caps text-label-caps h-12 inline-flex items-center justify-center hover:bg-monolith-black/90 transition-all tracking-widest">
+        {t("auth.createAccount", lang)}
+      </button>
+    </form>
+
+    <p class="font-body text-body-md text-secondary text-center mt-8">
+      {t("auth.hasAccount", lang)}{" "}
+      <a href={`/${lang}/login`} class="text-monolith-black underline hover:no-underline font-medium">{t("auth.signIn", lang)}</a>
+    </p>
+  </main>
+  <Footer lang={lang} />
+
+  <script src="/js/auth.js" is:inline></script>
+  <script>
+    // @ts-nocheck
+    const params = new URLSearchParams(window.location.search);
+    const emailParam = params.get("email");
+    if (emailParam) {
+      document.getElementById("regEmail").value = emailParam;
+    }
+
+    document.getElementById("registerForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const name = document.getElementById("regName").value.trim();
+      const email = document.getElementById("regEmail").value.trim();
+      const password = document.getElementById("regPassword").value;
+      const btn = document.getElementById("registerBtn");
+      const errorEl = document.getElementById("registerError");
+
+      errorEl.classList.add("hidden");
+      btn.disabled = true;
+      btn.textContent = "...";
+
+      try {
+        await window.VunoAuth.register(name, email, password);
+        window.location.href = "/" + document.querySelector("html").getAttribute("lang") + "/account";
+      } catch (err) {
+        errorEl.textContent = err.message;
+        errorEl.classList.remove("hidden");
+        btn.disabled = false;
+        btn.textContent = "CREATE ACCOUNT";
+      }
+    });
+  </script>
+</BaseLayout>
