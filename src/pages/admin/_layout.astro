@@ -12,7 +12,14 @@ const navItems = [
   { href: "/admin", label: "Dashboard", icon: "dashboard" },
   { href: "/admin/productos", label: "Productos", icon: "inventory_2" },
   { href: "/admin/resenas", label: "Reseñas", icon: "reviews" },
-  { href: "/admin/blog", label: "Blog", icon: "article" },
+  {
+    href: "/admin/blog",
+    label: "Blog",
+    icon: "article",
+    children: [
+      { href: "/admin/blog/categorias", label: "Categorías", icon: "category" },
+    ],
+  },
   { href: "/admin/suscriptores", label: "Suscriptores", icon: "contacts" },
   { href: "/admin/newsletter/campanas", label: "Campañas", icon: "campaign" },
   { href: "/admin/pedidos", label: "Pedidos", icon: "receipt_long" },
@@ -30,9 +37,11 @@ const navItems = [
   { href: "/admin/usuarios", label: "Usuarios", icon: "group", class: "nav-superadmin" },
 ];
 
-const configChildren = navItems.find(i => i.children)?.children ?? [];
-const isConfigChildActive = configChildren.some(c => currentPath === c.href);
-const configExpanded = currentPath === '/admin/configuracion' || isConfigChildActive;
+function isExpanded(item) {
+  if (!item.children) return false;
+  if (currentPath === item.href) return true;
+  return item.children.some(c => currentPath === c.href);
+}
 ---
 
 <BaseLayout title={`${title} | Admin | Ram;Lop`}>
@@ -66,7 +75,7 @@ const configExpanded = currentPath === '/admin/configuracion' || isConfigChildAc
                   <span class="material-symbols-outlined transition-transform">expand_more</span>
                 </button>
               </a>
-              <div class="ml-4 space-y-0.5 {configExpanded ? '' : 'hidden'}" data-nav-children>
+              <div class="ml-4 space-y-0.5 {isExpanded(item) ? '' : 'hidden'}" data-nav-children>
                 {item.children.map(child => (
                   <a
                     href={child.href}
@@ -135,7 +144,7 @@ const configExpanded = currentPath === '/admin/configuracion' || isConfigChildAc
                   <span class="material-symbols-outlined transition-transform">expand_more</span>
                 </button>
               </a>
-              <div class="ml-4 space-y-0.5 {configExpanded ? '' : 'hidden'}" data-nav-children>
+              <div class="ml-4 space-y-0.5 {isExpanded(item) ? '' : 'hidden'}" data-nav-children>
                 {item.children.map(child => (
                   <a
                     href={child.href}
@@ -190,7 +199,7 @@ const configExpanded = currentPath === '/admin/configuracion' || isConfigChildAc
     </div>
   </div>
 
-  <script is:inline define:vars={{ configExpanded }}>
+  <script is:inline>
     // @ts-nocheck
     // Auth guard
     (async function () {
@@ -224,12 +233,13 @@ const configExpanded = currentPath === '/admin/configuracion' || isConfigChildAc
       this.textContent = menu.classList.contains("hidden") ? "menu" : "close";
     });
 
-    // Sidebar expand/collapse
-    if (configExpanded) {
-      document.querySelectorAll('[data-nav-chevron] .material-symbols-outlined').forEach(function (icon) {
-        icon.textContent = 'expand_less';
-      });
-    }
+    // Sidebar expand/collapse — set initial chevron state for expanded sections
+    document.querySelectorAll('[data-nav-children]').forEach(function (container) {
+      if (!container.classList.contains('hidden')) {
+        var chevron = container.previousElementSibling?.querySelector('[data-nav-chevron] .material-symbols-outlined');
+        if (chevron) chevron.textContent = 'expand_less';
+      }
+    });
 
     document.querySelectorAll('[data-nav-chevron]').forEach(function (btn) {
       btn.addEventListener('click', function (e) {

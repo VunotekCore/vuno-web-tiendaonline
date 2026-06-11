@@ -1650,6 +1650,41 @@ function getBlogCategories(?string $lang = null): array
     return $rows;
 }
 
+function createBlogCategory(array $data): int
+{
+    $db = getDb();
+    $stmt = $db->prepare('INSERT INTO blog_categories (name, slug, description) VALUES (?, ?, ?)');
+    $stmt->execute([
+        $data['name'],
+        $data['slug'],
+        $data['description'] ?? '',
+    ]);
+    return (int)$db->lastInsertId();
+}
+
+function updateBlogCategory(int $id, array $data): void
+{
+    $db = getDb();
+    $fields = [];
+    $params = [];
+    foreach (['name', 'slug', 'description'] as $key) {
+        if (array_key_exists($key, $data)) {
+            $fields[] = "{$key} = ?";
+            $params[] = $data[$key];
+        }
+    }
+    if (empty($fields)) return;
+    $params[] = $id;
+    $db->prepare('UPDATE blog_categories SET ' . implode(', ', $fields) . ' WHERE id = ?')->execute($params);
+}
+
+function deleteBlogCategory(int $id): void
+{
+    $db = getDb();
+    $db->prepare('UPDATE blog_posts SET category_id = NULL WHERE category_id = ?')->execute([$id]);
+    $db->prepare('DELETE FROM blog_categories WHERE id = ?')->execute([$id]);
+}
+
 function getBlogPosts(int $page = 1, int $limit = 10, string $status = '', int $categoryId = 0, ?string $lang = null): array
 {
     $db = getDb();
