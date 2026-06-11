@@ -25,6 +25,16 @@ try {
         exit;
     }
 
+    // Resolve customer from auth token if not provided directly
+    $customerId = $input['customerId'] ?? null;
+    if (!$customerId) {
+        $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+        $token = str_replace('Bearer ', '', $authHeader);
+        if ($token) {
+            $customerId = getCustomerIdFromToken($token);
+        }
+    }
+
     $order = [
         'id' => $orderId,
         'items' => $input['items'],
@@ -39,6 +49,7 @@ try {
         'transferReceipt' => $input['transferReceipt'] ?? null,
         'selectedBankId' => $input['selectedBankId'] ?? null,
         'customer' => $input['customer'] ?? [],
+        'customerId' => $customerId,
         'createdAt' => $input['createdAt'] ?? date('c'),
     ];
 

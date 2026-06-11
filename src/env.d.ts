@@ -107,9 +107,29 @@ interface VunoToast {
   info(title: string, message?: string): void;
 }
 
+interface VunoAuthCustomer {
+  id: number;
+  name: string;
+  email: string;
+  memberSince?: string;
+  lastOrderAt?: string | null;
+}
+
+interface VunoAuth {
+  login(email: string, password: string): Promise<{ token: string; customer: VunoAuthCustomer }>;
+  register(name: string, email: string, password: string): Promise<{ token: string; customer: VunoAuthCustomer }>;
+  logout(): Promise<void>;
+  verify(): Promise<VunoAuthCustomer | null>;
+  getCustomer(): VunoAuthCustomer | null;
+  isLoggedIn(): boolean;
+  getToken(): string | null;
+  authFetch(url: string, options?: RequestInit): Promise<Response>;
+}
+
 interface Window {
   VunoCart: VunoCart;
   VunoWishlist: VunoWishlist;
+  VunoAuth: VunoAuth;
   VunoModal: VunoModal;
   VunoToast: VunoToast;
   __vunoModalLoaded?: boolean;

@@ -207,6 +207,12 @@ const steps = [
       </div>
       <p class="font-body text-body-md text-secondary mb-2" id="successMessage"></p>
       <p class="font-body text-body-md text-sm text-secondary mb-4" id="successOrderId"></p>
+      <div id="createAccountBanner" class="hidden bg-monolith-black/5 border border-monolith-black/20 p-4 mb-4">
+        <p class="font-body text-body-md text-sm text-monolith-black font-medium mb-2">{t("checkout.createAccountPrompt", lang) || "¿Quieres guardar tus datos? Crea una cuenta."}</p>
+        <a id="createAccountLink" href="/" class="font-label-caps text-label-caps bg-monolith-black text-off-white px-4 h-8 inline-flex items-center hover:bg-monolith-black/90 transition-all text-xs">
+          {t("auth.createAccount", lang)}
+        </a>
+      </div>
       <div class="flex justify-end gap-3 mt-4">
         <a id="successContinueBtn" href="/" class="font-label-caps text-label-caps bg-monolith-black text-off-white px-6 h-10 inline-flex items-center hover:bg-monolith-black/90 transition-all">
           CONTINUAR COMPRANDO
@@ -530,6 +536,7 @@ const steps = [
       const rate = firstItem?.display_price && firstItem?.price
         ? (firstItem.display_price / firstItem.price)
         : 1;
+      const customerId = window.VunoAuth?.isLoggedIn() ? window.VunoAuth.getCustomer()?.id : null;
       const order = {
         id: "RL-" + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 5).toUpperCase(),
         items: items,
@@ -544,6 +551,7 @@ const steps = [
         paymentMethod: payment,
         paymentStatus: "pending",
         customer: { name, email, address, city, zip },
+        customerId: customerId,
         createdAt: new Date().toISOString()
       };
       if (appliedCoupon) {
@@ -562,6 +570,13 @@ const steps = [
       document.getElementById("successMessage").textContent = "Gracias por tu compra. Recibirás una confirmación por email.";
       document.getElementById("successOrderId").textContent = "Orden: " + order.id;
       document.getElementById("successContinueBtn").href = "/" + LANG + "/";
+      // Show create account prompt for guest
+      const createAccountBanner = document.getElementById("createAccountBanner");
+      if (createAccountBanner && !window.VunoAuth?.isLoggedIn()) {
+        const email = order.customer?.email || "";
+        document.getElementById("createAccountLink").href = "/" + LANG + "/register?email=" + encodeURIComponent(email);
+        createAccountBanner.classList.remove("hidden");
+      }
       document.getElementById("successModal").classList.remove("hidden");
     }
 
@@ -714,8 +729,20 @@ const steps = [
       }
     });
 
+    async function loadAuth() {
+      if (!window.VunoAuth) return;
+      const customer = await window.VunoAuth.verify();
+      if (customer) {
+        document.getElementById("customerName").value = customer.name;
+        document.getElementById("customerEmail").value = customer.email;
+        document.getElementById("customerName").setAttribute("readonly", "readonly");
+        document.getElementById("customerEmail").setAttribute("readonly", "readonly");
+      }
+    }
+
     loadSettings().then(() => {
       renderSummary();
+      loadAuth();
       const checked = document.querySelector('input[name="payment"]:checked');
       if (checked) {
         checked.dispatchEvent(new Event("change"));

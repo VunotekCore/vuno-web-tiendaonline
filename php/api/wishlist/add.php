@@ -10,17 +10,27 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $data = json_decode(file_get_contents('php://input'), true);
-if (!$data || empty($data['email']) || empty($data['product_id'])) {
-    jsonError('Customer email and product_id are required');
+if (!$data || empty($data['product_id'])) {
+    jsonError('product_id is required');
 }
 
-$db = getDb();
-$stmt = $db->prepare('SELECT id FROM customers WHERE email = ? LIMIT 1');
-$stmt->execute([$data['email']]);
-$customerId = $stmt->fetchColumn();
+// Resolve customer: prefer Bearer token, fallback to email
+$customerId = null;
+$authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+$token = str_replace('Bearer ', '', $authHeader);
+if ($token) {
+    $customerId = getCustomerIdFromToken($token);
+}
+
+if (!$customerId && !empty($data['email'])) {
+    $db = getDb();
+    $stmt = $db->prepare('SELECT id FROM customers WHERE email = ? LIMIT 1');
+    $stmt->execute([$data['email']]);
+    $customerId = $stmt->fetchColumn();
+}
 
 if (!$customerId) {
-    jsonError('Customer not found', 404);
+    jsonError('Customer not found or authentication required', 401);
 }
 
 $variantId = !empty($data['variant_id']) ? (int)$data['variant_id'] : null;

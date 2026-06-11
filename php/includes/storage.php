@@ -572,20 +572,22 @@ function saveOrder(array $order): void
     }
 
     $customer = $order['customer'] ?? [];
+    $customerId = !empty($order['customerId']) ? (int)$order['customerId'] : null;
 
     $stmt = $db->prepare(
         'INSERT INTO orders (
-            order_number, customer_name, customer_email, customer_phone,
+            order_number, customer_id, customer_name, customer_email, customer_phone,
             shipping_line1, shipping_city, shipping_state, shipping_zip, shipping_country,
             subtotal, shipping_total, tax_total, discount_total, total, currency, exchange_rate,
             status_id, payment_method_id, payment_status_id,
             stripe_payment_intent_id, transfer_receipt_url, selected_bank_id, coupon_id,
             created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     );
 
     $stmt->execute([
         $order['id'],
+        $customerId,
         $customer['name'] ?? '',
         $customer['email'] ?? '',
         $customer['phone'] ?? '',
@@ -649,6 +651,12 @@ function saveOrder(array $order): void
     $db->prepare(
         'INSERT INTO order_status_history (order_id, from_status_id, to_status_id, notes) VALUES (?, NULL, ?, ?)'
     )->execute([$orderDbId, $statusId, 'Order created via checkout']);
+
+    // Update customer's last_order_at
+    if ($customerId) {
+        $db->prepare('UPDATE customers SET last_order_at = NOW() WHERE id = ?')
+           ->execute([$customerId]);
+    }
 }
 
 function updateOrderStatus(string $orderId, string $status, ?string $paymentStatus = null, ?string $stripePaymentIntentId = null): void
@@ -1131,6 +1139,24 @@ function getSettings(): array
                 }
             }
             unset($subVal);
+        }
+    }
+
+    // Migrate legacy flat sections into landing JSON format.
+    // Old: brand_values.image_url = "..."  →  New: landing.brand_values = { image_url: "..." }
+    $legacyMapping = [
+        'brand_values' => ['label_es', 'label_en', 'title_es', 'title_en', 'paragraph_es', 'paragraph_en', 'cta_es', 'cta_en', 'image_url', 'cta_link', 'cta_category_slug', 'enabled'],
+    ];
+    foreach ($legacyMapping as $sectionKey => $fields) {
+        if (isset($settings[$sectionKey])) {
+            if (!isset($settings['landing'][$sectionKey]) || !is_array($settings['landing'][$sectionKey])) {
+                $settings['landing'][$sectionKey] = [];
+            }
+            foreach ($fields as $field) {
+                if (isset($settings[$sectionKey][$field])) {
+                    $settings['landing'][$sectionKey][$field] = $settings[$sectionKey][$field];
+                }
+            }
         }
     }
 
@@ -1974,4 +2000,201 @@ function loadEmailTemplateFromFile(string $code): ?array
         'body_html' => $body,
         'is_active' => true,
     ];
+}
+
+// =============================================================================
+//  Customer helpers
+// =============================================================================
+
+function getCustomerIdFromToken(string $token): ?int
+{
+    if (empty($token)) return null;
+    $db = getDb();
+    $stmt = $db->prepare(
+        'SELECT c.id FROM customer_sessions cs
+         JOIN customers c ON c.id = cs.customer_id
+         WHERE cs.token = ? AND cs.expires_at > NOW()
+         LIMIT 1'
+    );
+    $stmt->execute([$token]);
+    $id = $stmt->fetchColumn();
+    return $id ? (int)$id : null;
+}
+
+// =============================================================================
+//  Cart (persistent)
+// =============================================================================
+
+function getCartItems(int $customerId): array
+{
+    $db = getDb();
+    $stmt = $db->prepare(
+        'SELECT ci.product_id, ci.quantity, ci.selected_color, ci.selected_size,
+                p.name, p.slug, p.price, p.currency
+         FROM cart_items ci
+         JOIN products p ON p.id = ci.product_id
+         WHERE ci.customer_id = ? AND p.deleted_at IS NULL
+         ORDER BY ci.created_at ASC'
+    );
+    $stmt->execute([$customerId]);
+    return $stmt->fetchAll();
+}
+
+function setCartItems(int $customerId, array $items): void
+{
+    $db = getDb();
+    $db->beginTransaction();
+    try {
+        $db->prepare('DELETE FROM cart_items WHERE customer_id = ?')->execute([$customerId]);
+        if (!empty($items)) {
+            $stmt = $db->prepare(
+                'INSERT INTO cart_items (customer_id, product_id, quantity, selected_color, selected_size)
+                 VALUES (?, ?, ?, ?, ?)'
+            );
+            foreach ($items as $item) {
+                $stmt->execute([
+                    $customerId,
+                    $item['product_id'] ?? $item['product']['id'] ?? '',
+                    (int)($item['quantity'] ?? 1),
+                    $item['selected_color'] ?? '',
+                    $item['selected_size'] ?? '',
+                ]);
+            }
+        }
+        $db->commit();
+    } catch (\Exception $e) {
+        $db->rollBack();
+        throw $e;
+    }
+}
+
+function addCartItem(int $customerId, string $productId, int $quantity, string $color, string $size): void
+{
+    $db = getDb();
+    $stmt = $db->prepare(
+        'INSERT INTO cart_items (customer_id, product_id, quantity, selected_color, selected_size)
+         VALUES (?, ?, ?, ?, ?)
+         ON DUPLICATE KEY UPDATE quantity = quantity + VALUES(quantity)'
+    );
+    $stmt->execute([$customerId, $productId, $quantity, $color, $size]);
+}
+
+function removeCartItem(int $customerId, string $productId, string $color, string $size): void
+{
+    $db = getDb();
+    $stmt = $db->prepare(
+        'DELETE FROM cart_items WHERE customer_id = ? AND product_id = ? AND selected_color = ? AND selected_size = ?'
+    );
+    $stmt->execute([$customerId, $productId, $color, $size]);
+}
+
+function clearCart(int $customerId): void
+{
+    $db = getDb();
+    $db->prepare('DELETE FROM cart_items WHERE customer_id = ?')->execute([$customerId]);
+}
+
+// =============================================================================
+//  Customer Addresses
+// =============================================================================
+
+function getCustomerAddresses(int $customerId): array
+{
+    $db = getDb();
+    $stmt = $db->prepare(
+        'SELECT * FROM customer_addresses WHERE customer_id = ? ORDER BY is_default_shipping DESC, is_default_billing DESC, created_at ASC'
+    );
+    $stmt->execute([$customerId]);
+    return $stmt->fetchAll();
+}
+
+function getCustomerAddress(int $addressId, int $customerId): ?array
+{
+    $db = getDb();
+    $stmt = $db->prepare('SELECT * FROM customer_addresses WHERE id = ? AND customer_id = ? LIMIT 1');
+    $stmt->execute([$addressId, $customerId]);
+    $row = $stmt->fetch();
+    return $row ?: null;
+}
+
+function createCustomerAddress(int $customerId, array $data): int
+{
+    $db = getDb();
+
+    // If this is the first address or explicitly set as default, update others
+    $existing = getCustomerAddresses($customerId);
+    $isDefaultShipping = !empty($data['is_default_shipping']) || empty($existing);
+    $isDefaultBilling = !empty($data['is_default_billing']) || empty($existing);
+
+    if ($isDefaultShipping) {
+        $db->prepare('UPDATE customer_addresses SET is_default_shipping = FALSE WHERE customer_id = ?')
+            ->execute([$customerId]);
+    }
+    if ($isDefaultBilling) {
+        $db->prepare('UPDATE customer_addresses SET is_default_billing = FALSE WHERE customer_id = ?')
+            ->execute([$customerId]);
+    }
+
+    $stmt = $db->prepare(
+        'INSERT INTO customer_addresses (customer_id, label, address_line1, address_line2, city, state, zip, country, phone, is_default_shipping, is_default_billing)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+    );
+    $stmt->execute([
+        $customerId,
+        $data['label'] ?? '',
+        $data['address_line1'] ?? '',
+        $data['address_line2'] ?? '',
+        $data['city'] ?? '',
+        $data['state'] ?? '',
+        $data['zip'] ?? '',
+        $data['country'] ?? 'GT',
+        $data['phone'] ?? '',
+        $isDefaultShipping ? 1 : 0,
+        $isDefaultBilling ? 1 : 0,
+    ]);
+    return (int)$db->lastInsertId();
+}
+
+function updateCustomerAddress(int $addressId, int $customerId, array $data): void
+{
+    $db = getDb();
+    $existing = getCustomerAddress($addressId, $customerId);
+    if (!$existing) return;
+
+    $fields = ['label', 'address_line1', 'address_line2', 'city', 'state', 'zip', 'country', 'phone'];
+    $sets = [];
+    $params = [];
+    foreach ($fields as $f) {
+        if (isset($data[$f])) {
+            $sets[] = "$f = ?";
+            $params[] = $data[$f];
+        }
+    }
+
+    if (!empty($sets)) {
+        $params[] = $addressId;
+        $db->prepare('UPDATE customer_addresses SET ' . implode(', ', $sets) . ' WHERE id = ? AND customer_id = ?')
+            ->execute(array_merge($params, [$addressId, $customerId]));
+    }
+
+    // Handle defaults
+    if (!empty($data['is_default_shipping'])) {
+        $db->prepare('UPDATE customer_addresses SET is_default_shipping = FALSE WHERE customer_id = ?')
+            ->execute([$customerId]);
+        $db->prepare('UPDATE customer_addresses SET is_default_shipping = TRUE WHERE id = ? AND customer_id = ?')
+            ->execute([$addressId, $customerId]);
+    }
+    if (!empty($data['is_default_billing'])) {
+        $db->prepare('UPDATE customer_addresses SET is_default_billing = FALSE WHERE customer_id = ?')
+            ->execute([$customerId]);
+        $db->prepare('UPDATE customer_addresses SET is_default_billing = TRUE WHERE id = ? AND customer_id = ?')
+            ->execute([$addressId, $customerId]);
+    }
+}
+
+function deleteCustomerAddress(int $addressId, int $customerId): void
+{
+    $db = getDb();
+    $stmt = $db->prepare('DELETE FROM customer_addresses WHERE id = ? AND customer_id = ?');
+    $stmt->execute([$addressId, $customerId]);
 }

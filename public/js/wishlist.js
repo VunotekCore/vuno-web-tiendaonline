@@ -19,6 +19,90 @@
     window.dispatchEvent(new CustomEvent("wishlist:updated", { detail: getWishlist() }));
   }
 
+  function isLoggedIn() {
+    return window.VunoAuth && window.VunoAuth.isLoggedIn();
+  }
+
+  function getCustomer() {
+    return window.VunoAuth ? window.VunoAuth.getCustomer() : null;
+  }
+
+  async function addToServer(product) {
+    if (!isLoggedIn()) return;
+    try {
+      await window.VunoAuth.authFetch("/api/wishlist/add.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ product_id: product.id }),
+      });
+    } catch {}
+  }
+
+  async function removeFromServer(productId) {
+    if (!isLoggedIn()) return;
+    try {
+      await window.VunoAuth.authFetch("/api/wishlist/remove.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ product_id: productId }),
+      });
+    } catch {}
+  }
+
+  async function fetchServerWishlist() {
+    if (!isLoggedIn()) return [];
+    try {
+      const res = await window.VunoAuth.authFetch("/api/wishlist/list.php");
+      if (!res.ok) return [];
+      const data = await res.json();
+      return (data.items || []).map(function (si) {
+        return {
+          product: {
+            id: si.productId,
+            name: si.name,
+            slug: si.slug,
+            price: si.price,
+            currency: si.currency,
+            images: [],
+            category: "",
+          },
+          addedAt: Date.parse(si.createdAt) || Date.now(),
+        };
+      });
+    } catch {
+      return [];
+    }
+  }
+
+  async function syncFromServer() {
+    if (!isLoggedIn()) return;
+    const serverItems = await fetchServerWishlist();
+    const localItems = getWishlist();
+
+    const localIds = new Set(localItems.map(function (i) { return i.product.id; }));
+    const serverIds = new Set(serverItems.map(function (i) { return i.product.id; }));
+    var changed = false;
+
+    // Add server items not in local
+    serverItems.forEach(function (si) {
+      if (!localIds.has(si.product.id)) {
+        localItems.push(si);
+        changed = true;
+      }
+    });
+
+    // Push local items not in server
+    localItems.forEach(function (li) {
+      if (!serverIds.has(li.product.id)) {
+        addToServer(li.product);
+      }
+    });
+
+    if (changed) {
+      saveWishlist(localItems);
+    }
+  }
+
   window.VunoWishlist = {
     getItems() {
       return getWishlist();
@@ -29,12 +113,12 @@
     },
 
     isInWishlist(productId) {
-      return getWishlist().some((item) => item.product.id === productId);
+      return getWishlist().some(function (item) { return item.product.id === productId; });
     },
 
     addItem(product) {
-      const items = getWishlist();
-      if (!items.some((item) => item.product.id === product.id)) {
+      var items = getWishlist();
+      if (!items.some(function (item) { return item.product.id === product.id; })) {
         items.push({
           product: {
             id: product.id,
@@ -48,13 +132,15 @@
           addedAt: Date.now(),
         });
         saveWishlist(items);
+        addToServer(product);
       }
       return items;
     },
 
     removeItem(productId) {
-      const items = getWishlist().filter((item) => item.product.id !== productId);
+      var items = getWishlist().filter(function (item) { return item.product.id !== productId; });
       saveWishlist(items);
+      removeFromServer(productId);
       return items;
     },
 
@@ -72,16 +158,25 @@
       localStorage.removeItem(STORAGE_KEY);
       dispatchWishlistEvent();
     },
+
+    sync: syncFromServer,
   };
 
+  // Sync on auth change
+  window.addEventListener("auth:changed", function (e) {
+    if (e.detail && e.detail.customer) {
+      syncFromServer();
+    }
+  });
+
   document.addEventListener("click", function (e) {
-    const btn = e.target.closest("[data-toggle-wishlist]");
+    var btn = e.target.closest("[data-toggle-wishlist]");
     if (btn) {
       e.preventDefault();
-      const product = JSON.parse(btn.dataset.product || "{}");
-      const isNowIn = window.VunoWishlist.toggleItem(product);
+      var product = JSON.parse(btn.dataset.product || "{}");
+      var isNowIn = window.VunoWishlist.toggleItem(product);
 
-      const icon = btn.querySelector(".wishlist-icon");
+      var icon = btn.querySelector(".wishlist-icon");
       if (icon) {
         icon.textContent = isNowIn ? "favorite" : "favorite_border";
         icon.style.fontVariationSettings = isNowIn ? "'FILL' 1" : "'FILL' 0";

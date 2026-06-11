@@ -284,6 +284,31 @@ CREATE TABLE customer_sessions (
     INDEX idx_expires (expires_at)
 ) ENGINE=InnoDB;
 
+CREATE TABLE password_resets (
+    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    email       VARCHAR(255) NOT NULL,
+    token       VARCHAR(255) NOT NULL UNIQUE,
+    expires_at  TIMESTAMP NOT NULL,
+    used_at     TIMESTAMP NULL,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_token (token),
+    INDEX idx_email (email)
+) ENGINE=InnoDB;
+
+CREATE TABLE cart_items (
+    id              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    customer_id     INT UNSIGNED NOT NULL,
+    product_id      VARCHAR(50) NOT NULL,
+    quantity        INT NOT NULL DEFAULT 1,
+    selected_color  VARCHAR(100) DEFAULT '',
+    selected_size   VARCHAR(20) DEFAULT '',
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
+    UNIQUE KEY uk_cart (customer_id, product_id, selected_color, selected_size),
+    INDEX idx_customer (customer_id)
+) ENGINE=InnoDB;
+
 -- =============================================================================
 -- 5. Envíos
 -- =============================================================================
