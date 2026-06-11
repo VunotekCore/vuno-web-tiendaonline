@@ -1803,13 +1803,14 @@ function createBlogPost(array $data): int
 {
     $db = getDb();
     $stmt = $db->prepare(
-        'INSERT INTO blog_posts (title, slug, excerpt, content, featured_image, author, status, category_id, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())'
+        'INSERT INTO blog_posts (title, slug, excerpt, thumbnail_image, content, featured_image, author, status, category_id, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())'
     );
     $stmt->execute([
         $data['title'],
         $data['slug'],
         $data['excerpt'] ?? '',
+        $data['thumbnail_image'] ?? null,
         $data['content'],
         $data['featured_image'] ?? null,
         $data['author'] ?? 'Ram;Lop',
@@ -1834,7 +1835,7 @@ function updateBlogPost(int $id, array $data): void
     $fields = [];
     $params = [];
 
-    foreach (['title', 'slug', 'excerpt', 'content', 'featured_image', 'author', 'status', 'category_id'] as $key) {
+    foreach (['title', 'slug', 'excerpt', 'thumbnail_image', 'content', 'featured_image', 'author', 'status', 'category_id'] as $key) {
         if (array_key_exists($key, $data)) {
             $fields[] = "{$key} = ?";
             $params[] = $data[$key];

@@ -188,7 +188,7 @@ a{text-decoration:none;color:inherit}
     <?php else: ?>
     <div class="grid grid-cols-1 md:grid-cols-2 md:grid-cols-3 gap-6">
       <?php foreach ($posts as $p):
-        $pImg = !empty($p['featured_image']) ? $p['featured_image'] : 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=600&q=80';
+        $pImg = !empty($p['thumbnail_image']) ? $p['thumbnail_image'] : (!empty($p['featured_image']) ? $p['featured_image'] : 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=600&q=80');
         $pDate = date('M j, Y', strtotime($p['published_at'] ?: $p['created_at']));
         $pCat = !empty($p['category_name']) ? '<span class="font-label-caps text-label-caps text-clay-accent">' . htmlspecialchars($p['category_name']) . '</span>' : '';
         $pExcerpt = htmlspecialchars(mb_strimwidth(strip_tags($p['excerpt'] ?: $p['content']), 0, 120, '...'));

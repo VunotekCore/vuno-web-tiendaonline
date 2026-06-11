@@ -21,9 +21,10 @@ try {
     $id = createBlogPost([
         'title'          => $input['title'],
         'slug'           => $input['slug'],
-        'excerpt'        => $input['excerpt'] ?? '',
-        'content'        => $input['content'],
-        'featured_image' => $input['featured_image'] ?? '',
+        'excerpt'         => $input['excerpt'] ?? '',
+        'thumbnail_image' => $input['thumbnail_image'] ?? '',
+        'content'         => $input['content'],
+        'featured_image'  => $input['featured_image'] ?? '',
         'author'         => $input['author'] ?? 'Ram;Lop',
         'status'         => $input['status'] ?? 'draft',
         'category_id'    => !empty($input['category_id']) ? (int)$input['category_id'] : null,

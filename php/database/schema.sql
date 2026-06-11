@@ -1312,6 +1312,7 @@ CREATE TABLE blog_posts (
     title             VARCHAR(255) NOT NULL,
     slug              VARCHAR(255) NOT NULL UNIQUE,
     excerpt           TEXT,
+    thumbnail_image   VARCHAR(500),
     content           LONGTEXT NOT NULL,
     featured_image    VARCHAR(500),
     author            VARCHAR(200) DEFAULT 'Ram;Lop',
