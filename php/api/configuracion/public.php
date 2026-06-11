@@ -99,6 +99,14 @@ $public = [
             'instagram_url' => $settings['landing']['social']['instagram_url'] ?? '',
             'tiktok_url' => $settings['landing']['social']['tiktok_url'] ?? '',
         ],
+        'blog' => [
+            'label_es' => $settings['landing']['blog']['label_es'] ?? '',
+            'label_en' => $settings['landing']['blog']['label_en'] ?? '',
+            'title_es' => $settings['landing']['blog']['title_es'] ?? '',
+            'title_en' => $settings['landing']['blog']['title_en'] ?? '',
+            'view_all_es' => $settings['landing']['blog']['view_all_es'] ?? '',
+            'view_all_en' => $settings['landing']['blog']['view_all_en'] ?? '',
+        ],
         'newsletter' => [
             'enabled' => $settings['landing']['newsletter']['enabled'] ?? false,
             'title_es' => $settings['landing']['newsletter']['title_es'] ?? '',

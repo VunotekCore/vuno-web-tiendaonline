@@ -181,6 +181,7 @@ const tabs = [
               <option value="closing_cta">Closing CTA</option>
               <option value="testimonials">Testimonials</option>
               <option value="social">Social Media</option>
+              <option value="blog">Blog Journal</option>
             </select>
         </div>
 
@@ -731,6 +732,7 @@ const tabs = [
       closing_cta: { label: 'Closing CTA', fields: ['label', 'title', 'subtitle', 'cta'], extras: ['cta_link', 'cta_category_slug'] },
       social: { label: 'Social Media', fields: ['title'], extras: ['enabled', 'facebook_url', 'instagram_url', 'tiktok_url'] },
       testimonials: { label: 'Testimonials', fields: ['title', 'subtitle'], extras: ['enabled', 'testimonial_items'] },
+      blog: { label: 'Blog Journal', fields: ['label', 'title', 'view_all'], extras: [] },
     };
 
     const landingFieldLabels = {
@@ -739,6 +741,7 @@ const tabs = [
       subtitle_es: 'SUBTÍTULO (ES)', subtitle_en: 'SUBTITLE (EN)',
       paragraph_es: 'PÁRRAFO (ES)', paragraph_en: 'PARAGRAPH (EN)',
       cta_es: 'CTA (ES)', cta_en: 'CTA (EN)',
+      view_all_es: 'VER TODOS (ES)', view_all_en: 'VIEW ALL (EN)',
       image_url: 'IMAGEN (URL)',
       cta_link: 'CTA LINK (URL personalizada)',
       cta_category_slug: 'CTA LINK — CATEGORÍA',

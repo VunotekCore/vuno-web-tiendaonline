@@ -8,20 +8,22 @@ interface Props {
 const { lang } = Astro.props;
 ---
 
-<section class="py-section-gap px-margin-mobile md:px-margin-desktop bg-sand-nude/20">
+<section data-section="blog" class="py-section-gap px-margin-mobile md:px-margin-desktop bg-sand-nude/20">
   <div class="max-w-6xl mx-auto">
     <div class="flex items-end justify-between mb-10">
       <div>
-        <span class="font-label-caps text-label-caps text-clay-accent tracking-[0.15em]">{t("home.blog.label", lang)}</span>
+        <span class="font-label-caps text-label-caps text-clay-accent tracking-[0.15em]">
+          <span data-field="label">{t("home.blog.label", lang)}</span>
+        </span>
         <h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-monolith-black leading-tight mt-2">
-          {t("home.blog.title", lang)}
+          <span data-field="title">{t("home.blog.title", lang)}</span>
         </h2>
       </div>
       <a
         href="/blog"
         class="hidden md:inline-flex items-center gap-2 font-label-caps text-label-caps text-secondary hover:text-monolith-black transition-colors group"
       >
-        {t("home.blog.viewAll", lang)}
+        <span data-field="view_all">{t("home.blog.viewAll", lang)}</span>
         <span class="material-symbols-outlined text-lg group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
       </a>
     </div>
@@ -61,7 +63,7 @@ const { lang } = Astro.props;
         href="/blog"
         class="inline-flex items-center gap-2 font-label-caps text-label-caps text-secondary hover:text-monolith-black transition-colors group"
       >
-        {t("home.blog.viewAll", lang)}
+        <span data-field="view_all">{t("home.blog.viewAll", lang)}</span>
         <span class="material-symbols-outlined text-lg group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
       </a>
     </div>
