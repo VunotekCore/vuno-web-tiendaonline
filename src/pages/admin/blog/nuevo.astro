@@ -30,7 +30,7 @@ import AdminLayout from "../_layout.astro";
       </div>
 
       <div>
-        <label class="font-label-caps text-label-caps text-secondary block mb-2">EXTRACTO</label>
+        <label class="font-label-caps text-label-caps text-secondary block mb-2">TEXTO INTRODUCTORIO (se muestra en la lista del blog)</label>
         <div class="relative">
           <textarea id="fieldExcerpt" rows="3" maxlength="500" class="w-full bg-transparent border-b border-outline pb-2 pr-16 text-monolith-black focus:border-clay-accent focus:outline-none resize-none transition-colors"></textarea>
           <span id="excerptCounter" class="absolute right-0 bottom-2 text-xs font-body text-secondary pointer-events-none">0/500</span>
@@ -38,15 +38,13 @@ import AdminLayout from "../_layout.astro";
       </div>
 
       <div>
-        <label class="font-label-caps text-label-caps text-secondary block mb-2">CONTENIDO (HTML) *</label>
-        <div class="relative">
-          <textarea id="fieldContent" rows="16" required class="w-full bg-transparent border border-outline p-3 pb-8 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm leading-relaxed resize-y"></textarea>
-          <span id="contentCounter" class="absolute right-2 bottom-2 text-xs font-body text-secondary pointer-events-none">0 caracteres</span>
-        </div>
+        <label class="font-label-caps text-label-caps text-secondary block mb-2">CONTENIDO *</label>
+        <div id="editor" class="border border-outline" style="min-height: 380px;"></div>
+        <input type="hidden" id="fieldContent" />
       </div>
 
       <div>
-        <label class="font-label-caps text-label-caps text-secondary block mb-2">IMAGEN DESTACADA (URL)</label>
+        <label class="font-label-caps text-label-caps text-secondary block mb-2">IMAGEN DESTACADA</label>
         <div class="relative">
           <input type="url" id="fieldImage" maxlength="500" class="w-full bg-transparent border-b border-outline pb-2 pr-16 text-monolith-black focus:border-clay-accent focus:outline-none transition-colors" placeholder="https://..." />
           <span id="imageCounter" class="absolute right-0 bottom-2 text-xs font-body text-secondary pointer-events-none">0/500</span>
@@ -86,6 +84,8 @@ import AdminLayout from "../_layout.astro";
     </div>
   </form>
 
+  <link rel="stylesheet" href="/quill/quill.snow.css" />
+  <script src="/quill/quill.min.js"></script>
   <script>
     // @ts-nocheck
     const TITLE_MAX = 255;
@@ -158,16 +158,34 @@ import AdminLayout from "../_layout.astro";
       } catch {}
     })();
 
+    // Init Quill editor
+    var quill = new Quill("#editor", {
+      theme: "snow",
+      modules: {
+        toolbar: [
+          [{ header: [2, 3, false] }],
+          ["bold", "italic", "underline", "strike"],
+          [{ list: "ordered" }, { list: "bullet" }],
+          ["blockquote", "link"],
+          ["clean"],
+        ],
+      },
+      placeholder: "Escribe tu contenido aquí...",
+    });
+
     // Form submit
     document.getElementById("blogForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const msg = document.getElementById("message");
 
+      var html = quill.root.innerHTML;
+      var isContentEmpty = !html || html === "<p><br></p>" || html.trim() === "";
+
       const data = {
         title: document.getElementById("fieldTitle").value.trim(),
         slug: document.getElementById("fieldSlug").value.trim(),
         excerpt: document.getElementById("fieldExcerpt").value.trim(),
-        content: document.getElementById("fieldContent").value.trim(),
+        content: isContentEmpty ? "" : html,
         featured_image: document.getElementById("fieldImage").value.trim(),
         author: document.getElementById("fieldAuthor").value.trim() || "Ram;Lop",
         category_id: document.getElementById("fieldCategory").value || null,
@@ -201,9 +219,6 @@ import AdminLayout from "../_layout.astro";
     setupCharCount("fieldTitle", "titleCounter", TITLE_MAX);
     setupCharCount("fieldSlug", "slugCounter", SLUG_MAX);
     setupCharCount("fieldExcerpt", "excerptCounter", EXCERPT_MAX);
-    document.getElementById("fieldContent").addEventListener("input", function() {
-      document.getElementById("contentCounter").textContent = this.value.length + " caracteres";
-    });
     setupCharCount("fieldImage", "imageCounter", IMAGE_MAX);
     setupCharCount("fieldAuthor", "authorCounter", AUTHOR_MAX);
     document.getElementById("submitIcon").dataset.origIcon = "save";
