@@ -338,3 +338,72 @@
 .magnetic-btn:hover::after {
   opacity: 0.05;
 }
+
+/* Magnifier lens for product detail */
+.product-magnifier {
+  position: absolute;
+  z-index: 10;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  border: 1px solid rgba(26, 26, 26, 0.12);
+  background-repeat: no-repeat;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  left: 0;
+  top: 0;
+  will-change: opacity, left, top;
+  backdrop-filter: blur(1px);
+}
+#mainImageWrap:hover .product-magnifier {
+  opacity: 1;
+}
+
+/* Vertical thumbnail strip for desktop product gallery */
+.gallery-vertical-thumbs {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 72px;
+  flex-shrink: 0;
+  overflow-y: auto;
+  max-height: 100%;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-outline-variant) transparent;
+}
+.gallery-vertical-thumbs::-webkit-scrollbar {
+  width: 3px;
+}
+.gallery-vertical-thumbs::-webkit-scrollbar-thumb {
+  background: var(--color-outline-variant);
+  border-radius: 2px;
+}
+.gallery-vertical-thumbs button {
+  width: 100%;
+  aspect-ratio: 4/5;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 2px solid transparent;
+  opacity: 0.6;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+.gallery-vertical-thumbs button:hover {
+  opacity: 0.9;
+}
+.gallery-vertical-thumbs button.active {
+  border-color: var(--color-monolith-black);
+  opacity: 1;
+}
+
+/* Scroll chevron bounce */
+.scroll-chevron {
+  animation: scrollBounce 2s ease-in-out infinite;
+}
+
+@keyframes scrollBounce {
+  0%, 100% { transform: rotate(45deg) translateY(0); opacity: 1; }
+  50% { transform: rotate(45deg) translateY(4px); opacity: 0.4; }
+}

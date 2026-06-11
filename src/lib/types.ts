@@ -10,11 +10,15 @@ export interface Product {
   display_price?: number;
   display_currency?: string;
   display_symbol?: string;
+  size_prefix?: string;
   images: string[];
   imagesByColor?: Record<string, string[]>;
+  isFeatured?: boolean;
   category: string;
   colors: ProductColor[];
   sizes: ProductSize[];
+  variants?: Variant[];
+  totalStock?: number;
   createdAt: string;
 }
 
@@ -28,6 +32,13 @@ export interface ProductSize {
   label: string;
   value: string;
   inStock: boolean;
+  stock: number;
+}
+
+export interface Variant {
+  color_name: string;
+  size_value: string;
+  stock: number;
 }
 
 export interface CartItem {
@@ -68,6 +79,12 @@ export interface CustomerInfo {
 
 export type OrderStatus = "pending" | "paid" | "shipped" | "delivered" | "cancelled";
 export type PaymentStatus = "pending" | "completed" | "failed" | "refunded";
+
+export interface Category {
+  id: string;
+  name: string;
+  slug: string;
+}
 
 export interface ImageKitResponse {
   fileId: string;

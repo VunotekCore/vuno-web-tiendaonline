@@ -15,9 +15,10 @@
 })();
 
 // ImageKit URL transformation helper
-window.imgTransform = function(url, w, h) {
+window.imgTransform = function(url, w, h, extras) {
   if (!url) return url;
   if (url.indexOf('ik.imagekit.io') === -1) return url;
   var sep = url.indexOf('?') !== -1 ? '&' : '?';
-  return url + sep + 'tr=w-' + w + ',h-' + h + ',fo-auto';
+  var base = url + sep + 'tr=w-' + w + ',h-' + h + ',c-crop,fo-auto';
+  return extras ? base + ',' + extras : base;
 };

@@ -1,6 +1,7 @@
 ---
 import type { Locale } from "../../i18n/utils";
 import { t } from "../../i18n/utils";
+import { getCategories, getProducts } from "../../lib/storage";
 
 interface Props {
   lang: Locale;
@@ -11,13 +12,12 @@ const { lang, currentPath } = Astro.props;
 const otherLang: Locale = lang === "es" ? "en" : "es";
 const langSwitchPath = currentPath.replace(`/${lang}/`, `/${otherLang}/`);
 
-const navLinks = [
-  { key: "nav.sandals", href: `/${lang}/catalogo` },
-  { key: "nav.heels", href: `/${lang}/catalogo` },
-  { key: "nav.newArrivals", href: `/${lang}/#new-arrivals` },
-  { key: "nav.boots", href: `/${lang}/catalogo` },
-  { key: "nav.flats", href: `/${lang}/catalogo` },
-];
+const allCategories = await getCategories(lang);
+const products = await getProducts(lang);
+const activeSlugs = new Set(products.map(p => (p.category || "").toLowerCase()));
+const categories = allCategories.filter(c => activeSlugs.has(c.slug));
+const visibleCategories = categories.slice(0, 5);
+const overflowCategories = categories.slice(5);
 ---
 
 <nav class="bg-background/90 backdrop-blur-md sticky top-0 z-50 transition-all duration-300" id="topNav">
@@ -27,14 +27,32 @@ const navLinks = [
     </button>
 
     <div class="hidden md:flex items-center gap-8 font-label-caps text-label-caps">
-      {navLinks.map((link) => (
+      {visibleCategories.map((cat) => (
         <a
-          href={link.href}
+          href={`/${lang}/catalogo?categoria=${cat.slug}`}
           class="text-secondary hover:text-primary transition-all hover:tracking-[0.15em] relative after:absolute after:bottom-[-2px] after:left-0 after:w-0 after:h-[1px] after:bg-monolith-black after:transition-all after:duration-300 hover:after:w-full"
         >
-          {t(link.key, lang)}
+          {cat.name}
         </a>
       ))}
+      {overflowCategories.length > 0 && (
+        <div class="relative group/catdrop">
+          <button class="text-secondary hover:text-primary transition-all hover:tracking-[0.15em] flex items-center gap-1 cursor-pointer after:absolute after:bottom-[-2px] after:left-0 after:w-0 after:h-[1px] after:bg-monolith-black after:transition-all after:duration-300 hover:after:w-full relative">
+            {lang === "es" ? "CATEGORÍAS" : "CATEGORIES"}
+            <span class="material-symbols-outlined text-sm transition-transform group-hover/catdrop:rotate-180">expand_more</span>
+          </button>
+          <div class="absolute top-full left-0 mt-2 bg-off-white border border-outline-variant shadow-lg min-w-[180px] opacity-0 invisible group-hover/catdrop:opacity-100 group-hover/catdrop:visible transition-all duration-200 z-50">
+            {overflowCategories.map((cat) => (
+              <a
+                href={`/${lang}/catalogo?categoria=${cat.slug}`}
+                class="block px-4 py-2.5 font-body-md text-body-md text-secondary hover:bg-surface-variant hover:text-monolith-black transition-colors"
+              >
+                {cat.name}
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
 
     <a
@@ -91,8 +109,8 @@ const navLinks = [
     }
   }
 
-  document.addEventListener("cart:updated", updateCartBadge);
-  document.addEventListener("wishlist:updated", updateWishlistBadge);
+  window.addEventListener("cart:updated", updateCartBadge);
+  window.addEventListener("wishlist:updated", updateWishlistBadge);
   document.addEventListener("DOMContentLoaded", function () {
     updateCartBadge();
     updateWishlistBadge();

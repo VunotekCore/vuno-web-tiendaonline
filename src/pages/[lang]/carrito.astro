@@ -131,7 +131,7 @@ const alternateUrls = {
                 <button type="button" class="text-secondary hover:text-primary transition-colors" data-cart-action="decrease" data-product-id="${productId}" data-color="${color}" data-size="${size}" data-qty="${item.quantity}" aria-label="${escapeHtml(cartI18n.decreaseAria)}">
                   <span class="material-symbols-outlined text-sm">remove</span>
                 </button>
-                <span class="font-body-md text-body-md">${item.quantity}</span>
+                <span class="font-body-md text-body-md" data-qty-display>${item.quantity}</span>
                 <button type="button" class="text-secondary hover:text-primary transition-colors" data-cart-action="increase" data-product-id="${productId}" data-color="${color}" data-size="${size}" data-qty="${item.quantity}" aria-label="${escapeHtml(cartI18n.increaseAria)}">
                   <span class="material-symbols-outlined text-sm">add</span>
                 </button>
@@ -142,8 +142,13 @@ const alternateUrls = {
         </div>`;
       }).join("");
 
+      updateTotals();
+    }
+
+    function updateTotals() {
       const items = window.VunoCart.getItems();
       const first = items[0]?.product;
+      if (!first) return;
       const symbol = first?.display_symbol || '$';
       const displaySubtotal = items.reduce((sum, item) => {
         const dp = item.product.display_price ?? item.product.price;
@@ -152,6 +157,8 @@ const alternateUrls = {
       document.getElementById("subtotal").textContent = `${symbol}${displaySubtotal.toFixed(2)}`;
       document.getElementById("total").textContent = `${symbol}${displaySubtotal.toFixed(2)}`;
     }
+
+    var _updating = false;
 
     container.addEventListener("click", (e) => {
       const btn = e.target.closest("[data-cart-action]");
@@ -162,15 +169,36 @@ const alternateUrls = {
       const qty = parseInt(btn.dataset.qty, 10) || 1;
 
       if (btn.dataset.cartAction === "decrease") {
-        window.VunoCart.updateQuantity(id, color, size, Math.max(1, qty - 1));
+        const newQty = Math.max(1, qty - 1);
+        _updating = true;
+        window.VunoCart.updateQuantity(id, color, size, newQty);
+        _updating = false;
+        const itemEl = btn.closest(".cart-item");
+        const display = itemEl?.querySelector("[data-qty-display]");
+        if (display) display.textContent = newQty;
+        btn.dataset.qty = newQty;
+        const incBtn = itemEl?.querySelector("[data-cart-action='increase']");
+        if (incBtn) incBtn.dataset.qty = newQty;
+        updateTotals();
       } else if (btn.dataset.cartAction === "increase") {
-        window.VunoCart.updateQuantity(id, color, size, qty + 1);
+        const newQty = qty + 1;
+        _updating = true;
+        window.VunoCart.updateQuantity(id, color, size, newQty);
+        _updating = false;
+        const itemEl = btn.closest(".cart-item");
+        const display = itemEl?.querySelector("[data-qty-display]");
+        if (display) display.textContent = newQty;
+        btn.dataset.qty = newQty;
+        const decBtn = itemEl?.querySelector("[data-cart-action='decrease']");
+        if (decBtn) decBtn.dataset.qty = newQty;
+        updateTotals();
       } else if (btn.dataset.cartAction === "remove") {
         window.VunoCart.removeItem(id, color, size);
+        renderCart();
       }
     });
 
-    document.addEventListener("cart:updated", renderCart);
+    window.addEventListener("cart:updated", function () { if (!_updating) renderCart(); });
     renderCart();
   </script>
 </BaseLayout>

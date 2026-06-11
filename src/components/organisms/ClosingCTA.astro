@@ -1,0 +1,49 @@
+---
+import { t, type Locale } from "../../i18n/utils";
+import type { LandingSectionData } from "../../lib/storage";
+import AnimatedReveal from "../atoms/AnimatedReveal.astro";
+
+interface Props {
+  lang: Locale;
+  data?: LandingSectionData | null;
+}
+
+const { lang, data } = Astro.props;
+
+const label = data?.label_es && data?.label_en
+  ? (lang === "es" ? data.label_es : data.label_en)
+  : t("home.closingCta.label", lang);
+const title = data?.title_es && data?.title_en
+  ? (lang === "es" ? data.title_es : data.title_en)
+  : t("home.closingCta.title", lang);
+const subtitle = data?.subtitle_es && data?.subtitle_en
+  ? (lang === "es" ? data.subtitle_es : data.subtitle_en)
+  : t("home.closingCta.subtitle", lang);
+const cta = data?.cta_es && data?.cta_en
+  ? (lang === "es" ? data.cta_es : data.cta_en)
+  : t("home.closingCta.cta", lang);
+const ctaLink = data?.cta_category_slug
+  ? `/${lang}/catalogo?categoria=${data.cta_category_slug}`
+  : (data?.cta_link || `/${lang}/catalogo`);
+---
+
+<section class="relative py-section-gap px-margin-mobile md:px-margin-desktop bg-monolith-black overflow-hidden">
+  <div class="noise-overlay opacity-[0.04]"></div>
+  <div class="max-w-container-max mx-auto text-center relative z-10">
+    <AnimatedReveal>
+      <span class="font-label-caps text-label-caps text-clay-accent tracking-[0.15em]">{label}</span>
+      <h2 class="font-headline-xl text-headline-xl text-off-white leading-[1.05] mt-6 max-w-2xl mx-auto">
+        {title}
+      </h2>
+      <p class="font-body-lg text-body-lg text-off-white/50 max-w-lg mx-auto mt-4">
+        {subtitle}
+      </p>
+      <a
+        href={ctaLink}
+        class="inline-flex items-center justify-center bg-off-white text-monolith-black font-label-caps text-label-caps h-14 px-12 mt-10 hover:bg-off-white/90 hover:tracking-[0.15em] transition-all duration-300"
+      >
+        {cta}
+      </a>
+    </AnimatedReveal>
+  </div>
+</section>

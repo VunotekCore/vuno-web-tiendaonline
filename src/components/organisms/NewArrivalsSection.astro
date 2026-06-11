@@ -1,0 +1,86 @@
+---
+import { t, type Locale } from "../../i18n/utils";
+import type { LandingSectionData } from "../../lib/storage";
+import AnimatedReveal from "../atoms/AnimatedReveal.astro";
+import ProductCard from "../molecules/ProductCard.astro";
+
+interface NewArrivalProduct {
+  id: string;
+  name: string;
+  slug: string;
+  price: number;
+  display_price?: number;
+  display_currency?: string;
+  display_symbol?: string;
+  images: string[];
+  colors: { hex: string }[];
+  createdAt: string;
+}
+
+interface Props {
+  lang: Locale;
+  products: NewArrivalProduct[];
+  count?: number;
+  data?: LandingSectionData | null;
+}
+
+const { lang, products, count = 8, data } = Astro.props;
+const displayProducts = products.slice(0, count);
+
+const label = data?.label_es && data?.label_en
+  ? (lang === "es" ? data.label_es : data.label_en)
+  : t("home.newArrivals.label", lang);
+const title = data?.title_es && data?.title_en
+  ? (lang === "es" ? data.title_es : data.title_en)
+  : t("home.newArrivals.title", lang);
+const subtitle = data?.subtitle_es && data?.subtitle_en
+  ? (lang === "es" ? data.subtitle_es : data.subtitle_en)
+  : t("home.newArrivals.subtitle", lang);
+const cta = data?.cta_es && data?.cta_en
+  ? (lang === "es" ? data.cta_es : data.cta_en)
+  : t("home.newArrivals.viewAll", lang);
+const ctaLink = data?.cta_category_slug
+  ? `/${lang}/catalogo?categoria=${data.cta_category_slug}`
+  : (data?.cta_link || `/${lang}/catalogo?sort=newest`);
+---
+
+<section class="py-section-gap px-margin-mobile md:px-margin-desktop bg-surface-container-low">
+  <div class="max-w-container-max mx-auto">
+    <div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-4">
+      <div>
+        <AnimatedReveal>
+          <span class="font-label-caps text-label-caps text-clay-accent tracking-[0.15em]">{label}</span>
+          <h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-monolith-black leading-tight mt-2">
+            {title}
+          </h2>
+          <p class="font-body-lg text-body-lg text-secondary max-w-lg mt-3">
+            {subtitle}
+          </p>
+        </AnimatedReveal>
+      </div>
+      <a href={ctaLink} class="font-label-caps text-label-caps text-monolith-black border-b border-monolith-black pb-0.5 hover:text-secondary hover:border-secondary transition-all duration-300 whitespace-nowrap shrink-0">
+        {cta}
+      </a>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-x-gutter gap-y-16">
+      {displayProducts.map((p, i) => (
+        <div class={`reveal ${i === 0 ? "" : `reveal-delay-${i + 1}`}`}>
+          <ProductCard
+            name={p.name}
+            price={`${p.display_symbol || '$'}${(p.display_price || p.price).toFixed(2)}`}
+            image={p.images[0] || ''}
+            href={`/${lang}/producto/${p.slug}`}
+            colors={p.colors.map((c) => c.hex)}
+            productId={p.id}
+            productSlug={p.slug}
+            productPrice={p.price}
+            productDisplayPrice={p.display_price}
+            productDisplayCurrency={p.display_currency}
+            productDisplaySymbol={p.display_symbol}
+          />
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

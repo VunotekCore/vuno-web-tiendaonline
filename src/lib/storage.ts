@@ -1,7 +1,59 @@
-import type { Product, Order } from "./types";
+import type { Product, Order, Category } from "./types";
 import type { Locale } from "../i18n/utils";
 
+export interface LandingSectionData {
+  label_es?: string;
+  label_en?: string;
+  title_es?: string;
+  title_en?: string;
+  subtitle_es?: string;
+  subtitle_en?: string;
+  paragraph_es?: string;
+  paragraph_en?: string;
+  cta_es?: string;
+  cta_en?: string;
+  cta_link?: string;
+  cta_category_slug?: string;
+  image_url?: string;
+  enabled?: boolean;
+  facebook_url?: string;
+  instagram_url?: string;
+  tiktok_url?: string;
+  placeholder_es?: string;
+  placeholder_en?: string;
+  items?: TestimonialItem[];
+}
+
+export interface TestimonialItem {
+  name: string;
+  text: string;
+  rating: number;
+}
+
+export interface LandingData {
+  hero: LandingSectionData;
+  new_arrivals: LandingSectionData;
+  categories: LandingSectionData;
+  brand_values: LandingSectionData;
+  closing_cta: LandingSectionData;
+  social: LandingSectionData;
+  newsletter: LandingSectionData;
+  testimonials: LandingSectionData;
+}
+
 const API_BASE = import.meta.env.PUBLIC_API_URL || "/api";
+
+export async function getCategories(lang?: Locale): Promise<Category[]> {
+  try {
+    const url = lang ? `${API_BASE}/categorias/list.php?lang=${lang}` : `${API_BASE}/categorias/list.php`;
+    const res = await fetch(url);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.items || data;
+  } catch {
+    return [];
+  }
+}
 
 export async function getProducts(lang?: Locale): Promise<Product[]> {
   try {
@@ -64,6 +116,17 @@ export async function saveOrder(order: Order): Promise<void> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(order),
   });
+}
+
+export async function getLanding(): Promise<LandingData | null> {
+  try {
+    const res = await fetch(`${API_BASE}/configuracion/public.php`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.landing || null;
+  } catch {
+    return null;
+  }
 }
 
 export async function updateOrderStatus(

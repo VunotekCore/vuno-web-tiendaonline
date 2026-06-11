@@ -1,4 +1,6 @@
 ---
+import { imgTransform } from "../../lib/images";
+
 interface Props {
   name: string;
   price: string;
@@ -31,11 +33,11 @@ const productJson = productId ? JSON.stringify({
 
 <div class="group flex flex-col cursor-pointer product-card">
   <div class="relative bg-surface-container-lowest aspect-[4/5] overflow-hidden mb-4">
-    <a href={href} class="block w-full h-full flex items-center justify-center overflow-hidden">
+    <a href={href} class="block w-full h-full overflow-hidden">
       <img
-        src={image}
+        src={imgTransform(image, 480, 600)}
         alt={name}
-        class="w-4/5 h-auto object-contain img-lift"
+        class="w-full h-full object-cover object-center img-lift transition-transform duration-700 group-hover:scale-105"
         loading="lazy"
       />
     </a>

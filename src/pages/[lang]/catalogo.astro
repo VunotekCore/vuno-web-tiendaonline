@@ -3,7 +3,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import Navbar from "../../components/organisms/Navbar.astro";
 import Footer from "../../components/organisms/Footer.astro";
 import AnimatedReveal from "../../components/atoms/AnimatedReveal.astro";
-import { getProducts } from "../../lib/storage";
+import { getProducts, getCategories } from "../../lib/storage";
 import { imgTransform } from "../../lib/images";
 import { t, type Locale, locales } from "../../i18n/utils";
 
@@ -13,38 +13,45 @@ export async function getStaticPaths() {
 
 const { lang } = Astro.params as { lang: Locale };
 const products = await getProducts(lang);
-const sizes = ["36", "37", "38", "39", "40", "41"];
-const colorSwatches = [
-  { label: "Negro", hex: "#1A1A1A" },
-  { label: "Blanco", hex: "#FFFFFF" },
-  { label: "Nude", hex: "#E6DED5" },
-  { label: "Arcilla", hex: "#C18C7E" },
-];
-const styles = [
-  "Stiletto",
-  "Bloque Arquitectónico",
-  "Kitten Heel",
-  "Plataforma Oculta",
-];
+const allCategories = await getCategories(lang);
+
+// Filter categories that have active products (compare by name, not slug — slug may differ from translated names)
+const activeNames = new Set(products.map(p => (p.category || "").toLowerCase()));
+const categories = allCategories.filter(c => activeNames.has(c.name.toLowerCase()));
+
+// Derive unique colors from products (normalize key to lowercase to avoid case-dupes)
+const colorMap = new Map<string, string>();
+for (const p of products) {
+  for (const c of p.colors) {
+    const key = c.name.trim().toLowerCase();
+    if (!colorMap.has(key)) colorMap.set(key, c.hex);
+  }
+}
+const availableColors = Array.from(colorMap.entries()).map(([key, hex]) => ({ label: key, hex }));
+
+// Derive unique sizes from products in stock, sorted numerically
+const sizeSet = new Set<string>();
+for (const p of products) {
+  for (const s of p.sizes) {
+    if (s.inStock) sizeSet.add(s.value);
+  }
+}
+const availableSizes = Array.from(sizeSet).sort((a, b) => {
+  const na = parseFloat(a), nb = parseFloat(b);
+  return isNaN(na) || isNaN(nb) ? a.localeCompare(b) : na - nb;
+});
+
+// Build category counts (compare against name, not slug)
+const categoryCounts = categories.map(cat => {
+  const count = products.filter(p => (p.category || "").toLowerCase() === cat.name.toLowerCase()).length;
+  return { slug: cat.slug, name: cat.name, count };
+});
 
 const currentPath = Astro.url.pathname;
 const alternateUrls = {
   es: `${import.meta.env.PROD ? "https://vuno.com" : "http://localhost:4321"}/es/catalogo`,
   en: `${import.meta.env.PROD ? "https://vuno.com" : "http://localhost:4321"}/en/catalogo`,
 };
-
-// Build styles with counts for display
-const styleCounts = styles.map((style) => {
-  const synonymMap: Record<string, string> = {
-    "Stiletto": "heels",
-    "Bloque Arquitectónico": "heels",
-    "Kitten Heel": "heels",
-    "Plataforma Oculta": "sandals",
-  };
-  const target = synonymMap[style] || style.toLowerCase();
-  const count = products.filter((p) => (p.category || "").toLowerCase().includes(target)).length;
-  return { label: style, count };
-});
 ---
 
 <BaseLayout title={lang === "es" ? "Catálogo — Colección | Ram;Lop" : "Catalog — Collection | Ram;Lop"} lang={lang} alternateUrls={alternateUrls}>
@@ -74,10 +81,17 @@ const styleCounts = styles.map((style) => {
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter px-margin-mobile md:px-margin-desktop relative">
       <!-- Sidebar Filters -->
       <aside class="hidden lg:block lg:col-span-3 pr-8 sticky top-32 h-fit">
+        <div class="flex items-center justify-between mb-8 pb-4 border-b border-surface-variant">
+          <h2 class="font-label-caps text-label-caps text-monolith-black tracking-widest">{t("catalog.filter.title", lang)}</h2>
+          <button id="clearFiltersBtn" class="font-body-md text-body-md text-xs text-secondary hover:text-monolith-black transition-colors hidden">
+            {lang === "es" ? "Limpiar" : "Clear"}
+          </button>
+        </div>
+
         <div class="mb-10 pb-10 border-b border-surface-variant reveal">
           <h3 class="font-label-caps text-label-caps text-monolith-black mb-6 tracking-widest">{t("catalog.filter.size", lang)}</h3>
           <div class="grid grid-cols-3 gap-2">
-            {sizes.map((size) => (
+            {availableSizes.map((size) => (
               <button data-filter-size={size}
                 class={`h-10 border border-outline-variant flex items-center justify-center font-body-md text-body-md text-secondary hover:border-monolith-black hover:text-monolith-black transition-colors`}
               >{size}</button>
@@ -85,11 +99,12 @@ const styleCounts = styles.map((style) => {
           </div>
         </div>
 
+        {availableColors.length > 0 && (
         <div class="mb-10 pb-10 border-b border-surface-variant reveal reveal-delay-2">
           <h3 class="font-label-caps text-label-caps text-monolith-black mb-6 tracking-widest">{t("catalog.filter.color", lang)}</h3>
           <div class="flex flex-wrap gap-4">
-            {colorSwatches.map((swatch) => (
-              <button aria-label={swatch.label} data-filter-color={swatch.label.toLowerCase()}
+            {availableColors.map((swatch) => (
+              <button aria-label={swatch.label} data-filter-color={swatch.label}
                 data-active="false"
                 class={`w-8 h-8 rounded-full border-2 transition-all hover:scale-110 ring-1 ring-transparent border-surface-variant hover:ring-1 hover:ring-monolith-black`}
                 style={`background-color: ${swatch.hex}`}
@@ -97,18 +112,21 @@ const styleCounts = styles.map((style) => {
             ))}
           </div>
         </div>
+        )}
 
+        {categoryCounts.length > 0 && (
         <div class="reveal reveal-delay-3">
           <h3 class="font-label-caps text-label-caps text-monolith-black mb-6 tracking-widest">{t("catalog.filter.style", lang)}</h3>
           <div class="flex flex-col gap-4">
-            {styleCounts.map((style) => (
+            {categoryCounts.map((cat) => (
               <label class="flex items-center gap-3 cursor-pointer group">
-                <input type="checkbox" data-filter-style={style.label} class="minimal-checkbox" />
-                <span class="font-body-md text-body-md text-secondary group-hover:text-monolith-black transition-colors">{style.label} ({style.count})</span>
+                <input type="checkbox" data-filter-style={cat.name} class="minimal-checkbox" />
+                <span class="font-body-md text-body-md text-secondary group-hover:text-monolith-black transition-colors">{cat.name} ({cat.count})</span>
               </label>
             ))}
           </div>
         </div>
+        )}
       </aside>
 
       <!-- Product Grid -->
@@ -225,7 +243,7 @@ const styleCounts = styles.map((style) => {
       <div class="mb-8 pb-8 border-b border-surface-variant">
         <h3 class="font-label-caps text-label-caps text-monolith-black mb-4 tracking-widest">{t("catalog.filter.size", lang)}</h3>
         <div class="grid grid-cols-3 gap-2">
-          {sizes.map((size) => (
+          {availableSizes.map((size) => (
             <button data-filter-size={size}
               class="h-10 border border-outline-variant flex items-center justify-center font-body-md text-body-md text-secondary hover:border-monolith-black hover:text-monolith-black transition-colors"
             >{size}</button>
@@ -233,11 +251,12 @@ const styleCounts = styles.map((style) => {
         </div>
       </div>
 
+      {availableColors.length > 0 && (
       <div class="mb-8 pb-8 border-b border-surface-variant">
         <h3 class="font-label-caps text-label-caps text-monolith-black mb-4 tracking-widest">{t("catalog.filter.color", lang)}</h3>
         <div class="flex flex-wrap gap-4">
-          {colorSwatches.map((swatch) => (
-            <button aria-label={swatch.label} data-filter-color={swatch.label.toLowerCase()}
+          {availableColors.map((swatch) => (
+            <button aria-label={swatch.label} data-filter-color={swatch.label}
               data-active="false"
               class="w-8 h-8 rounded-full border-2 transition-all hover:scale-110 ring-1 ring-transparent border-surface-variant hover:ring-1 hover:ring-monolith-black"
               style={`background-color: ${swatch.hex}`}
@@ -245,18 +264,21 @@ const styleCounts = styles.map((style) => {
           ))}
         </div>
       </div>
+      )}
 
+      {categoryCounts.length > 0 && (
       <div>
         <h3 class="font-label-caps text-label-caps text-monolith-black mb-4 tracking-widest">{t("catalog.filter.style", lang)}</h3>
         <div class="flex flex-col gap-4">
-          {styleCounts.map((style) => (
+          {categoryCounts.map((cat) => (
             <label class="flex items-center gap-3 cursor-pointer group">
-              <input type="checkbox" data-filter-style={style.label} class="minimal-checkbox" />
-              <span class="font-body-md text-body-md text-secondary group-hover:text-monolith-black transition-colors">{style.label} ({style.count})</span>
+              <input type="checkbox" data-filter-style={cat.name} class="minimal-checkbox" />
+              <span class="font-body-md text-body-md text-secondary group-hover:text-monolith-black transition-colors">{cat.name} ({cat.count})</span>
             </label>
           ))}
         </div>
       </div>
+      )}
     </div>
   </div>
 

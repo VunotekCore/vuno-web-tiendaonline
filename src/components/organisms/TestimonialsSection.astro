@@ -1,0 +1,56 @@
+---
+import { t, type Locale } from "../../i18n/utils";
+import type { LandingSectionData } from "../../lib/storage";
+import AnimatedReveal from "../atoms/AnimatedReveal.astro";
+
+interface Props {
+  lang: Locale;
+  data?: LandingSectionData | null;
+}
+
+const { lang, data } = Astro.props;
+
+if (!data?.enabled) return;
+
+const title = data?.title_es && data?.title_en
+  ? (lang === "es" ? data.title_es : data.title_en)
+  : t("home.testimonials.title", lang);
+const subtitle = data?.subtitle_es && data?.subtitle_en
+  ? (lang === "es" ? data.subtitle_es : data.subtitle_en)
+  : t("home.testimonials.subtitle", lang);
+const testimonials = data?.items || [];
+---
+
+<section class="py-section-gap px-margin-mobile md:px-margin-desktop bg-background">
+  <div class="max-w-container-max mx-auto">
+    <AnimatedReveal>
+      <div class="text-center mb-12">
+        <h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-monolith-black leading-tight">
+          {title}
+        </h2>
+        <p class="font-body-lg text-body-lg text-secondary max-w-lg mx-auto mt-3">
+          {subtitle}
+        </p>
+      </div>
+    </AnimatedReveal>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+      {testimonials.map((item, i) => (
+        <AnimatedReveal delay={i + 1}>
+          <div class="border border-outline-variant p-6 md:p-8 h-full flex flex-col hover:border-monolith-black transition-colors duration-300">
+            <div class="flex items-center gap-1 mb-6">
+              {Array.from({ length: 5 }, (_, j) => (
+                <span
+                  class="material-symbols-outlined text-sm"
+                  style={`font-variation-settings: 'FILL' ${j < (item.rating || 5) ? 1 : 0}; color: ${j < (item.rating || 5) ? '#C18C7E' : '#D4CFC8'}`}
+                >star</span>
+              ))}
+            </div>
+            <p class="font-body-md text-body-md text-secondary leading-relaxed flex-grow">"{item.text}"</p>
+            <p class="font-label-caps text-label-caps text-monolith-black mt-6 tracking-widest">— {item.name}</p>
+          </div>
+        </AnimatedReveal>
+      ))}
+    </div>
+  </div>
+</section>

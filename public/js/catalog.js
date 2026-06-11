@@ -15,6 +15,19 @@
     },
   };
 
+  function parseCategoryParam() {
+    var params = new URLSearchParams(window.location.search);
+    var categoria = params.get('categoria');
+    if (categoria) {
+      document.querySelectorAll('[data-filter-style]').forEach(function (cb) {
+        if (cb.dataset.filterStyle.toLowerCase() === categoria.toLowerCase()) {
+          cb.checked = true;
+          state.filters.styles.push(cb.dataset.filterStyle);
+        }
+      });
+    }
+  }
+
   function init(products, lang) {
     state.products = products;
     state.filtered = products.slice();
@@ -24,11 +37,12 @@
     bindSizeFilters();
     bindColorFilters();
     bindStyleFilters();
+    bindClearFilters();
     bindSort();
     bindLoadMore();
     bindMobileFilterToggle();
     bindQuickView();
-    bindWishlistToggle();
+    parseCategoryParam();
     render();
   }
 
@@ -95,6 +109,29 @@
     });
   }
 
+  function bindClearFilters() {
+    var btn = document.getElementById("clearFiltersBtn");
+    if (!btn) return;
+    btn.addEventListener("click", function () {
+      // Uncheck all style checkboxes
+      document.querySelectorAll("[data-filter-style]").forEach(function (cb) { cb.checked = false; });
+      // Deselect all size buttons
+      document.querySelectorAll("[data-filter-size]").forEach(function (btn) {
+        btn.classList.remove("bg-monolith-black", "text-off-white", "border-monolith-black");
+        btn.classList.add("border-outline-variant", "text-secondary", "hover:border-monolith-black", "hover:text-monolith-black");
+      });
+      // Deselect all color swatches
+      document.querySelectorAll("[data-filter-color]").forEach(function (btn) {
+        btn.dataset.active = "false";
+        btn.classList.remove("ring-1", "ring-monolith-black");
+        btn.classList.add("ring-1", "ring-transparent");
+      });
+      state.filters = { sizes: [], colors: [], styles: [] };
+      state.visibleCount = state.perPage;
+      applyFilters();
+    });
+  }
+
   function applyFilters() {
     var f = state.filters;
     state.filtered = state.products.filter(function (p) {
@@ -109,20 +146,21 @@
       if (f.styles.length > 0) {
         var category = (p.category || "").toLowerCase();
         var matched = f.styles.some(function (s) {
-          var synonymMap = {
-            "stiletto": "heels",
-            "bloque arquitectónico": "heels",
-            "kitten heel": "heels",
-            "plataforma oculta": "sandals",
-          };
-          var target = synonymMap[s.toLowerCase()] || s.toLowerCase();
-          return category.indexOf(target) > -1;
+          return category === s.toLowerCase();
         });
         if (!matched) return false;
       }
       return true;
     });
     sortProducts();
+  }
+
+  function syncClearButton() {
+    var btn = document.getElementById("clearFiltersBtn");
+    if (!btn) return;
+    var f = state.filters;
+    var hasFilters = f.sizes.length > 0 || f.colors.length > 0 || f.styles.length > 0;
+    btn.classList.toggle("hidden", !hasFilters);
   }
 
   // =============================================================
@@ -423,32 +461,6 @@
   });
 
   // =============================================================
-  //                      WISHLIST TOGGLE
-  // =============================================================
-
-  function bindWishlistToggle() {
-    document.addEventListener("click", function (e) {
-      var btn = e.target.closest("[data-toggle-wishlist]");
-      if (!btn) return;
-      e.preventDefault();
-      e.stopPropagation();
-      try {
-        var product = JSON.parse(btn.dataset.product);
-        var wasAdded = window.VunoWishlist.toggleItem(product);
-        var icon = btn.querySelector(".wishlist-icon");
-        if (icon) {
-          icon.textContent = wasAdded ? "favorite" : "favorite_border";
-          icon.style.fontVariationSettings = wasAdded ? "'FILL' 1" : "'FILL' 0";
-        }
-        if (wasAdded) btn.classList.add("in-wishlist");
-        else btn.classList.remove("in-wishlist");
-      } catch (err) {
-        // silently fail
-      }
-    });
-  }
-
-  // =============================================================
   //                        RENDER
   // =============================================================
 
@@ -533,6 +545,28 @@
       Array.from(grid.querySelectorAll(".reveal")).forEach(function (el) {
         el.classList.add("revealed");
       });
+    });
+
+    // Sync wishlist hearts with current state
+    syncWishlistHearts();
+
+    // Sync clear filters button visibility
+    syncClearButton();
+  }
+
+  function syncWishlistHearts() {
+    if (!window.VunoWishlist) return;
+    document.querySelectorAll("[data-toggle-wishlist]").forEach(function (btn) {
+      try {
+        var product = JSON.parse(btn.dataset.product);
+        var inWishlist = window.VunoWishlist.isInWishlist(product.id);
+        var icon = btn.querySelector(".wishlist-icon");
+        if (icon) {
+          icon.textContent = inWishlist ? "favorite" : "favorite_border";
+          icon.style.fontVariationSettings = inWishlist ? "'FILL' 1" : "'FILL' 0";
+        }
+        btn.classList.toggle("in-wishlist", inWishlist);
+      } catch (e) {}
     });
   }
 
