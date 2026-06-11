@@ -12,6 +12,7 @@ $public = [
     'store' => [
         'name' => $settings['store']['name'] ?? 'Ram;Lop',
         'slogan' => $settings['store']['slogan'] ?? '',
+        'description' => $settings['store']['description'] ?? '',
         'logo' => $settings['store']['logo'] ?? '',
     ],
     'stripe' => [

@@ -9,6 +9,7 @@ import BrandValues from "../../components/organisms/BrandValues.astro";
 import ClosingCTA from "../../components/organisms/ClosingCTA.astro";
 import SocialFeed from "../../components/organisms/SocialFeed.astro";
 import TestimonialsSection from "../../components/organisms/TestimonialsSection.astro";
+import BlogJournal from "../../components/organisms/BlogJournal.astro";
 import { getProducts, getCategories, getLanding } from "../../lib/storage";
 import { type Locale, locales } from "../../i18n/utils";
 
@@ -60,6 +61,9 @@ const alternateUrls = {
 
   <!-- Testimonials -->
   <TestimonialsSection lang={lang} data={landing?.testimonials} />
+
+  <!-- Blog Journal -->
+  <BlogJournal lang={lang} />
 
   <!-- Social Media -->
   <SocialFeed lang={lang} data={landing?.social} />

@@ -8,39 +8,85 @@ interface Props {
 }
 
 const { lang = "es" } = Astro.props;
+const year = new Date().getFullYear();
 ---
 
-<footer class="relative bg-monolith-black w-full mt-section-gap overflow-hidden">
+<footer class="bg-monolith-black w-full mt-16 overflow-hidden">
   <div class="noise-overlay opacity-[0.08]"></div>
-  <div class="grid grid-cols-1 md:grid-cols-4 gap-gutter px-margin-mobile md:px-margin-desktop py-section-gap w-full max-w-container-max mx-auto text-off-white/70 font-body-md text-body-md relative z-10">
-    <div class="md:col-span-1 flex flex-col mb-8 md:mb-0">
-      <span class="font-headline-md text-headline-md text-off-white mb-2">
-        <img data-store-logo alt="" class="h-10 w-auto hidden object-contain brightness-0 invert mb-2" />
-        <span data-store-name>Ram;Lop</span>
-      </span>
-      <span data-store-slogan class="font-body-md text-body-md text-off-white/60 block mb-3"></span>
-      <p class="text-sm max-w-xs text-off-white/60">{t("footer.tagline", lang)}</p>
-    </div>
+  <div class="max-w-6xl mx-auto px-6 py-16 relative z-10">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
 
-    <div class="md:col-span-2 grid grid-cols-2 gap-8">
-      <div class="flex flex-col space-y-4">
-        <a href={`/${lang}/#`} class="hover:text-off-white transition-colors text-off-white/60 hover:translate-x-1 inline-block transition-all duration-300">{t("footer.sustainability", lang)}</a>
-        <a href={`/${lang}/#`} class="hover:text-off-white transition-colors text-off-white/60 hover:translate-x-1 inline-block transition-all duration-300">{t("footer.shipping", lang)}</a>
-        <a href={`/${lang}/#`} class="hover:text-off-white transition-colors text-off-white/60 hover:translate-x-1 inline-block transition-all duration-300">{t("footer.boutique", lang)}</a>
+      <!-- Col 1: Brand -->
+      <div class="flex flex-col">
+        <img data-store-logo alt="" class="h-8 w-auto hidden object-contain brightness-0 invert mb-2" />
+        <span data-store-name class="font-headline-md text-headline-md text-off-white mb-1">Ram;Lop</span>
+        <span data-store-slogan class="font-body text-sm text-off-white/60 block mb-2"></span>
+        <p data-store-description class="text-sm text-off-white/40 leading-relaxed max-w-xs"></p>
       </div>
-      <div class="flex flex-col space-y-4">
-        <a href={`/${lang}/#`} class="hover:text-off-white transition-colors text-off-white/60 hover:translate-x-1 inline-block transition-all duration-300">{t("footer.contact", lang)}</a>
-        <a href="javascript:void(0)" data-size-guide class="hover:text-off-white transition-colors text-off-white/60 hover:translate-x-1 inline-block transition-all duration-300">{t("footer.sizeGuide", lang)}</a>
-        <a href={`/${lang}/#`} class="hover:text-off-white transition-colors text-off-white/60 hover:translate-x-1 inline-block transition-all duration-300">{t("footer.privacy", lang)}</a>
+
+      <!-- Col 2: Shop -->
+      <div>
+        <h4 class="font-label-caps text-label-caps text-off-white/40 mb-4 tracking-widest">{t("footer.shop", lang)}</h4>
+        <div class="flex flex-col space-y-2.5">
+          <a href={`/${lang}/catalogo`} class="text-sm text-off-white/60 hover:text-off-white transition-colors duration-300">{t("footer.catalog", lang)}</a>
+          <a href={`/${lang}/catalogo`} class="text-sm text-off-white/60 hover:text-off-white transition-colors duration-300">Heels</a>
+          <a href={`/${lang}/catalogo`} class="text-sm text-off-white/60 hover:text-off-white transition-colors duration-300">Sandals</a>
+          <a href={`/${lang}/catalogo`} class="text-sm text-off-white/60 hover:text-off-white transition-colors duration-300">Boots</a>
+          <a href={`/${lang}/catalogo`} class="text-sm text-off-white/60 hover:text-off-white transition-colors duration-300">Flats</a>
+        </div>
       </div>
-    </div>
 
-    <div class="md:col-span-1 flex flex-col mt-8 md:mt-0">
-      <NewsletterSection lang={lang} variant="full" theme="dark" />
-    </div>
+      <!-- Col 3: Help -->
+      <div>
+        <h4 class="font-label-caps text-label-caps text-off-white/40 mb-4 tracking-widest">{t("footer.help", lang)}</h4>
+        <div class="flex flex-col space-y-2.5">
+          <a href={`/${lang}/#`} class="text-sm text-off-white/60 hover:text-off-white transition-colors duration-300">{t("footer.contact", lang)}</a>
+          <a href="javascript:void(0)" data-size-guide class="text-sm text-off-white/60 hover:text-off-white transition-colors duration-300">{t("footer.sizeGuide", lang)}</a>
+          <a href={`/${lang}/#`} class="text-sm text-off-white/60 hover:text-off-white transition-colors duration-300">{t("footer.shipping", lang)}</a>
+          <a href={`/${lang}/#`} class="text-sm text-off-white/60 hover:text-off-white transition-colors duration-300">{t("footer.returns", lang)}</a>
+          <a href={`/${lang}/#`} class="text-sm text-off-white/60 hover:text-off-white transition-colors duration-300">{t("footer.privacy", lang)}</a>
+        </div>
+      </div>
 
-    <div class="md:col-span-4 mt-16 pt-8 border-t border-off-white/10 text-xs text-off-white/40">
-      &copy; 2024 <span data-store-name>Ram;Lop</span>. {t("footer.copyright", lang)}
+      <!-- Col 4: Connect (Newsletter + Social) -->
+      <div>
+        <h4 class="font-label-caps text-label-caps text-off-white/40 mb-4 tracking-widest">{t("footer.connect", lang)}</h4>
+        <NewsletterSection lang={lang} variant="compact" theme="dark" />
+        <div id="footerSocial" class="flex items-center gap-4 mt-5">
+          <a href="#" target="_blank" rel="noopener noreferrer" class="text-off-white/30 hover:text-off-white transition-colors duration-300" data-social="instagram" aria-label="Instagram">
+            <span class="material-symbols-outlined text-lg">camera_alt</span>
+          </a>
+          <a href="#" target="_blank" rel="noopener noreferrer" class="text-off-white/30 hover:text-off-white transition-colors duration-300" data-social="facebook" aria-label="Facebook">
+            <span class="material-symbols-outlined text-lg">globe</span>
+          </a>
+          <a href="#" target="_blank" rel="noopener noreferrer" class="text-off-white/30 hover:text-off-white transition-colors duration-300" data-social="tiktok" aria-label="TikTok">
+            <span class="material-symbols-outlined text-lg">music_note</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Bottom bar -->
+      <div class="md:col-span-4 mt-12 pt-6 border-t border-off-white/10 flex flex-col md:flex-row justify-between items-center gap-2 text-xs text-off-white/40">
+        <p>&copy; {year} <span data-store-name>Ram;Lop</span>. {t("footer.copyright", lang)}</p>
+      </div>
     </div>
   </div>
 </footer>
+
+<script is:inline>
+  // @ts-nocheck
+  (function () {
+    fetch("/api/configuracion/public.php")
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        var social = data.landing && data.landing.social;
+        if (!social) return;
+        document.querySelectorAll("[data-social]").forEach(function (el) {
+          var platform = el.getAttribute("data-social");
+          var url = social[platform + "_url"];
+          if (url) el.href = url;
+        });
+      })
+      .catch(function () {});
+  })();
+</script>

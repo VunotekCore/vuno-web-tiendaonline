@@ -55,6 +55,7 @@ const siteUrl = import.meta.env.PROD ? "https://vuno.com" : "http://localhost:43
             var store = data.store || {};
             var name = store.name || "Ram;Lop";
             var slogan = store.slogan || "";
+            var description = store.description || "";
             var logo = store.logo || "";
 
             // Título de la página
@@ -71,6 +72,11 @@ const siteUrl = import.meta.env.PROD ? "https://vuno.com" : "http://localhost:43
             // Elementos con data-store-slogan
             document.querySelectorAll("[data-store-slogan]").forEach(function (el) {
               el.textContent = slogan;
+            });
+
+            // Elementos con data-store-description
+            document.querySelectorAll("[data-store-description]").forEach(function (el) {
+              el.textContent = description;
             });
 
             // Elementos con data-store-logo

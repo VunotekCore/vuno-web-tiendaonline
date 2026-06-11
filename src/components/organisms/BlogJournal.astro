@@ -1,0 +1,133 @@
+---
+import { t, type Locale } from "../../i18n/utils";
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+---
+
+<section class="py-section-gap px-margin-mobile md:px-margin-desktop bg-sand-nude/20">
+  <div class="max-w-6xl mx-auto">
+    <div class="flex items-end justify-between mb-10">
+      <div>
+        <span class="font-label-caps text-label-caps text-clay-accent tracking-[0.15em]">{t("home.blog.label", lang)}</span>
+        <h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-monolith-black leading-tight mt-2">
+          {t("home.blog.title", lang)}
+        </h2>
+      </div>
+      <a
+        href="/blog"
+        class="hidden md:inline-flex items-center gap-2 font-label-caps text-label-caps text-secondary hover:text-monolith-black transition-colors group"
+      >
+        {t("home.blog.viewAll", lang)}
+        <span class="material-symbols-outlined text-lg group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
+      </a>
+    </div>
+
+    <!-- Blog posts grid (populated by JS) -->
+    <div id="blogJournalGrid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- Loading skeleton -->
+      <div class="skeleton-card bg-off-white border border-outline-variant rounded-sm overflow-hidden animate-pulse">
+        <div class="aspect-[4/3] bg-stone-gray/20"></div>
+        <div class="p-5 space-y-3">
+          <div class="h-3 w-16 bg-stone-gray/20"></div>
+          <div class="h-5 w-full bg-stone-gray/20 rounded"></div>
+          <div class="h-4 w-3/4 bg-stone-gray/20 rounded"></div>
+        </div>
+      </div>
+      <div class="skeleton-card bg-off-white border border-outline-variant rounded-sm overflow-hidden animate-pulse">
+        <div class="aspect-[4/3] bg-stone-gray/20"></div>
+        <div class="p-5 space-y-3">
+          <div class="h-3 w-16 bg-stone-gray/20"></div>
+          <div class="h-5 w-full bg-stone-gray/20 rounded"></div>
+          <div class="h-4 w-3/4 bg-stone-gray/20 rounded"></div>
+        </div>
+      </div>
+      <div class="skeleton-card bg-off-white border border-outline-variant rounded-sm overflow-hidden animate-pulse">
+        <div class="aspect-[4/3] bg-stone-gray/20"></div>
+        <div class="p-5 space-y-3">
+          <div class="h-3 w-16 bg-stone-gray/20"></div>
+          <div class="h-5 w-full bg-stone-gray/20 rounded"></div>
+          <div class="h-4 w-3/4 bg-stone-gray/20 rounded"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile "ver blog" link -->
+    <div class="md:hidden mt-8 text-center">
+      <a
+        href="/blog"
+        class="inline-flex items-center gap-2 font-label-caps text-label-caps text-secondary hover:text-monolith-black transition-colors group"
+      >
+        {t("home.blog.viewAll", lang)}
+        <span class="material-symbols-outlined text-lg group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<script is:inline>
+  // @ts-nocheck
+  (function () {
+    var grid = document.getElementById("blogJournalGrid");
+    if (!grid) return;
+
+    var skeletons = grid.querySelectorAll(".skeleton-card");
+
+    fetch("/api/blog/list.php?limit=3&status=published")
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        var posts = data.items || [];
+        if (posts.length === 0) {
+          grid.innerHTML = "";
+          return;
+        }
+
+        // Remove skeletons
+        grid.innerHTML = "";
+
+        posts.forEach(function (post) {
+          var img = "";
+          if (post.thumbnail_image) img = post.thumbnail_image;
+          else if (post.featured_image) img = post.featured_image;
+          else img = "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=600&q=80";
+
+          var date = "";
+          if (post.published_at) date = post.published_at;
+          else if (post.created_at) date = post.created_at;
+          // Format date
+          try {
+            var d = new Date(date);
+            var months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+            date = months[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear();
+          } catch (e) { date = ""; }
+
+          var catHtml = post.category_name
+            ? '<span class="font-label-caps text-label-caps text-clay-accent">' + post.category_name + "</span>"
+            : "";
+
+          var card = document.createElement("a");
+          card.href = "/blog?slug=" + encodeURIComponent(post.slug || "");
+          card.className = "group block bg-off-white border border-outline-variant rounded-sm overflow-hidden hover:shadow-md transition-all duration-300";
+
+          card.innerHTML =
+            '<div class="aspect-[4/3] overflow-hidden">' +
+              '<img src="' + img + '" alt="' + (post.title || "") + '" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />' +
+            "</div>" +
+            '<div class="p-5">' +
+              (catHtml ? catHtml : "") +
+              '<h3 class="font-headline-md text-headline-md text-monolith-black mt-1 mb-2 group-hover:text-clay-accent transition-colors">' + (post.title || "") + "</h3>" +
+              '<span class="font-label-caps text-label-caps text-secondary">' + date + "</span>" +
+            "</div>";
+
+          grid.appendChild(card);
+        });
+      })
+      .catch(function () {
+        // On error, remove skeletons silently
+        grid.innerHTML = '<div class="md:col-span-3 text-center py-10"><p class="font-body text-body-md text-secondary">No se pudieron cargar las notas.</p></div>';
+      });
+  })();
+</script>

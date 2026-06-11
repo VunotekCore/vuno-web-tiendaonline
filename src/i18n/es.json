@@ -46,6 +46,9 @@
   "home.trends.subtitle": "Esta temporada, nos alejamos de lo fluido y abrazamos lo audaz. Ángulos definidos, tacones bloque distintivos y pieles de alta calidad definen una colección que se mantiene firme. Es una exploración del poder a través de la contención.",
   "home.trends.cta": "COMPRAR LA TENDENCIA",
 
+  "home.blog.label": "DEL JOURNAL",
+  "home.blog.title": "Últimas Notas",
+  "home.blog.viewAll": "VER BLOG",
   "home.curated.title": "Selección Curada",
   "home.curated.label": "COLECCIÓN",
 
@@ -160,7 +163,11 @@
   "wishlist.remove": "Eliminar de lista de deseos",
   "wishlist.addedToCart": "¡Añadido al carrito!",
 
-  "footer.tagline": "Calzado diseñado para la modernidad estructural. Forma, función y ejecución mínima absoluta.",
+  "footer.shop": "TIENDA",
+  "footer.catalog": "Catálogo",
+  "footer.help": "AYUDA",
+  "footer.returns": "Devoluciones",
+  "footer.connect": "CONECTA",
   "footer.sustainability": "Sostenibilidad",
   "footer.shipping": "Envíos y Devoluciones",
   "footer.boutique": "Localizador de Tiendas",

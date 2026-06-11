@@ -46,6 +46,9 @@
   "home.trends.subtitle": "This season, we move away from the fluid and embrace the bold. Sharp angles, distinct block heels, and rigid, high-quality leathers define a collection that stands its ground. It is an exploration of power through restraint.",
   "home.trends.cta": "SHOP THE TREND",
 
+  "home.blog.label": "FROM THE JOURNAL",
+  "home.blog.title": "Latest Notes",
+  "home.blog.viewAll": "VIEW BLOG",
   "home.curated.title": "Curated Selection",
   "home.curated.label": "COLLECTION",
 
@@ -160,7 +163,11 @@
   "wishlist.remove": "Remove from wishlist",
   "wishlist.addedToCart": "Added to cart!",
 
-  "footer.tagline": "Footwear designed for the modern structuralist. Form, function, and absolute minimal execution.",
+  "footer.shop": "SHOP",
+  "footer.catalog": "Catalog",
+  "footer.help": "HELP",
+  "footer.returns": "Returns",
+  "footer.connect": "CONNECT",
   "footer.sustainability": "Sustainability",
   "footer.shipping": "Shipping & Returns",
   "footer.boutique": "Boutique Locator",
