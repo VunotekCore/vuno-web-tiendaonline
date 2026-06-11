@@ -109,6 +109,7 @@ CREATE TABLE products (
     height_cm           DECIMAL(8,2) DEFAULT NULL,
     is_active           BOOLEAN DEFAULT TRUE,
     is_featured         BOOLEAN DEFAULT FALSE,
+    size_prefix         VARCHAR(10) NOT NULL DEFAULT 'EU',
     low_stock_threshold TINYINT UNSIGNED DEFAULT 5,
     meta_title          VARCHAR(255),
     meta_description    VARCHAR(500),
@@ -622,6 +623,19 @@ CREATE TABLE notification_log (
 ) ENGINE=InnoDB;
 
 -- =============================================================================
+--  Size Guide Conversion Table
+-- =============================================================================
+
+CREATE TABLE size_guide_rows (
+    id              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    us_size         VARCHAR(10) NOT NULL,
+    eu_size         VARCHAR(10) NOT NULL,
+    uk_size         VARCHAR(10) NOT NULL,
+    cm_size         VARCHAR(10) NOT NULL,
+    sort_order      TINYINT UNSIGNED DEFAULT 0
+) ENGINE=InnoDB;
+
+-- =============================================================================
 -- 12. CMS y Configuración
 -- =============================================================================
 
@@ -1122,6 +1136,7 @@ INSERT INTO settings (section, `key`, value) VALUES
 ('store', 'email', 'hola@ramlop.com'),
 ('store', 'logo', ''),
 ('store', 'description', 'Calzado artesanal para damas — diseño minimalista con inspiración arquitectónica.'),
+('store', 'newsletter_discount_code', ''),
 ('receipt', 'business_name', ''),
 ('receipt', 'tax_id', ''),
 ('receipt', 'address', ''),
@@ -1142,7 +1157,32 @@ INSERT INTO settings (section, `key`, value) VALUES
 ('stripe', 'publishableKey', ''),
 ('stripe', 'secretKey', ''),
 ('stripe', 'webhookSecret', ''),
-('transfer', 'enabled', '1');
+('transfer', 'enabled', '1'),
+('policies', 'shipping_es', 'Ofrecemos envío estándar gratuito en todos los pedidos. Los envíos se procesan en un plazo de 1-2 días hábiles y la entrega estimada es de 5-10 días hábiles según tu ubicación.'),
+('policies', 'shipping_en', 'We offer free standard shipping on all orders. Orders are processed within 1-2 business days and estimated delivery is 5-10 business days depending on your location.'),
+('policies', 'returns_es', 'Aceptamos devoluciones dentro de los 14 días posteriores a la entrega para artículos en su condición original, sin usar y con todas las etiquetas originales. Los gastos de envío de devolución corren por cuenta del cliente.'),
+('policies', 'returns_en', 'Returns are accepted within 14 days of delivery for items in their original condition, unworn, and with all original tags. Return shipping costs are the responsibility of the customer.'),
+('size_guide', 'title_es', 'Guía de Talles'),
+('size_guide', 'title_en', 'Size Guide'),
+('size_guide', 'footer_es', 'Medí tu pie desde el talón hasta el dedo más largo. Si estás entre talles, recomendamos elegir el talle superior.'),
+('size_guide', 'footer_en', 'Measure your foot from heel to longest toe. If you are between sizes, we recommend choosing the larger size.');
+
+-- Size guide conversion rows
+INSERT INTO size_guide_rows (us_size, eu_size, uk_size, cm_size, sort_order) VALUES
+('5',   '35',   '2.5', '22',   1),
+('5.5', '35.5', '3',   '22.5', 2),
+('6',   '36',   '3.5', '23',   3),
+('6.5', '36.5', '4',   '23.5', 4),
+('7',   '37',   '4.5', '23.8', 5),
+('7.5', '37.5', '5',   '24.1', 6),
+('8',   '38',   '5.5', '24.4', 7),
+('8.5', '38.5', '6',   '24.8', 8),
+('9',   '39',   '6.5', '25.1', 9),
+('9.5', '39.5', '7',   '25.4', 10),
+('10',  '40',   '7.5', '25.8', 11),
+('10.5','40.5', '8',   '26.1', 12),
+('11',  '41',   '8.5', '26.4', 13),
+('11.5','41.5', '9',   '26.7', 14);
 
 -- Bank accounts for transfer payments
 INSERT INTO bank_accounts (bank_name, account_holder, account_number, account_type, routing_number, instructions, is_active, sort_order) VALUES
@@ -1212,6 +1252,22 @@ INSERT INTO order_items (order_id, product_id, variant_id, product_name, product
 
 INSERT INTO order_status_history (order_id, from_status_id, to_status_id, notes, created_at) VALUES
 (2, NULL, 1, 'Order created by customer via bank transfer', NOW() - INTERVAL 1 DAY);
+
+-- =============================================================================
+-- Newsletter
+-- =============================================================================
+
+CREATE TABLE newsletter_subscribers (
+    id              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    email           VARCHAR(255) NOT NULL UNIQUE,
+    is_active       TINYINT(1) NOT NULL DEFAULT 1,
+    subscribed_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    unsubscribed_at TIMESTAMP NULL DEFAULT NULL,
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_email (email),
+    INDEX idx_active (is_active)
+) ENGINE=InnoDB;
 
 -- =============================================================================
 -- Blog

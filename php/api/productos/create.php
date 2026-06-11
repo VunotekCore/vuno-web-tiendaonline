@@ -32,11 +32,13 @@ $product = [
     'details' => $input['details'] ?? null,
     'price' => $price,
     'currency' => $input['currency'] ?? 'USD',
+    'size_prefix' => $input['size_prefix'] ?? 'EU',
     'images' => $images,
     'category' => $input['category'] ?? 'Heels',
     'colors' => $input['colors'] ?? [],
     'sizes' => $input['sizes'] ?? [],
     'stocks' => $input['stocks'] ?? [],
+    'isFeatured' => !empty($input['isFeatured']),
     'createdAt' => date('c'),
 ];
 

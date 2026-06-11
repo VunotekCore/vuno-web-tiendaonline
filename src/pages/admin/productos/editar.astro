@@ -92,6 +92,12 @@ const tabs = [
             </select>
           </div>
         </div>
+        <div class="mt-6">
+          <label class="flex items-center gap-3 cursor-pointer group">
+            <input type="checkbox" id="fieldFeatured" class="w-4 h-4 accent-monolith-black" />
+            <span class="font-body-md text-body-md text-secondary group-hover:text-monolith-black transition-colors">Destacado — mostrar en la portada (hero slideshow)</span>
+          </label>
+        </div>
       </div>
     </div>
 
@@ -661,6 +667,7 @@ const tabs = [
           const opt = document.getElementById("fieldCategory").querySelector(`option[value="${p.category}"]`);
           if (opt) document.getElementById("fieldCategory").value = p.category;
         }
+        document.getElementById("fieldFeatured").checked = !!p.isFeatured;
 
         // Variants: populate stock matrix + color/size managers
         const initialStocks = {};
@@ -830,6 +837,7 @@ const tabs = [
         stocks: matrixPayload.stocks,
         lowStockThreshold: matrixPayload.threshold,
         images: uploadedImages.map(i => ({ url: i.url, fileId: i.fileId || null, colorName: i.colorName || null })),
+        isFeatured: document.getElementById("fieldFeatured").checked,
       };
 
       setLoading("submitBtn", "submitIcon", "submitText", true, "Guardando...");

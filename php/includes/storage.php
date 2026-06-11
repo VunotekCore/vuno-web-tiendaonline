@@ -215,6 +215,7 @@ function buildProduct(string $id, ?string $lang = null): array
             'label' => $s['label'],
             'value' => $s['value'],
             'inStock' => ($sizeStockMap[$s['id']] ?? 0) > 0,
+            'stock'  => $sizeStockMap[$s['id']] ?? 0,
         ];
     }, $sizes);
 
@@ -226,6 +227,7 @@ function buildProduct(string $id, ?string $lang = null): array
         'details'     => $details ?: null,
         'price'       => (float)$row['price'],
         'currency'    => $row['currency'] ?: 'USD',
+        'size_prefix' => $row['size_prefix'] ?? 'EU',
         'images'       => $images,
         'imageDetails' => $imageDetails,
         'imagesByColor' => $imagesByColor,
@@ -236,6 +238,7 @@ function buildProduct(string $id, ?string $lang = null): array
         'totalStock'  => $totalStock,
         'lowStockThreshold' => isset($row['low_stock_threshold']) ? (int)$row['low_stock_threshold'] : 5,
         'createdAt'   => date('c', strtotime($row['created_at'])),
+        'isFeatured'  => (bool)($row['is_featured'] ?? false),
     ];
 
     return addDisplayPricesToProduct($result);
@@ -250,12 +253,13 @@ function saveProduct(array $product): void
     $lowStockThreshold = isset($product['lowStockThreshold'])
         ? max(0, min(99, (int)$product['lowStockThreshold']))
         : 5;
+    $isFeatured = !empty($product['isFeatured']) ? 1 : 0;
     $stmt = $db->prepare(
-        'INSERT INTO products (id, name, slug, description, price, currency, low_stock_threshold, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        'INSERT INTO products (id, name, slug, description, price, currency, size_prefix, low_stock_threshold, is_featured, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
          ON DUPLICATE KEY UPDATE name = VALUES(name), slug = VALUES(slug),
          description = VALUES(description), price = VALUES(price), currency = VALUES(currency),
-         low_stock_threshold = VALUES(low_stock_threshold)'
+         size_prefix = VALUES(size_prefix), low_stock_threshold = VALUES(low_stock_threshold), is_featured = VALUES(is_featured)'
     );
     $createdAt = $product['createdAt'] ?? date('c');
     $stmt->execute([
@@ -265,7 +269,9 @@ function saveProduct(array $product): void
         $product['description'] ?? '',
         $product['price'],
         $product['currency'] ?? 'USD',
+        $product['size_prefix'] ?? 'EU',
         $lowStockThreshold,
+        $isFeatured,
         date('Y-m-d H:i:s', strtotime($createdAt)),
     ]);
 
@@ -521,7 +527,7 @@ function buildOrder(array $row): array
         'discountTotal'  => (float)$row['discount_total'],
         'total'          => (float)$row['total'],
         'currency'       => $row['currency'] ?: 'USD',
-        'exchange_rate'  => $row['exchange_rate'] ? (float)$row['exchange_rate'] : 1.0,
+        'exchange_rate'  => (float)($row['exchange_rate'] ?? 1.0),
         'status'         => $row['status_code'],
         'paymentMethod'  => $row['payment_method_code'],
         'paymentStatus'  => $row['payment_status_code'],
@@ -1114,6 +1120,20 @@ function getSettings(): array
     }
     unset($kv);
 
+    // JSON-decode nested sub-sections (landing, etc.)
+    $jsonSections = ['landing'];
+    foreach ($jsonSections as $jsSection) {
+        if (isset($settings[$jsSection])) {
+            foreach ($settings[$jsSection] as $subKey => &$subVal) {
+                $decoded = json_decode($subVal, true);
+                if (is_array($decoded)) {
+                    $subVal = $decoded;
+                }
+            }
+            unset($subVal);
+        }
+    }
+
     // Inject bank accounts into transfer.banks
     $banks = getBankAccounts();
     if (!isset($settings['transfer'])) $settings['transfer'] = ['enabled' => true];
@@ -1145,6 +1165,10 @@ function saveSettings(array $input): void
                 // Convert booleans to '1'/'0'
                 if (is_bool($value)) {
                     $value = $value ? '1' : '0';
+                }
+                // JSON-encode nested arrays (e.g. landing sub-sections)
+                if (is_array($value)) {
+                    $value = json_encode($value, JSON_UNESCAPED_UNICODE);
                 }
                 $db->prepare('INSERT INTO settings (section, `key`, `value`) VALUES (?, ?, ?)
                     ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)')

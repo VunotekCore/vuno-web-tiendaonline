@@ -11,15 +11,35 @@
   "nav.lang": "Language",
   "nav.langSwitch": "ES",
 
+  "home.hero.label": "THE STOREFRONT",
   "home.hero.title": "Architectural Minimalism.",
   "home.hero.subtitle": "Discover the new season's structural elegance. Footwear designed not to be worn, but to define space and form.",
   "home.hero.cta": "EXPLORE COLLECTION",
   "home.hero.prev": "Previous",
   "home.hero.next": "Next",
 
+  "home.newArrivals.label": "NEW",
   "home.newArrivals.title": "New Arrivals",
   "home.newArrivals.subtitle": "The latest studies in form and function.",
   "home.newArrivals.viewAll": "View All",
+
+  "home.brandValues.label": "PHILOSOPHY",
+  "home.brandValues.title": "Design that defines space.",
+  "home.brandValues.paragraph": "Every piece is selected for its architectural integrity. Materials, lines, and proportion — nothing is accidental.",
+  "home.brandValues.cta": "LEARN MORE",
+
+  "home.closingCta.label": "RAM;LOP",
+  "home.closingCta.title": "Architectural minimalism in every step.",
+  "home.closingCta.subtitle": "Discover the full collection where structure meets elegance.",
+  "home.closingCta.cta": "EXPLORE COLLECTION",
+
+  "home.social.title": "Follow Us",
+  "home.newsletter.title": "Newsletter",
+  "home.newsletter.subtitle": "Be the first to know about new collections, limited editions, and exclusive events.",
+  "home.newsletter.placeholder": "your@email.com",
+  "home.newsletter.cta": "SUBSCRIBE",
+  "home.testimonials.title": "What Our Clients Say",
+  "home.testimonials.subtitle": "Real stories from women who walk with Ram;Lop.",
 
   "home.trends.label": "Trend Report",
   "home.trends.title": "The Return of Structure.",
@@ -27,6 +47,10 @@
   "home.trends.cta": "SHOP THE TREND",
 
   "home.curated.title": "Curated Selection",
+  "home.curated.label": "COLLECTION",
+
+  "home.categories.label": "WINDOWS",
+  "home.categories.title": "Browse by Collection",
 
   "catalog.breadcrumb.home": "HOME",
   "catalog.breadcrumb.collection": "COLLECTION",
@@ -34,13 +58,15 @@
   "catalog.filter.size": "SIZE",
   "catalog.filter.color": "COLOR",
   "catalog.filter.style": "STYLE",
+  "catalog.filter.title": "FILTERS",
   "catalog.filter.btn": "FILTER",
   "catalog.loadMore": "LOAD MORE",
   "catalog.results": "Results",
   "catalog.quickView": "QUICK VIEW",
 
+  "product.collection": "COLLECTION",
   "product.color": "COLOR",
-  "product.size": "SIZE (IT)",
+  "product.size": "SIZE",
   "product.sizeGuide": "Size Guide",
   "product.addToCart": "ADD TO CART",
   "product.description": "PRODUCT DESCRIPTION",

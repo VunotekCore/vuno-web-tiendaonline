@@ -32,11 +32,13 @@ $product = [
     'details' => $input['details'] ?? $existing['details'],
     'price' => (float)($input['price'] ?? $existing['price']),
     'currency' => $input['currency'] ?? $existing['currency'] ?? 'USD',
+    'size_prefix' => $input['size_prefix'] ?? ($existing['size_prefix'] ?? 'EU'),
     'images' => $images,
     'category' => $input['category'] ?? $existing['category'],
     'colors' => $input['colors'] ?? $existing['colors'],
     'sizes' => $input['sizes'] ?? $existing['sizes'],
     'stocks' => $input['stocks'] ?? [],
+    'isFeatured' => !empty($input['isFeatured']),
     'createdAt' => $existing['createdAt'],
 ];
 

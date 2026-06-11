@@ -11,15 +11,35 @@
   "nav.lang": "Idioma",
   "nav.langSwitch": "EN",
 
+  "home.hero.label": "LA VIDRIERA",
   "home.hero.title": "Minimalismo Arquitectónico.",
   "home.hero.subtitle": "Descubre la elegancia estructural de la nueva temporada. Calzado diseñado no solo para usarse, sino para definir el espacio y la forma.",
   "home.hero.cta": "EXPLORAR COLECCIÓN",
   "home.hero.prev": "Anterior",
   "home.hero.next": "Siguiente",
 
+  "home.newArrivals.label": "NUEVOS",
   "home.newArrivals.title": "Nuevos Lanzamientos",
   "home.newArrivals.subtitle": "Los últimos estudios en forma y función.",
   "home.newArrivals.viewAll": "Ver Todo",
+
+  "home.brandValues.label": "FILOSOFÍA",
+  "home.brandValues.title": "Diseño que define el espacio.",
+  "home.brandValues.paragraph": "Cada pieza es seleccionada por su integridad arquitectónica. Materiales, líneas y proporción — nada es accidental.",
+  "home.brandValues.cta": "CONOCER MÁS",
+
+  "home.closingCta.label": "RAM;LOP",
+  "home.closingCta.title": "El minimalismo arquitectónico en cada paso.",
+  "home.closingCta.subtitle": "Descubrí la colección completa donde la estructura se encuentra con la elegancia.",
+  "home.closingCta.cta": "EXPLORAR COLECCIÓN",
+
+  "home.social.title": "Seguinos en Redes",
+  "home.newsletter.title": "Boletín",
+  "home.newsletter.subtitle": "Sé la primera en enterarte de nuevas colecciones, ediciones limitadas y eventos exclusivos.",
+  "home.newsletter.placeholder": "tu@email.com",
+  "home.newsletter.cta": "SUSCRIBIRME",
+  "home.testimonials.title": "Lo Que Dicen Nuestras Clientes",
+  "home.testimonials.subtitle": "Historias reales de mujeres que caminan con Ram;Lop.",
 
   "home.trends.label": "Reporte de Tendencias",
   "home.trends.title": "El Retorno de la Estructura.",
@@ -27,6 +47,10 @@
   "home.trends.cta": "COMPRAR LA TENDENCIA",
 
   "home.curated.title": "Selección Curada",
+  "home.curated.label": "COLECCIÓN",
+
+  "home.categories.label": "VITRINES",
+  "home.categories.title": "Navegar por Colección",
 
   "catalog.breadcrumb.home": "INICIO",
   "catalog.breadcrumb.collection": "COLECCIÓN",
@@ -34,13 +58,15 @@
   "catalog.filter.size": "TALLA",
   "catalog.filter.color": "COLOR",
   "catalog.filter.style": "ESTILO",
+  "catalog.filter.title": "FILTROS",
   "catalog.filter.btn": "FILTRAR",
   "catalog.loadMore": "CARGAR MÁS PRODUCTOS",
   "catalog.results": "Resultados",
   "catalog.quickView": "VISTA RÁPIDA",
 
+  "product.collection": "COLECCIÓN",
   "product.color": "COLOR",
-  "product.size": "TALLA (IT)",
+  "product.size": "TALLA",
   "product.sizeGuide": "Guía de tallas",
   "product.addToCart": "AÑADIR AL CARRITO",
   "product.description": "DESCRIPCIÓN DEL PRODUCTO",
