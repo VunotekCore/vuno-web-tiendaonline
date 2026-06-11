@@ -12,6 +12,10 @@ import AdminLayout from "./_layout.astro";
       <p class="font-body text-body-md text-secondary whitespace-nowrap" id="templateCount">0 plantillas</p>
     </div>
     <div class="flex gap-2">
+      <button id="reseedBtn" class="border border-outline-variant text-secondary font-label-caps text-label-caps h-10 px-4 inline-flex items-center justify-center gap-1.5 rounded-md hover:border-monolith-black hover:text-monolith-black transition-all duration-200 shrink-0">
+        <span class="material-symbols-outlined text-lg" id="reseedIcon">refresh</span>
+        RESEED
+      </button>
       <a href="/admin/email-templates/nuevo" class="bg-monolith-black text-off-white font-label-caps text-label-caps h-10 px-5 inline-flex items-center justify-center gap-1.5 rounded-md hover:bg-monolith-black/90 hover:shadow-sm transition-all duration-200 shrink-0">
         <span class="material-symbols-outlined text-lg">add</span>
         NUEVA PLANTILLA
@@ -247,6 +251,28 @@ import AdminLayout from "./_layout.astro";
     });
 
     document.getElementById("deleteIcon").dataset.origIcon = "delete";
+
+    // Reseed from files
+    document.getElementById("reseedBtn").addEventListener("click", async () => {
+      const btn = document.getElementById("reseedBtn");
+      const icon = document.getElementById("reseedIcon");
+      btn.disabled = true;
+      icon.textContent = "progress_activity";
+      icon.classList.add("animate-spin");
+      try {
+        const res = await fetch("/api/email-templates/seed.php", { method: "POST" });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+        window.VunoModal.alert({ type: "success", title: "Reseed completado", message: data.seeded + " nuevas, " + data.updated + " actualizadas" + (data.errors.length ? ". Errores: " + data.errors.join(", ") : "") });
+        loadTemplates(1);
+      } catch (err) {
+        window.VunoModal.alert({ type: "error", title: "Error al reseed", message: err.message });
+      }
+      btn.disabled = false;
+      icon.textContent = "refresh";
+      icon.classList.remove("animate-spin");
+    });
+
     loadTemplates(1);
   </script>
 </AdminLayout>

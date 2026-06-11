@@ -169,9 +169,12 @@ function renderOrderItemsHtml(array $items, string $currencySymbol = '$'): strin
 /**
  * Send an email using a template file.
  */
-function sendTemplatedEmail(string $templateCode, string $to, array $vars, ?string $fromEmail = null): array
+function sendTemplatedEmail(string $templateCode, string $to, array $vars, ?string $fromEmail = null, ?string $subjectOverride = null): array
 {
     $template = renderTemplate($templateCode, $vars);
+    if ($subjectOverride !== null && $subjectOverride !== '') {
+        $template['subject'] = $subjectOverride;
+    }
 
     $host = env('SMTP_HOST');
     $user = env('SMTP_USER');

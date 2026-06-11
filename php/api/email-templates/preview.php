@@ -40,6 +40,11 @@ $testVars = [
     'admin_order_url'   => 'http://localhost:4321/admin/pedidos/detalle?id=1',
     'preheader'         => 'Vista previa de plantilla',
     'transfer_details_block' => '',
+    'subscriber_name'        => 'María García',
+    'unsubscribe_url'        => 'http://localhost:4321/api/email/unsubscribe.php?email=maria@example.com',
+    'title'                  => 'New Collection: Artisan Summer',
+    'message'                => 'Discover our latest handcrafted collection, made with love by artisans.',
+    'content_block'          => '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 24px"><tr><td style="background:#f5f3f0;padding:20px;border-radius:2px"><p style="margin:0;font-size:15px;color:#1a1a1a">This is a sample content block for preview purposes.</p></td></tr></table>',
 ];
 
 try {
