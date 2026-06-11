@@ -28,7 +28,7 @@ const ctaLink = data?.cta_category_slug
 const imageUrl = data?.image_url || "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=700&h=900&fit=crop";
 ---
 
-<section class="relative py-section-gap px-margin-mobile md:px-margin-desktop overflow-hidden">
+<section class="relative py-section-gap px-margin-mobile md:px-margin-desktop overflow-hidden" data-section="brand_values">
       <div class="max-w-container-max mx-auto flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
         <div class="w-full lg:w-1/2 relative reveal">
           <div class="aspect-[4/5] bg-surface-container overflow-hidden relative">
@@ -46,17 +46,18 @@ const imageUrl = data?.image_url || "https://images.unsplash.com/photo-154929891
         </div>
 
         <div class="w-full lg:w-1/2 flex flex-col items-start reveal reveal-delay-2">
-          <span class="font-label-caps text-label-caps text-clay-accent tracking-[0.15em] mb-4">{label}</span>
+          <span class="font-label-caps text-label-caps text-clay-accent tracking-[0.15em] mb-4" data-field="label">{label}</span>
           <span class="arch-line arch-line-clay mb-6"></span>
-          <h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-monolith-black leading-tight">
+          <h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-monolith-black leading-tight" data-field="title">
             {title}
           </h2>
-          <p class="font-body-lg text-body-lg text-secondary max-w-md mt-4">
+          <p class="font-body-lg text-body-lg text-secondary max-w-md mt-4" data-field="paragraph">
             {paragraph}
           </p>
           <a
             href={ctaLink}
             class="inline-flex items-center justify-center bg-monolith-black text-off-white font-label-caps text-label-caps h-12 px-8 mt-8 hover:bg-surface-tint hover:tracking-[0.15em] transition-all duration-300"
+            data-field="cta"
           >
             {cta}
           </a>

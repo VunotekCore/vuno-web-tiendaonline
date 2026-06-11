@@ -84,4 +84,31 @@ const alternateUrls = {
       document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
     })();
   </script>
+
+  <script>
+    (function () {
+      var lang = window.location.pathname.startsWith("/en/") ? "en" : "es";
+      fetch("/api/configuracion/public.php")
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          var landing = data.landing || {};
+          Object.keys(landing).forEach(function (sectionKey) {
+            var sectionData = landing[sectionKey];
+            if (!sectionData) return;
+            var sectionEl = document.querySelector('[data-section="' + sectionKey + '"]');
+            if (!sectionEl) return;
+
+            // Update text fields
+            sectionEl.querySelectorAll("[data-field]").forEach(function (el) {
+              var field = el.getAttribute("data-field");
+              if (!field) return;
+              var value = sectionData[field + "_" + lang];
+              if (!value) value = sectionData[field];
+              if (value) el.textContent = value;
+            });
+          });
+        })
+        .catch(function () {});
+    })();
+  </script>
 </BaseLayout>

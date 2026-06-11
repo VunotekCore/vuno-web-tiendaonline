@@ -28,12 +28,12 @@ const ctaLink = data?.cta_category_slug
   : (data?.cta_link || `/${lang}/catalogo`);
 ---
 
-<section class="py-section-gap px-margin-mobile md:px-margin-desktop">
+<section class="py-section-gap px-margin-mobile md:px-margin-desktop" data-section="categories">
   <div class="max-w-container-max mx-auto">
   <div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-4">
     <div>
-      <span class="font-label-caps text-label-caps text-clay-accent tracking-[0.15em]">{label}</span>
-      <h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-monolith-black leading-tight mt-2">
+      <span class="font-label-caps text-label-caps text-clay-accent tracking-[0.15em]" data-field="label">{label}</span>
+      <h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-monolith-black leading-tight mt-2" data-field="title">
         {title}
       </h2>
     </div>

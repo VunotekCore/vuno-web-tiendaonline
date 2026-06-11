@@ -21,14 +21,14 @@ const subtitle = data?.subtitle_es && data?.subtitle_en
 const testimonials = data?.items || [];
 ---
 
-<section class="py-section-gap px-margin-mobile md:px-margin-desktop bg-background">
+<section class="py-section-gap px-margin-mobile md:px-margin-desktop bg-background" data-section="testimonials">
   <div class="max-w-container-max mx-auto">
     <AnimatedReveal>
       <div class="text-center mb-12">
-        <h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-monolith-black leading-tight">
+        <h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-monolith-black leading-tight" data-field="title">
           {title}
         </h2>
-        <p class="font-body-lg text-body-lg text-secondary max-w-lg mx-auto mt-3">
+        <p class="font-body-lg text-body-lg text-secondary max-w-lg mx-auto mt-3" data-field="subtitle">
           {subtitle}
         </p>
       </div>

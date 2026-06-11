@@ -19,6 +19,16 @@ const tabs = [
 
   <div id="settingsContent" class="hidden">
     <!-- Tabs -->
+    <!-- Group selector -->
+    <div class="mb-4 max-w-xs">
+      <select id="tabGroupSelect" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none">
+        <option value="general">General</option>
+        <option value="pagos">Pagos</option>
+        <option value="servicios">Servicios</option>
+        <option value="contenido">Contenido</option>
+      </select>
+    </div>
+
     <div class="border-b border-outline-variant mb-8 overflow-x-auto">
       <div class="flex gap-1 min-w-max">
         {tabs.map(t => (
@@ -58,9 +68,48 @@ const tabs = [
             <textarea id="store-description" maxlength="1000" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-clay-accent focus:outline-none resize-none h-24"></textarea>
           </div>
           <div class="md:col-span-2">
-            <label class="font-label-caps text-label-caps text-secondary block mb-2">URL DEL LOGOTIPO</label>
-            <input type="text" id="store-logo" maxlength="500" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none" placeholder="https://..." />
-            <p class="font-body text-body-md text-xs text-secondary mt-1">URL pública de la imagen del logotipo</p>
+            <label class="font-label-caps text-label-caps text-secondary block mb-2">LOGOTIPO</label>
+
+            <!-- Upload zone (shown when no logo) -->
+            <div id="logo-upload-zone" class="border-2 border-dashed border-outline-variant hover:border-clay-accent rounded-sm p-8 text-center cursor-pointer transition-colors">
+              <input type="file" id="logo-file-input" accept="image/png,image/jpeg,image/webp,image/svg+xml" class="hidden" />
+              <span class="material-symbols-outlined text-3xl text-secondary block mb-2">upload</span>
+              <p class="font-body text-body-md text-secondary mb-1">Arrastrá el logotipo o <span class="text-clay-accent underline">seleccioná un archivo</span></p>
+              <p class="font-body text-body-md text-xs text-secondary">PNG, JPG, WEBP o SVG — Máx 1 MB — 800 × 400 px máx</p>
+            </div>
+
+            <!-- Preview area (shown when logo exists) -->
+            <div id="logo-preview-area" class="hidden">
+              <div class="border border-outline-variant rounded-sm p-4 bg-white flex items-center gap-6">
+                <div class="w-48 h-16 flex items-center justify-center bg-sand-nude/30 rounded-sm overflow-hidden">
+                  <img id="logo-preview-img" class="max-w-full max-h-full object-contain" alt="Logotipo actual" />
+                </div>
+                <div class="flex flex-col gap-2">
+                  <button type="button" id="logo-replace-btn" class="font-label-caps text-label-caps text-clay-accent hover:text-monolith-black transition-colors inline-flex items-center gap-1.5 cursor-pointer">
+                    <span class="material-symbols-outlined text-lg">refresh</span>
+                    REEMPLAZAR
+                  </button>
+                  <button type="button" id="logo-remove-btn" class="font-label-caps text-label-caps text-error hover:text-red-700 transition-colors inline-flex items-center gap-1.5 cursor-pointer">
+                    <span class="material-symbols-outlined text-lg">delete</span>
+                    ELIMINAR
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Hidden input for logo URL (preserves fieldMap compatibility) -->
+            <input type="hidden" id="store-logo" />
+
+            <!-- Upload progress -->
+            <div id="logo-upload-progress" class="hidden mt-2">
+              <div class="w-full bg-outline-variant rounded-full h-1.5">
+                <div id="logo-progress-bar" class="bg-monolith-black h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+              </div>
+              <p id="logo-progress-text" class="font-body text-body-md text-xs text-secondary mt-1">Subiendo...</p>
+            </div>
+
+            <!-- Error message -->
+            <p id="logo-error" class="hidden font-body text-body-md text-xs text-error mt-1"></p>
           </div>
           <div class="md:col-span-2">
             <label class="font-label-caps text-label-caps text-secondary block mb-2">CUPÓN DE BIENVENIDA NEWSLETTER</label>
@@ -157,7 +206,7 @@ const tabs = [
           </div>
           <div>
             <label class="font-label-caps text-label-caps text-secondary block mb-2">PRIVATE KEY</label>
-            <input type="password" id="imagekit-privateKey" maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm" />
+            <input type="password" id="imagekit-privateKey" autocomplete="new-password" maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm" />
           </div>
           <div>
             <label class="font-label-caps text-label-caps text-secondary block mb-2">URL ENDPOINT</label>
@@ -193,11 +242,11 @@ const tabs = [
           </div>
           <div>
             <label class="font-label-caps text-label-caps text-secondary block mb-2">SECRET KEY</label>
-            <input type="password" id="stripe-secretKey" maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm" placeholder="sk_live_..." />
+            <input type="password" id="stripe-secretKey" autocomplete="new-password" maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm" placeholder="sk_live_..." />
           </div>
           <div>
             <label class="font-label-caps text-label-caps text-secondary block mb-2">WEBHOOK SECRET</label>
-            <input type="password" id="stripe-webhookSecret" maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm" placeholder="whsec_..." />
+            <input type="password" id="stripe-webhookSecret" autocomplete="new-password" maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm" placeholder="whsec_..." />
           </div>
         </div>
       </div>
@@ -293,7 +342,7 @@ const tabs = [
           </div>
           <div>
             <label class="font-label-caps text-label-caps text-secondary block mb-2">SMTP PASSWORD</label>
-            <input type="password" id="smtp-pass" maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm" />
+            <input type="password" id="smtp-pass" autocomplete="new-password" maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm" />
           </div>
           <div>
             <label class="font-label-caps text-label-caps text-secondary block mb-2">FROM EMAIL</label>
@@ -479,6 +528,15 @@ const tabs = [
       transfer: { bool: ["enabled"] },
       size_guide: ["title_es", "title_en", "footer_es", "footer_en"],
     };
+
+    const tabGroups = [
+      { id: "general", label: "General", tabs: ["store", "receipt", "sizeguide", "moneda"] },
+      { id: "pagos", label: "Pagos", tabs: ["stripe", "transfer"] },
+      { id: "servicios", label: "Servicios", tabs: ["imagekit", "smtp"] },
+      { id: "contenido", label: "Contenido", tabs: ["landing"] },
+    ];
+
+    let currentGroup = "general";
 
     const bankFields = ["bankName", "accountHolder", "accountNumber", "accountType", "routingNumber", "instructions"];
 
@@ -721,7 +779,7 @@ const tabs = [
             <label class="font-label-caps text-label-caps text-secondary block mb-2">${landingFieldLabels[f]}</label>
             ${isTextarea
               ? `<textarea id="landing-${sectionKey}-${f}" maxlength="500" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-clay-accent focus:outline-none resize-none h-20">${(data[f] || '')}</textarea>`
-              : `<input type="text" id="landing-${sectionKey}-${f}" maxlength="${f.includes('title') ? '200' : '100'}" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none" value="${escapeHtml(data[f] || '')}" />`
+              : `<input type="text" id="landing-${sectionKey}-${f}" autocomplete="off" maxlength="${f.includes('title') ? '200' : '100'}" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none" value="${escapeHtml(data[f] || '')}" />`
             }
           </div>`;
         }
@@ -735,7 +793,7 @@ const tabs = [
             <label class="font-label-caps text-label-caps text-secondary block mb-2">${landingFieldLabels[f]}</label>
             ${isTextarea
               ? `<textarea id="landing-${sectionKey}-${f}" maxlength="500" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-clay-accent focus:outline-none resize-none h-20">${(data[f] || '')}</textarea>`
-              : `<input type="text" id="landing-${sectionKey}-${f}" maxlength="${f.includes('title') ? '200' : '100'}" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none" value="${escapeHtml(data[f] || '')}" />`
+              : `<input type="text" id="landing-${sectionKey}-${f}" autocomplete="off" maxlength="${f.includes('title') ? '200' : '100'}" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none" value="${escapeHtml(data[f] || '')}" />`
             }
           </div>`;
         }
@@ -768,12 +826,56 @@ const tabs = [
               AGREGAR TESTIMONIO
             </button>
           </div>`;
+        } else if (ext === 'image_url') {
+          var imgUrl = data['image_url'] || '';
+          html += '<div class="md:col-span-2">';
+          html += '<label class="font-label-caps text-label-caps text-secondary block mb-2">' + landingFieldLabels[ext] + '</label>';
+
+          // Upload zone
+          html += '<div id="landing-' + sectionKey + '-image-zone" class="border-2 border-dashed border-outline-variant hover:border-clay-accent rounded-sm p-6 text-center cursor-pointer transition-colors' + (imgUrl ? ' hidden' : '') + '">';
+          html += '<input type="file" id="landing-' + sectionKey + '-image-input" accept="image/png,image/jpeg,image/webp" class="hidden" />';
+          html += '<span class="material-symbols-outlined text-2xl text-secondary block mb-1">upload</span>';
+          html += '<p class="font-body text-body-md text-secondary mb-1">Arrastrá la imagen o <span class="text-clay-accent underline">seleccioná un archivo</span></p>';
+          html += '<p class="font-body text-body-md text-xs text-secondary">PNG, JPG o WEBP — Máx 5 MB</p>';
+          html += '</div>';
+
+          // Preview area
+          html += '<div id="landing-' + sectionKey + '-image-preview" class="border border-outline-variant rounded-sm p-3 bg-white flex items-center gap-4' + (imgUrl ? '' : ' hidden') + '">';
+          html += '<div class="w-24 h-24 flex items-center justify-center bg-sand-nude/30 rounded-sm overflow-hidden flex-shrink-0">';
+          html += '<img id="landing-' + sectionKey + '-image-preview-img" class="max-w-full max-h-full object-contain" src="' + escapeHtml(imgUrl) + '" alt="" />';
+          html += '</div>';
+          html += '<div class="flex flex-col gap-1.5">';
+          html += '<button type="button" class="landing-image-replace-btn font-label-caps text-label-caps text-clay-accent hover:text-monolith-black transition-colors inline-flex items-center gap-1 cursor-pointer" data-section="' + sectionKey + '">';
+          html += '<span class="material-symbols-outlined text-lg">refresh</span> REEMPLAZAR';
+          html += '</button>';
+          html += '<button type="button" class="landing-image-remove-btn font-label-caps text-label-caps text-error hover:text-red-700 transition-colors inline-flex items-center gap-1 cursor-pointer" data-section="' + sectionKey + '">';
+          html += '<span class="material-symbols-outlined text-lg">delete</span> ELIMINAR';
+          html += '</button>';
+          html += '</div></div>';
+
+          // Hidden input
+          html += '<input type="hidden" id="landing-' + sectionKey + '-image_url" value="' + escapeHtml(imgUrl) + '" />';
+
+          // Progress
+          html += '<div id="landing-' + sectionKey + '-image-progress" class="hidden mt-2">';
+          html += '<div class="w-full bg-outline-variant rounded-full h-1">';
+          html += '<div id="landing-' + sectionKey + '-image-progress-bar" class="bg-monolith-black h-1 rounded-full transition-all duration-300" style="width: 0%"></div>';
+          html += '</div>';
+          html += '<p id="landing-' + sectionKey + '-image-progress-text" class="font-body text-body-md text-xs text-secondary mt-1">Subiendo...</p>';
+          html += '</div>';
+
+          // Error + helper
+          html += '<p id="landing-' + sectionKey + '-image-error" class="hidden font-body text-body-md text-xs text-error mt-1"></p>';
+          if (landingFieldHelpers[ext]) {
+            html += '<p class="font-body text-body-md text-xs text-secondary mt-1">' + landingFieldHelpers[ext] + '</p>';
+          }
+          html += '</div>';
         } else {
-          html += `<div class="md:col-span-2">
-            <label class="font-label-caps text-label-caps text-secondary block mb-2">${landingFieldLabels[ext]}</label>
-            <input type="text" id="landing-${sectionKey}-${ext}" maxlength="500" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none" placeholder="${landingFieldPlaceholders[ext] || ''}" value="${escapeHtml(data[ext] || '')}" />
-            ${landingFieldHelpers[ext] ? `<p class="font-body text-body-md text-xs text-secondary mt-1">${landingFieldHelpers[ext]}</p>` : ''}
-          </div>`;
+          html += '<div class="md:col-span-2">' +
+            '<label class="font-label-caps text-label-caps text-secondary block mb-2">' + landingFieldLabels[ext] + '</label>' +
+            '<input type="text" id="landing-' + sectionKey + '-' + ext + '" autocomplete="off" maxlength="500" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none" placeholder="' + (landingFieldPlaceholders[ext] || '') + '" value="' + escapeHtml(data[ext] || '') + '" />' +
+            (landingFieldHelpers[ext] ? '<p class="font-body text-body-md text-xs text-secondary mt-1">' + landingFieldHelpers[ext] + '</p>' : '') +
+            '</div>';
         }
       }
 
@@ -788,6 +890,11 @@ const tabs = [
       // Load testimonial items
       if (section.extras.includes('testimonial_items')) {
         loadTestimonialItems(data.items || []);
+      }
+
+      // Initialize image upload for sections with image_url
+      if (section.extras.includes('image_url')) {
+        initLandingImageUpload(sectionKey);
       }
 
       // Attach change listeners to all new fields
@@ -921,6 +1028,16 @@ const tabs = [
     function collectLandingSettings() {
       const collected = {};
       for (const [key, section] of Object.entries(landingSections)) {
+        // Check if this section has been rendered by looking for its first field
+        const firstField = section.fields[0] + '_es';
+        const hasDom = document.getElementById(`landing-${key}-${firstField}`) !== null;
+
+        if (!hasDom) {
+          // Section not rendered — preserve existing data instead of overwriting with {}
+          collected[key] = window.__landingData?.[key] || {};
+          continue;
+        }
+
         collected[key] = {};
         const allFields = [
           ...section.fields.map(f => f + '_es'),
@@ -945,6 +1062,317 @@ const tabs = [
       return collected;
     }
 
+    // ── Logo Uploader ──────────────────────────────────────────────────────
+    const LOGO_MAX_SIZE = 1 * 1024 * 1024;
+    const LOGO_MAX_W = 800;
+    const LOGO_MAX_H = 400;
+    const LOGO_MIN_W = 100;
+    const LOGO_MIN_H = 50;
+    const LOGO_ALLOWED_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'];
+
+    function showLogoPreview(url) {
+      const zone = document.getElementById('logo-upload-zone');
+      const preview = document.getElementById('logo-preview-area');
+      const img = document.getElementById('logo-preview-img');
+      const hidden = document.getElementById('store-logo');
+      if (!zone || !preview || !img || !hidden) return;
+
+      if (url) {
+        zone.classList.add('hidden');
+        preview.classList.remove('hidden');
+        img.src = url;
+        hidden.value = url;
+      } else {
+        zone.classList.remove('hidden');
+        preview.classList.add('hidden');
+        img.src = '';
+        hidden.value = '';
+      }
+    }
+
+    function setLogoError(msg) {
+      const el = document.getElementById('logo-error');
+      if (!el) return;
+      if (msg) {
+        el.textContent = msg;
+        el.classList.remove('hidden');
+      } else {
+        el.classList.add('hidden');
+        el.textContent = '';
+      }
+    }
+
+    function setLogoProgress(pct, text) {
+      const container = document.getElementById('logo-upload-progress');
+      const bar = document.getElementById('logo-progress-bar');
+      const label = document.getElementById('logo-progress-text');
+      if (!container || !bar || !label) return;
+      if (pct < 0) {
+        container.classList.add('hidden');
+        return;
+      }
+      container.classList.remove('hidden');
+      bar.style.width = Math.min(100, Math.max(0, pct)) + '%';
+      label.textContent = text || 'Subiendo...';
+    }
+
+    function validateLogoFile(file) {
+      if (!file) return 'No se seleccionó ningún archivo';
+      if (!LOGO_ALLOWED_TYPES.includes(file.type)) {
+        return 'Formato no válido. Usá PNG, JPG, WEBP o SVG.';
+      }
+      if (file.size > LOGO_MAX_SIZE) {
+        const mb = (file.size / (1024 * 1024)).toFixed(1);
+        return 'El archivo pesa ' + mb + ' MB. El máximo es 1 MB.';
+      }
+      return null;
+    }
+
+    function validateLogoDimensions(file) {
+      return new Promise(function (resolve) {
+        if (file.type === 'image/svg+xml') {
+          resolve(null);
+          return;
+        }
+        var img = new Image();
+        var url = URL.createObjectURL(file);
+        img.onload = function () {
+          URL.revokeObjectURL(url);
+          if (img.naturalWidth > LOGO_MAX_W || img.naturalHeight > LOGO_MAX_H) {
+            resolve('Dimensiones: ' + img.naturalWidth + '×' + img.naturalHeight + ' px. Máximo: ' + LOGO_MAX_W + '×' + LOGO_MAX_H + ' px.');
+          } else if (img.naturalWidth < LOGO_MIN_W || img.naturalHeight < LOGO_MIN_H) {
+            resolve('Dimensiones: ' + img.naturalWidth + '×' + img.naturalHeight + ' px. Mínimo: ' + LOGO_MIN_W + '×' + LOGO_MIN_H + ' px.');
+          } else {
+            resolve(null);
+          }
+        };
+        img.onerror = function () {
+          URL.revokeObjectURL(url);
+          resolve('No se pudo leer la imagen.');
+        };
+        img.src = url;
+      });
+    }
+
+    async function uploadLogo(file) {
+      var formData = new FormData();
+      formData.append('file', file);
+      formData.append('folder', 'logos');
+
+      setLogoProgress(10, 'Subiendo a ImageKit...');
+
+      var res = await fetch('/api/imagekit/upload.php', {
+        method: 'POST',
+        body: formData,
+      });
+
+      setLogoProgress(80, 'Procesando...');
+
+      var data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Error al subir la imagen');
+      }
+
+      if (!data.url) {
+        throw new Error('La respuesta de ImageKit no incluye URL');
+      }
+
+      setLogoProgress(100, '¡Listo!');
+      return data.url;
+    }
+
+    async function handleLogoFile(file) {
+      setLogoError(null);
+      setLogoProgress(-1);
+
+      var basicErr = validateLogoFile(file);
+      if (basicErr) {
+        setLogoError(basicErr);
+        return;
+      }
+
+      setLogoProgress(5, 'Validando dimensiones...');
+      var dimErr = await validateLogoDimensions(file);
+      if (dimErr) {
+        setLogoError(dimErr);
+        setLogoProgress(-1);
+        return;
+      }
+
+      try {
+        var url = await uploadLogo(file);
+        await new Promise(function (r) { return setTimeout(r, 300); });
+        showLogoPreview(url);
+        markDirty('store');
+      } catch (err) {
+        setLogoError(err.message);
+      } finally {
+        setLogoProgress(-1);
+      }
+    }
+
+    function initLogoUploader() {
+      var zone = document.getElementById('logo-upload-zone');
+      var fileInput = document.getElementById('logo-file-input');
+      var replaceBtn = document.getElementById('logo-replace-btn');
+      var removeBtn = document.getElementById('logo-remove-btn');
+
+      if (!zone || !fileInput) return;
+
+      zone.addEventListener('click', function () { fileInput.click(); });
+
+      zone.addEventListener('dragover', function (e) {
+        e.preventDefault();
+        zone.classList.add('border-clay-accent', 'bg-clay-accent/5');
+      });
+      zone.addEventListener('dragleave', function () {
+        zone.classList.remove('border-clay-accent', 'bg-clay-accent/5');
+      });
+      zone.addEventListener('drop', function (e) {
+        e.preventDefault();
+        zone.classList.remove('border-clay-accent', 'bg-clay-accent/5');
+        var files = e.dataTransfer.files;
+        if (files.length > 0) handleLogoFile(files[0]);
+      });
+
+      fileInput.addEventListener('change', function () {
+        if (fileInput.files.length > 0) {
+          handleLogoFile(fileInput.files[0]);
+        }
+        fileInput.value = '';
+      });
+
+      if (replaceBtn) {
+        replaceBtn.addEventListener('click', function () { fileInput.click(); });
+      }
+
+      if (removeBtn) {
+        removeBtn.addEventListener('click', function () {
+          showLogoPreview(null);
+          markDirty('store');
+        });
+      }
+    }
+
+    // ── Landing Image Uploader (Brand Values) ──────────────────────────────
+    const BRAND_IMAGE_MAX_SIZE = 5 * 1024 * 1024;
+    const BRAND_IMAGE_ALLOWED_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
+
+    function initLandingImageUpload(sectionKey) {
+      var zone = document.getElementById('landing-' + sectionKey + '-image-zone');
+      var fileInput = document.getElementById('landing-' + sectionKey + '-image-input');
+      if (!zone || !fileInput) return;
+
+      function setError(msg) {
+        var el = document.getElementById('landing-' + sectionKey + '-image-error');
+        if (!el) return;
+        if (msg) { el.textContent = msg; el.classList.remove('hidden'); }
+        else { el.classList.add('hidden'); el.textContent = ''; }
+      }
+
+      function setProgress(pct, text) {
+        var container = document.getElementById('landing-' + sectionKey + '-image-progress');
+        var bar = document.getElementById('landing-' + sectionKey + '-image-progress-bar');
+        var label = document.getElementById('landing-' + sectionKey + '-image-progress-text');
+        if (!container || !bar || !label) return;
+        if (pct < 0) { container.classList.add('hidden'); return; }
+        container.classList.remove('hidden');
+        bar.style.width = Math.min(100, Math.max(0, pct)) + '%';
+        label.textContent = text || 'Subiendo...';
+      }
+
+      function showPreview(url) {
+        var zoneEl = document.getElementById('landing-' + sectionKey + '-image-zone');
+        var previewEl = document.getElementById('landing-' + sectionKey + '-image-preview');
+        var imgEl = document.getElementById('landing-' + sectionKey + '-image-preview-img');
+        var hiddenEl = document.getElementById('landing-' + sectionKey + '-image_url');
+        if (!zoneEl || !previewEl || !imgEl || !hiddenEl) return;
+        if (url) {
+          zoneEl.classList.add('hidden');
+          previewEl.classList.remove('hidden');
+          imgEl.src = url;
+          hiddenEl.value = url;
+        } else {
+          zoneEl.classList.remove('hidden');
+          previewEl.classList.add('hidden');
+          imgEl.src = '';
+          hiddenEl.value = '';
+        }
+      }
+
+      async function handleFile(file) {
+        setError(null);
+        setProgress(-1);
+
+        if (!file) { setError('No se seleccion\u00f3 ning\u00fan archivo'); return; }
+        if (!BRAND_IMAGE_ALLOWED_TYPES.includes(file.type)) {
+          setError('Formato no v\u00e1lido. Us\u00e1 PNG, JPG o WEBP.'); return;
+        }
+        if (file.size > BRAND_IMAGE_MAX_SIZE) {
+          setError('El archivo pesa ' + (file.size / (1024 * 1024)).toFixed(1) + ' MB. El m\u00e1ximo es 5 MB.'); return;
+        }
+
+        setProgress(5, 'Validando...');
+
+        try {
+          var fd = new FormData();
+          fd.append('file', file);
+          fd.append('folder', 'brand-values');
+
+          setProgress(10, 'Subiendo a ImageKit...');
+          var res = await fetch('/api/imagekit/upload.php', { method: 'POST', body: fd });
+          setProgress(80, 'Procesando...');
+          var data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Error al subir la imagen');
+          if (!data.url) throw new Error('La respuesta de ImageKit no incluye URL');
+
+          setProgress(100, '\u00a1Listo!');
+          await new Promise(function (r) { return setTimeout(r, 300); });
+          showPreview(data.url);
+          markDirty('landing');
+        } catch (err) {
+          setError(err.message);
+        } finally {
+          setProgress(-1);
+        }
+      }
+
+      // Click upload zone
+      zone.addEventListener('click', function () { fileInput.click(); });
+
+      // Drag & drop
+      zone.addEventListener('dragover', function (e) {
+        e.preventDefault();
+        zone.classList.add('border-clay-accent', 'bg-clay-accent/5');
+      });
+      zone.addEventListener('dragleave', function () {
+        zone.classList.remove('border-clay-accent', 'bg-clay-accent/5');
+      });
+      zone.addEventListener('drop', function (e) {
+        e.preventDefault();
+        zone.classList.remove('border-clay-accent', 'bg-clay-accent/5');
+        if (e.dataTransfer.files.length > 0) handleFile(e.dataTransfer.files[0]);
+      });
+
+      // File input change
+      fileInput.addEventListener('change', function () {
+        if (fileInput.files.length > 0) handleFile(fileInput.files[0]);
+        fileInput.value = '';
+      });
+
+      // Replace & Remove buttons (query each time since elements are dynamic)
+      document.querySelectorAll('.landing-image-replace-btn[data-section="' + sectionKey + '"]').forEach(function (btn) {
+        btn.addEventListener('click', function () { fileInput.click(); });
+      });
+      document.querySelectorAll('.landing-image-remove-btn[data-section="' + sectionKey + '"]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          showPreview(null);
+          markDirty('landing');
+        });
+      });
+    }
+
     function escapeHtml(str) {
       if (!str) return '';
       return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -967,6 +1395,25 @@ const tabs = [
       }
     }
 
+    // --- Tab groups ---
+    function filterTabsByGroup(groupId) {
+      const group = tabGroups.find(g => g.id === groupId);
+      if (!group) return;
+      currentGroup = groupId;
+      document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.classList.toggle("hidden", !group.tabs.includes(btn.dataset.tab));
+      });
+      var activeTab = document.querySelector(".tab-btn.text-monolith-black");
+      if (!activeTab || !group.tabs.includes(activeTab.dataset.tab)) {
+        var firstBtn = document.querySelector(".tab-btn:not(.hidden)");
+        if (firstBtn) firstBtn.click();
+      }
+    }
+
+    document.getElementById("tabGroupSelect")?.addEventListener("change", function () {
+      filterTabsByGroup(this.value);
+    });
+
     // --- Tab switching ---
     document.querySelectorAll(".tab-btn").forEach(btn => {
       btn.addEventListener("click", () => {
@@ -982,7 +1429,8 @@ const tabs = [
       });
     });
 
-    document.querySelector(".tab-btn")?.click();
+    filterTabsByGroup("general");
+    document.querySelector(".tab-btn:not(.hidden)")?.click();
 
     function loadCouponSelect() {
       const sel = document.getElementById("store-newsletter_discount_code");
@@ -1009,6 +1457,7 @@ const tabs = [
         const res = await fetch("/api/configuracion/get.php");
         const settings = await res.json();
         loadSettings(settings);
+        showLogoPreview(settings?.store?.logo ?? '');
         // Attach change listeners to all static sections
         for (const section of Object.keys(fieldMap)) {
           attachFieldListeners(section);
@@ -1021,6 +1470,9 @@ const tabs = [
         document.getElementById("loading").textContent = "Error loading settings: " + err.message;
       }
     })();
+
+    // Initialize logo uploader event handlers
+    initLogoUploader();
 
     // --- Add Bank ---
     document.getElementById("addBankBtn").addEventListener("click", () => {

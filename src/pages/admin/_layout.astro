@@ -11,17 +11,28 @@ const { title, currentPath = "" } = Astro.props;
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: "dashboard" },
   { href: "/admin/productos", label: "Productos", icon: "inventory_2" },
-  { href: "/admin/categorias", label: "Categorías", icon: "category" },
-  { href: "/admin/cupones", label: "Cupones", icon: "confirmation_number" },
   { href: "/admin/resenas", label: "Reseñas", icon: "reviews" },
   { href: "/admin/blog", label: "Blog", icon: "article" },
-  { href: "/admin/email-templates", label: "Plantillas Email", icon: "mail" },
   { href: "/admin/suscriptores", label: "Suscriptores", icon: "contacts" },
+  { href: "/admin/newsletter/campanas", label: "Campañas", icon: "campaign" },
   { href: "/admin/pedidos", label: "Pedidos", icon: "receipt_long" },
-  { href: "/admin/configuracion", label: "Configuración", icon: "settings" },
-  { href: "/admin/seguridad", label: "Seguridad", icon: "security" },
+  {
+    href: "/admin/configuracion",
+    label: "Configuración",
+    icon: "settings",
+    children: [
+      { href: "/admin/categorias", label: "Categorías", icon: "category" },
+      { href: "/admin/cupones", label: "Cupones", icon: "confirmation_number" },
+      { href: "/admin/email-templates", label: "Plantillas Email", icon: "mail" },
+      { href: "/admin/seguridad", label: "Seguridad", icon: "security" },
+    ],
+  },
   { href: "/admin/usuarios", label: "Usuarios", icon: "group", class: "nav-superadmin" },
 ];
+
+const configChildren = navItems.find(i => i.children)?.children ?? [];
+const isConfigChildActive = configChildren.some(c => currentPath === c.href);
+const configExpanded = currentPath === '/admin/configuracion' || isConfigChildActive;
 ---
 
 <BaseLayout title={`${title} | Admin | Ram;Lop`}>
@@ -38,17 +49,52 @@ const navItems = [
 
       <nav class="flex-1 px-4 py-6 space-y-1">
         {navItems.map(item => (
-          <a
-            href={item.href}
-            class={`flex items-center gap-4 px-3 py-3 font-label-caps text-label-caps rounded-sm transition-colors ${
-              currentPath === item.href
-                ? "bg-white/10 text-off-white"
-                : "text-stone-gray hover:text-off-white hover:bg-white/5"
-            } ${item.class || ''}`}
-          >
-            <span class="material-symbols-outlined text-xl">{item.icon}</span>
-            {item.label}
-          </a>
+          item.children ? (
+            <div>
+              <a
+                href={item.href}
+                class={`flex items-center gap-4 px-3 py-3 font-label-caps text-label-caps rounded-sm transition-colors ${
+                  currentPath === item.href
+                    ? "bg-white/10 text-off-white"
+                    : "text-stone-gray hover:text-off-white hover:bg-white/5"
+                } ${item.class || ''}`}
+                data-nav-parent
+              >
+                <span class="material-symbols-outlined text-xl">{item.icon}</span>
+                {item.label}
+                <button type="button" class="ml-auto cursor-pointer" data-nav-chevron aria-label="Toggle submenu">
+                  <span class="material-symbols-outlined transition-transform">expand_more</span>
+                </button>
+              </a>
+              <div class="ml-4 space-y-0.5 {configExpanded ? '' : 'hidden'}" data-nav-children>
+                {item.children.map(child => (
+                  <a
+                    href={child.href}
+                    class={`flex items-center gap-4 px-3 py-2 font-label-caps text-label-caps rounded-sm transition-colors ${
+                      currentPath === child.href
+                        ? "bg-white/10 text-off-white"
+                        : "text-stone-gray hover:text-off-white hover:bg-white/5"
+                    }`}
+                  >
+                    <span class="material-symbols-outlined text-lg">{child.icon}</span>
+                    {child.label}
+                  </a>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <a
+              href={item.href}
+              class={`flex items-center gap-4 px-3 py-3 font-label-caps text-label-caps rounded-sm transition-colors ${
+                currentPath === item.href
+                  ? "bg-white/10 text-off-white"
+                  : "text-stone-gray hover:text-off-white hover:bg-white/5"
+              } ${item.class || ''}`}
+            >
+              <span class="material-symbols-outlined text-xl">{item.icon}</span>
+              {item.label}
+            </a>
+          )
         ))}
       </nav>
 
@@ -72,17 +118,52 @@ const navItems = [
       </div>
       <div id="mobileMenu" class="hidden px-4 pb-4 space-y-1">
         {navItems.map(item => (
-          <a
-            href={item.href}
-            class={`flex items-center gap-4 px-3 py-3 font-label-caps text-label-caps rounded-sm transition-colors ${
-              currentPath === item.href
-                ? "bg-white/10 text-off-white"
-                : "text-stone-gray hover:text-off-white hover:bg-white/5"
-            } ${item.class || ''}`}
-          >
-            <span class="material-symbols-outlined text-xl">{item.icon}</span>
-            {item.label}
-          </a>
+          item.children ? (
+            <div>
+              <a
+                href={item.href}
+                class={`flex items-center gap-4 px-3 py-3 font-label-caps text-label-caps rounded-sm transition-colors ${
+                  currentPath === item.href
+                    ? "bg-white/10 text-off-white"
+                    : "text-stone-gray hover:text-off-white hover:bg-white/5"
+                }`}
+                data-nav-parent
+              >
+                <span class="material-symbols-outlined text-xl">{item.icon}</span>
+                {item.label}
+                <button type="button" class="ml-auto cursor-pointer" data-nav-chevron aria-label="Toggle submenu">
+                  <span class="material-symbols-outlined transition-transform">expand_more</span>
+                </button>
+              </a>
+              <div class="ml-4 space-y-0.5 {configExpanded ? '' : 'hidden'}" data-nav-children>
+                {item.children.map(child => (
+                  <a
+                    href={child.href}
+                    class={`flex items-center gap-4 px-3 py-2 font-label-caps text-label-caps rounded-sm transition-colors ${
+                      currentPath === child.href
+                        ? "bg-white/10 text-off-white"
+                        : "text-stone-gray hover:text-off-white hover:bg-white/5"
+                    }`}
+                  >
+                    <span class="material-symbols-outlined text-lg">{child.icon}</span>
+                    {child.label}
+                  </a>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <a
+              href={item.href}
+              class={`flex items-center gap-4 px-3 py-3 font-label-caps text-label-caps rounded-sm transition-colors ${
+                currentPath === item.href
+                  ? "bg-white/10 text-off-white"
+                  : "text-stone-gray hover:text-off-white hover:bg-white/5"
+              }`}
+            >
+              <span class="material-symbols-outlined text-xl">{item.icon}</span>
+              {item.label}
+            </a>
+          )
         ))}
         <a href="/" target="_blank" class="flex items-center gap-4 px-3 py-3 font-label-caps text-label-caps text-stone-gray hover:text-off-white hover:bg-white/5 rounded-sm transition-colors">
           <span class="material-symbols-outlined text-xl">open_in_new</span>
@@ -109,7 +190,7 @@ const navItems = [
     </div>
   </div>
 
-  <script>
+  <script is:inline define:vars={{ configExpanded }}>
     // @ts-nocheck
     // Auth guard
     (async function () {
@@ -141,6 +222,27 @@ const navItems = [
       const menu = document.getElementById("mobileMenu");
       menu.classList.toggle("hidden");
       this.textContent = menu.classList.contains("hidden") ? "menu" : "close";
+    });
+
+    // Sidebar expand/collapse
+    if (configExpanded) {
+      document.querySelectorAll('[data-nav-chevron] .material-symbols-outlined').forEach(function (icon) {
+        icon.textContent = 'expand_less';
+      });
+    }
+
+    document.querySelectorAll('[data-nav-chevron]').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var parent = this.closest('[data-nav-parent]');
+        if (!parent) return;
+        var children = parent.nextElementSibling;
+        if (!children || !children.hasAttribute('data-nav-children')) return;
+        var isHidden = children.classList.toggle('hidden');
+        var icon = this.querySelector('.material-symbols-outlined');
+        if (icon) icon.textContent = isHidden ? 'expand_more' : 'expand_less';
+      });
     });
   </script>
 </BaseLayout>

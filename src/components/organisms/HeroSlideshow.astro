@@ -38,6 +38,7 @@ const ctaLink = data?.cta_category_slug
 <section
   class="relative w-full min-h-[90vh] flex flex-col lg:flex-row bg-monolith-black overflow-hidden"
   id="heroSlideshow"
+  data-section="hero"
   data-slides={JSON.stringify(slidesData)}
 >
   <div class="noise-overlay opacity-[0.06]"></div>
@@ -76,19 +77,20 @@ const ctaLink = data?.cta_category_slug
 
   <!-- Text Panel -->
   <div class="relative lg:w-[45%] flex flex-col justify-center px-margin-mobile md:px-16 py-16 lg:py-0 z-10">
-    <span class="font-label-caps text-label-caps text-clay-accent tracking-[0.15em] mb-6 animate-slideUp">
+    <span class="font-label-caps text-label-caps text-clay-accent tracking-[0.15em] mb-6 animate-slideUp" data-field="label">
       {label}
     </span>
-    <h1 class="font-headline-xl text-headline-xl text-off-white leading-[1.05] mb-6 animate-slideUp" style="animation-delay: 0.15s">
+    <h1 class="font-headline-xl text-headline-xl text-off-white leading-[1.05] mb-6 animate-slideUp" style="animation-delay: 0.15s" data-field="title">
       {title}
     </h1>
-    <p class="font-body-lg text-body-lg text-off-white/60 max-w-md mb-10 animate-slideUp" style="animation-delay: 0.3s">
+    <p class="font-body-lg text-body-lg text-off-white/60 max-w-md mb-10 animate-slideUp" style="animation-delay: 0.3s" data-field="subtitle">
       {subtitle}
     </p>
     <div class="flex flex-col sm:flex-row gap-4 animate-slideUp" style="animation-delay: 0.45s">
       <a
         href={ctaLink}
         class="inline-flex items-center justify-center bg-off-white text-monolith-black font-label-caps text-label-caps h-14 px-10 hover:bg-off-white/90 hover:tracking-[0.15em] transition-all duration-300"
+        data-field="cta"
       >
         {cta}
       </a>
