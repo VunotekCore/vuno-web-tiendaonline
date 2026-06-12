@@ -57,7 +57,8 @@ try {
 
     if ($order['paymentMethod'] === 'transfer') {
         try {
-            sendOrderConfirmation($order);
+            $bankAccounts = getBankAccounts();
+            sendOrderConfirmation($order, $bankAccounts);
             sendNewOrderNotification($order);
         } catch (\Throwable $e) {
             error_log('Order created but email failed: ' . $e->getMessage());

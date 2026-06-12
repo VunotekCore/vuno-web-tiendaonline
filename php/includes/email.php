@@ -176,9 +176,15 @@ function sendTemplatedEmail(string $templateCode, string $to, array $vars, ?stri
         $template['subject'] = $subjectOverride;
     }
 
-    $host = env('SMTP_HOST');
-    $user = env('SMTP_USER');
-    $from = $fromEmail ?: env('FROM_EMAIL', 'noreply@vuno.com');
+    $settings = getSettings();
+    $smtp = $settings['smtp'] ?? [];
+
+    $host = $smtp['host'] ?? '';
+    $user = $smtp['user'] ?? '';
+    $pass = $smtp['pass'] ?? '';
+    $port = $smtp['port'] ?? '587';
+    $from = $fromEmail ?: ($smtp['fromEmail'] ?? 'noreply@vuno.com');
+    $fromName = $smtp['fromName'] ?? 'Ram;Lop';
 
     if (!$host || !$user) {
         error_log("[Ram;Lop Email] SMTP not configured. Would send to: $to, Subject: {$template['subject']}");
@@ -189,16 +195,16 @@ function sendTemplatedEmail(string $templateCode, string $to, array $vars, ?stri
         $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
         $mail->isSMTP();
         $mail->Host = $host;
-        $mail->Port = (int)env('SMTP_PORT', '587');
+        $mail->Port = (int)$port;
         $mail->SMTPAuth = true;
         $mail->Username = $user;
-        $mail->Password = env('SMTP_PASS');
-        $mail->SMTPSecure = (int)env('SMTP_PORT', '587') === 587
+        $mail->Password = $pass;
+        $mail->SMTPSecure = (int)$port === 587
             ? \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS
             : \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS;
         $mail->CharSet = 'UTF-8';
 
-        $mail->setFrom($from, 'Ram;Lop');
+        $mail->setFrom($from, $fromName);
         $mail->addAddress($to);
         $mail->isHTML(true);
         $mail->Subject = $template['subject'];
@@ -216,7 +222,7 @@ function sendTemplatedEmail(string $templateCode, string $to, array $vars, ?stri
 /**
  * Send order confirmation email to the customer.
  */
-function sendOrderConfirmation(array $order): array
+function sendOrderConfirmation(array $order, array $bankAccounts = []): array
 {
     $name = htmlspecialchars($order['customer']['name'] ?? 'Customer');
     $orderId = htmlspecialchars($order['id']);
@@ -238,17 +244,56 @@ function sendOrderConfirmation(array $order): array
         $couponBlock = '<p style="margin:-16px 0 24px;font-size:13px;color:#6b6b6b">Discount applied: -' . $currencySymbol . number_format((float)$displayDiscount, 2) . '</p>';
     }
 
+    // Build transfer details block if payment method is transfer
+    $transferBlock = '';
+    if (($order['paymentMethod'] ?? '') === 'transfer' && !empty($bankAccounts)) {
+        $rows = '';
+        foreach ($bankAccounts as $ba) {
+            $name = htmlspecialchars($ba['bankName'] ?? '');
+            $holder = htmlspecialchars($ba['accountHolder'] ?? '');
+            $number = htmlspecialchars($ba['accountNumber'] ?? '');
+            $type = htmlspecialchars($ba['accountType'] ?? '');
+            $routing = htmlspecialchars($ba['routingNumber'] ?? '');
+            $instr = htmlspecialchars($ba['instructions'] ?? '');
+
+            $rows .= '<tr>';
+            $rows .= '<td style="padding:12px 16px;border-bottom:1px solid #e0ddd9;font-size:13px;color:#1a1a1a">' . $name . '</td>';
+            $rows .= '<td style="padding:12px 16px;border-bottom:1px solid #e0ddd9;font-size:13px;color:#1a1a1a">' . $holder . '</td>';
+            $rows .= '<td style="padding:12px 16px;border-bottom:1px solid #e0ddd9;font-size:13px;color:#1a1a1a">' . $number . '</td>';
+            $rows .= '<td style="padding:12px 16px;border-bottom:1px solid #e0ddd9;font-size:13px;color:#9A9A9A">' . ($type ?: '—') . '</td>';
+            $rows .= '</tr>';
+            if ($routing) {
+                $rows .= '<tr><td colspan="4" style="padding:0 16px 8px;font-size:11px;color:#9A9A9A">Routing: ' . $routing . '</td></tr>';
+            }
+            if ($instr) {
+                $rows .= '<tr><td colspan="4" style="padding:0 16px 12px;font-size:12px;color:#6b6b6b;font-style:italic;border-bottom:1px solid #e0ddd9">' . $instr . '</td></tr>';
+            }
+        }
+
+        $transferBlock = '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:24px;border:1px solid #e0ddd9;border-radius:2px">
+<tr><td style="padding:12px 16px;background-color:#f5f3f0;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:#9A9A9A">Bank Transfer Details</td></tr>
+<tr><td style="padding:0">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+<tr style="background-color:#faf9f8">
+<th style="padding:8px 16px;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:#9A9A9A;text-align:left;border-bottom:1px solid #e0ddd9">Bank</th>
+<th style="padding:8px 16px;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:#9A9A9A;text-align:left;border-bottom:1px solid #e0ddd9">Holder</th>
+<th style="padding:8px 16px;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:#9A9A9A;text-align:left;border-bottom:1px solid #e0ddd9">Account</th>
+<th style="padding:8px 16px;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:#9A9A9A;text-align:left;border-bottom:1px solid #e0ddd9">Type</th>
+</tr>' . $rows . '</table>
+</td></tr></table>';
+    }
+
     $vars = [
-        'customer_name'         => $name,
-        'order_id'              => $orderId,
-        'order_items_html'      => $itemsHtml,
-        'order_subtotal'        => $subtotal,
-        'order_shipping'        => $shipping,
-        'order_total'           => $total,
-        'coupon_discount_block' => $couponBlock,
-        'transfer_details_block' => '',
-        'currency_symbol'       => $currencySymbol,
-        'preheader'             => "Your order #{$orderId} has been confirmed",
+        'customer_name'          => $name,
+        'order_id'               => $orderId,
+        'order_items_html'       => $itemsHtml,
+        'order_subtotal'         => $subtotal,
+        'order_shipping'         => $shipping,
+        'order_total'            => $total,
+        'coupon_discount_block'  => $couponBlock,
+        'transfer_details_block' => $transferBlock,
+        'currency_symbol'        => $currencySymbol,
+        'preheader'              => "Your order #{$orderId} has been confirmed",
     ];
 
     return sendTemplatedEmail('order_confirmation', $order['customer']['email'], $vars);
@@ -290,7 +335,12 @@ function sendNewOrderNotification(array $order): array
         'preheader'        => "New order #{$orderId}: {$name}",
     ];
 
-    $adminEmail = env('ADMIN_EMAIL', 'admin@vuno.com');
+    $settings = getSettings();
+    $adminEmail = $settings['smtp']['adminEmail'] ?? '';
+    if (!$adminEmail) {
+        error_log('[Ram;Lop Email] Notificaciones: no hay email configurado en Admin → SMTP → Email de Notificaciones.');
+        return ['success' => false, 'error' => 'Admin notification email not configured'];
+    }
     return sendTemplatedEmail('new_order_notification', $adminEmail, $vars);
 }
 
@@ -299,9 +349,15 @@ function sendNewOrderNotification(array $order): array
  */
 function sendEmail(string $to, string $subject, string $html, ?string $fromEmail = null): array
 {
-    $host = env('SMTP_HOST');
-    $user = env('SMTP_USER');
-    $from = $fromEmail ?: env('FROM_EMAIL', 'noreply@vuno.com');
+    $settings = getSettings();
+    $smtp = $settings['smtp'] ?? [];
+
+    $host = $smtp['host'] ?? '';
+    $user = $smtp['user'] ?? '';
+    $pass = $smtp['pass'] ?? '';
+    $port = $smtp['port'] ?? '587';
+    $from = $fromEmail ?: ($smtp['fromEmail'] ?? 'noreply@vuno.com');
+    $fromName = $smtp['fromName'] ?? 'Ram;Lop';
 
     if (!$host || !$user) {
         error_log("[Ram;Lop Email] SMTP not configured. Would send to: $to, Subject: $subject");
@@ -312,16 +368,16 @@ function sendEmail(string $to, string $subject, string $html, ?string $fromEmail
         $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
         $mail->isSMTP();
         $mail->Host = $host;
-        $mail->Port = (int)env('SMTP_PORT', '587');
+        $mail->Port = (int)$port;
         $mail->SMTPAuth = true;
         $mail->Username = $user;
-        $mail->Password = env('SMTP_PASS');
-        $mail->SMTPSecure = (int)env('SMTP_PORT', '587') === 587
+        $mail->Password = $pass;
+        $mail->SMTPSecure = (int)$port === 587
             ? \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS
             : \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS;
         $mail->CharSet = 'UTF-8';
 
-        $mail->setFrom($from, 'Ram;Lop');
+        $mail->setFrom($from, $fromName);
         $mail->addAddress($to);
         $mail->isHTML(true);
         $mail->Subject = $subject;

@@ -1,0 +1,109 @@
+Subject: {{subject}} — {{name}} &lt;{{email}}&gt;
+Preheader: Nuevo mensaje de contacto desde {{store_name}}
+
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="format-detection" content="telephone=no">
+<title>Nuevo mensaje de contacto</title>
+<style type="text/css">
+body{margin:0;padding:0;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}
+table,td{border-collapse:collapse;mso-table-lspace:0;mso-table-rspace:0}
+img{border:0;height:auto;line-height:100%;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic}
+p{display:block;margin:13px 0}
+@media only screen and (max-width:600px){
+  .email-container{width:100%!important}
+  .stack-cell{display:block!important;width:100%!important}
+}
+</style>
+</head>
+<body style="margin:0;padding:0;background-color:#f5f3f0;font-family:'Hanken Grotesk',Arial,Helvetica,sans-serif">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f5f3f0">
+<tr><td align="center" style="padding:40px 16px">
+
+  <table role="presentation" class="email-container" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%">
+
+    <!-- Header -->
+    <tr>
+      <td align="center" style="padding:0 0 24px 0">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td style="background-color:#1a1a1a;padding:12px 32px;border-radius:2px">
+              {{store_logo_block}}
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr>
+      <td style="background-color:#ffffff;border-radius:2px;padding:32px">
+
+        <h1 style="margin:0 0 4px 0;font-family:'Playfair Display',Georgia,serif;font-size:22px;font-weight:400;color:#1a1a1a;letter-spacing:0.01em">Nuevo mensaje de contacto</h1>
+        <p style="margin:0 0 20px 0;font-size:13px;color:#9a9a9a">Recibido desde el formulario de contacto de {{store_name}}</p>
+
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td style="padding:10px 0;border-bottom:1px solid #f0eeeb">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td width="100" style="font-size:13px;color:#9a9a9a;vertical-align:top;padding-right:12px">Nombre</td>
+                  <td style="font-size:14px;color:#1a1a1a">{{name}}</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:10px 0;border-bottom:1px solid #f0eeeb">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td width="100" style="font-size:13px;color:#9a9a9a;vertical-align:top;padding-right:12px">Email</td>
+                  <td style="font-size:14px;color:#1a1a1a">{{email}}</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:10px 0;border-bottom:1px solid #f0eeeb">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td width="100" style="font-size:13px;color:#9a9a9a;vertical-align:top;padding-right:12px">Teléfono</td>
+                  <td style="font-size:14px;color:#1a1a1a">{{phone}}</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:10px 0;border-bottom:1px solid #f0eeeb">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td width="100" style="font-size:13px;color:#9a9a9a;vertical-align:top;padding-right:12px">Asunto</td>
+                  <td style="font-size:14px;color:#1a1a1a;font-weight:600">{{subject}}</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+
+        <h3 style="margin:24px 0 8px 0;font-size:13px;color:#9a9a9a;font-weight:500;text-transform:uppercase;letter-spacing:0.08em">Mensaje</h3>
+        <div style="font-size:14px;color:#1a1a1a;line-height:1.6;background-color:#faf9f8;padding:16px;border:1px solid #f0eeeb;border-radius:2px;white-space:pre-wrap">{{message}}</div>
+
+      </td>
+    </tr>
+
+    <!-- Footer -->
+    <tr>
+      <td align="center" style="padding:24px 0 0 0">
+        <p style="margin:0;font-size:11px;color:#9a9a9a">Enviado desde el formulario de contacto de {{store_name}}</p>
+      </td>
+    </tr>
+
+  </table>
+
+</td></tr>
+</table>
+</body>
+</html>
