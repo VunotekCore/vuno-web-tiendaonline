@@ -14,6 +14,7 @@ $public = [
         'slogan' => $settings['store']['slogan'] ?? '',
         'description' => $settings['store']['description'] ?? '',
         'logo' => $settings['store']['logo'] ?? '',
+        'email' => $settings['store']['email'] ?? '',
     ],
     'stripe' => [
         'enabled' => $settings['stripe']['enabled'] ?? false,
@@ -32,6 +33,7 @@ $public = [
     ],
     'landing' => [
         'hero' => [
+            'enabled' => $settings['landing']['hero']['enabled'] ?? true,
             'label_es' => $settings['landing']['hero']['label_es'] ?? '',
             'label_en' => $settings['landing']['hero']['label_en'] ?? '',
             'title_es' => $settings['landing']['hero']['title_es'] ?? '',
@@ -44,6 +46,7 @@ $public = [
             'cta_category_slug' => $settings['landing']['hero']['cta_category_slug'] ?? '',
         ],
         'new_arrivals' => [
+            'enabled' => $settings['landing']['new_arrivals']['enabled'] ?? true,
             'label_es' => $settings['landing']['new_arrivals']['label_es'] ?? '',
             'label_en' => $settings['landing']['new_arrivals']['label_en'] ?? '',
             'title_es' => $settings['landing']['new_arrivals']['title_es'] ?? '',
@@ -56,6 +59,7 @@ $public = [
             'cta_category_slug' => $settings['landing']['new_arrivals']['cta_category_slug'] ?? '',
         ],
         'categories' => [
+            'enabled' => $settings['landing']['categories']['enabled'] ?? true,
             'label_es' => $settings['landing']['categories']['label_es'] ?? '',
             'label_en' => $settings['landing']['categories']['label_en'] ?? '',
             'title_es' => $settings['landing']['categories']['title_es'] ?? '',
@@ -66,7 +70,7 @@ $public = [
             'cta_category_slug' => $settings['landing']['categories']['cta_category_slug'] ?? '',
         ],
         'brand_values' => [
-            'enabled' => $settings['landing']['brand_values']['enabled'] ?? false,
+            'enabled' => $settings['landing']['brand_values']['enabled'] ?? true,
             'image_url' => $settings['landing']['brand_values']['image_url'] ?? '',
             'label_es' => $settings['landing']['brand_values']['label_es'] ?? '',
             'label_en' => $settings['landing']['brand_values']['label_en'] ?? '',
@@ -80,6 +84,7 @@ $public = [
             'cta_category_slug' => $settings['landing']['brand_values']['cta_category_slug'] ?? '',
         ],
         'closing_cta' => [
+            'enabled' => $settings['landing']['closing_cta']['enabled'] ?? true,
             'label_es' => $settings['landing']['closing_cta']['label_es'] ?? '',
             'label_en' => $settings['landing']['closing_cta']['label_en'] ?? '',
             'title_es' => $settings['landing']['closing_cta']['title_es'] ?? '',
@@ -92,7 +97,7 @@ $public = [
             'cta_category_slug' => $settings['landing']['closing_cta']['cta_category_slug'] ?? '',
         ],
         'social' => [
-            'enabled' => $settings['landing']['social']['enabled'] ?? false,
+            'enabled' => $settings['landing']['social']['enabled'] ?? true,
             'title_es' => $settings['landing']['social']['title_es'] ?? '',
             'title_en' => $settings['landing']['social']['title_en'] ?? '',
             'facebook_url' => $settings['landing']['social']['facebook_url'] ?? '',
@@ -100,10 +105,13 @@ $public = [
             'tiktok_url' => $settings['landing']['social']['tiktok_url'] ?? '',
         ],
         'blog' => [
+            'enabled' => $settings['landing']['blog']['enabled'] ?? true,
             'label_es' => $settings['landing']['blog']['label_es'] ?? '',
             'label_en' => $settings['landing']['blog']['label_en'] ?? '',
             'title_es' => $settings['landing']['blog']['title_es'] ?? '',
             'title_en' => $settings['landing']['blog']['title_en'] ?? '',
+            'desc_es' => $settings['landing']['blog']['desc_es'] ?? '',
+            'desc_en' => $settings['landing']['blog']['desc_en'] ?? '',
             'view_all_es' => $settings['landing']['blog']['view_all_es'] ?? '',
             'view_all_en' => $settings['landing']['blog']['view_all_en'] ?? '',
         ],
@@ -119,7 +127,7 @@ $public = [
             'cta_en' => $settings['landing']['newsletter']['cta_en'] ?? '',
         ],
         'testimonials' => [
-            'enabled' => $settings['landing']['testimonials']['enabled'] ?? false,
+            'enabled' => $settings['landing']['testimonials']['enabled'] ?? true,
             'title_es' => $settings['landing']['testimonials']['title_es'] ?? '',
             'title_en' => $settings['landing']['testimonials']['title_en'] ?? '',
             'subtitle_es' => $settings['landing']['testimonials']['subtitle_es'] ?? '',
@@ -132,6 +140,8 @@ $public = [
         'shipping_en' => $settings['policies']['shipping_en'] ?? '',
         'returns_es' => $settings['policies']['returns_es'] ?? '',
         'returns_en' => $settings['policies']['returns_en'] ?? '',
+        'privacy_es' => $settings['policies']['privacy_es'] ?? '',
+        'privacy_en' => $settings['policies']['privacy_en'] ?? '',
     ],
     'size_guide' => [
         'title_es' => $settings['size_guide']['title_es'] ?? 'Guía de Talles',

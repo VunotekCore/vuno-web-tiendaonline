@@ -1,6 +1,7 @@
 ---
 import "../styles/global.css";
 import type { Locale } from "../i18n/utils";
+import { t } from "../i18n/utils";
 import Modal from "../components/molecules/Modal.astro";
 
 interface Props {
@@ -46,6 +47,68 @@ const siteUrl = import.meta.env.PROD ? "https://vuno.com" : "http://localhost:43
   <body class="bg-background text-on-surface font-body-md antialiased selection:bg-monolith-black selection:text-off-white min-h-screen flex flex-col">
     <slot />
     <Modal />
+
+    <!-- Contact Form Modal -->
+    <div id="contactModal" class="hidden fixed inset-0 z-[90] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+      <div class="bg-off-white border border-outline-variant shadow-lg rounded-sm p-6 w-full max-w-lg max-h-[90dvh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="font-headline text-headline-md text-monolith-black" data-i18n="contact.title">{t("contact.title", lang)}</h3>
+          <button type="button" id="contactModalClose" class="text-secondary hover:text-monolith-black transition-colors p-1 -mr-1" aria-label="Close">
+            <span class="material-symbols-outlined text-xl">close</span>
+          </button>
+        </div>
+        <form id="contactForm" novalidate>
+          <div class="space-y-4">
+            <div>
+              <label class="font-label-caps text-label-caps text-secondary block mb-2" data-i18n="contact.name">{t("contact.name", lang)}</label>
+              <input type="text" id="contact-name" required autocomplete="name" maxlength="200" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none" />
+            </div>
+            <div>
+              <label class="font-label-caps text-label-caps text-secondary block mb-2" data-i18n="contact.email">{t("contact.email", lang)}</label>
+              <input type="email" id="contact-email" required autocomplete="email" maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none" />
+            </div>
+            <div>
+              <label class="font-label-caps text-label-caps text-secondary block mb-2" data-i18n="contact.phone">{t("contact.phone", lang)}</label>
+              <input type="tel" id="contact-phone" autocomplete="tel" maxlength="50" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none" />
+            </div>
+            <div>
+              <label class="font-label-caps text-label-caps text-secondary block mb-2" data-i18n="contact.subject">{t("contact.subject", lang)}</label>
+              <select id="contact-subject" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none">
+                <option value="" data-i18n="contact.subjectDefault">{t("contact.subjectDefault", lang)}</option>
+                <option value="general" data-i18n="contact.subjectGeneral">{t("contact.subjectGeneral", lang)}</option>
+                <option value="order" data-i18n="contact.subjectOrder">{t("contact.subjectOrder", lang)}</option>
+                <option value="product" data-i18n="contact.subjectProduct">{t("contact.subjectProduct", lang)}</option>
+                <option value="size" data-i18n="contact.subjectSize">{t("contact.subjectSize", lang)}</option>
+                <option value="returns" data-i18n="contact.subjectReturns">{t("contact.subjectReturns", lang)}</option>
+                <option value="custom" data-i18n="contact.subjectCustom">{t("contact.subjectCustom", lang)}</option>
+                <option value="other" data-i18n="contact.subjectOther">{t("contact.subjectOther", lang)}</option>
+              </select>
+            </div>
+            <div>
+              <label class="font-label-caps text-label-caps text-secondary block mb-2" data-i18n="contact.message">{t("contact.message", lang)}</label>
+              <textarea id="contact-message" required minlength="10" maxlength="5000" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-clay-accent focus:outline-none resize-none h-28"></textarea>
+            </div>
+            <!-- Honeypot -->
+            <div class="hidden" aria-hidden="true">
+              <input type="text" id="contact-website" tabindex="-1" autocomplete="off" />
+            </div>
+
+            <!-- Hidden i18n references for JS -->
+            <span class="hidden" data-i18n="contact.sending">{t("contact.sending", lang)}</span>
+            <span class="hidden" data-i18n="contact.errorRequired">{t("contact.errorRequired", lang)}</span>
+            <span class="hidden" data-i18n="contact.errorEmail">{t("contact.errorEmail", lang)}</span>
+            <span class="hidden" data-i18n="contact.errorMessage">{t("contact.errorMessage", lang)}</span>
+          </div>
+          <p id="contactError" class="hidden font-body text-body-md text-sm text-error mt-4"></p>
+          <button type="submit" id="contactSubmitBtn" class="mt-6 w-full font-label-caps text-label-caps bg-monolith-black text-off-white rounded-md px-6 h-11 hover:bg-monolith-black/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed" data-i18n="contact.send">{t("contact.send", lang)}</button>
+        </form>
+        <div id="contactSuccess" class="hidden text-center py-8">
+          <span class="material-symbols-outlined text-4xl text-clay-accent mb-3 block">check_circle</span>
+          <p class="font-body text-body-md text-monolith-black" data-i18n="contact.success">{t("contact.success", lang)}</p>
+          <button type="button" id="contactSuccessClose" class="mt-6 font-label-caps text-label-caps bg-monolith-black text-off-white rounded-md px-6 h-11 hover:bg-monolith-black/90 transition-all" data-i18n="contact.close">{t("contact.close", lang)}</button>
+        </div>
+      </div>
+    </div>
     <script is:inline>
       // Inyecta nombre/slogan/logo desde la base de datos
       (function () {
@@ -144,6 +207,126 @@ const siteUrl = import.meta.env.PROD ? "https://vuno.com" : "http://localhost:43
             }
           })
           .catch(function () {})
+      })
+
+      // Policies modals (shipping, returns, privacy) — delegated
+      document.addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-shipping], [data-returns], [data-privacy]')
+        if (!btn) return
+        e.preventDefault()
+        var lang = document.documentElement.lang || 'es'
+        var attr = ''
+        if (btn.hasAttribute('data-shipping')) attr = 'shipping'
+        else if (btn.hasAttribute('data-returns')) attr = 'returns'
+        else attr = 'privacy'
+
+        var titles = {
+          shipping: { es: 'Envíos', en: 'Shipping' },
+          returns: { es: 'Devoluciones', en: 'Returns' },
+          privacy: { es: 'Política de Privacidad', en: 'Privacy Policy' }
+        }
+
+        fetch('/api/configuracion/public.php')
+          .then(function (r) { return r.ok ? r.json() : null })
+          .then(function (config) {
+            if (!config || !config.policies) return
+            var text = config.policies[attr + '_' + lang]
+            if (!text) text = config.policies[attr + '_es'] || ''
+            if (!text) return
+            var title = titles[attr][lang] || titles[attr]['es']
+            var html = '<div class="prose prose-sm max-w-none"><p class="font-body text-body-md text-secondary leading-relaxed whitespace-pre-line">' + text + '</p></div>'
+            if (window.VunoModal && window.VunoModal.show) {
+              window.VunoModal.show({ type: 'info', title: title, body: html })
+            }
+          })
+          .catch(function () {})
+      })
+
+      // Contact form modal — delegated
+      document.addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-contact]')
+        if (!btn) return
+        e.preventDefault()
+        var modal = document.getElementById('contactModal')
+        var form = document.getElementById('contactForm')
+        var success = document.getElementById('contactSuccess')
+        var error = document.getElementById('contactError')
+        if (modal && form) {
+          form.reset()
+          modal.classList.remove('hidden')
+          form.classList.remove('hidden')
+          success.classList.add('hidden')
+          error.classList.add('hidden')
+          document.getElementById('contact-name').focus()
+        }
+      })
+
+      // Close contact modal
+      document.addEventListener('click', function (e) {
+        var btn = e.target.closest('#contactModalClose, #contactSuccessClose')
+        if (!btn) return
+        var modal = document.getElementById('contactModal')
+        if (modal) modal.classList.add('hidden')
+      })
+
+      // Close on backdrop click
+      document.addEventListener('click', function (e) {
+        var modal = document.getElementById('contactModal')
+        if (!modal || modal.classList.contains('hidden')) return
+        if (e.target === modal) modal.classList.add('hidden')
+      })
+
+      // Contact form submission
+      document.getElementById('contactForm').addEventListener('submit', function (e) {
+        e.preventDefault()
+        var btn = document.getElementById('contactSubmitBtn')
+        var error = document.getElementById('contactError')
+        error.classList.add('hidden')
+
+        var name = document.getElementById('contact-name').value.trim()
+        var email = document.getElementById('contact-email').value.trim()
+        var phone = document.getElementById('contact-phone').value.trim()
+        var subject = document.getElementById('contact-subject').value
+        var message = document.getElementById('contact-message').value.trim()
+        var website = document.getElementById('contact-website').value
+
+        // Validation
+        if (!name || !email || !subject || !message) {
+          error.textContent = document.querySelector('[data-i18n="contact.errorRequired"]')?.textContent
+          error.classList.remove('hidden')
+          return
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          error.textContent = document.querySelector('[data-i18n="contact.errorEmail"]')?.textContent
+          error.classList.remove('hidden')
+          return
+        }
+
+        btn.disabled = true
+        btn.textContent = document.querySelector('[data-i18n="contact.sending"]')?.textContent
+
+        fetch('/api/contact/send.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: name, email: email, phone: phone, subject: subject, message: message, website: website })
+        })
+          .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d } }) })
+          .then(function (res) {
+            if (res.ok && res.data.success) {
+              document.getElementById('contactForm').classList.add('hidden')
+              document.getElementById('contactSuccess').classList.remove('hidden')
+            } else {
+              throw new Error('api_error')
+            }
+          })
+          .catch(function () {
+            error.textContent = document.querySelector('[data-i18n="contact.errorMessage"]')?.textContent
+            error.classList.remove('hidden')
+          })
+          .finally(function () {
+            btn.disabled = false
+            btn.textContent = document.querySelector('[data-i18n="contact.send"]')?.textContent
+          })
       })
     </script>
   </body>
