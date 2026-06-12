@@ -63,7 +63,7 @@ const alternateUrls = {
   <TestimonialsSection lang={lang} data={landing?.testimonials} />
 
   <!-- Blog Journal -->
-  <BlogJournal lang={lang} />
+  <BlogJournal lang={lang} data={landing?.blog} />
 
   <!-- Social Media -->
   <SocialFeed lang={lang} data={landing?.social} />
@@ -99,16 +99,23 @@ const alternateUrls = {
           Object.keys(landing).forEach(function (sectionKey) {
             var sectionData = landing[sectionKey];
             if (!sectionData) return;
-            var sectionEl = document.querySelector('[data-section="' + sectionKey + '"]');
-            if (!sectionEl) return;
+            var el = document.querySelector('[data-section="' + sectionKey + '"]');
+            if (!el || !(el instanceof HTMLElement)) return;
+
+            // Hide section if disabled
+            if (sectionData.enabled === false) {
+              el.style.display = "none";
+              return;
+            }
+            el.style.display = "";
 
             // Update text fields
-            sectionEl.querySelectorAll("[data-field]").forEach(function (el) {
-              var field = el.getAttribute("data-field");
+            el.querySelectorAll("[data-field]").forEach(function (fieldEl) {
+              var field = fieldEl.getAttribute("data-field");
               if (!field) return;
               var value = sectionData[field + "_" + lang];
               if (!value) value = sectionData[field];
-              if (value) el.textContent = value;
+              if (value) fieldEl.textContent = value;
             });
           });
         })

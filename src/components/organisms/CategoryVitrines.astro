@@ -16,6 +16,7 @@ interface Props {
 }
 
 const { lang, categories, productForCategory, data } = Astro.props;
+if (!data?.enabled) return;
 
 const label = data?.label_es && data?.label_en
   ? (lang === "es" ? data.label_es : data.label_en)

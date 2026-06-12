@@ -39,6 +39,7 @@ export interface LandingData {
   social: LandingSectionData;
   newsletter: LandingSectionData;
   testimonials: LandingSectionData;
+  blog: LandingSectionData;
 }
 
 const API_BASE = import.meta.env.PUBLIC_API_URL || "/api";

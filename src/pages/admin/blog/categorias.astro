@@ -325,6 +325,7 @@ import AdminLayout from "../_layout.astro";
         const data = await res.json();
         if (!res.ok) throw new Error(data.error);
         closeCreateModal();
+        window.VunoToast.success("Categoría creada", name);
         loadCategories();
       } catch (err) {
         setLoading("createConfirmBtn", "createIcon", "createBtnText", false);
@@ -354,6 +355,7 @@ import AdminLayout from "../_layout.astro";
         });
         if (res.ok) {
           closeEditModal();
+          window.VunoToast.success("Categoría actualizada", newName);
           loadCategories();
         } else {
           setLoading("editConfirmBtn", "editIcon", "editBtnText", false);
@@ -388,6 +390,7 @@ import AdminLayout from "../_layout.astro";
         });
         if (res.ok) {
           closeDeleteModal();
+          window.VunoToast.success("Categoría eliminada");
           loadCategories();
         } else {
           setLoading("deleteConfirmBtn", "deleteIcon", "deleteBtnText", false);

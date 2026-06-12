@@ -9,35 +9,26 @@
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $distPath = __DIR__ . '/../dist';
 
-// Blog dynamic routes with optional locale prefix
-// /{lang}/blog/{slug}  or  /blog/{slug}
-$locale = 'es'; // default
-$blogPath = $uri;
-
+// Blog routes — now served as Astro static pages + client-side ?slug= parameter
+// Redirect /{lang}/blog/{slug} → /{lang}/blog?slug={slug}
+// Redirect /blog/{slug} → /es/blog?slug={slug}
 if (preg_match('#^/(es|en)/blog/(.+)$#', $uri, $m)) {
     $locale = $m[1];
     $slug = $m[2];
-    if ($slug !== 'index.php' && !file_exists($distPath . $uri)) {
-        $_GET['slug'] = $slug;
-        $_GET['lang'] = $locale;
-        require __DIR__ . '/blog/index.php';
-        return true;
-    }
-} elseif (preg_match('#^/(es|en)/blog/?$#', $uri, $m)) {
-    $locale = $m[1];
-    $_GET['lang'] = $locale;
-    require __DIR__ . '/blog/index.php';
-    return true;
-} elseif (preg_match('#^/blog/?$#', $uri)) {
-    require __DIR__ . '/blog/index.php';
-    return true;
-} elseif (preg_match('#^/blog/(.+)$#', $uri, $m)) {
+    $qs = $_SERVER['QUERY_STRING'] ? '&slug=' . rawurlencode($slug) : '?slug=' . rawurlencode($slug);
+    header('Location: /' . $locale . '/blog' . $qs, true, 301);
+    exit;
+}
+if (preg_match('#^/blog/(.+)$#', $uri, $m)) {
     $slug = $m[1];
-    if ($slug !== 'post.php' && $slug !== 'index.php' && !file_exists($distPath . $uri)) {
-        $_GET['slug'] = $slug;
-        require __DIR__ . '/blog/index.php';
-        return true;
-    }
+    $qs = $_SERVER['QUERY_STRING'] ? '&slug=' . rawurlencode($slug) : '?slug=' . rawurlencode($slug);
+    header('Location: /es/blog' . $qs, true, 301);
+    exit;
+}
+// Redirect /blog/ (no lang) → /es/blog/
+if ($uri === '/blog' || $uri === '/blog/') {
+    header('Location: /es/blog', true, 301);
+    exit;
 }
 
 // Serve from dist/

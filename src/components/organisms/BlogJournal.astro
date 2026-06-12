@@ -1,14 +1,17 @@
 ---
 import { t, type Locale } from "../../i18n/utils";
+import type { LandingSectionData } from "../../lib/storage";
 
 interface Props {
   lang: Locale;
+  data?: LandingSectionData | null;
 }
 
-const { lang } = Astro.props;
+const { lang, data } = Astro.props;
+if (!data?.enabled) return;
 ---
 
-<section data-section="blog" class="py-section-gap px-margin-mobile md:px-margin-desktop bg-sand-nude/20">
+<section data-section="blog" data-lang={lang} class="py-section-gap px-margin-mobile md:px-margin-desktop bg-sand-nude/20">
   <div class="max-w-6xl mx-auto">
     <div class="flex items-end justify-between mb-10">
       <div>
@@ -20,7 +23,7 @@ const { lang } = Astro.props;
         </h2>
       </div>
       <a
-        href="/blog"
+        href={"/" + lang + "/blog"}
         class="hidden md:inline-flex items-center gap-2 font-label-caps text-label-caps text-secondary hover:text-monolith-black transition-colors group"
       >
         <span data-field="view_all">{t("home.blog.viewAll", lang)}</span>
@@ -60,7 +63,7 @@ const { lang } = Astro.props;
     <!-- Mobile "ver blog" link -->
     <div class="md:hidden mt-8 text-center">
       <a
-        href="/blog"
+        href={"/" + lang + "/blog"}
         class="inline-flex items-center gap-2 font-label-caps text-label-caps text-secondary hover:text-monolith-black transition-colors group"
       >
         <span data-field="view_all">{t("home.blog.viewAll", lang)}</span>
@@ -76,6 +79,9 @@ const { lang } = Astro.props;
     var grid = document.getElementById("blogJournalGrid");
     if (!grid) return;
 
+    var sectionEl = document.querySelector('[data-section="blog"]');
+    var lang = sectionEl ? sectionEl.getAttribute("data-lang") : "es";
+    var blogUrl = "/" + lang + "/blog";
     var skeletons = grid.querySelectorAll(".skeleton-card");
 
     fetch("/api/blog/list.php?limit=3&status=published")
@@ -111,7 +117,7 @@ const { lang } = Astro.props;
             : "";
 
           var card = document.createElement("a");
-          card.href = "/blog?slug=" + encodeURIComponent(post.slug || "");
+          card.href = blogUrl + "?slug=" + encodeURIComponent(post.slug || "");
           card.className = "group block bg-off-white border border-outline-variant rounded-sm overflow-hidden hover:shadow-md transition-all duration-300";
 
           card.innerHTML =

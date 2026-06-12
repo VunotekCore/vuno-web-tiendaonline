@@ -8,7 +8,15 @@ interface Props {
 
 const { title, currentPath = "" } = Astro.props;
 
-const navItems = [
+interface NavItem {
+  href: string;
+  label: string;
+  icon: string;
+  class?: string;
+  children?: { href: string; label: string; icon?: string }[];
+}
+
+const navItems: NavItem[] = [
   { href: "/admin", label: "Dashboard", icon: "dashboard" },
   { href: "/admin/productos", label: "Productos", icon: "inventory_2" },
   { href: "/admin/resenas", label: "Reseñas", icon: "reviews" },
@@ -37,10 +45,10 @@ const navItems = [
   { href: "/admin/usuarios", label: "Usuarios", icon: "group", class: "nav-superadmin" },
 ];
 
-function isExpanded(item) {
+function isExpanded(item: NavItem): boolean {
   if (!item.children) return false;
   if (currentPath === item.href) return true;
-  return item.children.some(c => currentPath === c.href);
+  return item.children.some((c: { href: string }) => currentPath === c.href);
 }
 ---
 

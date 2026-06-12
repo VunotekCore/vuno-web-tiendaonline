@@ -1,0 +1,333 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Navbar from "../../components/organisms/Navbar.astro";
+import Footer from "../../components/organisms/Footer.astro";
+import { type Locale, locales } from "../../i18n/utils";
+
+export async function getStaticPaths() {
+  return locales.map((lang) => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params as { lang: Locale };
+const currentPath = Astro.url.pathname;
+
+const blogTitleFallback = lang === "es" ? "Blog" : "Blog";
+const blogDescFallback = lang === "es"
+  ? "Explora el mundo de Ram;Lop: tendencias, cuidados y el proceso artesanal detrás de cada diseño."
+  : "Explore the world of Ram;Lop: trends, care, and the artisanal process behind each design.";
+---
+
+<BaseLayout title="Blog — Ram;Lop" lang={lang}>
+  <Navbar lang={lang} currentPath={currentPath} />
+
+  <main data-lang={lang} class="flex-grow w-full max-w-6xl mx-auto px-6 pt-12 pb-section-gap">
+
+    <!-- ===== LIST VIEW ===== -->
+    <div data-section="blog" id="blogListView">
+      <div class="mb-10">
+        <h1 data-field="title" class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-monolith-black leading-tight">
+          {blogTitleFallback}
+        </h1>
+        <p data-field="desc" class="font-body text-body-md text-secondary max-w-lg mt-3">{blogDescFallback}</p>
+      </div>
+
+      <!-- Category filters -->
+      <div id="categoryFilters" class="flex flex-wrap gap-2 mb-8"></div>
+
+      <!-- Posts grid -->
+      <div id="blogGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="skeleton-card bg-off-white border border-outline-variant rounded-sm overflow-hidden animate-pulse">
+          <div class="aspect-[4/3] bg-stone-gray/20"></div>
+          <div class="p-5 space-y-3">
+            <div class="h-3 w-16 bg-stone-gray/20"></div>
+            <div class="h-5 w-full bg-stone-gray/20 rounded"></div>
+            <div class="h-4 w-3/4 bg-stone-gray/20 rounded"></div>
+          </div>
+        </div>
+        <div class="skeleton-card bg-off-white border border-outline-variant rounded-sm overflow-hidden animate-pulse">
+          <div class="aspect-[4/3] bg-stone-gray/20"></div>
+          <div class="p-5 space-y-3">
+            <div class="h-3 w-16 bg-stone-gray/20"></div>
+            <div class="h-5 w-full bg-stone-gray/20 rounded"></div>
+            <div class="h-4 w-3/4 bg-stone-gray/20 rounded"></div>
+          </div>
+        </div>
+        <div class="skeleton-card bg-off-white border border-outline-variant rounded-sm overflow-hidden animate-pulse">
+          <div class="aspect-[4/3] bg-stone-gray/20"></div>
+          <div class="p-5 space-y-3">
+            <div class="h-3 w-16 bg-stone-gray/20"></div>
+            <div class="h-5 w-full bg-stone-gray/20 rounded"></div>
+            <div class="h-4 w-3/4 bg-stone-gray/20 rounded"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div id="pagination" class="flex items-center justify-center gap-2 mt-12"></div>
+
+      <div id="blogEmpty" class="hidden text-center py-20">
+        <span class="material-symbols-outlined text-5xl text-stone-gray block mb-4">article</span>
+        <p class="font-body text-body-md text-secondary">
+          {lang === "es" ? "No hay posts publicados aún." : "No posts published yet."}
+        </p>
+      </div>
+    </div>
+
+    <!-- ===== DETAIL VIEW ===== -->
+    <div id="blogDetailView" class="hidden max-w-2xl mx-auto">
+      <div id="postNotFound" class="hidden text-center py-20">
+        <span class="material-symbols-outlined text-5xl text-stone-gray block mb-4">search</span>
+        <p class="font-body text-body-md text-secondary mb-6">
+          {lang === "es" ? "Post no encontrado." : "Post not found."}
+        </p>
+        <a href={`/${lang}/blog`} class="inline-flex items-center gap-2 font-label-caps text-label-caps text-secondary hover:text-monolith-black transition-colors">
+          <span class="material-symbols-outlined text-lg">arrow_back</span>
+          {lang === "es" ? "VOLVER AL BLOG" : "BACK TO BLOG"}
+        </a>
+      </div>
+
+      <div id="postContent">
+        <div id="postImage" class="aspect-[4/3] overflow-hidden rounded-sm mb-8 hidden">
+          <img id="postImageImg" class="w-full h-full object-cover" alt="" />
+        </div>
+        <div id="postCategory" class="font-label-caps text-label-caps text-clay-accent"></div>
+        <h1 id="postTitle" class="font-headline text-headline-md text-monolith-black mt-2 mb-3" style="font-size:2.25rem"></h1>
+        <div class="flex items-center gap-4 font-body text-body-md text-secondary mb-8">
+          <span id="postAuthor"></span>
+          <span>·</span>
+          <span id="postDate"></span>
+        </div>
+        <div id="postExcerpt" class="font-body text-body-md text-secondary mb-8 hidden"></div>
+        <div id="postBody" class="prose"></div>
+        <div class="border-t border-outline-variant mt-12 pt-8">
+          <a href={`/${lang}/blog`} class="inline-flex items-center gap-2 font-label-caps text-label-caps text-secondary hover:text-monolith-black transition-colors">
+            <span class="material-symbols-outlined text-lg">arrow_back</span>
+            {lang === "es" ? "VOLVER AL BLOG" : "BACK TO BLOG"}
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <Footer lang={lang} />
+
+  <script is:inline>
+  // Populate data-field from landing config
+  (function () {
+    var lang = document.querySelector("main[data-lang]");
+    var locale = lang ? lang.getAttribute("data-lang") : "es";
+    fetch("/api/configuracion/public.php")
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        var section = (data.landing || {}).blog;
+        if (!section) return;
+        var sectionEl = document.querySelector('[data-section="blog"]');
+        if (!sectionEl) return;
+        sectionEl.querySelectorAll("[data-field]").forEach(function (el) {
+          var field = el.getAttribute("data-field");
+          if (!field) return;
+          var value = section[field + "_" + locale] || section[field];
+          if (value) el.textContent = value;
+        });
+      })
+      .catch(function () {});
+  })();
+  </script>
+
+  <script is:inline>
+  // @ts-nocheck
+  (function () {
+    var mainEl = document.querySelector("main[data-lang]");
+    var LANG = mainEl ? mainEl.getAttribute("data-lang") : "es";
+    var listView = document.getElementById("blogListView");
+    var detailView = document.getElementById("blogDetailView");
+    var grid = document.getElementById("blogGrid");
+    var emptyEl = document.getElementById("blogEmpty");
+    var pagination = document.getElementById("pagination");
+    var categoryFilters = document.getElementById("categoryFilters");
+
+    var currentPage = parseInt(getParam("page")) || 1;
+    var currentCategory = parseInt(getParam("category")) || 0;
+    var currentSlug = getParam("slug");
+
+    function getParam(name) {
+      var params = new URLSearchParams(window.location.search);
+      return params.get(name) || "";
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return "";
+      try {
+        var d = new Date(dateStr);
+        var months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+        return months[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear();
+      } catch (e) { return dateStr; }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return "";
+      var div = document.createElement("div");
+      div.appendChild(document.createTextNode(str));
+      return div.innerHTML;
+    }
+
+    // ===== DETAIL VIEW =====
+    if (currentSlug) {
+      listView.classList.add("hidden");
+      detailView.classList.remove("hidden");
+
+      fetch("/api/blog/get.php?slug=" + encodeURIComponent(currentSlug))
+        .then(function (r) {
+          if (!r.ok) throw new Error("Not found");
+          return r.json();
+        })
+        .then(function (post) {
+          var img = "";
+          if (post.featured_image) img = post.featured_image;
+          else img = "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=1200&q=80";
+
+          if (img) {
+            document.getElementById("postImage").classList.remove("hidden");
+            document.getElementById("postImageImg").src = img;
+            document.getElementById("postImageImg").alt = post.title || "";
+          }
+
+          if (post.category_name) {
+            document.getElementById("postCategory").textContent = post.category_name;
+          }
+
+          document.getElementById("postTitle").textContent = post.title || "";
+          document.getElementById("postAuthor").textContent = "Por " + (post.author || "Ram;Lop");
+          document.getElementById("postDate").textContent = formatDate(post.published_at || post.created_at);
+
+          if (post.excerpt) {
+            document.getElementById("postExcerpt").textContent = post.excerpt;
+            document.getElementById("postExcerpt").classList.remove("hidden");
+          }
+
+          document.getElementById("postBody").innerHTML = post.content || "";
+        })
+        .catch(function () {
+          document.getElementById("postContent").classList.add("hidden");
+          document.getElementById("postNotFound").classList.remove("hidden");
+        });
+      return;
+    }
+
+    // ===== LIST VIEW =====
+    loadCategories();
+    loadPosts();
+
+    function loadCategories() {
+      fetch("/api/blog/categories.php")
+        .then(function (r) { return r.json(); })
+        .then(function (cats) {
+          if (!cats || cats.length === 0) return;
+          var html = '<a href="?page=1" class="font-label-caps text-label-caps px-4 py-2 rounded-sm transition-colors ' +
+            (!currentCategory ? "bg-monolith-black text-off-white" : "bg-off-white text-secondary border border-outline-variant hover:border-monolith-black") + '">' +
+            (LANG === "es" ? "Todas" : "All") + "</a>";
+          cats.forEach(function (cat) {
+            var active = currentCategory === cat.id;
+            html += '<a href="?page=1' + (cat.id ? "&category=" + cat.id : "") + '" class="font-label-caps text-label-caps px-4 py-2 rounded-sm transition-colors ' +
+              (active ? "bg-monolith-black text-off-white" : "bg-off-white text-secondary border border-outline-variant hover:border-monolith-black") + '">' +
+              escapeHtml(cat.name) + "</a>";
+          });
+          categoryFilters.innerHTML = html;
+        })
+        .catch(function () {});
+    }
+
+    function loadPosts() {
+      grid.innerHTML = "";
+      for (var i = 0; i < 3; i++) {
+        var sk = document.createElement("div");
+        sk.className = "skeleton-card bg-off-white border border-outline-variant rounded-sm overflow-hidden animate-pulse";
+        sk.innerHTML = '<div class="aspect-[4/3] bg-stone-gray/20"></div><div class="p-5 space-y-3"><div class="h-3 w-16 bg-stone-gray/20"></div><div class="h-5 w-full bg-stone-gray/20 rounded"></div><div class="h-4 w-3/4 bg-stone-gray/20 rounded"></div></div>';
+        grid.appendChild(sk);
+      }
+
+      var url = "/api/blog/list.php?page=" + currentPage + "&limit=9&status=published";
+      if (currentCategory > 0) url += "&category_id=" + currentCategory;
+
+      fetch(url)
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          var posts = data.items || [];
+          var totalPages = data.pages || 1;
+          grid.innerHTML = "";
+
+          if (posts.length === 0) {
+            emptyEl.classList.remove("hidden");
+            pagination.innerHTML = "";
+            return;
+          }
+          emptyEl.classList.add("hidden");
+
+          posts.forEach(function (post) {
+            var img = "";
+            if (post.thumbnail_image) img = post.thumbnail_image;
+            else if (post.featured_image) img = post.featured_image;
+            else img = "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=600&q=80";
+
+            var dateStr = formatDate(post.published_at || post.created_at);
+            var catHtml = post.category_name
+              ? '<span class="font-label-caps text-label-caps text-clay-accent">' + escapeHtml(post.category_name) + "</span>"
+              : "";
+
+            var excerpt = post.excerpt
+              ? escapeHtml(post.excerpt.length > 120 ? post.excerpt.substring(0, 120) + "..." : post.excerpt)
+              : "";
+
+            var card = document.createElement("a");
+            card.href = "?slug=" + encodeURIComponent(post.slug || "");
+            card.className = "group block bg-off-white border border-outline-variant rounded-sm overflow-hidden hover:shadow-md transition-all duration-300";
+
+            card.innerHTML =
+              '<div class="aspect-[4/3] overflow-hidden">' +
+                '<img src="' + img + '" alt="' + escapeHtml(post.title) + '" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />' +
+              "</div>" +
+              '<div class="p-5">' +
+                (catHtml || "") +
+                '<h2 class="font-headline-md text-headline-md text-monolith-black mt-1 mb-2 group-hover:text-clay-accent transition-colors">' + escapeHtml(post.title) + "</h2>" +
+                (excerpt ? '<p class="font-body text-body-md text-secondary mb-3">' + excerpt + "</p>" : "") +
+                '<span class="font-label-caps text-label-caps text-secondary">' + dateStr + "</span>" +
+              "</div>";
+
+            grid.appendChild(card);
+          });
+
+          // Pagination
+          if (totalPages > 1) {
+            var phtml = "";
+            for (var i = 1; i <= totalPages; i++) {
+              var catParam = currentCategory > 0 ? "&category=" + currentCategory : "";
+              phtml += '<a href="?page=' + i + catParam + '" class="px-4 py-2 font-body text-body-md rounded-sm transition-colors ' +
+                (i === currentPage ? "bg-monolith-black text-off-white" : "bg-off-white text-secondary border border-outline-variant hover:border-monolith-black") + '">' + i + "</a>";
+            }
+            pagination.innerHTML = phtml;
+          } else {
+            pagination.innerHTML = "";
+          }
+        })
+        .catch(function () {
+          grid.innerHTML = '<div class="md:col-span-3 text-center py-10"><p class="font-body text-body-md text-secondary">Error al cargar.</p></div>';
+        });
+    }
+
+    // Update active states for filter links via click delegation
+    document.addEventListener("click", function (e) {
+      var link = e.target.closest("#categoryFilters a");
+      if (link) {
+        e.preventDefault();
+        window.location.href = link.getAttribute("href");
+      }
+      var pageLink = e.target.closest("#pagination a");
+      if (pageLink) {
+        e.preventDefault();
+        window.location.href = pageLink.getAttribute("href");
+      }
+    });
+  })();
+  </script>
+</BaseLayout>

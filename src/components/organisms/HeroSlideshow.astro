@@ -16,6 +16,7 @@ interface Props {
 }
 
 const { lang, heroProducts, data } = Astro.props;
+if (!data?.enabled) return;
 const slidesData = heroProducts.map((p) => ({ url: `/${lang}/producto/${p.slug}` }));
 
 const label = data?.label_es && data?.label_en

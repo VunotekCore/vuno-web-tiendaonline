@@ -55,14 +55,16 @@ const overflowCategories = categories.slice(5);
       )}
     </div>
 
-    <a
-      href={`/${lang}/`}
-      class="font-headline-md text-headline-md tracking-tight text-monolith-black hover:opacity-70 transition-opacity absolute left-1/2 -translate-x-1/2 md:static md:transform-none inline-flex items-center gap-2"
-    >
-      <img data-store-logo alt="" class="h-8 w-auto hidden object-contain" />
-      <span data-store-name>Ram;Lop</span>
-      <span data-store-slogan class="hidden md:inline font-body-md text-body-md text-secondary font-normal tracking-normal max-w-48 truncate"></span>
-    </a>
+    <div class="inline-flex flex-col items-center absolute left-1/2 -translate-x-1/2 md:static md:transform-none">
+      <div class="flex items-center justify-center relative">
+        <img data-store-logo alt="" class="h-8 w-auto hidden object-contain absolute right-full mr-2 top-1/2 -translate-y-1/2" />
+        <a
+          href={`/${lang}/`}
+          class="font-headline-md text-headline-md tracking-tight text-monolith-black hover:opacity-70 transition-opacity"
+        ><span data-store-name>Ram;Lop</span></a>
+      </div>
+      <span data-store-slogan class="hidden md:block font-body text-[11px] text-secondary/70 tracking-[0.15em] leading-tight"></span>
+    </div>
 
     <div class="flex items-center gap-1 md:gap-4 text-primary">
       <a href={langSwitchPath} class="hover:opacity-70 transition-opacity p-2 font-label-caps text-label-caps text-secondary hidden md:block" aria-label={t("nav.lang", lang)}>

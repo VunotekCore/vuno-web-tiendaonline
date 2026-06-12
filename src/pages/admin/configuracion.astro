@@ -11,6 +11,7 @@ const tabs = [
   { id: "moneda", label: "Moneda", icon: "payments" },
   { id: "landing", label: "Landing", icon: "dashboard_customize" },
   { id: "sizeguide", label: "Guía de Talles", icon: "straighten" },
+  { id: "policies", label: "Políticas", icon: "policy" },
 ];
 ---
 
@@ -353,6 +354,11 @@ const tabs = [
             <label class="font-label-caps text-label-caps text-secondary block mb-2">FROM NAME</label>
             <input type="text" id="smtp-fromName" maxlength="100" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none" placeholder="Ram;Lop" />
           </div>
+          <div class="md:col-span-2">
+            <label class="font-label-caps text-label-caps text-secondary block mb-2">EMAIL DE NOTIFICACIONES</label>
+            <input type="email" id="smtp-adminEmail" maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none" placeholder="admin@ramlop.com" />
+            <p class="font-body text-body-md text-xs text-secondary/60 mt-1">Destino de notificaciones de nuevos pedidos y formulario de contacto.</p>
+          </div>
         </div>
       </div>
     </div>
@@ -457,6 +463,57 @@ const tabs = [
       </div>
     </div>
 
+    <!-- Policies Tab -->
+    <div id="tab-policies" class="tab-content hidden">
+      <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
+        <h2 class="font-headline text-headline-md mb-6 flex items-center gap-2">
+          <span class="material-symbols-outlined text-xl">policy</span>
+          Políticas
+        </h2>
+        <div class="space-y-6 max-w-3xl">
+          <div>
+            <h3 class="font-label-caps text-label-caps text-secondary mb-3 pb-1 border-b border-outline-variant">ENVÍOS / SHIPPING</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label class="font-label-caps text-label-caps text-secondary block mb-2">ES</label>
+                <textarea id="policies-shipping_es" maxlength="2000" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-clay-accent focus:outline-none resize-none h-28 text-sm"></textarea>
+              </div>
+              <div>
+                <label class="font-label-caps text-label-caps text-secondary block mb-2">EN</label>
+                <textarea id="policies-shipping_en" maxlength="2000" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-clay-accent focus:outline-none resize-none h-28 text-sm"></textarea>
+              </div>
+            </div>
+          </div>
+          <div>
+            <h3 class="font-label-caps text-label-caps text-secondary mb-3 pb-1 border-b border-outline-variant">DEVOLUCIONES / RETURNS</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label class="font-label-caps text-label-caps text-secondary block mb-2">ES</label>
+                <textarea id="policies-returns_es" maxlength="2000" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-clay-accent focus:outline-none resize-none h-28 text-sm"></textarea>
+              </div>
+              <div>
+                <label class="font-label-caps text-label-caps text-secondary block mb-2">EN</label>
+                <textarea id="policies-returns_en" maxlength="2000" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-clay-accent focus:outline-none resize-none h-28 text-sm"></textarea>
+              </div>
+            </div>
+          </div>
+          <div>
+            <h3 class="font-label-caps text-label-caps text-secondary mb-3 pb-1 border-b border-outline-variant">PRIVACIDAD / PRIVACY</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label class="font-label-caps text-label-caps text-secondary block mb-2">ES</label>
+                <textarea id="policies-privacy_es" maxlength="2000" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-clay-accent focus:outline-none resize-none h-28 text-sm"></textarea>
+              </div>
+              <div>
+                <label class="font-label-caps text-label-caps text-secondary block mb-2">EN</label>
+                <textarea id="policies-privacy_en" maxlength="2000" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-clay-accent focus:outline-none resize-none h-28 text-sm"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Size guide row template -->
     <template id="size-guide-row-template">
       <tr class="size-guide-row border-b border-outline-variant/50">
@@ -525,13 +582,14 @@ const tabs = [
       receipt: ["businessName", "taxId", "address", "city", "state", "zip", "phone"],
       imagekit: ["publicKey", "privateKey", "urlEndpoint"],
       stripe: { text: ["publishableKey", "secretKey", "webhookSecret"], bool: ["enabled"] },
-      smtp: ["host", "port", "user", "pass", "fromEmail", "fromName"],
+      smtp: ["host", "port", "user", "pass", "fromEmail", "fromName", "adminEmail"],
       transfer: { bool: ["enabled"] },
       size_guide: ["title_es", "title_en", "footer_es", "footer_en"],
+      policies: ["shipping_es", "shipping_en", "returns_es", "returns_en", "privacy_es", "privacy_en"],
     };
 
     const tabGroups = [
-      { id: "general", label: "General", tabs: ["store", "receipt", "sizeguide", "moneda"] },
+      { id: "general", label: "General", tabs: ["store", "receipt", "sizeguide", "moneda", "policies"] },
       { id: "pagos", label: "Pagos", tabs: ["stripe", "transfer"] },
       { id: "servicios", label: "Servicios", tabs: ["imagekit", "smtp"] },
       { id: "contenido", label: "Contenido", tabs: ["landing"] },
@@ -725,14 +783,14 @@ const tabs = [
 
     // --- Landing Page dynamic section editor ---
     const landingSections = {
-      hero: { label: 'Hero', fields: ['label', 'title', 'subtitle', 'cta'], extras: ['cta_link', 'cta_category_slug'] },
-      new_arrivals: { label: 'New Arrivals', fields: ['label', 'title', 'subtitle', 'cta'], extras: ['cta_link', 'cta_category_slug'] },
-      categories: { label: 'Categories', fields: ['label', 'title'], extras: ['cta_link', 'cta_category_slug'] },
-      brand_values: { label: 'Brand Values', fields: ['label', 'title', 'paragraph', 'cta'], extras: ['image_url', 'cta_link', 'cta_category_slug'] },
-      closing_cta: { label: 'Closing CTA', fields: ['label', 'title', 'subtitle', 'cta'], extras: ['cta_link', 'cta_category_slug'] },
+      hero: { label: 'Hero', fields: ['label', 'title', 'subtitle', 'cta'], extras: ['enabled', 'cta_link', 'cta_category_slug'] },
+      new_arrivals: { label: 'New Arrivals', fields: ['label', 'title', 'subtitle', 'cta'], extras: ['enabled', 'cta_link', 'cta_category_slug'] },
+      categories: { label: 'Categories', fields: ['label', 'title'], extras: ['enabled', 'cta_link', 'cta_category_slug'] },
+      brand_values: { label: 'Brand Values', fields: ['label', 'title', 'paragraph', 'cta'], extras: ['enabled', 'image_url', 'cta_link', 'cta_category_slug'] },
+      closing_cta: { label: 'Closing CTA', fields: ['label', 'title', 'subtitle', 'cta'], extras: ['enabled', 'cta_link', 'cta_category_slug'] },
       social: { label: 'Social Media', fields: ['title'], extras: ['enabled', 'facebook_url', 'instagram_url', 'tiktok_url'] },
       testimonials: { label: 'Testimonials', fields: ['title', 'subtitle'], extras: ['enabled', 'testimonial_items'] },
-      blog: { label: 'Blog Journal', fields: ['label', 'title', 'view_all'], extras: [] },
+      blog: { label: 'Blog Journal', fields: ['label', 'title', 'desc', 'view_all'], extras: ['enabled'] },
     };
 
     const landingFieldLabels = {
@@ -741,6 +799,7 @@ const tabs = [
       subtitle_es: 'SUBTÍTULO (ES)', subtitle_en: 'SUBTITLE (EN)',
       paragraph_es: 'PÁRRAFO (ES)', paragraph_en: 'PARAGRAPH (EN)',
       cta_es: 'CTA (ES)', cta_en: 'CTA (EN)',
+      desc_es: 'DESCRIPCIÓN (ES)', desc_en: 'DESCRIPTION (EN)',
       view_all_es: 'VER TODOS (ES)', view_all_en: 'VIEW ALL (EN)',
       image_url: 'IMAGEN (URL)',
       cta_link: 'CTA LINK (URL personalizada)',
@@ -777,7 +836,7 @@ const tabs = [
       if (esFields.length > 0) {
         html += '<div class="md:col-span-2"><div class="border-b border-outline-variant pb-4 mb-4"><span class="font-label-caps text-label-caps text-clay-accent tracking-[0.15em]">ESPAÑOL</span></div></div>';
         for (const f of esFields) {
-          const isTextarea = f.startsWith('paragraph_');
+          const isTextarea = f.startsWith('paragraph_') || f.startsWith('desc_');
           html += `<div class="md:col-span-2">
             <label class="font-label-caps text-label-caps text-secondary block mb-2">${landingFieldLabels[f]}</label>
             ${isTextarea
@@ -791,7 +850,7 @@ const tabs = [
       if (enFields.length > 0) {
         html += '<div class="md:col-span-2"><div class="border-b border-outline-variant pb-4 mb-4"><span class="font-label-caps text-label-caps text-clay-accent tracking-[0.15em]">ENGLISH</span></div></div>';
         for (const f of enFields) {
-          const isTextarea = f.startsWith('paragraph_');
+          const isTextarea = f.startsWith('paragraph_') || f.startsWith('desc_');
           html += `<div class="md:col-span-2">
             <label class="font-label-caps text-label-caps text-secondary block mb-2">${landingFieldLabels[f]}</label>
             ${isTextarea
