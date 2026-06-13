@@ -293,6 +293,41 @@ Ver `html-designs/DESIGN.md` para la paleta completa. Tokens principales:
 - **Botones**: `monolith-black` con `off-white`, sin border-radius
 - **Formularios**: inputs con borde inferior (`border-b`) estilo minimalista
 
+### 8.5 Patrón Canvas
+
+Patrón tipo dashboard/account usado en `/account`. Lienzo blanco con líneas de guía, cards tipo ficha técnica y listas con barras de estado laterales.
+
+**Contenedor principal:**
+```
+bg-surface-container-lowest border border-outline-variant shadow-sm
+└─ h-[1px] bg-gradient-to-r from-transparent via-monolith-black/15 to-transparent  (línea ruled decorativa)
+└─ p-6 md:p-8
+```
+
+**Stats Card (`canvas-card`):**
+```
+bg-off-white border border-outline-variant shadow-sm p-6 relative overflow-hidden
+hover:shadow-md hover:-translate-y-0.5 transition-all duration-300
+├─ Icono: absolute top-4 right-4, text-monolith-black/20
+├─ Label: font-label-caps text-label-caps tracking-widest
+├─ arch-line arch-line-clay (línea separadora 40px)
+└─ Valor: font-headline text-headline-md tracking-tight
+```
+
+**List Row (`canvas-row`):**
+```
+bg-off-white border border-outline-variant border-l-[3px] shadow-sm
+hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 p-5
+├─ Left border: status color (clay / monolith-black / error)
+├─ Left: ID (label-caps) + fecha
+├─ Center: status badge + item count
+└─ Right: TOTAL label (10px caps) + price + chevron
+```
+
+**Animaciones:**
+- Cards: `reveal` con stagger delays al mount
+- Rows: hover lift (`hover:shadow-md hover:-translate-y-0.5`)
+
 ---
 
 ## 9. Roadmap — Fases Futuras
@@ -392,7 +427,12 @@ Ver `html-designs/DESIGN.md` para la paleta completa. Tokens principales:
 │   ├── composer.json               # Dependencias PHP (stripe, phpmailer)
 │   ├── email-templates/            # Plantillas HTML con {{variable}} placeholders
 │   │   ├── order_confirmation.html
-│   │   └── new_order_notification.html
+│   │   ├── new_order_notification.html
+│   │   ├── contact_notification.html
+│   │   ├── welcome.html
+│   │   ├── newsletter_welcome.html
+│   │   ├── newsletter_campaign.html
+│   │   └── password_reset.html
 │   ├── database/
 │   │   └── schema.sql              # Esquema MySQL (40 tablas normalizadas)
 │   ├── includes/
@@ -402,8 +442,7 @@ Ver `html-designs/DESIGN.md` para la paleta completa. Tokens principales:
 │   │   ├── email.php               # PHPMailer wrapper + template renderer
 │   │   ├── imagekit.php            # ImageKit REST API via cURL
 │   │   └── helpers.php             # Utilidades (slug, validación)
-│   ├── blog/                        # Blog público (PHP dinámico)
-│   │   └── index.php               # Lista y detalle de posts
+│   ├── src/pages/[lang]/blog.astro  # Blog público (Astro static, client-side ?slug=)
 │   ├── dev-router.php               # Router para desarrollo (blog URLs limpias)
 │   └── api/
 │       ├── admin/
@@ -430,8 +469,9 @@ Ver `html-designs/DESIGN.md` para la paleta completa. Tokens principales:
 │       ├── stripe/
 │       │   ├── create-payment-intent.php
 │       │   └── webhook.php
-│       ├── email/
-│       │   └── send.php
+│       ├── email/                    # 🔴 Eliminado (open relay, auditoría 06/06)
+│       ├── contact/
+│       │   └── send.php              # POST — enviar mensaje (honeypot + rate limit)
 │       ├── imagekit/
 │       │   └── upload.php
 │       └── blog/
@@ -503,7 +543,7 @@ bash deploy.sh          # Genera dist/ completo
 
 ```
 URL:      http://localhost:4321/admin/login
-Email:    (definido en .env → ADMIN_EMAIL)
+Email:    (creado en Admin → Configuración → Usuarios, o seed admin@vunotek.com)
 Password: (definido en .env → ADMIN_PASSWORD)
 ```
 
@@ -521,17 +561,13 @@ IMAGEKIT_PRIVATE_KEY=
 IMAGEKIT_PUBLIC_KEY=
 IMAGEKIT_URL_ENDPOINT=
 
-# Email (SMTP)
-SMTP_HOST=
-SMTP_PORT=
-SMTP_USER=
-SMTP_PASS=
-FROM_EMAIL=
-
 # Admin
-ADMIN_EMAIL=
-ADMIN_PASSWORD=
+ADMIN_PASSWORD=           # Solo para creación inicial de admin user
 ```
+
+> **Nota:** SMTP y ADMIN_EMAIL se configuran desde Admin → Configuración → SMTP.  
+> `smtp.adminEmail` es el destino de notificaciones de pedidos y formulario de contacto.  
+> `store.email` es el email público de la tienda (visible para clientes).
 
 ---
 
@@ -746,113 +782,113 @@ El archivo `schema.sql` es **idempotente** — incluye `CREATE DATABASE IF NOT E
 | 9 | Login con usuario eliminado de DB → 401 (sin fallback a `.env`) | ✅ |
 | 10 | Login con usuario creado directamente en DB → funciona | ✅ |
 
-### 14.2 Fase 2 — Dashboard
+### 14.2 Fase 2 — Dashboard (✓ Completada)
 
 | # | Prueba | Resultado |
 |---|--------|-----------|
-| 1 | Carga de 4 cards de estadísticas (total productos, pedidos, ingresos mes, pedidos recientes) | ⬜ |
-| 2 | Verificar pedidos recientes en tabla del dashboard | ⬜ |
-| 3 | Probar con DB vacía (sin seed) — manejo de error graceful | ⬜ |
+| 1 | Carga de 4 cards de estadísticas (total productos, pedidos, ingresos mes, pedidos recientes) | ✅ |
+| 2 | Verificar pedidos recientes en tabla del dashboard | ✅ |
+| 3 | Probar con DB vacía (sin seed) — manejo de error graceful | ✅ |
 
-### 14.3 Fase 3 — Gestión de Productos
-
-| # | Prueba | Resultado |
-|---|--------|-----------|
-| 1 | Lista de productos con paginación, búsqueda, filtro por categoría | ⬜ |
-| 2 | Crear producto nuevo: llenar 4 tabs (Información, Precio/Categoría, Imágenes, Variantes) | ⬜ |
-| 3 | Subir imagen desde formulario | ⬜ |
-| 4 | Matriz stock color × talle en pestaña Variantes | ⬜ |
-| 5 | Editar producto existente (carga datos vía API) | ⬜ |
-| 6 | Eliminar producto con modal de confirmación | ⬜ |
-| 7 | Verificar slug auto-generado al escribir título | ⬜ |
-| 8 | Probar CRUD con rol `editor` (debería funcionar) | ⬜ |
-| 9 | Probar CRUD con rol `viewer` (debería denegar escritura) | ⬜ |
-
-### 14.4 Fase 4 — Categorías
+### 14.3 Fase 3 — Gestión de Productos (✓ Completada)
 
 | # | Prueba | Resultado |
 |---|--------|-----------|
-| 1 | Lista de categorías paginada | ⬜ |
-| 2 | Crear categoría (nombre + slug auto) | ⬜ |
-| 3 | Editar categoría existente | ⬜ |
-| 4 | Eliminar categoría | ⬜ |
+| 1 | Lista de productos con paginación, búsqueda, filtro por categoría | ✅ |
+| 2 | Crear producto nuevo: llenar 4 tabs (Información, Precio/Categoría, Imágenes, Variantes) | ✅ |
+| 3 | Subir imagen desde formulario | ✅ |
+| 4 | Matriz stock color × talle en pestaña Variantes | ✅ |
+| 5 | Editar producto existente (carga datos vía API) | ✅ |
+| 6 | Eliminar producto con modal de confirmación | ✅ |
+| 7 | Verificar slug auto-generado al escribir título | ✅ |
+| 8 | Probar CRUD con rol `editor` (debería funcionar) | ✅ |
+| 9 | Probar CRUD con rol `viewer` (debería denegar escritura) | ✅ |
 
-### 14.5 Fase 5 — Cupones
-
-| # | Prueba | Resultado |
-|---|--------|-----------|
-| 1 | Lista de cupones con paginación y búsqueda | ⬜ |
-| 2 | Crear cupón: descuento porcentaje | ⬜ |
-| 3 | Crear cupón: descuento fijo | ⬜ |
-| 4 | Crear cupón con fechas de vigencia | ⬜ |
-| 5 | Crear cupón con límite de usos | ⬜ |
-| 6 | Editar cupón | ⬜ |
-| 7 | Eliminar cupón | ⬜ |
-| 8 | Verificar que cupón vencido no se aplica en checkout | ⬜ |
-| 9 | Verificar que cupón agotado no se aplica | ⬜ |
-
-### 14.6 Fase 6 — Reseñas
+### 14.4 Fase 4 — Categorías (✓ Completada)
 
 | # | Prueba | Resultado |
 |---|--------|-----------|
-| 1 | Lista de reseñas con filtro por estado (pending/approved) | ⬜ |
-| 2 | Aprobar reseña pendiente | ⬜ |
-| 3 | Eliminar reseña | ⬜ |
+| 1 | Lista de categorías paginada | ✅ |
+| 2 | Crear categoría (nombre + slug auto) | ✅ |
+| 3 | Editar categoría existente | ✅ |
+| 4 | Eliminar categoría | ✅ |
 
-### 14.7 Fase 7 — Blog
-
-| # | Prueba | Resultado |
-|---|--------|-----------|
-| 1 | Lista de posts con búsqueda y filtro status (draft/published) | ⬜ |
-| 2 | Crear post: título, slug auto, extracto, contenido HTML, imagen, autor, categoría | ⬜ |
-| 3 | Editar post con carga de datos existentes | ⬜ |
-| 4 | Eliminar post (soft delete) | ⬜ |
-| 5 | Verificar blog público en `/blog/` y `/blog/{slug}` | ⬜ |
-
-### 14.8 Fase 8 — Pedidos
+### 14.5 Fase 5 — Cupones (✓ Completada)
 
 | # | Prueba | Resultado |
 |---|--------|-----------|
-| 1 | Lista de pedidos con filtro por estado y búsqueda | ⬜ |
-| 2 | Ver badges de estado: pending (ocre), paid (negro), shipped (negro 80%), delivered (negro), cancelled (rojo) | ⬜ |
-| 3 | Detalle de pedido: datos cliente, items, totales | ⬜ |
-| 4 | Visualización de comprobante de transferencia (link ImageKit) | ⬜ |
-| 5 | Cambio de estado (pending → paid → shipped → delivered) | ⬜ |
-| 6 | Cancelar pedido | ⬜ |
-| 7 | Verificar registro en `admin_activity_log` al cambiar estado | ⬜ |
+| 1 | Lista de cupones con paginación y búsqueda | ✅ |
+| 2 | Crear cupón: descuento porcentaje | ✅ |
+| 3 | Crear cupón: descuento fijo | ✅ |
+| 4 | Crear cupón con fechas de vigencia | ✅ |
+| 5 | Crear cupón con límite de usos | ✅ |
+| 6 | Editar cupón | ✅ |
+| 7 | Eliminar cupón | ✅ |
+| 8 | Verificar que cupón vencido no se aplica en checkout | ✅ |
+| 9 | Verificar que cupón agotado no se aplica | ✅ |
 
-### 14.9 Fase 9 — Seguridad (2FA)
-
-| # | Prueba | Resultado |
-|---|--------|-----------|
-| 1 | Ir a `/admin/seguridad` — ver estado 2FA (disabled inicialmente) | ⬜ |
-| 2 | Setup: ingresar password, escanear QR con app TOTP | ⬜ |
-| 3 | Verificar código TOTP, recibir 8 backup codes | ⬜ |
-| 4 | Cerrar sesión y login de nuevo — debe pedir TOTP después del password | ⬜ |
-| 5 | Login con código TOTP válido → Dashboard | ⬜ |
-| 6 | Login con código TOTP inválido → error | ⬜ |
-| 7 | Login con backup code → Dashboard | ⬜ |
-| 8 | Deshabilitar 2FA (password + código TOTP) | ⬜ |
-| 9 | Verificar que backup code usado no funciona de nuevo | ⬜ |
-
-### 14.10 Fase 10 — Usuarios (solo superadmin)
+### 14.6 Fase 6 — Reseñas (✓ Completada)
 
 | # | Prueba | Resultado |
 |---|--------|-----------|
-| 1 | Lista de usuarios con roles | ⬜ |
-| 2 | Crear usuario via modal (email, nombre, password, rol) | ⬜ |
-| 3 | Editar usuario (cambiar email, nombre, password, rol) | ⬜ |
-| 4 | Eliminar usuario con confirmación | ⬜ |
-| 5 | Login como `editor` — sidebar oculta "Usuarios" y "Configuración" | ⬜ |
-| 6 | Login como `viewer` — botones de crear/editar/eliminar deben ocultarse | ⬜ |
+| 1 | Lista de reseñas con filtro por estado (pending/approved) | ✅ |
+| 2 | Aprobar reseña pendiente | ✅ |
+| 3 | Eliminar reseña | ✅ |
 
-### 14.11 Fase 11 — Configuración
+### 14.7 Fase 7 — Blog (✓ Completada)
 
 | # | Prueba | Resultado |
 |---|--------|-----------|
-| 1 | Abrir `/admin/configuracion` — carga todas las secciones (Store, Receipt, ImageKit, Stripe, Transfer, SMTP) | ⬜ |
-| 2 | Modificar valor en sección Store y guardar | ⬜ |
-| 3 | Verificar cambio persiste al recargar | ⬜ |
+| 1 | Lista de posts con búsqueda y filtro status (draft/published) | ✅ |
+| 2 | Crear post: título, slug auto, extracto, contenido HTML, imagen, autor, categoría | ✅ |
+| 3 | Editar post con carga de datos existentes | ✅ |
+| 4 | Eliminar post (soft delete) | ✅ |
+| 5 | Verificar blog público en `/blog/` y `/blog/{slug}` | ✅ |
+
+### 14.8 Fase 8 — Pedidos (✓ Completada)
+
+| # | Prueba | Resultado |
+|---|--------|-----------|
+| 1 | Lista de pedidos con filtro por estado y búsqueda | ✅ |
+| 2 | Ver badges de estado: pending (ocre), paid (negro), shipped (negro 80%), delivered (negro), cancelled (rojo) | ✅ |
+| 3 | Detalle de pedido: datos cliente, items, totales | ✅ |
+| 4 | Visualización de comprobante de transferencia (link ImageKit) | ✅ |
+| 5 | Cambio de estado (pending → paid → shipped → delivered) | ✅ |
+| 6 | Cancelar pedido | ✅ |
+| 7 | Verificar registro en `admin_activity_log` al cambiar estado | ✅ |
+
+### 14.9 Fase 9 — Seguridad 2FA (✓ Completada)
+
+| # | Prueba | Resultado |
+|---|--------|-----------|
+| 1 | Ir a `/admin/seguridad` — ver estado 2FA (disabled inicialmente) | ✅ |
+| 2 | Setup: ingresar password, escanear QR con app TOTP | ✅ |
+| 3 | Verificar código TOTP, recibir 8 backup codes | ✅ |
+| 4 | Cerrar sesión y login de nuevo — debe pedir TOTP después del password | ✅ |
+| 5 | Login con código TOTP válido → Dashboard | ✅ |
+| 6 | Login con código TOTP inválido → error | ✅ |
+| 7 | Login con backup code → Dashboard | ✅ |
+| 8 | Deshabilitar 2FA (password + código TOTP) | ✅ |
+| 9 | Verificar que backup code usado no funciona de nuevo | ✅ |
+
+### 14.10 Fase 10 — Usuarios (solo superadmin) (✓ Completada)
+
+| # | Prueba | Resultado |
+|---|--------|-----------|
+| 1 | Lista de usuarios con roles | ✅ |
+| 2 | Crear usuario via modal (email, nombre, password, rol) | ✅ |
+| 3 | Editar usuario (cambiar email, nombre, password, rol) | ✅ |
+| 4 | Eliminar usuario con confirmación | ✅ |
+| 5 | Login como `editor` — sidebar oculta "Usuarios" y "Configuración" | ✅ |
+| 6 | Login como `viewer` — botones de crear/editar/eliminar deben ocultarse | ✅ |
+
+### 14.11 Fase 11 — Configuración (✓ Completada)
+
+| # | Prueba | Resultado |
+|---|--------|-----------|
+| 1 | Abrir `/admin/configuracion` — carga todas las secciones (Store, Receipt, ImageKit, Stripe, Transfer, SMTP) | ✅ |
+| 2 | Modificar valor en sección Store y guardar | ✅ |
+| 3 | Verificar cambio persiste al recargar | ✅ |
 
 ### 14.12 Fase 12 — Issues de Seguridad (Hallazgos)
 
@@ -871,7 +907,5 @@ El archivo `schema.sql` es **idempotente** — incluye `CREATE DATABASE IF NOT E
 | 2 | Blog list expone drafts — `?status=` permite ver posts no publicados | `php/api/blog/list.php` | 🟡 Medio | ✅ Forzado a `status='published'` |
 | 3 | Blog get no filtra `status` — drafts accesibles por slug/ID | `php/api/blog/get.php` | 🟡 Medio | ✅ Validación `$post['status'] === 'published'` |
 
----
-
 > **Documentación generada:** 02/06/2026
-> **Última actualización:** 06/06/2026 — Seguridad: auditoría completa de APIs + fixes
+> **Última actualización:** 12/06/2026 — Módulo SEO completo (export script, blog [slug].astro, noindex, CLS fix, preload hints)

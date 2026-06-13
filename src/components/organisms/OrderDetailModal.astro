@@ -1,0 +1,255 @@
+---
+interface Props {
+  lang: string;
+}
+
+const { lang } = Astro.props;
+---
+
+<!-- Order Detail Modal -->
+<div
+  id="orderDetailModal"
+  class="hidden fixed inset-0 z-[90] flex items-start justify-center bg-black/40 backdrop-blur-sm p-4 pt-[5vh] overflow-y-auto"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="orderDetailTitle"
+>
+  <div class="bg-off-white border border-outline-variant shadow-lg rounded-sm p-6 w-full max-w-3xl my-auto">
+    <div class="flex items-center justify-between mb-6">
+      <h3 id="orderDetailTitle" class="font-headline text-headline-md text-monolith-black">
+        <span id="orderDetailTitleText">{lang === "es" ? "Detalle del Pedido" : "Order Detail"}</span>
+        <span id="orderDetailId" class="text-secondary font-body text-body-md ml-2"></span>
+      </h3>
+      <button type="button" id="orderDetailClose" class="text-secondary hover:text-monolith-black transition-colors p-1 -mr-1" aria-label="Close">
+        <span class="material-symbols-outlined text-xl">close</span>
+      </button>
+    </div>
+
+    <div id="orderDetailLoading" class="font-body text-body-md text-secondary text-center py-8">{lang === "es" ? "Cargando..." : "Loading..."}</div>
+
+    <div id="orderDetailError" class="hidden font-body text-body-md text-error bg-error/10 p-3 mb-4 text-sm"></div>
+
+    <div id="orderDetailContent" class="hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div class="bg-monolith-black/5 p-5">
+          <h4 class="font-headline text-headline-sm mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-lg">receipt</span>
+            {lang === "es" ? "Información del Pedido" : "Order Info"}
+          </h4>
+          <div class="space-y-3 font-body text-body-md text-sm">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-base text-secondary">calendar_today</span>
+              <span id="orderDetailDate" class="text-secondary"></span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-base text-secondary">info</span>
+              <span id="orderDetailStatus"></span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-base text-secondary">credit_card</span>
+              <span id="orderDetailPayment"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-monolith-black/5 p-5">
+          <h4 class="font-headline text-headline-sm mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-lg">local_shipping</span>
+            {lang === "es" ? "Envío" : "Shipping"}
+          </h4>
+          <div id="orderDetailShipping" class="space-y-1 font-body text-body-md text-sm text-secondary"></div>
+        </div>
+      </div>
+
+      <div class="bg-monolith-black/5">
+        <h4 class="font-headline text-headline-sm p-5 pb-0 flex items-center gap-2">
+          <span class="material-symbols-outlined text-lg">shopping_bag</span>
+          {lang === "es" ? "Artículos" : "Items"}
+        </h4>
+        <div class="hidden md:block p-5 pt-4 overflow-x-auto">
+          <table class="w-full text-left">
+            <thead>
+              <tr class="border-b border-monolith-black/10 font-label-caps text-label-caps text-secondary text-xs">
+                <th class="pb-3 pr-4 font-medium">{lang === "es" ? "PRODUCTO" : "PRODUCT"}</th>
+                <th class="pb-3 pr-4 font-medium">{lang === "es" ? "COLOR" : "COLOR"}</th>
+                <th class="pb-3 pr-4 font-medium">{lang === "es" ? "TALLE" : "SIZE"}</th>
+                <th class="pb-3 pr-4 font-medium">QTY</th>
+                <th class="pb-3 pr-4 font-medium text-right">{lang === "es" ? "PRECIO" : "PRICE"}</th>
+                <th class="pb-3 font-medium text-right">{lang === "es" ? "SUBTOTAL" : "SUBTOTAL"}</th>
+              </tr>
+            </thead>
+            <tbody id="orderDetailItemsBody"></tbody>
+            <tfoot>
+              <tr id="orderDetailDiscountRow" class="hidden">
+                <td colspan="5" class="pt-4 pr-4 text-right font-body text-body-md text-sm text-clay-accent">{lang === "es" ? "Descuento" : "Discount"}</td>
+                <td class="pt-4 font-price-display text-price-display text-clay-accent text-right" id="orderDetailDiscount"></td>
+              </tr>
+              <tr class="font-headline text-headline-sm border-t border-monolith-black/10">
+                <td colspan="5" class="pt-4 pr-4 text-right">{lang === "es" ? "Total" : "Total"}</td>
+                <td class="pt-4 font-price-display text-price-display text-right" id="orderDetailTotal"></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <div id="orderDetailItemsCards" class="block md:hidden divide-y divide-monolith-black/10 px-5"></div>
+        <div id="orderDetailDiscountRowMobile" class="hidden md:hidden border-t border-monolith-black/10 px-5 py-3 flex justify-between items-center">
+          <span class="font-body text-body-md text-sm text-clay-accent">{lang === "es" ? "Descuento" : "Discount"}</span>
+          <span class="font-price-display text-price-display text-clay-accent" id="orderDetailDiscountMobile"></span>
+        </div>
+        <div class="block md:hidden border-t border-monolith-black/10 px-5 py-4 flex justify-between items-center">
+          <span class="font-headline text-headline-sm">{lang === "es" ? "Total" : "Total"}</span>
+          <span class="font-price-display text-price-display" id="orderDetailTotalMobile"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // @ts-nocheck
+  var LANG = document.documentElement.lang || "es";
+  var statusStyles = {
+    pending: "bg-clay-accent/20 text-clay-accent",
+    paid: "bg-monolith-black text-off-white",
+    shipped: "bg-monolith-black/80 text-off-white",
+    delivered: "bg-monolith-black text-off-white",
+    cancelled: "bg-error/20 text-error",
+  };
+
+  function statusBadge(status) {
+    var cls = statusStyles[status] || "";
+    return '<span class="inline-flex items-center gap-1 font-label-caps text-label-caps text-xs px-2 py-0.5 ' + cls + '">' + (status || "").toUpperCase() + "</span>";
+  }
+
+  function openOrderDetail(orderId) {
+    var modal = document.getElementById("orderDetailModal");
+    if (!modal) return;
+
+    // Reset state
+    document.getElementById("orderDetailContent").classList.add("hidden");
+    document.getElementById("orderDetailError").classList.add("hidden");
+    document.getElementById("orderDetailLoading").classList.remove("hidden");
+    document.getElementById("orderDetailTitleText").textContent = LANG === "es" ? "Detalle del Pedido" : "Order Detail";
+    document.getElementById("orderDetailId").textContent = "#" + orderId;
+
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+    document.body.style.overflow = "hidden";
+
+    // Scroll to top of modal
+    modal.scrollTop = 0;
+
+    if (!window.VunoAuth) {
+      document.getElementById("orderDetailLoading").classList.add("hidden");
+      document.getElementById("orderDetailError").textContent = LANG === "es" ? "Sesión no disponible" : "Session not available";
+      document.getElementById("orderDetailError").classList.remove("hidden");
+      return;
+    }
+
+    window.VunoAuth.authFetch("/api/customer/get-order.php?id=" + encodeURIComponent(orderId))
+      .then(function (res) {
+        if (!res.ok) throw new Error(LANG === "es" ? "Pedido no encontrado" : "Order not found");
+        return res.json();
+      })
+      .then(function (o) {
+        document.getElementById("orderDetailDate").textContent = o.createdAt
+          ? new Date(o.createdAt).toLocaleDateString(LANG === "es" ? "es-ES" : "en-US", { month: "long", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" })
+          : "";
+        document.getElementById("orderDetailStatus").innerHTML = statusBadge(o.status);
+        document.getElementById("orderDetailPayment").textContent = o.paymentMethod === "stripe"
+          ? (LANG === "es" ? "Tarjeta (Stripe)" : "Card (Stripe)")
+          : (LANG === "es" ? "Transferencia Bancaria" : "Bank Transfer");
+
+        document.getElementById("orderDetailShipping").innerHTML =
+          "<p class='text-monolith-black font-medium'>" + (o.customer?.name || "") + "</p>" +
+          "<p>" + (o.customer?.email || "") + "</p>" +
+          "<p>" + (o.customer?.address || "") + "</p>" +
+          "<p>" + (o.customer?.city || "") + " " + (o.customer?.zip || "") + "</p>";
+
+        var sym = o.display_symbol || "$";
+        var items = o.items || [];
+
+        var tbody = document.getElementById("orderDetailItemsBody");
+        var cards = document.getElementById("orderDetailItemsCards");
+
+        tbody.innerHTML = items.map(function (item) {
+          var price = (item.product?.display_price ?? item.product?.price) || 0;
+          var subtotal = price * (item.quantity || 1);
+          return "<tr class='border-b border-monolith-black/5'>" +
+            "<td class='py-3 pr-4 font-body text-body-md text-sm text-monolith-black font-medium'>" + (item.product?.name || "") + "</td>" +
+            "<td class='py-3 pr-4 font-body text-body-md text-sm text-secondary'>" + (item.selectedColor || "—") + "</td>" +
+            "<td class='py-3 pr-4 font-body text-body-md text-sm text-secondary'>" + (item.selectedSize || "—") + "</td>" +
+            "<td class='py-3 pr-4 font-body text-body-md text-sm'>" + (item.quantity || 1) + "</td>" +
+            "<td class='py-3 pr-4 font-price-display text-sm text-right'>" + sym + window.formatPrice(price) + "</td>" +
+            "<td class='py-3 font-price-display text-sm text-right'>" + sym + window.formatPrice(subtotal) + "</td>" +
+            "</tr>";
+        }).join("");
+
+        cards.innerHTML = items.map(function (item) {
+          var price = (item.product?.display_price ?? item.product?.price) || 0;
+          var subtotal = price * (item.quantity || 1);
+          return '<div class="py-3 flex flex-col gap-2 first:pt-0 last:pb-0">' +
+            '<div class="flex items-start justify-between">' +
+            '<span class="font-body text-body-md text-sm text-monolith-black font-medium">' + (item.product?.name || "") + '</span>' +
+            '<span class="font-price-display text-sm whitespace-nowrap ml-3">' + sym + window.formatPrice(subtotal) + '</span>' +
+            "</div>" +
+            '<div class="flex flex-wrap gap-x-4 gap-y-1 text-sm font-body text-body-md text-secondary">' +
+            "<span>" + (LANG === "es" ? "Color:" : "Color:") + ' <span class="text-monolith-black">' + (item.selectedColor || "—") + "</span></span>" +
+            "<span>" + (LANG === "es" ? "Talle:" : "Size:") + ' <span class="text-monolith-black">' + (item.selectedSize || "—") + "</span></span>" +
+            "<span>Qty: <span class='text-monolith-black'>" + (item.quantity || 1) + "</span></span>" +
+            "<span>@ <span class='text-monolith-black'>" + sym + window.formatPrice(price) + "</span></span>" +
+            "</div></div>";
+        }).join("");
+
+        if (o.discountTotal && o.discountTotal > 0) {
+          document.getElementById("orderDetailDiscountRow").classList.remove("hidden");
+          document.getElementById("orderDetailDiscountRowMobile").classList.remove("hidden");
+          var disc = "-" + sym + window.formatPrice(o.discountTotal);
+          document.getElementById("orderDetailDiscount").textContent = disc;
+          document.getElementById("orderDetailDiscountMobile").textContent = disc;
+        }
+
+        var total = sym + window.formatPrice(o.display_total || o.total || 0);
+        document.getElementById("orderDetailTotal").textContent = total;
+        document.getElementById("orderDetailTotalMobile").textContent = total;
+
+        document.getElementById("orderDetailLoading").classList.add("hidden");
+        document.getElementById("orderDetailContent").classList.remove("hidden");
+      })
+      .catch(function (err) {
+        document.getElementById("orderDetailLoading").classList.add("hidden");
+        document.getElementById("orderDetailError").textContent = err.message || (LANG === "es" ? "Error al cargar el pedido" : "Error loading order");
+        document.getElementById("orderDetailError").classList.remove("hidden");
+      });
+  }
+
+  function closeOrderDetail() {
+    var modal = document.getElementById("orderDetailModal");
+    if (!modal) return;
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+    document.body.style.overflow = "";
+  }
+
+  window.openOrderDetail = openOrderDetail;
+  window.closeOrderDetail = closeOrderDetail;
+
+  // Backdrop click
+  document.addEventListener("click", function (e) {
+    var modal = document.getElementById("orderDetailModal");
+    if (!modal || modal.classList.contains("hidden")) return;
+    if (e.target === modal) closeOrderDetail();
+  });
+
+  // Close button
+  document.addEventListener("click", function (e) {
+    var btn = e.target.closest("#orderDetailClose");
+    if (!btn) return;
+    closeOrderDetail();
+  });
+
+  // Escape key
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") closeOrderDetail();
+  });
+</script>

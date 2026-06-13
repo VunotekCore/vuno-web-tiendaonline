@@ -1,0 +1,41 @@
+# robots.txt — Vunotek
+# https://developers.google.com/search/docs/crawling-indexing/robots/intro
+
+User-agent: *
+Allow: /
+
+# Admin panel — no indexar
+Disallow: /admin/
+
+# APIs — no indexar
+Disallow: /api/
+
+# Páginas transaccionales — no indexar
+Disallow: /es/carrito
+Disallow: /en/carrito
+Disallow: /es/checkout
+Disallow: /en/checkout
+Disallow: /es/login
+Disallow: /en/login
+Disallow: /es/register
+Disallow: /en/register
+Disallow: /es/forgot-password
+Disallow: /en/forgot-password
+Disallow: /es/reset-password
+Disallow: /en/reset-password
+Disallow: /es/account/
+Disallow: /en/account/
+Disallow: /es/wishlist
+Disallow: /en/wishlist
+Disallow: /es/contacto
+Disallow: /en/contacto
+
+# Archivos privados
+Disallow: /vendor/
+Disallow: /node_modules/
+Disallow: /.env
+Disallow: /composer.json
+Disallow: /composer.lock
+
+# Sitemap
+Sitemap: https://vuno.com/sitemap-index.xml

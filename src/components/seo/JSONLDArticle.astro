@@ -1,0 +1,43 @@
+---
+export interface Props {
+  headline: string;
+  description?: string;
+  image?: string;
+  datePublished: string;
+  dateModified?: string;
+  author?: string;
+  slug: string;
+}
+
+const {
+  headline,
+  description,
+  image,
+  datePublished,
+  dateModified,
+  author = "Vunotek",
+  slug,
+} = Astro.props;
+
+const siteUrl = import.meta.env.PROD ? "https://vuno.com" : "http://localhost:4321";
+const articleUrl = `${siteUrl}${slug.startsWith("/") ? slug : "/es/blog/" + slug}`;
+---
+
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": headline,
+  ...(description ? { "description": description } : {}),
+  ...(image ? { "image": image } : {}),
+  "url": articleUrl,
+  "author": {
+    "@type": "Person",
+    "name": author
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Vunotek"
+  },
+  "datePublished": datePublished,
+  "dateModified": dateModified || datePublished,
+})}></script>
