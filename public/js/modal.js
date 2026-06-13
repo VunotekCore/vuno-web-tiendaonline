@@ -45,8 +45,8 @@
   const modalIcon = document.getElementById("vunoModalIcon");
   const modalActions = document.getElementById("vunoModalActions");
   const modalClose = document.getElementById("vunoModalClose");
-  const modalCancel = document.getElementById("vunoModalCancel");
-  const modalConfirm = document.getElementById("vunoModalConfirm");
+let modalCancel = document.getElementById("vunoModalCancel");
+let modalConfirm = document.getElementById("vunoModalConfirm");
 
   let modalState = { onClose: null, onCancel: null, isOpen: false };
 
@@ -118,6 +118,7 @@
       modalConfirm.className = "font-label-caps text-label-caps bg-monolith-black text-off-white rounded-md px-5 h-10 hover:bg-monolith-black/90 transition-all";
       const newConfirm = modalConfirm.cloneNode(true);
       modalConfirm.parentNode.replaceChild(newConfirm, modalConfirm);
+      modalConfirm = newConfirm;
       newConfirm.addEventListener("click", closeModal);
       modalState = { onClose, onCancel: null, isOpen: true };
       showModalBackdrop();
@@ -154,7 +155,9 @@
       const newCancel = modalCancel.cloneNode(true);
       const newConfirm = modalConfirm.cloneNode(true);
       modalCancel.parentNode.replaceChild(newCancel, modalCancel);
+      modalCancel = newCancel;
       modalConfirm.parentNode.replaceChild(newConfirm, modalConfirm);
+      modalConfirm = newConfirm;
       newCancel.addEventListener("click", () => {
         const cb = onCancel;
         closeModal();

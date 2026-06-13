@@ -12,7 +12,7 @@ const { lang } = Astro.params as { lang: Locale };
 const currentPath = Astro.url.pathname;
 ---
 
-<BaseLayout title={lang === "es" ? "Crear Cuenta | Ram;Lop" : "Create Account | Ram;Lop"} lang={lang}>
+<BaseLayout title={lang === "es" ? "Crear Cuenta | Ram;Lop" : "Create Account | Ram;Lop"} lang={lang} seo={{ noindex: true }}>
   <Navbar lang={lang} currentPath={currentPath} />
   <main class="flex-grow w-full max-w-md mx-auto px-margin-mobile md:px-margin-desktop py-section-gap">
     <div class="text-center mb-10">
@@ -47,6 +47,14 @@ const currentPath = Astro.url.pathname;
   </main>
   <Footer lang={lang} />
 
+  <!-- Loading Modal -->
+  <div id="loadingModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+    <div class="bg-off-white px-12 py-10 flex flex-col items-center gap-5">
+      <div class="w-7 h-7 border-2 border-monolith-black border-t-transparent rounded-full animate-spin"></div>
+      <p class="font-body text-body-md text-monolith-black text-sm tracking-wider">CREANDO CUENTA</p>
+    </div>
+  </div>
+
   <script src="/js/auth.js" is:inline></script>
   <script>
     // @ts-nocheck
@@ -65,6 +73,7 @@ const currentPath = Astro.url.pathname;
       const errorEl = document.getElementById("registerError");
 
       errorEl.classList.add("hidden");
+      document.getElementById("loadingModal").classList.remove("hidden");
       btn.disabled = true;
       btn.textContent = "...";
 
@@ -72,6 +81,7 @@ const currentPath = Astro.url.pathname;
         await window.VunoAuth.register(name, email, password);
         window.location.href = "/" + document.querySelector("html").getAttribute("lang") + "/account";
       } catch (err) {
+        document.getElementById("loadingModal").classList.add("hidden");
         errorEl.textContent = err.message;
         errorEl.classList.remove("hidden");
         btn.disabled = false;

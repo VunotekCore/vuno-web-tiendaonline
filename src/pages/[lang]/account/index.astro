@@ -21,41 +21,54 @@ const currentPath = Astro.url.pathname;
     </div>
 
     <div id="accountContent" class="hidden">
-      <div class="flex items-center justify-between mb-8">
-        <div>
-          <h1 class="font-headline text-headline-lg-mobile md:text-headline-lg">{t("account.title", lang)}</h1>
-          <p class="font-body text-body-md text-secondary mt-1">{t("account.welcome", lang)}, <span id="customerName" class="text-monolith-black font-medium"></span></p>
-        </div>
-        <a href={`/${lang}/account/profile`} class="font-label-caps text-label-caps border border-monolith-black text-monolith-black h-10 px-4 inline-flex items-center hover:bg-monolith-black/5 transition-all text-sm">{t("account.editProfile", lang)}</a>
-      </div>
+      <div class="bg-surface-container-lowest border border-outline-variant shadow-sm">
+        <div class="h-[1px] bg-gradient-to-r from-transparent via-monolith-black/15 to-transparent"></div>
+        <div class="p-6 md:p-8">
+          <!-- Header -->
+          <div class="flex items-start justify-between mb-10">
+            <div>
+              <h1 class="font-headline text-headline-lg-mobile md:text-headline-lg">{t("account.title", lang)}</h1>
+              <div class="arch-line mt-3"></div>
+              <p class="font-body text-body-md text-secondary mt-3">{t("account.welcome", lang)}, <span id="customerName" class="text-monolith-black font-medium"></span></p>
+            </div>
+            <button type="button" onclick="window.openProfileEditModal()" class="font-label-caps text-label-caps border border-monolith-black/20 text-monolith-black h-10 px-4 inline-flex items-center hover:bg-monolith-black/5 hover:border-monolith-black transition-all text-sm cursor-pointer flex-shrink-0 ml-4">{t("account.editProfile", lang)}</button>
+          </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-        <div class="bg-off-white border border-outline-variant p-5">
-          <span class="material-symbols-outlined text-2xl text-monolith-black block mb-2">person</span>
-          <p class="font-body text-body-md text-secondary text-sm">{t("account.memberSince", lang)}</p>
-          <p class="font-body text-body-md font-medium" id="customerMemberSince"></p>
-        </div>
-        <div class="bg-off-white border border-outline-variant p-5">
-          <span class="material-symbols-outlined text-2xl text-monolith-black block mb-2">receipt</span>
-          <p class="font-body text-body-md text-secondary text-sm">{t("account.lastOrder", lang)}</p>
-          <p class="font-body text-body-md font-medium" id="customerLastOrder"></p>
-        </div>
-        <div class="bg-off-white border border-outline-variant p-5">
-          <span class="material-symbols-outlined text-2xl text-monolith-black block mb-2">shopping_bag</span>
-          <p class="font-body text-body-md text-secondary text-sm">{t("account.orders", lang)}</p>
-          <p class="font-body text-body-md font-medium" id="customerOrderCount"></p>
-        </div>
-      </div>
+          <!-- Stats cards -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-12">
+            <div class="bg-off-white border border-outline-variant shadow-sm p-6 relative overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 reveal reveal-delay-1">
+              <span class="material-symbols-outlined text-lg text-monolith-black/20 absolute top-4 right-4">person</span>
+              <p class="font-label-caps text-label-caps text-secondary tracking-widest">{t("account.memberSince", lang)}</p>
+              <div class="arch-line arch-line-clay mt-3 mb-3"></div>
+              <p class="font-headline text-headline-md text-monolith-black tracking-tight" id="customerMemberSince"></p>
+            </div>
+            <div class="bg-off-white border border-outline-variant shadow-sm p-6 relative overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 reveal reveal-delay-2">
+              <span class="material-symbols-outlined text-lg text-monolith-black/20 absolute top-4 right-4">receipt</span>
+              <p class="font-label-caps text-label-caps text-secondary tracking-widest">{t("account.lastOrder", lang)}</p>
+              <div class="arch-line arch-line-clay mt-3 mb-3"></div>
+              <p class="font-headline text-headline-md text-monolith-black tracking-tight" id="customerLastOrder"></p>
+            </div>
+            <div class="bg-off-white border border-outline-variant shadow-sm p-6 relative overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 reveal reveal-delay-3">
+              <span class="material-symbols-outlined text-lg text-monolith-black/20 absolute top-4 right-4">shopping_bag</span>
+              <p class="font-label-caps text-label-caps text-secondary tracking-widest">{t("account.orders", lang)}</p>
+              <div class="arch-line arch-line-clay mt-3 mb-3"></div>
+              <p class="font-headline text-headline-md text-monolith-black tracking-tight" id="customerOrderCount"></p>
+            </div>
+          </div>
 
-      <div class="flex items-center justify-between mb-6">
-        <h2 class="font-headline text-headline-md">{t("account.recentOrders", lang)}</h2>
-        <a href={`/${lang}/account/orders`} class="font-label-caps text-label-caps text-secondary hover:text-monolith-black transition-colors text-sm">{t("account.viewAllOrders", lang)}</a>
-      </div>
+          <!-- Recent orders header -->
+          <div class="flex items-center justify-between mb-5">
+            <h2 class="font-headline text-headline-md">{t("account.recentOrders", lang)}</h2>
+            <a href={`/${lang}/account/orders`} class="font-label-caps text-label-caps text-secondary hover:text-monolith-black transition-colors text-sm tracking-widest">{t("account.viewAllOrders", lang)}</a>
+          </div>
 
-      <div id="recentOrders" class="space-y-3"></div>
-      <div id="noOrders" class="hidden text-center py-10">
-        <p class="font-body text-body-md text-secondary mb-4">{t("account.noOrders", lang)}</p>
-        <a href={`/${lang}/catalogo`} class="inline-block bg-monolith-black text-off-white font-label-caps text-label-caps h-10 px-6 leading-[40px] hover:bg-monolith-black/90 transition-all tracking-widest text-sm">EXPLORAR</a>
+          <div id="recentOrders" class="space-y-3"></div>
+          <div id="noOrders" class="hidden text-center py-16">
+            <span class="material-symbols-outlined text-3xl text-monolith-black/15 block mb-3">shopping_bag</span>
+            <p class="font-body text-body-md text-secondary mb-6">{t("account.noOrders", lang)}</p>
+            <a href={`/${lang}/catalogo`} class="inline-block bg-monolith-black text-off-white font-label-caps text-label-caps h-10 px-6 leading-[40px] hover:bg-monolith-black/90 transition-all tracking-widest text-sm">EXPLORAR</a>
+          </div>
+        </div>
       </div>
     </div>
   </main>
@@ -65,6 +78,13 @@ const currentPath = Astro.url.pathname;
   <script>
     // @ts-nocheck
     const LANG = document.querySelector("html").getAttribute("lang") || "es";
+    const statusBorderStyles = {
+      pending: "border-l-clay-accent",
+      paid: "border-l-monolith-black",
+      shipped: "border-l-monolith-black/60",
+      delivered: "border-l-green-700",
+      cancelled: "border-l-error",
+    };
     const statusStyles = {
       pending: "bg-clay-accent/20 text-clay-accent",
       paid: "bg-monolith-black text-off-white",
@@ -77,18 +97,36 @@ const currentPath = Astro.url.pathname;
       const sym = o.currency === "MXN" ? "MX$" : o.currency === "GTQ" ? "Q" : "$";
       const total = o.display_total || o.total || 0;
       const statusClass = statusStyles[o.status] || "";
+      const borderClass = statusBorderStyles[o.status] || "border-l-monolith-black/20";
       const date = o.createdAt ? new Date(o.createdAt).toLocaleDateString() : "";
-      return `<a href="/${LANG}/account/orders/detalle?id=${o.id}" class="flex items-center justify-between p-4 bg-off-white border border-outline-variant hover:border-monolith-black transition-colors group">
-        <div class="flex items-center gap-6 flex-wrap">
-          <span class="font-label-caps text-label-caps text-secondary text-xs">#${o.id}</span>
-          <span class="font-body text-body-md text-secondary text-sm">${date}</span>
+      const itemsCount = o.items?.length || 0;
+      return `<button type="button" onclick="window.openOrderDetail('${o.id}')" class="w-full text-left flex items-center justify-between p-5 bg-off-white border border-outline-variant border-l-[3px] ${borderClass} shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 group cursor-pointer">
+        <div class="flex items-center gap-5 flex-wrap min-w-0">
+          <div>
+            <p class="font-label-caps text-label-caps text-secondary text-xs tracking-widest">#${o.id}</p>
+            <p class="font-body text-body-md text-secondary text-sm mt-0.5">${date}</p>
+          </div>
           <span class="inline-flex items-center gap-1 font-label-caps text-label-caps text-xs px-2 py-0.5 ${statusClass}">${(o.status || "").toUpperCase()}</span>
+          <span class="font-body text-body-md text-secondary/60 text-xs">${itemsCount} item(s)</span>
         </div>
-        <div class="flex items-center gap-4">
-          <span class="font-price-display text-price-display">${sym}${total.toFixed(2)}</span>
-          <span class="material-symbols-outlined text-lg text-secondary group-hover:text-monolith-black transition-colors">chevron_right</span>
+        <div class="flex items-center gap-3 flex-shrink-0 ml-4">
+          <div class="text-right">
+            <p class="font-label-caps text-label-caps text-secondary/50 text-[10px] tracking-widest">TOTAL</p>
+            <p class="font-price-display text-price-display text-monolith-black leading-tight">${sym}${window.formatPrice(total)}</p>
+          </div>
+          <span class="material-symbols-outlined text-lg text-secondary/30 group-hover:text-monolith-black transition-colors">chevron_right</span>
         </div>
-      </a>`;
+      </button>`;
+    }
+
+    // Reveal on mount
+    function revealElements() {
+      const els = document.querySelectorAll("#accountContent .reveal");
+      els.forEach(function (el, i) {
+        setTimeout(function () {
+          el.classList.add("revealed");
+        }, 100 + i * 100);
+      });
     }
 
     (async function () {
@@ -97,7 +135,6 @@ const currentPath = Astro.url.pathname;
         return;
       }
 
-      // Verify session on load
       const customer = await window.VunoAuth.verify();
       if (!customer) {
         document.getElementById("notLoggedIn").classList.remove("hidden");
@@ -106,16 +143,22 @@ const currentPath = Astro.url.pathname;
 
       document.getElementById("customerName").textContent = customer.name;
       document.getElementById("customerMemberSince").textContent = customer.memberSince || "—";
-      document.getElementById("customerLastOrder").textContent = customer.lastOrderAt || "—";
 
       document.getElementById("accountContent").classList.remove("hidden");
+      revealElements();
 
-      // Load orders
       try {
         const res = await window.VunoAuth.authFetch("/api/customer/orders.php");
         const data = await res.json();
         const orders = data.orders || [];
         document.getElementById("customerOrderCount").textContent = orders.length;
+
+        if (orders.length > 0) {
+          document.getElementById("customerLastOrder").textContent =
+            new Date(orders[0].createdAt).toLocaleDateString();
+        } else {
+          document.getElementById("customerLastOrder").textContent = customer.lastOrderAt || "—";
+        }
 
         if (orders.length === 0) {
           document.getElementById("noOrders").classList.remove("hidden");

@@ -83,7 +83,12 @@
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, email, password }),
     });
-    const data = await res.json();
+    let data;
+    try {
+      data = await res.json();
+    } catch {
+      throw new Error("Error del servidor. Intenta de nuevo.");
+    }
     if (!res.ok) throw new Error(data.error || "Registration failed");
     setToken(data.token);
     setStoredCustomer(data.customer);

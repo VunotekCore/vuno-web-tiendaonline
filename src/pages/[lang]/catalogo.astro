@@ -6,6 +6,8 @@ import AnimatedReveal from "../../components/atoms/AnimatedReveal.astro";
 import { getProducts, getCategories } from "../../lib/storage";
 import { imgTransform } from "../../lib/images";
 import { t, type Locale, locales } from "../../i18n/utils";
+import { formatPrice } from "../../utils/formatPrice";
+import JSONLDBreadcrumb from "../../components/seo/JSONLDBreadcrumb.astro";
 
 export async function getStaticPaths() {
   return locales.map((lang) => ({ params: { lang } }));
@@ -54,7 +56,19 @@ const alternateUrls = {
 };
 ---
 
-<BaseLayout title={lang === "es" ? "Catálogo — Colección | Ram;Lop" : "Catalog — Collection | Ram;Lop"} lang={lang} alternateUrls={alternateUrls}>
+<BaseLayout
+  title={lang === "es" ? "Catálogo — Colección" : "Catalog — Collection"}
+  description={lang === "es" ? "Explorá nuestra colección de calzado artesanal para damas. Diseño minimalista arquitectónico." : "Explore our collection of handmade footwear for women. Architectural minimalist design."}
+  lang={lang}
+  alternateUrls={alternateUrls}
+  seo={{ ogType: 'website' }}
+>
+  <JSONLDBreadcrumb
+    items={[
+      { name: lang === 'es' ? 'Inicio' : 'Home', url: `${import.meta.env.PROD ? "https://vuno.com" : "http://localhost:4321"}/${lang}/` },
+      { name: lang === 'es' ? 'Catálogo' : 'Catalog', url: `${import.meta.env.PROD ? "https://vuno.com" : "http://localhost:4321"}/${lang}/catalogo` },
+    ]}
+  />
   <Navbar lang={lang} currentPath={currentPath} />
 
   <main class="w-full max-w-container-max mx-auto pb-section-gap">
@@ -174,6 +188,8 @@ const alternateUrls = {
               <img
                 src={imgTransform(img, 400, 500)}
                 alt={product.name}
+                width="400"
+                height="500"
                 class="w-full h-full object-cover object-center img-lift"
                 loading="lazy"
               />
@@ -192,7 +208,7 @@ const alternateUrls = {
                 </div>
                 <a href={`/${lang}/producto/${product.slug}`} class="block">
                   <h3 class="font-body-md text-body-md text-monolith-black group-hover:text-clay-accent transition-colors duration-300">{product.name}</h3>
-                  <p class="font-price-display text-price-display text-secondary mt-1">{product.display_symbol || '$'}{(product.display_price || product.price).toFixed(2)}</p>
+                  <p class="font-price-display text-price-display text-secondary mt-1">{product.display_symbol || '$'}{formatPrice(product.display_price || product.price)}</p>
                   {product.colors.length > 0 && (
                     <div class="flex gap-2 mt-3">
                       {product.colors.map((c) => (
@@ -299,6 +315,8 @@ const alternateUrls = {
   description: p.description,
   colors: p.colors,
   sizes: p.sizes,
+  variants: p.variants,
+  totalStock: p.totalStock,
   createdAt: p.createdAt,
 })))}></script>
 <script id="catalogLangData" type="application/json" is:inline set:html={JSON.stringify(lang)}></script>
@@ -307,7 +325,7 @@ const alternateUrls = {
   // @ts-nocheck
   (function () {
     var products = JSON.parse(document.getElementById("catalogProductsData").textContent);
-    var lang = document.getElementById("catalogLangData").textContent;
+    var lang = JSON.parse(document.getElementById("catalogLangData").textContent);
     window.CatalogUI.init(products, lang);
   })();
 </script>

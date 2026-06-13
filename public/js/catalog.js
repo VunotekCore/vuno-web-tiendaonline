@@ -25,6 +25,8 @@
           state.filters.styles.push(cb.dataset.filterStyle);
         }
       });
+      state.visibleCount = state.perPage;
+      applyFilters();
     }
   }
 
@@ -42,6 +44,7 @@
     bindLoadMore();
     bindMobileFilterToggle();
     bindQuickView();
+    bindProductCardClick();
     parseCategoryParam();
     render();
   }
@@ -239,6 +242,26 @@
   }
 
   // =============================================================
+  //                   PRODUCT CARD CLICK
+  // =============================================================
+
+  function bindProductCardClick() {
+    var grid = document.getElementById("productGrid");
+    if (!grid) return;
+    grid.addEventListener("click", function (e) {
+      var card = e.target.closest(".product-card");
+      if (!card) return;
+      // Don't intercept clicks on buttons, links, or wishlist toggles
+      if (e.target.closest("button") || e.target.closest("a")) return;
+      var link = card.querySelector('a[href*="/producto/"]');
+      if (link) {
+        e.preventDefault();
+        window.location.href = link.href;
+      }
+    });
+  }
+
+  // =============================================================
   //                     QUICK VIEW
   // =============================================================
 
@@ -290,6 +313,8 @@
       });
       sizeBtn.classList.add("bg-monolith-black", "text-off-white", "border-monolith-black");
       sizeBtn.classList.remove("border-outline-variant");
+      var selColor = getQVSelectedColor();
+      if (selColor) updateQVStock(selColor);
     });
   }
 
@@ -307,10 +332,12 @@
     if (!currentQuickViewProduct) return;
     var sizes = currentQuickViewProduct.sizes;
     var variantMap = {};
+    var stockMap = {};
     if (currentQuickViewProduct.variants) {
       currentQuickViewProduct.variants.forEach(function (v) {
-        var key = (v.colorName || "") + "_" + (v.sizeValue || "");
+        var key = (v.color_name || "") + "_" + (v.size_value || "");
         variantMap[key] = v.stock > 0;
+        stockMap[key] = v.stock;
       });
     }
 
@@ -334,6 +361,25 @@
         btn.disabled = false;
       }
     });
+
+    // Show stock count for selected color + size
+    var selectedSize = getQVSelectedSize();
+    var stockInfo = document.getElementById("qvStockInfo");
+    if (!stockInfo) return;
+    if (colorName && selectedSize) {
+      var skey = colorName + "_" + selectedSize;
+      var stock = stockMap.hasOwnProperty(skey) ? stockMap[skey] : 0;
+      if (stock > 0) {
+        stockInfo.textContent = "En stock · " + stock;
+        stockInfo.className = "font-body-md text-body-md text-xs text-secondary mt-2";
+      } else {
+        stockInfo.textContent = "Agotado";
+        stockInfo.className = "font-body-md text-body-md text-xs text-error mt-2";
+      }
+      stockInfo.classList.remove("hidden");
+    } else {
+      stockInfo.classList.add("hidden");
+    }
   }
 
   function openQuickView(product) {
@@ -344,7 +390,7 @@
 
     var mainImage = product.images && product.images.length > 0 ? product.images[0] : "";
     var moreImages = product.images ? product.images.slice(1, 3) : [];
-    var productUrl = "/" + state.lang + "/producto/" + product.slug;
+    var productUrl = "/" + state.lang + "/producto/" + encodeURIComponent(product.slug);
 
     var html = '<div class="flex flex-col md:flex-row gap-6 md:gap-8">';
     // Gallery
@@ -367,7 +413,7 @@
     html += '<div>';
     html += '<p class="font-label-caps text-label-caps text-secondary mb-1">' + escapeHtml(product.category || "") + '</p>';
     html += '<h3 class="font-headline-md text-headline-md text-monolith-black">' + escapeHtml(product.name) + '</h3>';
-    html += '<p class="font-price-display text-price-display text-monolith-black mt-2">' + (product.display_symbol || '$') + (product.display_price || product.price).toFixed(2) + ' ' + (product.display_currency || 'USD') + '</p>';
+    html += '<p class="font-price-display text-price-display text-monolith-black mt-2">' + (product.display_symbol || '$') + window.formatPrice(product.display_price || product.price) + ' ' + (product.display_currency || 'USD') + '</p>';
     html += '</div>';
     // Colors
     if (product.colors && product.colors.length > 0) {
@@ -391,6 +437,7 @@
         html += '<button data-qv-size="' + escapeHtml(s.value) + '" class="py-2 px-1 border border-outline-variant text-center font-label-caps text-label-caps text-monolith-black transition-all duration-300 ' + disabledCls + '" ' + (s.inStock ? '' : 'disabled') + '>' + escapeHtml(s.label) + '</button>';
       });
       html += '</div>';
+      html += '<p id="qvStockInfo" class="font-body-md text-body-md text-xs text-secondary mt-2 hidden">&nbsp;</p>';
       html += '</div>';
     }
     // Description excerpt
@@ -440,7 +487,45 @@
       }
       return;
     }
+    var sizeBtn = document.querySelector('[data-qv-size="' + size + '"]');
+    if (sizeBtn && (sizeBtn.disabled || sizeBtn.classList.contains("opacity-50"))) {
+      if (window.VunoModal) {
+        window.VunoModal.alert({
+          type: "warning",
+          title: state.lang === "es" ? "Talla no disponible para este color" : "Size not available for this color",
+        });
+      }
+      return;
+    }
     var p = currentQuickViewProduct;
+    // Validate variant stock against cart quantity
+    var stock = 0;
+    if (p.variants) {
+      p.variants.forEach(function (v) {
+        if (v.color_name === color && v.size_value === size) {
+          stock = v.stock;
+        }
+      });
+    }
+    if (stock > 0) {
+      var cartQty = 0;
+      if (window.VunoCart && window.VunoCart.getItems) {
+        cartQty = window.VunoCart.getItems().reduce(function (sum, item) {
+          return sum + (item.product.slug === p.slug && item.selectedColor === color && item.selectedSize === size ? item.quantity : 0);
+        }, 0);
+      }
+      if (cartQty + 1 > stock) {
+        if (window.VunoModal) {
+          window.VunoModal.alert({
+            type: "warning",
+            title: stock === 1
+              ? (state.lang === "es" ? "Solo queda 1 unidad" : "Only 1 unit left")
+              : (state.lang === "es" ? "Solo quedan " + stock + " unidades" : "Only " + stock + " units left"),
+          });
+        }
+        return;
+      }
+    }
     var productData = {
       id: p.id,
       name: p.name,
@@ -517,7 +602,7 @@
       html += '</div>';
       html += '<a href="/' + state.lang + '/producto/' + encodeURIComponent(p.slug) + '" class="block">';
       html += '<h3 class="font-body-md text-body-md text-monolith-black group-hover:text-clay-accent transition-colors duration-300">' + escapeHtml(p.name) + '</h3>';
-      html += '<p class="font-price-display text-price-display text-secondary mt-1">' + (p.display_symbol || '$') + (p.display_price || p.price).toFixed(2) + '</p>';
+      html += '<p class="font-price-display text-price-display text-secondary mt-1">' + (p.display_symbol || '$') + window.formatPrice(p.display_price || p.price) + '</p>';
       if (p.colors && p.colors.length > 0) {
         html += '<div class="flex gap-2 mt-3">';
         p.colors.forEach(function (c) {

@@ -133,4 +133,5 @@ interface Window {
   VunoModal: VunoModal;
   VunoToast: VunoToast;
   __vunoModalLoaded?: boolean;
+  formatPrice(value: number): string;
 }

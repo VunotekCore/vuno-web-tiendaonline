@@ -20,6 +20,9 @@ export interface Product {
   variants?: Variant[];
   totalStock?: number;
   createdAt: string;
+  metaTitle?: string;
+  metaDescription?: string;
+  ogImageUrl?: string;
 }
 
 export interface ProductColor {
@@ -79,6 +82,25 @@ export interface CustomerInfo {
 
 export type OrderStatus = "pending" | "paid" | "shipped" | "delivered" | "cancelled";
 export type PaymentStatus = "pending" | "completed" | "failed" | "refunded";
+
+export interface BlogPost {
+  id: number
+  slug: string
+  title: string
+  excerpt: string | null
+  thumbnail_image: string | null
+  featured_image: string | null
+  author: string
+  meta_title: string | null
+  meta_description: string | null
+  published_at: string | null
+  updated_at: string
+  category_name: string | null
+  category_slug: string | null
+  content: string
+  title_en?: string | null
+  excerpt_en?: string | null
+}
 
 export interface Category {
   id: string;

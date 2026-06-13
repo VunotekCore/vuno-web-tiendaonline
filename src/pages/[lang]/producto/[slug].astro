@@ -6,6 +6,9 @@ import AnimatedReveal from '../../../components/atoms/AnimatedReveal.astro'
 import { getProducts } from '../../../lib/storage'
 import { imgTransform } from '../../../lib/images'
 import { t, type Locale } from '../../../i18n/utils'
+import { formatPrice } from '../../../utils/formatPrice'
+import JSONLDProduct from '../../../components/seo/JSONLDProduct.astro'
+import JSONLDBreadcrumb from '../../../components/seo/JSONLDBreadcrumb.astro'
 
 export async function getStaticPaths() {
   const esProducts = await getProducts('es')
@@ -64,7 +67,36 @@ const i18n = {
 }
 ---
 
-<BaseLayout title={`${product.name} | Vunotek`} lang={lang} alternateUrls={alternateUrls}>
+<BaseLayout
+  title={product.metaTitle || product.name}
+  description={product.metaDescription || product.description}
+  lang={lang}
+  alternateUrls={alternateUrls}
+  seo={{
+    ogImage: product.ogImageUrl || product.images?.[0],
+    ogType: 'product',
+    description: product.metaDescription || product.description,
+  }}
+>
+  <JSONLDProduct
+    name={product.name}
+    description={product.description || ''}
+    image={product.images || []}
+    slug={slug}
+    price={product.price}
+    currency={product.currency || 'USD'}
+    sku={product.id}
+    brand="Vunotek"
+    availability={(product.totalStock ?? 0) > 0 ? 'InStock' : 'OutOfStock'}
+  />
+  <JSONLDBreadcrumb
+    items={[
+      { name: lang === 'es' ? 'Inicio' : 'Home', url: `${siteUrl}/${lang}/` },
+      { name: lang === 'es' ? 'Catálogo' : 'Catalog', url: `${siteUrl}/${lang}/catalogo` },
+      { name: product.category || '', url: `${siteUrl}/${lang}/catalogo${product.category ? '?categoria=' + product.category : ''}` },
+      { name: product.name, url: `${siteUrl}/${lang}/producto/${slug}` },
+    ].filter(i => i.name)}
+  />
   <Navbar lang={lang} currentPath={currentPath} />
 
   <main
@@ -87,6 +119,8 @@ const i18n = {
                   id="mainImage"
                   src={product.images[0]}
                   alt={product.name}
+                  width="600"
+                  height="600"
                   class="max-w-full max-h-full object-contain transition-all duration-500"
                   style="view-transition-name: product-main"
                 />
@@ -141,7 +175,7 @@ const i18n = {
                 {product.name}
               </h1>
               <p class="font-price-display text-price-display text-monolith-black mt-2">
-                {product.display_symbol || '$'}{(product.display_price || product.price).toFixed(2)}
+                {product.display_symbol || '$'}{formatPrice(product.display_price || product.price)}
                 {product.display_currency || 'USD'}
               </p>
             </div>
@@ -348,12 +382,14 @@ const i18n = {
         <span class="material-symbols-outlined text-3xl">chevron_right</span>
       </button>
       <div class="w-full h-full flex items-center justify-center p-8 md:p-16">
-        <img
-          id="lightboxImg"
-          src=""
-          alt=""
-          class="max-w-full max-h-full object-contain select-none"
-        />
+              <img
+                id="lightboxImg"
+                src=""
+                alt=""
+                width="600"
+                height="600"
+                class="max-w-full max-h-full object-contain select-none"
+              />
       </div>
       <div
         class="absolute bottom-6 left-1/2 -translate-x-1/2 font-label-caps text-label-caps text-off-white/50"
@@ -481,6 +517,8 @@ const i18n = {
                 <img
                   src={imgTransform(p.images[0] || '', 400, 500)}
                   alt={p.name}
+                  width="400"
+                  height="500"
                   class="w-full h-full object-cover img-lift"
                   loading="lazy"
                 />
@@ -491,7 +529,7 @@ const i18n = {
                 </h3>
                 <p class="font-price-display text-price-display text-secondary">
                   {p.display_symbol || '$'}
-                  {(p.display_price || p.price).toFixed(2)} {p.display_currency || 'USD'}
+                  {formatPrice(p.display_price || p.price)} {p.display_currency || 'USD'}
                 </p>
               </div>
             </a>
@@ -541,6 +579,7 @@ const i18n = {
       var currentImageIndex = 0
       var selectedColor = colors.length > 0 ? colors[0].name : ''
       var selectedSize = ''
+      var addToCartTimer = null
 
       // =============================================================
       //                      GALLERY — THUMBNAIL NAV
@@ -582,7 +621,7 @@ const i18n = {
               '">' +
               '<img src="' +
               window.imgTransform(src, 80, 100) +
-              '" alt="" class="w-full h-full object-cover" loading="lazy" />' +
+              '" alt="" width="80" height="100" class="w-full h-full object-cover" loading="lazy" />' +
               '</button>'
             )
           })
@@ -723,17 +762,56 @@ const i18n = {
       document.getElementById('addToCartBtn').addEventListener('click', function (e) {
         e.preventDefault()
         e.stopPropagation()
-        if (this.dataset.processing === '1') return
+        if (this.dataset.processing === '1' || this.disabled) return
         if (!selectedSize) {
           window.VunoModal.alert({ type: 'warning', title: i18n.selectSize })
           return
         }
+
+        // Find variant stock
+        var stock = 0
+        for (var si = 0; si < variants.length; si++) {
+          var v = variants[si]
+          if (v.color_name === selectedColor && v.size_value === selectedSize) {
+            stock = v.stock
+            break
+          }
+        }
+
+        if (stock <= 0) {
+          window.VunoModal.alert({ type: 'warning', title: 'Producto agotado' })
+          return
+        }
+
+        // Check current cart quantity for this variant
+        var cartItems = window.VunoCart.getItems()
+        var cartQty = 0
+        for (var ci = 0; ci < cartItems.length; ci++) {
+          if (cartItems[ci].product.id === data.id && cartItems[ci].selectedColor === selectedColor && cartItems[ci].selectedSize === selectedSize) {
+            cartQty += cartItems[ci].quantity
+          }
+        }
+
+        if (cartQty + 1 > stock) {
+          window.VunoModal.alert({ type: 'warning', title: stock === 1 ? 'Solo queda 1 unidad' : 'Solo quedan ' + stock + ' unidades' })
+          this.disabled = true
+          var txt = document.getElementById('addToCartText')
+          txt.textContent = 'Agotado'
+          return
+        }
+
         this.dataset.processing = '1'
         this.disabled = true
         var text = document.getElementById('addToCartText')
         var spinner = document.getElementById('addToCartSpinner')
         text.textContent = ''
         spinner.style.display = 'inline-block'
+
+        // Clear any pending revert timer
+        if (addToCartTimer) {
+          clearTimeout(addToCartTimer)
+          addToCartTimer = null
+        }
 
         var productData = {
           id: data.id,
@@ -757,9 +835,13 @@ const i18n = {
           }
           spinner.style.display = 'none'
           text.textContent = i18n.addedToCart
+          addToCartTimer = setTimeout(function () {
+            text.textContent = i18n.addToCart
+            addToCartTimer = null
+          }, 1500)
           self.disabled = false
           delete self.dataset.processing
-        }, 150)
+        }, 1000)
       })
 
       // =============================================================
@@ -1058,6 +1140,26 @@ const i18n = {
           text.textContent = 'Agotado'
           text.className = 'text-error'
         }
+
+        // Control add to cart button state
+        var btn = document.getElementById('addToCartBtn')
+        var btnText = document.getElementById('addToCartText')
+        var spin = document.getElementById('addToCartSpinner')
+        if (!btn || !btnText) return
+
+        // Clear pending revert timer
+        if (addToCartTimer) {
+          clearTimeout(addToCartTimer)
+          addToCartTimer = null
+        }
+
+        // Don't override if currently processing
+        if (btn.dataset.processing === '1') return
+
+        spin.style.display = 'none'
+        var outOfStock = selectedSize && qty <= 0
+        btn.disabled = outOfStock
+        btnText.textContent = outOfStock ? 'Agotado' : i18n.addToCart
       }
 
       // =============================================================

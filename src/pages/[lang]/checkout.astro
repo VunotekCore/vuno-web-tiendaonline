@@ -52,6 +52,8 @@ const i18n = {
   fillFields: t("checkout.fillFields", lang),
   cartEmpty: t("checkout.cartEmpty", lang),
   orderPlaced: t("checkout.orderPlaced", lang),
+  orderPlacedTitle: t("checkout.orderPlacedTitle", lang),
+  orderPlacedStripe: t("checkout.orderPlacedStripe", lang),
   uploading: t("checkout.uploading", lang),
   receiptReceived: t("checkout.receiptReceived", lang),
   receiptFailed: t("checkout.receiptFailed", lang),
@@ -66,7 +68,7 @@ const steps = [
 ];
 ---
 
-<BaseLayout title={lang === "es" ? "Checkout | Ram;Lop" : "Checkout | Ram;Lop"} lang={lang} alternateUrls={alternateUrls}>
+<BaseLayout title={lang === "es" ? "Checkout | Ram;Lop" : "Checkout | Ram;Lop"} lang={lang} alternateUrls={alternateUrls} seo={{ noindex: true }}>
   <Navbar lang={lang} currentPath={currentPath} />
   <main class="flex-grow w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-section-gap">
     <AnimatedReveal>
@@ -200,23 +202,38 @@ const steps = [
   <Footer lang={lang} />
 
   <div id="successModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-    <div class="bg-off-white border border-outline-variant shadow-lg p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+    <div class="bg-off-white border border-outline-variant shadow-lg p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto relative">
+      <button id="successModalClose" class="absolute top-4 right-4 text-secondary hover:text-monolith-black transition-colors cursor-pointer">
+        <span class="material-symbols-outlined text-lg">close</span>
+      </button>
       <div class="flex items-center gap-3 mb-4">
         <span class="material-symbols-outlined text-3xl text-green-600">check_circle</span>
-        <h3 class="font-headline text-headline-md" id="successTitle">Pedido Realizado</h3>
+        <h3 class="font-headline text-headline-md" id="successTitle"></h3>
       </div>
       <p class="font-body text-body-md text-secondary mb-2" id="successMessage"></p>
       <p class="font-body text-body-md text-sm text-secondary mb-4" id="successOrderId"></p>
-      <div id="createAccountBanner" class="hidden bg-monolith-black/5 border border-monolith-black/20 p-4 mb-4">
-        <p class="font-body text-body-md text-sm text-monolith-black font-medium mb-2">{t("checkout.createAccountPrompt", lang) || "¿Quieres guardar tus datos? Crea una cuenta."}</p>
-        <a id="createAccountLink" href="/" class="font-label-caps text-label-caps bg-monolith-black text-off-white px-4 h-8 inline-flex items-center hover:bg-monolith-black/90 transition-all text-xs">
-          {t("auth.createAccount", lang)}
-        </a>
-      </div>
-      <div class="flex justify-end gap-3 mt-4">
-        <a id="successContinueBtn" href="/" class="font-label-caps text-label-caps bg-monolith-black text-off-white px-6 h-10 inline-flex items-center hover:bg-monolith-black/90 transition-all">
-          CONTINUAR COMPRANDO
-        </a>
+      <div id="createAccountBanner" class="hidden mb-4">
+        <div id="regStep1">
+          <div class="bg-white shadow-[0_4px_20px_-4px_rgba(0,0,0,0.15)] border border-monolith-black/10 p-5">
+            <p class="font-body text-body-md text-sm text-monolith-black font-semibold mb-4">¿Quieres crear una cuenta para rastrear tu pedido?</p>
+            <div class="flex gap-3">
+              <button id="regStep1Yes" class="font-label-caps text-label-caps bg-monolith-black text-off-white px-5 h-10 inline-flex items-center hover:bg-monolith-black/90 transition-all flex-1 justify-center">SÍ, CREAR CUENTA</button>
+              <button id="regStep1No" class="font-label-caps text-label-caps border border-monolith-black/30 text-monolith-black/60 px-5 h-10 inline-flex items-center hover:border-monolith-black hover:text-monolith-black transition-all flex-1 justify-center">NO, CONTINUAR COMPRANDO</button>
+            </div>
+          </div>
+        </div>
+        <div id="regStep2" class="hidden">
+          <div class="bg-white shadow-[0_4px_20px_-4px_rgba(0,0,0,0.15)] border border-monolith-black/10 p-5">
+            <p class="font-body text-body-md text-sm text-monolith-black font-semibold mb-3">Crea tu cuenta</p>
+            <input id="regPasswordInline" type="password" placeholder="Contraseña (mín. 6 caracteres)" minlength="6" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black text-sm focus:border-monolith-black focus:outline-none transition-colors mb-3" />
+            <button id="registerFromCheckoutBtn" class="font-label-caps text-label-caps bg-monolith-black text-off-white w-full h-10 inline-flex items-center justify-center hover:bg-monolith-black/90 transition-all gap-2">
+              <span id="registerBtnText">CREAR CUENTA</span>
+              <span id="registerBtnSpinner" class="material-symbols-outlined text-sm animate-spin" style="display:none;font-variation-settings:'FILL' 0">refresh</span>
+            </button>
+            <div id="registerCheckoutFeedback" class="hidden font-body text-body-md text-xs mt-2"></div>
+            <button id="regStep2Back" class="font-body text-body-md text-xs text-secondary mt-3 hover:text-monolith-black transition-colors">↩ Volver</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -243,11 +260,21 @@ const steps = [
           <span class="material-symbols-outlined text-lg">close</span>
         </button>
       </div>
-      <div id="transferModalReceiptMsg" class="hidden font-body text-body-md text-xs mt-2"></div>
+      <div id="transferModalReceiptMsg" class="hidden font-body text-body-md text-xs mt-2 flex items-center gap-2">
+        <span id="transferModalSpinner" class="material-symbols-outlined text-sm animate-spin hidden" style="font-variation-settings:'FILL' 0">refresh</span>
+        <span id="transferModalMsgText"></span>
+      </div>
       <div class="flex justify-end gap-3 mt-6">
         <button id="transferModalCancelBtn" class="font-label-caps text-label-caps border border-monolith-black text-monolith-black px-6 h-10 inline-flex items-center hover:bg-monolith-black/5 transition-all">Cancelar</button>
-        <button id="transferModalConfirmBtn" class="font-label-caps text-label-caps bg-monolith-black text-off-white px-6 h-10 inline-flex items-center hover:bg-monolith-black/90 transition-all">CONFIRMAR PEDIDO</button>
+        <button id="transferModalConfirmBtn" disabled class="font-label-caps text-label-caps bg-monolith-black text-off-white px-6 h-10 inline-flex items-center hover:bg-monolith-black/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-monolith-black">CONFIRMAR PEDIDO</button>
       </div>
+    </div>
+  </div>
+
+  <div id="processingModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div class="flex flex-col items-center gap-4">
+      <span class="material-symbols-outlined text-5xl text-white animate-spin" style="font-variation-settings:'FILL' 0">refresh</span>
+      <p class="font-body text-body-md text-white text-sm" id="processingModalText">Procesando pedido...</p>
     </div>
   </div>
 
@@ -307,9 +334,9 @@ const steps = [
               : 1)
             : 1;
           const displayDiscount = data.discount * rate;
-          msg.textContent = checkoutI18n.couponApplied + " " + (data.coupon.discount_type === "percentage" ? data.coupon.discount_value + "%" : symbol + displayDiscount.toFixed(2));
+          msg.textContent = checkoutI18n.couponApplied + " " + (data.coupon.discount_type === "percentage" ? data.coupon.discount_value + "%" : symbol + window.formatPrice(displayDiscount));
           discountRow.classList.remove("hidden");
-          discountEl.textContent = "-" + symbol + displayDiscount.toFixed(2);
+          discountEl.textContent = "-" + symbol + window.formatPrice(displayDiscount);
           renderSummaryTotal();
         } else {
           appliedCoupon = null;
@@ -349,7 +376,7 @@ const steps = [
         : 1;
       const displayDiscount = couponDiscount * rate;
       const total = Math.max(0, displaySubtotal - displayDiscount);
-      document.getElementById("summaryTotal").textContent = symbol + total.toFixed(2);
+      document.getElementById("summaryTotal").textContent = symbol + window.formatPrice(total);
     }
 
     let selectedBankId = null;
@@ -374,8 +401,14 @@ const steps = [
       const firstRadio = container.querySelector('input[name="selectedBank"]:checked');
       selectedBankId = firstRadio ? parseInt(firstRadio.value) : (banks[0]?.id || null);
       container.querySelectorAll('input[name="selectedBank"]').forEach(r => {
-        r.addEventListener('change', () => { selectedBankId = parseInt(r.value); });
+        r.addEventListener('change', () => { selectedBankId = parseInt(r.value); updateConfirmBtn(); });
       });
+      updateConfirmBtn();
+    }
+
+    function updateConfirmBtn() {
+      const btn = document.getElementById("transferModalConfirmBtn");
+      btn.disabled = !selectedBankId || !transferModalReceiptFile;
     }
 
     async function loadSettings() {
@@ -423,19 +456,24 @@ const steps = [
       document.getElementById("transferModalReceiptFileName").textContent = file.name;
       document.getElementById("transferModalReceiptPreview").classList.remove("hidden");
       document.getElementById("transferModalReceiptZone").classList.add("hidden");
+      updateConfirmBtn();
     });
     document.getElementById("transferModalReceiptRemove").addEventListener("click", () => {
       transferModalReceiptFile = null;
       document.getElementById("transferModalReceiptInput").value = "";
       document.getElementById("transferModalReceiptPreview").classList.add("hidden");
       document.getElementById("transferModalReceiptZone").classList.remove("hidden");
+      updateConfirmBtn();
     });
 
     function showModalReceiptMsg(text, isError) {
       const el = document.getElementById("transferModalReceiptMsg");
-      el.textContent = text;
-      el.className = "font-body text-body-md text-xs mt-2 " + (isError ? "text-error" : "text-green-700");
+      const spinner = document.getElementById("transferModalSpinner");
+      const textEl = document.getElementById("transferModalMsgText");
       el.classList.remove("hidden");
+      textEl.textContent = text;
+      el.className = "font-body text-body-md text-xs mt-2 flex items-center gap-2 " + (isError ? "text-error" : "text-green-700");
+      spinner.classList.toggle("hidden", isError);
     }
 
     function getDisplaySymbol(items) {
@@ -475,11 +513,11 @@ const steps = [
               <p class="font-body text-body-md text-secondary text-xs">Qty: ${item.quantity} / ${item.selectedSize}</p>
             </div>
           </div>
-          <span class="font-price-display text-price-display text-sm">${symbol}${(displayPrice * item.quantity).toFixed(2)}</span>
+          <span class="font-price-display text-price-display text-sm">${symbol}${window.formatPrice(displayPrice * item.quantity)}</span>
         </div>
       `}).join("");
       const displaySubtotal = getDisplaySubtotal(items);
-      document.getElementById("summarySubtotal").textContent = `${symbol}${displaySubtotal.toFixed(2)}`;
+      document.getElementById("summarySubtotal").textContent = `${symbol}${window.formatPrice(displaySubtotal)}`;
       renderSummaryTotal();
     }
 
@@ -566,19 +604,81 @@ const steps = [
     }
 
     function showOrderSuccessModal(order) {
-      document.getElementById("successTitle").textContent = checkoutI18n.orderPlaced;
-      document.getElementById("successMessage").textContent = "Gracias por tu compra. Recibirás una confirmación por email.";
+      document.getElementById("successTitle").textContent = checkoutI18n.orderPlacedTitle;
+      document.getElementById("successMessage").textContent = order.transferReceipt ? checkoutI18n.orderPlaced : checkoutI18n.orderPlacedStripe;
       document.getElementById("successOrderId").textContent = "Orden: " + order.id;
-      document.getElementById("successContinueBtn").href = "/" + LANG + "/";
-      // Show create account prompt for guest
-      const createAccountBanner = document.getElementById("createAccountBanner");
-      if (createAccountBanner && !window.VunoAuth?.isLoggedIn()) {
-        const email = order.customer?.email || "";
-        document.getElementById("createAccountLink").href = "/" + LANG + "/register?email=" + encodeURIComponent(email);
-        createAccountBanner.classList.remove("hidden");
+      const banner = document.getElementById("createAccountBanner");
+      if (banner && !window.VunoAuth?.isLoggedIn()) {
+        document.getElementById("regStep1").classList.remove("hidden");
+        document.getElementById("regStep2").classList.add("hidden");
+        document.getElementById("registerCheckoutFeedback").classList.add("hidden");
+        document.getElementById("regPasswordInline").value = "";
+        document.getElementById("registerBtnText").textContent = "CREAR CUENTA";
+        document.getElementById("registerBtnText").style.display = "";
+        document.getElementById("registerBtnSpinner").style.display = "none";
+        document.getElementById("registerFromCheckoutBtn").disabled = false;
+        banner.classList.remove("hidden");
       }
       document.getElementById("successModal").classList.remove("hidden");
     }
+
+    function successModalClose() {
+      document.getElementById("successModal").classList.add("hidden");
+    }
+
+    document.getElementById("successModalClose").addEventListener("click", successModalClose);
+
+    document.getElementById("regStep1Yes").addEventListener("click", () => {
+      document.getElementById("regStep1").classList.add("hidden");
+      document.getElementById("regStep2").classList.remove("hidden");
+      document.getElementById("registerBtnText").style.display = "";
+      document.getElementById("registerBtnSpinner").style.display = "none";
+      document.getElementById("registerFromCheckoutBtn").disabled = false;
+      document.getElementById("registerCheckoutFeedback").classList.add("hidden");
+      document.getElementById("regPasswordInline").focus();
+    });
+    document.getElementById("regStep1No").addEventListener("click", successModalClose);
+    document.getElementById("regStep2Back").addEventListener("click", () => {
+      document.getElementById("regStep2").classList.add("hidden");
+      document.getElementById("regStep1").classList.remove("hidden");
+    });
+
+    document.getElementById("registerFromCheckoutBtn").addEventListener("click", async function () {
+      if (this.disabled) return;
+      const password = document.getElementById("regPasswordInline").value;
+      if (!password || password.length < 6) {
+        const fb = document.getElementById("registerCheckoutFeedback");
+        fb.className = "font-body text-body-md text-xs mt-2 text-error";
+        fb.textContent = "La contraseña debe tener al menos 6 caracteres";
+        fb.classList.remove("hidden");
+        return;
+      }
+      const name = document.getElementById("customerName").value.trim();
+      const email = document.getElementById("customerEmail").value.trim();
+      this.disabled = true;
+      document.getElementById("registerBtnText").style.display = "none";
+      document.getElementById("registerBtnSpinner").style.display = "inline-block";
+      try {
+        await window.VunoAuth.register(name, email, password);
+        document.getElementById("createAccountBanner").classList.add("hidden");
+        window.VunoToast?.success("¡Bienvenido!", "Tu cuenta ha sido creada exitosamente.");
+        window.location.href = "/" + LANG + "/catalogo";
+      } catch (err) {
+        const msg = err.message || "";
+        const fb = document.getElementById("registerCheckoutFeedback");
+        if (msg.toLowerCase().includes("already registered") || msg.toLowerCase().includes("ya existe")) {
+          fb.className = "font-body text-body-md text-xs mt-2 text-error";
+          fb.innerHTML = 'Ya tienes una cuenta. <a href="/' + LANG + '/login?email=' + encodeURIComponent(email) + '" class="underline hover:no-underline font-medium">Inicia sesión</a> para rastrear tus pedidos.';
+        } else {
+          fb.className = "font-body text-body-md text-xs mt-2 text-error";
+          fb.textContent = msg || "Error al crear la cuenta. Intenta de nuevo.";
+        }
+        fb.classList.remove("hidden");
+        document.getElementById("registerBtnSpinner").style.display = "none";
+        document.getElementById("registerBtnText").style.display = "";
+        this.disabled = false;
+      }
+    });
 
     let submitting = false;
 
@@ -666,6 +766,11 @@ const steps = [
         document.getElementById("transferBankOptions").innerHTML = "";
         renderBankOptions();
         document.getElementById("transferModalReceiptMsg").classList.add("hidden");
+        document.getElementById("transferModalReceiptZone").classList.remove("hidden");
+        document.getElementById("transferModalReceiptPreview").classList.add("hidden");
+        transferModalReceiptFile = null;
+        document.getElementById("transferModalReceiptInput").value = "";
+        updateConfirmBtn();
         document.getElementById("transferModal").classList.remove("hidden");
       }
     });
@@ -689,7 +794,7 @@ const steps = [
         return;
       }
       try {
-        showModalReceiptMsg(checkoutI18n.uploading, false);
+        document.getElementById("processingModal").classList.remove("hidden");
         const formData = new FormData();
         formData.append("file", transferModalReceiptFile);
         formData.append("folder", "receipts");
@@ -713,8 +818,11 @@ const steps = [
         window.VunoCart.clear();
         localStorage.removeItem("vuno_cart_backup");
         localStorage.setItem("vuno_last_order_" + pendingOrder.id, JSON.stringify(pendingOrder));
-        window.location.href = "/" + LANG + "/catalogo";
+        document.getElementById("transferModal").classList.add("hidden");
+        document.getElementById("processingModal").classList.add("hidden");
+        showOrderSuccessModal(pendingOrder);
       } catch (err) {
+        document.getElementById("processingModal").classList.add("hidden");
         showModalReceiptMsg(err.message, true);
         btn.disabled = false;
       }

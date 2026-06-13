@@ -3,15 +3,33 @@ import "../styles/global.css";
 import type { Locale } from "../i18n/utils";
 import { t } from "../i18n/utils";
 import Modal from "../components/molecules/Modal.astro";
+import ProfileEditModal from "../components/organisms/ProfileEditModal.astro";
+import OrderDetailModal from "../components/organisms/OrderDetailModal.astro";
+import SEOMeta from "../components/seo/SEOMeta.astro";
+import JSONLDOrganization from "../components/seo/JSONLDOrganization.astro";
+
+interface SEOData {
+  title?: string;
+  description?: string;
+  ogImage?: string;
+  ogType?: "website" | "product" | "article";
+  noindex?: boolean;
+  canonical?: string;
+  twitterSite?: string;
+  googleSiteVerification?: string;
+  themeColor?: string;
+  siteName?: string;
+}
 
 interface Props {
   title: string;
   description?: string;
   lang?: Locale;
   alternateUrls?: Partial<Record<Locale, string>>;
+  seo?: SEOData;
 }
 
-const { title, description, lang = "es", alternateUrls = {} } = Astro.props;
+const { title, description, lang = "es", alternateUrls = {}, seo = {} } = Astro.props;
 const apiBase = import.meta.env.DEV ? "http://localhost:8000" : "";
 const siteUrl = import.meta.env.PROD ? "https://vuno.com" : "http://localhost:4321";
 ---
@@ -21,14 +39,31 @@ const siteUrl = import.meta.env.PROD ? "https://vuno.com" : "http://localhost:43
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{title} | Ram;Lop</title>
-    <meta name="description" content={description || "Architectural Minimalism in Footwear — Calzado artesanal para damas."} />
-    <link rel="canonical" href={Astro.url} />
     <meta name="api-base" content={apiBase} />
+    <SEOMeta
+      title={`${title} | ${seo.siteName || "Vunotek"}`}
+      description={seo.description || description}
+      ogImage={seo.ogImage}
+      ogType={seo.ogType}
+      noindex={seo.noindex}
+      canonical={seo.canonical}
+      lang={lang}
+      locale={lang === "en" ? "en_US" : "es_NI"}
+      siteName={seo.siteName || "Vunotek"}
+      twitterSite={seo.twitterSite}
+      googleSiteVerification={seo.googleSiteVerification}
+      themeColor={seo.themeColor || "#1A1A1A"}
+    />
+    <JSONLDOrganization
+      siteName={seo.siteName || "Vunotek"}
+      siteUrl={siteUrl}
+      socialUrls={[]}
+    />
     {Object.entries(alternateUrls).map(([locale, url]) => (
       <link rel="alternate" hreflang={locale} href={url} />
     ))}
     <link rel="alternate" hreflang="x-default" href={`${siteUrl}/es/`} />
+    <link rel="dns-prefetch" href="https://ik.imagekit.io" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -109,7 +144,14 @@ const siteUrl = import.meta.env.PROD ? "https://vuno.com" : "http://localhost:43
         </div>
       </div>
     </div>
+    <ProfileEditModal lang={lang} />
+    <OrderDetailModal lang={lang} />
     <script is:inline>
+      window.formatPrice = function (value) {
+        if (value == null || isNaN(value)) value = 0;
+        return Number(value).toLocaleString('es-NI', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      };
+
       // Inyecta nombre/slogan/logo desde la base de datos
       (function () {
         fetch("/api/configuracion/public.php")

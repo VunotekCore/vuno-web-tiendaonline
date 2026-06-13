@@ -1,4 +1,4 @@
-import type { Product, Order, Category } from "./types";
+import type { Product, Order, Category, BlogPost } from "./types";
 import type { Locale } from "../i18n/utils";
 
 export interface LandingSectionData {
@@ -103,6 +103,20 @@ export async function deleteProduct(id: string): Promise<void> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ id }),
   });
+}
+
+export async function getBlogPosts(lang?: Locale): Promise<BlogPost[]> {
+  try {
+    const url = lang
+      ? `${API_BASE}/blog/list.php?limit=50&status=published&lang=${lang}`
+      : `${API_BASE}/blog/list.php?limit=50&status=published`
+    const res = await fetch(url)
+    if (!res.ok) return []
+    const data = await res.json()
+    return data.items || []
+  } catch {
+    return []
+  }
 }
 
 export async function getOrders(): Promise<Order[]> {

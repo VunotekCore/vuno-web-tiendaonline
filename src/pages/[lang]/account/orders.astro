@@ -58,7 +58,7 @@ const currentPath = Astro.url.pathname;
       const total = o.display_total || o.total || 0;
       const statusClass = statusStyles[o.status] || "";
       const date = o.createdAt ? new Date(o.createdAt).toLocaleDateString() : "";
-      return `<a href="/${LANG}/account/orders/detalle?id=${o.id}" class="flex items-center justify-between p-4 bg-off-white border border-outline-variant hover:border-monolith-black transition-colors group">
+      return `<button type="button" onclick="window.openOrderDetail('${o.id}')" class="w-full text-left flex items-center justify-between p-4 bg-off-white border border-outline-variant hover:border-monolith-black transition-colors group cursor-pointer">
         <div class="flex items-center gap-6 flex-wrap">
           <span class="font-label-caps text-label-caps text-secondary text-xs">#${o.id}</span>
           <span class="font-body text-body-md text-secondary text-sm">${date}</span>
@@ -66,10 +66,10 @@ const currentPath = Astro.url.pathname;
           <span class="font-body text-body-md text-secondary text-sm">${o.items?.length || 0} item(s)</span>
         </div>
         <div class="flex items-center gap-4">
-          <span class="font-price-display text-price-display">${sym}${total.toFixed(2)}</span>
+          <span class="font-price-display text-price-display">${sym}${window.formatPrice(total)}</span>
           <span class="material-symbols-outlined text-lg text-secondary group-hover:text-monolith-black transition-colors">chevron_right</span>
         </div>
-      </a>`;
+      </button>`;
     }
 
     (async function () {
