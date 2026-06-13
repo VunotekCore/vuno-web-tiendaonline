@@ -16,7 +16,7 @@ kill $PHP_PID 2>/dev/null || true
 wait $PHP_PID 2>/dev/null || true
 
 echo "📦 Copying PHP backend to dist/..."
-rm -rf dist/api dist/includes dist/blog dist/email-templates dist/database dist/config.php dist/composer.json dist/vendor
+rm -rf dist/api dist/includes dist/blog dist/email-templates dist/database dist/config.php dist/composer.json dist/vendor dist/encryption.key dist/.htaccess
 cp -r php/api dist/api
 cp -r php/includes dist/includes
 cp -r php/blog dist/blog
@@ -24,6 +24,8 @@ cp -r php/email-templates dist/email-templates
 cp -r php/database dist/database
 cp php/config.php dist/config.php
 cp php/composer.json dist/composer.json
+cp php/encryption.key dist/encryption.key
+cp php/.htaccess dist/.htaccess
 
 echo "🎨 Copying .env to dist/..."
 if [ -f .env ]; then
