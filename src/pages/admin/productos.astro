@@ -4,17 +4,19 @@ import AdminLayout from "./_layout.astro";
 
 <AdminLayout title="Productos" currentPath="/admin/productos">
   <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-    <div class="flex items-center gap-4 w-full md:w-auto">
+    <div class="flex flex-wrap items-center gap-4 w-full md:w-auto">
       <div class="relative flex-1 md:w-56">
         <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-secondary pointer-events-none">search</span>
-        <input type="text" id="searchInput" placeholder="Buscar productos..." class="w-full h-10 pl-10 pr-3 bg-transparent border-b border-outline text-monolith-black focus:border-monolith-black focus:outline-none font-body text-body-md" />
+        <label for="searchInput" class="sr-only">Buscar productos</label>
+        <input type="text" id="searchInput" placeholder="Buscar productos..." class="w-full h-10 pl-10 pr-3 bg-transparent border-b border-outline text-monolith-black focus:border-monolith-black focus:outline-none focus-visible:ring-2 focus-visible:ring-monolith-black focus-visible:ring-offset-1 font-body text-body-md" />
       </div>
-      <select id="categoryFilter" class="h-10 bg-transparent border-b border-outline text-monolith-black focus:border-monolith-black focus:outline-none font-body text-body-md">
+      <label for="categoryFilter" class="sr-only">Filtrar por categoría</label>
+      <select id="categoryFilter" class="h-10 bg-transparent border-b border-outline text-monolith-black focus:border-monolith-black focus:outline-none focus-visible:ring-2 focus-visible:ring-monolith-black focus-visible:ring-offset-1 font-body text-body-md">
         <option value="">Todas las categorías</option>
       </select>
-      <p class="font-body text-body-md text-secondary whitespace-nowrap" id="productCount">0 productos</p>
+      <p class="font-body text-body-md text-secondary whitespace-nowrap" id="productCount" aria-live="polite" aria-atomic="true">0 productos</p>
     </div>
-    <a href="/admin/productos/nuevo" class="bg-monolith-black text-off-white font-label-caps text-label-caps h-10 px-5 inline-flex items-center justify-center gap-1.5 rounded-md hover:bg-monolith-black/90 hover:shadow-sm transition-all duration-200 shrink-0">
+    <a href="/admin/productos/nuevo" class="bg-monolith-black text-off-white font-label-caps text-label-caps h-10 px-5 inline-flex items-center justify-center gap-1.5 rounded-md hover:bg-monolith-black/90 hover:shadow-sm transition-all duration-200 shrink-0 w-full sm:w-auto">
       <span class="material-symbols-outlined text-lg">add</span>
       NUEVO PRODUCTO
     </a>
@@ -48,14 +50,14 @@ import AdminLayout from "./_layout.astro";
   </div>
 
   <!-- Delete Modal -->
-  <div id="deleteModal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+  <div id="deleteModal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/40 backdrop-blur-sm p-4" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
     <div class="modal-content bg-off-white border border-outline-variant shadow-lg rounded-sm p-6 w-full max-w-md">
       <div class="flex items-center justify-between mb-4">
         <div class="flex items-center gap-3">
           <span class="material-symbols-outlined text-3xl text-error">warning</span>
-          <h3 class="font-headline text-headline-md">Eliminar Producto</h3>
+          <h3 id="deleteModalTitle" class="font-headline text-headline-md">Eliminar Producto</h3>
         </div>
-        <button id="deleteCloseX" class="w-8 h-8 flex items-center justify-center text-secondary hover:text-monolith-black transition-colors rounded-sm hover:bg-monolith-black/5 cursor-pointer">
+        <button id="deleteCloseX" class="w-10 h-10 flex items-center justify-center text-secondary hover:text-monolith-black transition-colors rounded-sm hover:bg-monolith-black/5 cursor-pointer">
           <span class="material-symbols-outlined text-lg">close</span>
         </button>
       </div>
@@ -103,7 +105,30 @@ import AdminLayout from "./_layout.astro";
     let categoryFilter = "";
     let searchTimeout = null;
 
+    let previousActiveElement = null;
+
+    function focusTrap(e, modal) {
+      const focusable = modal.querySelectorAll('button, a, input, select, textarea, [tabindex]:not([tabindex="-1"])');
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.key === "Tab") {
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      }
+    }
+
     function openDeleteModal(id, name) {
+      previousActiveElement = document.activeElement;
       deleteTargetId = id;
       deleteTargetEncodedId = encodeURIComponent(id);
       document.getElementById("deleteItemName").textContent = name;
@@ -117,6 +142,13 @@ import AdminLayout from "./_layout.astro";
         content.style.animation = "";
       }
       setLoading("deleteConfirmBtn", "deleteIcon", "deleteBtnText", false);
+      // Focus first focusable element
+      setTimeout(() => {
+        const firstFocusable = el.querySelector('button, a, input, select, textarea, [tabindex]:not([tabindex="-1"])');
+        if (firstFocusable) firstFocusable.focus();
+      }, 50);
+      // Attach focus trap
+      el.addEventListener("keydown", (e) => focusTrap(e, el));
     }
 
     function closeDeleteModal() {
@@ -124,6 +156,11 @@ import AdminLayout from "./_layout.astro";
       document.getElementById("deleteModal").classList.remove("flex");
       deleteTargetId = null;
       deleteTargetEncodedId = null;
+      // Restore focus to trigger element
+      if (previousActiveElement) {
+        previousActiveElement.focus();
+        previousActiveElement = null;
+      }
     }
 
     function setLoading(btnId, iconId, textId, loading, actionText) {
@@ -158,11 +195,11 @@ import AdminLayout from "./_layout.astro";
       const id = encodeURIComponent(p.id);
       const name = p.name;
       return `<div class="flex gap-2">
-        <a href="/admin/productos/editar?id=${id}" class="inline-flex items-center gap-1 px-3 py-1.5 font-label-caps text-label-caps border rounded-md transition-all duration-200 border-monolith-black/20 text-secondary hover:border-monolith-black hover:text-monolith-black hover:bg-monolith-black/5">
+        <a href="/admin/productos/editar?id=${id}" class="inline-flex items-center gap-1 px-3 py-1.5 font-label-caps text-label-caps rounded-md transition-all duration-200 bg-neutral-600 text-off-white hover:bg-neutral-700 hover:shadow-sm">
           <span class="material-symbols-outlined text-sm">edit</span>
           EDIT
         </a>
-        <button data-delete-id="${id}" data-delete-name="${name}" class="delete-btn inline-flex items-center gap-1 px-3 py-1.5 font-label-caps text-label-caps border rounded-md transition-all duration-200 border-error/20 text-secondary hover:border-error hover:text-error hover:bg-error/5">
+        <button data-delete-id="${id}" data-delete-name="${name}" class="delete-btn inline-flex items-center gap-1 px-3 py-1.5 font-label-caps text-label-caps border rounded-md transition-all duration-200 bg-error text-off-white hover:bg-error/90 hover:shadow-sm">
           <span class="material-symbols-outlined text-sm">delete</span>
           DELETE
         </button>
@@ -176,7 +213,7 @@ import AdminLayout from "./_layout.astro";
       const rowsHtml = products.map(p => `
         <tr class="border-b border-outline-variant/50 hover:bg-monolith-black/[0.02] transition-colors">
           <td class="p-4 font-body text-body-md text-monolith-black font-medium">${p.name}</td>
-          <td class="p-4 font-price-display text-price-display">${p.display_symbol || '$'}${(p.display_price || p.price).toFixed(2)}</td>
+          <td class="p-4 font-price-display text-price-display">${p.display_symbol || '$'}${window.formatPrice(p.display_price || p.price)}</td>
           <td class="p-4 font-body text-body-md text-secondary">${p.category || '—'}</td>
           <td class="p-4">${stockBadge(p.totalStock || 0)}</td>
           <td class="p-4">${actionLinks(p)}</td>
@@ -184,22 +221,32 @@ import AdminLayout from "./_layout.astro";
       `).join("");
 
       const cardsHtml = products.map(p => {
+        const pid = encodeURIComponent(p.id);
         return `
           <div class="bg-off-white border border-outline-variant border-l-2 border-l-monolith-black shadow-sm hover:shadow-md transition-all duration-200 rounded-sm p-4 flex flex-col gap-3">
-            <div class="flex items-start justify-between">
-              <div class="flex items-start gap-3">
-                <span class="material-symbols-outlined text-xl text-monolith-black mt-0.5">inventory_2</span>
-                <div>
-                  <p class="font-body text-body-md text-monolith-black font-medium">${p.name}</p>
-                  <p class="font-body text-body-md text-secondary text-sm">${p.category || '—'}</p>
-                </div>
+            <div class="flex items-start gap-3 min-w-0">
+              <span class="material-symbols-outlined text-xl text-monolith-black mt-0.5 shrink-0">inventory_2</span>
+              <div class="min-w-0">
+                <p class="font-body text-body-md text-monolith-black font-medium break-words">${p.name}</p>
+                <p class="font-body text-body-md text-secondary text-sm">${p.category || '—'}</p>
               </div>
-              <span class="font-price-display text-price-display whitespace-nowrap ml-3">${p.display_symbol || '$'}${(p.display_price || p.price).toFixed(2)}</span>
             </div>
-            <div class="flex items-center justify-between pt-1">
-              ${stockBadge(p.totalStock || 0)}
-              <div class="flex gap-2">${actionLinks(p)}</div>
-            </div>
+            <span class="font-price-display text-price-display text-center">${p.display_symbol || '$'}${window.formatPrice(p.display_price || p.price)}</span>
+            <div>${stockBadge(p.totalStock || 0)}</div>
+            ${isViewer
+              ? '<span class="font-body text-body-sm text-secondary italic">Solo lectura</span>'
+              : `
+              <div class="flex gap-2">
+                <a href="/admin/productos/editar?id=${pid}" class="flex-1 inline-flex items-center justify-center gap-1 px-3 py-1.5 font-label-caps text-label-caps rounded-md transition-all duration-200 bg-neutral-600 text-off-white hover:bg-neutral-700 hover:shadow-sm">
+                  <span class="material-symbols-outlined text-sm">edit</span>
+                  EDIT
+                </a>
+                <button data-delete-id="${pid}" data-delete-name="${p.name}" class="delete-btn flex-1 inline-flex items-center justify-center gap-1 px-3 py-1.5 font-label-caps text-label-caps border rounded-md transition-all duration-200 bg-error text-off-white hover:bg-error/90 hover:shadow-sm">
+                  <span class="material-symbols-outlined text-sm">delete</span>
+                  DELETE
+                </button>
+              </div>`
+            }
           </div>`;
       }).join("");
 

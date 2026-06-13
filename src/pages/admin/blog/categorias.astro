@@ -4,14 +4,14 @@ import AdminLayout from "../_layout.astro";
 
 <AdminLayout title="Categorías del Blog" currentPath="/admin/blog/categorias">
   <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-    <div class="flex items-center gap-4 w-full sm:w-auto">
+    <div class="flex flex-wrap items-center gap-4 w-full sm:w-auto">
       <p class="font-body text-body-md text-secondary whitespace-nowrap" id="categoryCount">0 categorías</p>
       <div class="relative w-full sm:w-48">
         <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-secondary pointer-events-none">search</span>
         <input type="text" id="searchInput" placeholder="Buscar..." class="w-full h-10 pl-10 pr-3 bg-transparent border-b border-outline text-monolith-black focus:border-monolith-black focus:outline-none font-body text-body-md" />
       </div>
     </div>
-    <button id="openCreateBtn" class="bg-monolith-black text-off-white font-label-caps text-label-caps h-10 px-5 inline-flex items-center justify-center gap-1.5 rounded-md hover:bg-monolith-black/90 hover:shadow-sm transition-all duration-200 shrink-0">
+    <button id="openCreateBtn" class="bg-monolith-black text-off-white font-label-caps text-label-caps h-10 px-5 inline-flex items-center justify-center gap-1.5 rounded-md hover:bg-monolith-black/90 hover:shadow-sm transition-all duration-200 shrink-0 w-full sm:w-auto">
       <span class="material-symbols-outlined text-lg">add</span>
       NUEVA CATEGORÍA
     </button>
@@ -49,7 +49,7 @@ import AdminLayout from "../_layout.astro";
           <span class="material-symbols-outlined text-xl">add_circle</span>
           Nueva Categoría
         </h3>
-        <button id="createCloseX" class="w-8 h-8 flex items-center justify-center text-secondary hover:text-monolith-black transition-colors rounded-sm hover:bg-monolith-black/5 cursor-pointer">
+        <button id="createCloseX" class="w-10 h-10 flex items-center justify-center text-secondary hover:text-monolith-black transition-colors rounded-sm hover:bg-monolith-black/5 cursor-pointer">
           <span class="material-symbols-outlined text-lg">close</span>
         </button>
       </div>
@@ -79,7 +79,7 @@ import AdminLayout from "../_layout.astro";
           <span class="material-symbols-outlined text-xl">edit</span>
           Editar Categoría
         </h3>
-        <button id="editCloseX" class="w-8 h-8 flex items-center justify-center text-secondary hover:text-monolith-black transition-colors rounded-sm hover:bg-monolith-black/5 cursor-pointer">
+        <button id="editCloseX" class="w-10 h-10 flex items-center justify-center text-secondary hover:text-monolith-black transition-colors rounded-sm hover:bg-monolith-black/5 cursor-pointer">
           <span class="material-symbols-outlined text-lg">close</span>
         </button>
       </div>
@@ -238,12 +238,12 @@ import AdminLayout from "../_layout.astro";
       }
 
       function actionButtons(c) {
-        return `<div class="flex gap-2">
-          <button class="edit-btn inline-flex items-center gap-1 px-3 py-1.5 font-label-caps text-label-caps border rounded-md transition-all duration-200 border-monolith-black/20 text-secondary hover:border-monolith-black hover:text-monolith-black hover:bg-monolith-black/5" data-id="${c.id}" data-name="${c.name}">
+        return `<div class="flex gap-2 w-full">
+          <button class="edit-btn flex-1 inline-flex items-center justify-center gap-1 px-3 py-1.5 font-label-caps text-label-caps rounded-md transition-all duration-200 bg-neutral-600 text-off-white hover:bg-neutral-700 hover:shadow-sm" data-id="${c.id}" data-name="${c.name}">
             <span class="material-symbols-outlined text-sm">edit</span>
             EDITAR
           </button>
-          <button class="delete-btn inline-flex items-center gap-1 px-3 py-1.5 font-label-caps text-label-caps border rounded-md transition-all duration-200 border-error/20 text-secondary hover:border-error hover:text-error hover:bg-error/5" data-id="${c.id}" data-name="${c.name}">
+          <button class="delete-btn flex-1 inline-flex items-center justify-center gap-1 px-3 py-1.5 font-label-caps text-label-caps border rounded-md transition-all duration-200 bg-error text-off-white hover:bg-error/90 hover:shadow-sm" data-id="${c.id}" data-name="${c.name}">
             <span class="material-symbols-outlined text-sm">delete</span>
             ELIMINAR
           </button>
@@ -260,7 +260,7 @@ import AdminLayout from "../_layout.astro";
       `).join("");
 
       cards.innerHTML = cats.map(c => `
-        <div class="bg-off-white border border-outline-variant border-l-2 border-l-monolith-black shadow-sm hover:shadow-md hover:border-l-clay-accent transition-all duration-200 rounded-sm p-4 flex items-center justify-between">
+        <div class="bg-off-white border border-outline-variant border-l-2 border-l-monolith-black shadow-sm hover:shadow-md hover:border-l-clay-accent transition-all duration-200 rounded-sm p-4 flex flex-col gap-3">
           <div class="flex items-center gap-3 min-w-0">
             <div class="w-10 h-10 rounded-sm bg-monolith-black/5 flex items-center justify-center shrink-0">
               <span class="material-symbols-outlined text-xl text-monolith-black">category</span>
@@ -270,7 +270,7 @@ import AdminLayout from "../_layout.astro";
               <p class="font-body text-body-md text-secondary text-sm font-mono truncate">${c.slug}</p>
             </div>
           </div>
-          <div class="flex gap-2 shrink-0 ml-3">${actionButtons(c)}</div>
+          ${actionButtons(c)}
         </div>
       `).join("");
 

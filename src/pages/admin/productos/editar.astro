@@ -15,6 +15,7 @@ const tabs = [
   { id: "pricing", label: "Precio & Categoría", icon: "sell" },
   { id: "variants", label: "Variantes", icon: "palette" },
   { id: "images", label: "Imágenes", icon: "photo_library" },
+  { id: "seo", label: "SEO", icon: "travel_explore" },
 ];
 ---
 
@@ -214,6 +215,34 @@ const tabs = [
         <p class="font-body text-body-sm text-secondary mb-6" id="uploadModalProgress"></p>
         <div class="h-0.5 bg-sand-nude rounded-full overflow-hidden">
           <div id="uploadProgressBar" class="h-full bg-gradient-to-r from-monolith-black to-clay-accent rounded-full transition-all duration-500" style="width: 0%"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    <!-- Tab: SEO -->
+    <div id="tab-seo" class="tab-content hidden">
+      <div class="max-w-2xl bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
+        <h2 class="font-headline text-headline-md mb-6 flex items-center gap-2">
+          <span class="material-symbols-outlined text-xl">travel_explore</span>
+          SEO & Open Graph
+        </h2>
+        <div class="space-y-6">
+          <div>
+            <label class="font-label-caps text-label-caps text-secondary block mb-2">META TITLE</label>
+            <input type="text" id="fieldMetaTitle" maxlength="70" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none" />
+            <p class="font-body text-body-md text-xs text-secondary mt-1">Si se deja vacío, se usa: Nombre del producto | Vunotek. Máximo 60 caracteres.</p>
+          </div>
+          <div>
+            <label class="font-label-caps text-label-caps text-secondary block mb-2">META DESCRIPTION</label>
+            <textarea id="fieldMetaDescription" maxlength="160" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-clay-accent focus:outline-none resize-none h-24"></textarea>
+            <p class="font-body text-body-md text-xs text-secondary mt-1">Si se deja vacío, se usa la descripción del producto. Máximo 160 caracteres.</p>
+          </div>
+          <div>
+            <label class="font-label-caps text-label-caps text-secondary block mb-2">OG IMAGE URL</label>
+            <input type="url" id="fieldOgImageUrl" maxlength="500" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none" placeholder="https://ik.imagekit.io/..." />
+            <p class="font-body text-body-md text-xs text-secondary mt-1">URL de la imagen para compartir en redes. Si se deja vacío, se usa la imagen principal del producto.</p>
+          </div>
         </div>
       </div>
     </div>
@@ -493,7 +522,7 @@ const tabs = [
           '<div class="relative">' +
             '<img src="' + src + '" alt="' + img.name + '" class="w-full h-32 object-cover" />' +
             '<div class="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center pointer-events-none">' +
-              '<button type="button" class="delete-image-btn bg-error text-off-white rounded-full w-8 h-8 flex items-center justify-center transition-all pointer-events-auto" data-index="' + i + '" ' + (deletingIndex === i ? 'disabled' : '') + '>' +
+              '<button type="button" class="delete-image-btn bg-error text-off-white rounded-full w-10 h-10 flex items-center justify-center transition-all pointer-events-auto" data-index="' + i + '" ' + (deletingIndex === i ? 'disabled' : '') + '>' +
                 (deletingIndex === i
                   ? '<span class="material-symbols-outlined text-sm animate-spin">progress_activity</span>'
                   : '<span class="material-symbols-outlined text-sm">close</span>'
@@ -669,6 +698,11 @@ const tabs = [
         }
         document.getElementById("fieldFeatured").checked = !!p.isFeatured;
 
+        // SEO fields
+        document.getElementById("fieldMetaTitle").value = p.metaTitle || "";
+        document.getElementById("fieldMetaDescription").value = p.metaDescription || "";
+        document.getElementById("fieldOgImageUrl").value = p.ogImageUrl || "";
+
         // Variants: populate stock matrix + color/size managers
         const initialStocks = {};
         (p.variants || []).forEach(v => {
@@ -838,6 +872,9 @@ const tabs = [
         lowStockThreshold: matrixPayload.threshold,
         images: uploadedImages.map(i => ({ url: i.url, fileId: i.fileId || null, colorName: i.colorName || null })),
         isFeatured: document.getElementById("fieldFeatured").checked,
+        metaTitle: document.getElementById("fieldMetaTitle").value,
+        metaDescription: document.getElementById("fieldMetaDescription").value,
+        ogImageUrl: document.getElementById("fieldOgImageUrl").value,
       };
 
       setLoading("submitBtn", "submitIcon", "submitText", true, "Guardando...");

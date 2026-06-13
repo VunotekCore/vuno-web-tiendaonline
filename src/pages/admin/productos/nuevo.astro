@@ -15,6 +15,7 @@ const tabs = [
   { id: "pricing", label: "Precio & Categoría", icon: "sell" },
   { id: "variants", label: "Variantes", icon: "palette" },
   { id: "images", label: "Imágenes", icon: "photo_library" },
+  { id: "seo", label: "SEO", icon: "travel_explore" },
 ];
 ---
 
@@ -22,12 +23,15 @@ const tabs = [
   <form id="productForm">
     <!-- Tabs -->
     <div class="border-b border-outline-variant mb-8 overflow-x-auto">
-      <div class="flex gap-1 min-w-max">
+      <div class="flex gap-1 min-w-max" role="tablist" aria-label="Secciones del producto">
         {tabs.map(t => (
           <button
             type="button"
             class="tab-btn px-4 py-3 font-label-caps text-label-caps text-secondary hover:text-monolith-black border-b-2 border-transparent hover:border-monolith-black/30 transition-all whitespace-nowrap flex items-center gap-1.5"
             data-tab={t.id}
+            role="tab"
+            aria-selected="false"
+            aria-controls={"tab-panel-" + t.id}
           >
             <span class="material-symbols-outlined text-lg">{t.icon}</span>
             {t.label}
@@ -37,7 +41,7 @@ const tabs = [
     </div>
 
     <!-- Tab: Información -->
-    <div id="tab-info" class="tab-content">
+    <div id="tab-panel-info" class="tab-content" role="tabpanel">
       <div class="max-w-2xl bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
         <h2 class="font-headline text-headline-md mb-6 flex items-center gap-2">
           <span class="material-symbols-outlined text-xl">description</span>
@@ -45,9 +49,9 @@ const tabs = [
         </h2>
         <div class="space-y-6">
           <div>
-            <label class="font-label-caps text-label-caps text-secondary block mb-2">NOMBRE DEL PRODUCTO *</label>
+            <label for="fieldName" class="font-label-caps text-label-caps text-secondary block mb-2">NOMBRE DEL PRODUCTO *</label>
             <div class="relative">
-              <input type="text" id="fieldName" required maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 pr-16 text-monolith-black focus:border-clay-accent focus:outline-none text-lg transition-colors" />
+              <input type="text" id="fieldName" required maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 pr-16 text-monolith-black focus:border-clay-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-clay-accent focus-visible:ring-offset-1 text-lg transition-colors" />
               <span id="nameCounter" class="absolute right-0 bottom-2 text-xs font-body text-secondary pointer-events-none">0/255</span>
             </div>
             <div id="slugPreview" class="font-body text-body-sm text-secondary mt-1 hidden">
@@ -55,22 +59,22 @@ const tabs = [
             </div>
           </div>
           <div>
-            <label class="font-label-caps text-label-caps text-secondary block mb-2">DESCRIPCIÓN</label>
+            <label for="fieldDescription" class="font-label-caps text-label-caps text-secondary block mb-2">DESCRIPCIÓN</label>
             <div class="relative">
-              <textarea id="fieldDescription" class="w-full bg-transparent border border-outline p-3 pb-8 text-monolith-black focus:border-clay-accent focus:outline-none resize-none h-32"></textarea>
+              <textarea id="fieldDescription" class="w-full bg-transparent border border-outline p-3 pb-8 text-monolith-black focus:border-clay-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-clay-accent focus-visible:ring-offset-1 resize-none h-32"></textarea>
               <span id="descCounter" class="absolute right-2 bottom-2 text-xs font-body text-secondary pointer-events-none">0 caracteres</span>
             </div>
           </div>
           <div>
-            <label class="font-label-caps text-label-caps text-secondary block mb-2">DETALLES (uno por línea)</label>
-            <textarea id="fieldDetails" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-clay-accent focus:outline-none resize-none h-24" placeholder="Ej:&#10;Piel genuina italiana&#10;Suela antideslizante&#10;Tacón de acero inoxidable"></textarea>
+            <label for="fieldDetails" class="font-label-caps text-label-caps text-secondary block mb-2">DETALLES (uno por línea)</label>
+            <textarea id="fieldDetails" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-clay-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-clay-accent focus-visible:ring-offset-1 resize-none h-24" placeholder="Ej:&#10;Piel genuina italiana&#10;Suela antideslizante&#10;Tacón de acero inoxidable"></textarea>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Tab: Precio & Categoría -->
-    <div id="tab-pricing" class="tab-content hidden">
+    <div id="tab-panel-pricing" class="tab-content hidden" role="tabpanel">
       <div class="max-w-2xl bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
         <h2 class="font-headline text-headline-md mb-6 flex items-center gap-2">
           <span class="material-symbols-outlined text-xl">sell</span>
@@ -78,18 +82,18 @@ const tabs = [
         </h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label class="font-label-caps text-label-caps text-secondary block mb-2">PRECIO (USD)</label>
-            <input type="number" step="0.01" id="fieldPrice" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none" />
+            <label for="fieldPrice" class="font-label-caps text-label-caps text-secondary block mb-2">PRECIO (USD)</label>
+            <input type="number" step="0.01" id="fieldPrice" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none focus-visible:ring-2 focus-visible:ring-monolith-black focus-visible:ring-offset-1" />
           </div>
           <div>
-            <label class="font-label-caps text-label-caps text-secondary block mb-2">CATEGORÍA</label>
-            <select id="fieldCategory" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none">
+            <label for="fieldCategory" class="font-label-caps text-label-caps text-secondary block mb-2">CATEGORÍA</label>
+            <select id="fieldCategory" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none focus-visible:ring-2 focus-visible:ring-monolith-black focus-visible:ring-offset-1">
               <option value="" disabled selected>Cargando...</option>
             </select>
           </div>
         </div>
         <div class="mt-6">
-          <label class="flex items-center gap-3 cursor-pointer group">
+          <label for="fieldFeatured" class="flex items-center gap-3 cursor-pointer group">
             <input type="checkbox" id="fieldFeatured" class="w-4 h-4 accent-monolith-black" />
             <span class="font-body-md text-body-md text-secondary group-hover:text-monolith-black transition-colors">Destacado — mostrar en la portada (hero slideshow)</span>
           </label>
@@ -98,7 +102,7 @@ const tabs = [
     </div>
 
     <!-- Tab: Variantes -->
-    <div id="tab-variants" class="tab-content hidden">
+    <div id="tab-panel-variants" class="tab-content hidden" role="tabpanel">
       <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
 
         <!-- Help guidance -->
@@ -126,11 +130,11 @@ const tabs = [
           <div id="colorChips" class="flex flex-wrap gap-2 mb-3"></div>
           <div class="flex items-end gap-3">
             <div>
-              <label class="font-label-caps text-label-caps text-secondary block mb-1 text-xs">NOMBRE</label>
-              <input type="text" id="colorNameInput" placeholder="Ej: Noir" maxlength="50" class="w-32 h-9 px-3 bg-white border border-outline-variant text-monolith-black text-sm focus:border-monolith-black focus:outline-none rounded-sm" />
+              <label for="colorNameInput" class="font-label-caps text-label-caps text-secondary block mb-1 text-xs">NOMBRE</label>
+              <input type="text" id="colorNameInput" placeholder="Ej: Noir" maxlength="50" class="w-32 h-9 px-3 bg-white border border-outline-variant text-monolith-black text-sm focus:border-monolith-black focus:outline-none focus-visible:ring-2 focus-visible:ring-monolith-black focus-visible:ring-offset-1 rounded-sm" />
             </div>
             <div>
-              <label class="font-label-caps text-label-caps text-secondary block mb-1 text-xs">COLOR</label>
+              <label for="colorHexInput" class="font-label-caps text-label-caps text-secondary block mb-1 text-xs">COLOR</label>
               <input type="color" id="colorHexInput" value="#1A1A1A" class="w-9 h-9 p-0.5 border border-outline-variant cursor-pointer rounded-sm" />
             </div>
             <button type="button" id="addColorBtn" class="h-9 px-4 bg-monolith-black text-off-white font-label-caps text-label-caps text-xs rounded-sm hover:bg-monolith-black/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed">AGREGAR</button>
@@ -153,12 +157,12 @@ const tabs = [
           <div id="sizeChips" class="flex flex-wrap gap-2 mb-3"></div>
           <div class="flex flex-wrap items-end gap-3">
             <div>
-              <label class="font-label-caps text-label-caps text-secondary block mb-1 text-xs">PREFIJO</label>
-              <input type="text" id="sizePrefixInput" value="EU" maxlength="10" class="w-14 h-9 px-2 bg-white border border-outline-variant text-monolith-black text-sm text-center focus:border-monolith-black focus:outline-none rounded-sm" />
+              <label for="sizePrefixInput" class="font-label-caps text-label-caps text-secondary block mb-1 text-xs">PREFIJO</label>
+              <input type="text" id="sizePrefixInput" value="EU" maxlength="10" class="w-14 h-9 px-2 bg-white border border-outline-variant text-monolith-black text-sm text-center focus:border-monolith-black focus:outline-none focus-visible:ring-2 focus-visible:ring-monolith-black focus-visible:ring-offset-1 rounded-sm" />
             </div>
             <div>
-              <label class="font-label-caps text-label-caps text-secondary block mb-1 text-xs">AGREGAR TALLE</label>
-              <input type="number" id="sizeInput" placeholder="Ej: 37" min="1" max="99" class="w-20 h-9 px-3 bg-white border border-outline-variant text-monolith-black text-sm focus:border-monolith-black focus:outline-none rounded-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+              <label for="sizeInput" class="font-label-caps text-label-caps text-secondary block mb-1 text-xs">AGREGAR TALLE</label>
+              <input type="number" id="sizeInput" placeholder="Ej: 37" min="1" max="99" class="w-20 h-9 px-3 bg-white border border-outline-variant text-monolith-black text-sm focus:border-monolith-black focus:outline-none focus-visible:ring-2 focus-visible:ring-monolith-black focus-visible:ring-offset-1 rounded-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
             </div>
             <button type="button" id="addSizeBtn" class="h-9 px-4 bg-monolith-black text-off-white font-label-caps text-label-caps text-xs rounded-sm hover:bg-monolith-black/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed">AGREGAR</button>
           </div>
@@ -169,13 +173,13 @@ const tabs = [
     </div>
 
     <!-- Tab: Imágenes -->
-    <div id="tab-images" class="tab-content hidden">
+    <div id="tab-panel-images" class="tab-content hidden" role="tabpanel">
       <div class="max-w-2xl bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
         <h2 class="font-headline text-headline-md mb-6 flex items-center gap-2">
           <span class="material-symbols-outlined text-xl">photo_library</span>
           Imágenes del Producto
         </h2>
-        <div id="imageUploadZone" class="border-2 border-dashed border-outline-variant rounded-sm p-8 text-center cursor-pointer hover:border-monolith-black transition-colors bg-white mb-4">
+        <div id="imageUploadZone" class="border-2 border-dashed border-outline-variant rounded-sm p-8 text-center cursor-pointer hover:border-monolith-black transition-colors bg-white mb-4" tabindex="0" role="button" aria-label="Seleccionar imágenes para subir">
           <span class="material-symbols-outlined text-4xl text-secondary mb-2 block">cloud_upload</span>
           <p class="font-body text-body-md text-secondary mb-1">Arrastra imágenes aquí o haz clic para seleccionar</p>
           <p class="font-body text-body-md text-secondary text-sm">JPG, PNG, WebP · Máximo 5MB cada una</p>
@@ -215,6 +219,34 @@ const tabs = [
     </div>
   </div>
 
+    <!-- Tab: SEO -->
+    <div id="tab-panel-seo" class="tab-content hidden" role="tabpanel">
+      <div class="max-w-2xl bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
+        <h2 class="font-headline text-headline-md mb-6 flex items-center gap-2">
+          <span class="material-symbols-outlined text-xl">travel_explore</span>
+          SEO & Open Graph
+        </h2>
+        <div class="space-y-6">
+          <div>
+            <label for="fieldMetaTitle" class="font-label-caps text-label-caps text-secondary block mb-2">META TITLE</label>
+            <input type="text" id="fieldMetaTitle" maxlength="70" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-clay-accent focus-visible:ring-offset-1" />
+            <p class="font-body text-body-md text-xs text-secondary mt-1">Si se deja vacío, se usa: Nombre del producto | Vunotek. Máximo 60 caracteres.</p>
+          </div>
+          <div>
+            <label for="fieldMetaDescription" class="font-label-caps text-label-caps text-secondary block mb-2">META DESCRIPTION</label>
+            <textarea id="fieldMetaDescription" maxlength="160" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-clay-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-clay-accent focus-visible:ring-offset-1 resize-none h-24"></textarea>
+            <p class="font-body text-body-md text-xs text-secondary mt-1">Si se deja vacío, se usa la descripción del producto. Máximo 160 caracteres.</p>
+          </div>
+          <div>
+            <label for="fieldOgImageUrl" class="font-label-caps text-label-caps text-secondary block mb-2">OG IMAGE URL</label>
+            <input type="url" id="fieldOgImageUrl" maxlength="500" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-clay-accent focus-visible:ring-offset-1" placeholder="https://ik.imagekit.io/..." />
+            <p class="font-body text-body-md text-xs text-secondary mt-1">URL de la imagen para compartir en redes. Si se deja vacío, se usa la imagen principal del producto.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     // @ts-nocheck
     // --- Tab switching ---
@@ -223,15 +255,34 @@ const tabs = [
         document.querySelectorAll(".tab-btn").forEach(b => {
           b.classList.remove("text-monolith-black", "border-monolith-black");
           b.classList.add("text-secondary", "border-transparent");
+          b.setAttribute("aria-selected", "false");
         });
         btn.classList.remove("text-secondary", "border-transparent");
         btn.classList.add("text-monolith-black", "border-monolith-black");
+        btn.setAttribute("aria-selected", "true");
 
         document.querySelectorAll(".tab-content").forEach(tc => tc.classList.add("hidden"));
-        document.getElementById("tab-" + btn.dataset.tab).classList.remove("hidden");
+        document.getElementById("tab-panel-" + btn.dataset.tab).classList.remove("hidden");
       });
     });
     document.querySelector(".tab-btn")?.click();
+
+    // Keyboard navigation for tabs
+    document.querySelector('[role="tablist"]')?.addEventListener("keydown", (e) => {
+      const tabs = Array.from(document.querySelectorAll('[role="tab"]'));
+      const current = tabs.indexOf(document.activeElement);
+      let next;
+      if (e.key === "ArrowRight") {
+        next = (current + 1) % tabs.length;
+      } else if (e.key === "ArrowLeft") {
+        next = (current - 1 + tabs.length) % tabs.length;
+      }
+      if (next !== undefined) {
+        e.preventDefault();
+        tabs[next].click();
+        tabs[next].focus();
+      }
+    });
 
     // --- Slug auto-preview ---
     function slugify(text) {
@@ -371,7 +422,7 @@ const tabs = [
           '<div class="relative">' +
             '<img src="' + src + '" alt="' + img.name + '" class="w-full h-32 object-cover" />' +
             '<div class="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center pointer-events-none">' +
-              '<button type="button" class="delete-image-btn bg-error text-off-white rounded-full w-8 h-8 flex items-center justify-center transition-all pointer-events-auto" data-index="' + i + '" ' + (deletingIndex === i ? 'disabled' : '') + '>' +
+              '<button type="button" class="delete-image-btn bg-error text-off-white rounded-full w-10 h-10 flex items-center justify-center transition-all pointer-events-auto" data-index="' + i + '" ' + (deletingIndex === i ? 'disabled' : '') + '>' +
                 (deletingIndex === i
                   ? '<span class="material-symbols-outlined text-sm animate-spin">progress_activity</span>'
                   : '<span class="material-symbols-outlined text-sm">close</span>'
@@ -491,6 +542,12 @@ const tabs = [
 
     imageZone.addEventListener("click", function () {
       if (uploadedImages.length < MAX_IMAGES) imageInput.click();
+    });
+    imageZone.addEventListener("keydown", function (e) {
+      if ((e.key === "Enter" || e.key === " ") && uploadedImages.length < MAX_IMAGES) {
+        e.preventDefault();
+        imageInput.click();
+      }
     });
 
     imageZone.addEventListener("dragover", function (e) {
@@ -758,6 +815,9 @@ const tabs = [
         lowStockThreshold: matrixPayload.threshold,
         images: uploadedImages.map(i => ({ url: i.url, fileId: i.fileId || null, colorName: i.colorName || null })),
         isFeatured: document.getElementById("fieldFeatured").checked,
+        metaTitle: document.getElementById("fieldMetaTitle").value,
+        metaDescription: document.getElementById("fieldMetaDescription").value,
+        ogImageUrl: document.getElementById("fieldOgImageUrl").value,
       };
 
       setLoading("submitBtn", "submitIcon", "submitText", true, "Guardando...");

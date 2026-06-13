@@ -6,7 +6,7 @@ import AdminLayout from "../_layout.astro";
   <form id="templateForm" class="max-w-3xl">
     <div id="loading" class="font-body text-body-md text-secondary p-4">Loading...</div>
     <div id="formContent" class="hidden">
-      <div id="message" class="hidden font-body text-body-md p-3 mb-6 rounded-sm"></div>
+      <div id="message" class="hidden font-body text-body-md p-3 mb-6 rounded-sm" aria-live="polite"></div>
 
       <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-6 space-y-6">
         <h2 class="font-headline text-headline-md flex items-center gap-2">
@@ -15,25 +15,25 @@ import AdminLayout from "../_layout.astro";
         </h2>
 
         <div>
-          <label class="font-label-caps text-label-caps text-secondary block mb-2">CÓDIGO *</label>
+          <label for="fieldCode" class="font-label-caps text-label-caps text-secondary block mb-2">CÓDIGO *</label>
           <div class="relative">
-            <input type="text" id="fieldCode" required maxlength="100" class="w-full bg-transparent border-b border-outline pb-2 pr-16 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm transition-colors" />
+            <input type="text" id="fieldCode" required maxlength="100" class="w-full bg-transparent border-b border-outline pb-2 pr-16 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm transition-colors focus-visible:ring-2 focus-visible:ring-monolith-black" />
             <span id="codeCounter" class="absolute right-0 bottom-2 text-xs font-body text-secondary pointer-events-none">0/100</span>
           </div>
         </div>
 
         <div>
-          <label class="font-label-caps text-label-caps text-secondary block mb-2">NOMBRE *</label>
+          <label for="fieldName" class="font-label-caps text-label-caps text-secondary block mb-2">NOMBRE *</label>
           <div class="relative">
-            <input type="text" id="fieldName" required maxlength="200" class="w-full bg-transparent border-b border-outline pb-2 pr-16 text-monolith-black focus:border-clay-accent focus:outline-none text-lg transition-colors" />
+            <input type="text" id="fieldName" required maxlength="200" class="w-full bg-transparent border-b border-outline pb-2 pr-16 text-monolith-black focus:border-clay-accent focus:outline-none text-lg transition-colors focus-visible:ring-2 focus-visible:ring-monolith-black" />
             <span id="nameCounter" class="absolute right-0 bottom-2 text-xs font-body text-secondary pointer-events-none">0/200</span>
           </div>
         </div>
 
         <div>
-          <label class="font-label-caps text-label-caps text-secondary block mb-2">ASUNTO *</label>
+          <label for="fieldSubject" class="font-label-caps text-label-caps text-secondary block mb-2">ASUNTO *</label>
           <div class="relative">
-            <input type="text" id="fieldSubject" required maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 pr-16 text-monolith-black focus:border-clay-accent focus:outline-none transition-colors" />
+            <input type="text" id="fieldSubject" required maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 pr-16 text-monolith-black focus:border-clay-accent focus:outline-none transition-colors focus-visible:ring-2 focus-visible:ring-monolith-black" />
             <span id="subjectCounter" class="absolute right-0 bottom-2 text-xs font-body text-secondary pointer-events-none">0/255</span>
           </div>
           <p class="font-body text-body-sm text-secondary mt-1">Usa <code class="text-clay-accent">&#123;&#123;variable&#125;&#125;</code> para datos dinámicos</p>
@@ -42,7 +42,7 @@ import AdminLayout from "../_layout.astro";
         <!-- ====== VISUAL EDITOR ====== -->
         <div>
           <div class="flex items-center justify-between mb-2">
-            <label class="font-label-caps text-label-caps text-secondary">CUERPO DE LA PLANTILLA *</label>
+            <label id="bodyLabel" class="font-label-caps text-label-caps text-secondary">CUERPO DE LA PLANTILLA *</label>
             <div class="flex items-center gap-2">
               <div class="flex gap-1">
                 <button type="button" id="restoreBtn" class="font-label-caps text-label-caps text-clay-accent border border-clay-accent/30 rounded-md px-3 h-8 inline-flex items-center gap-1 hover:bg-clay-accent/5 transition-all text-xs" title="Restaurar desde archivo original">
@@ -55,11 +55,11 @@ import AdminLayout from "../_layout.astro";
                 </button>
               </div>
               <div class="flex items-center gap-0.5 border border-outline-variant rounded-sm overflow-hidden text-xs font-label-caps">
-                <button type="button" id="modeVisual" class="mode-btn active px-2.5 h-7 flex items-center gap-1 transition-colors bg-monolith-black text-off-white">
+                <button type="button" id="modeVisual" class="mode-btn active px-3 min-h-[44px] flex items-center gap-1 transition-colors bg-monolith-black text-off-white">
                   <span class="material-symbols-outlined text-sm">palette</span>
                   Visual
                 </button>
-                <button type="button" id="modeHtml" class="mode-btn px-2.5 h-7 flex items-center gap-1 transition-colors text-secondary hover:text-monolith-black">
+                <button type="button" id="modeHtml" class="mode-btn px-3 min-h-[44px] flex items-center gap-1 transition-colors text-secondary hover:text-monolith-black">
                   <span class="material-symbols-outlined text-sm">code</span>
                   HTML
                 </button>
@@ -69,38 +69,38 @@ import AdminLayout from "../_layout.astro";
 
           <!-- Toolbar (visual mode) -->
           <div id="editorToolbar" class="flex flex-wrap items-center gap-0.5 p-1.5 border border-outline-variant bg-off-white rounded-t-sm select-none">
-            <button type="button" data-cmd="bold" title="Negrita" class="toolbar-btn w-7 h-7 flex items-center justify-center rounded-sm hover:bg-monolith-black/10 transition-colors text-monolith-black font-bold text-sm">B</button>
-            <button type="button" data-cmd="italic" title="Itálica" class="toolbar-btn w-7 h-7 flex items-center justify-center rounded-sm hover:bg-monolith-black/10 transition-colors text-monolith-black italic text-sm">I</button>
-            <button type="button" data-cmd="underline" title="Subrayado" class="toolbar-btn w-7 h-7 flex items-center justify-center rounded-sm hover:bg-monolith-black/10 transition-colors text-monolith-black underline text-sm">U</button>
+            <button type="button" data-cmd="bold" title="Negrita" class="toolbar-btn min-w-[44px] min-h-[44px] flex items-center justify-center rounded-sm hover:bg-monolith-black/10 transition-colors text-monolith-black font-bold text-sm">B</button>
+            <button type="button" data-cmd="italic" title="Itálica" class="toolbar-btn min-w-[44px] min-h-[44px] flex items-center justify-center rounded-sm hover:bg-monolith-black/10 transition-colors text-monolith-black italic text-sm">I</button>
+            <button type="button" data-cmd="underline" title="Subrayado" class="toolbar-btn min-w-[44px] min-h-[44px] flex items-center justify-center rounded-sm hover:bg-monolith-black/10 transition-colors text-monolith-black underline text-sm">U</button>
             <span class="w-px h-5 bg-outline-variant mx-0.5"></span>
-            <button type="button" data-cmd="formatBlock" data-value="h2" title="Título grande" class="toolbar-btn px-2 h-7 flex items-center justify-center rounded-sm hover:bg-monolith-black/10 transition-colors text-monolith-black font-body text-xs font-semibold">H2</button>
-            <button type="button" data-cmd="formatBlock" data-value="h3" title="Título mediano" class="toolbar-btn px-2 h-7 flex items-center justify-center rounded-sm hover:bg-monolith-black/10 transition-colors text-monolith-black font-body text-xs font-semibold">H3</button>
-            <button type="button" data-cmd="formatBlock" data-value="p" title="Párrafo" class="toolbar-btn px-2 h-7 flex items-center justify-center rounded-sm hover:bg-monolith-black/10 transition-colors text-monolith-black font-body text-xs">¶</button>
+            <button type="button" data-cmd="formatBlock" data-value="h2" title="Título grande" class="toolbar-btn px-2 min-h-[44px] flex items-center justify-center rounded-sm hover:bg-monolith-black/10 transition-colors text-monolith-black font-body text-xs font-semibold">H2</button>
+            <button type="button" data-cmd="formatBlock" data-value="h3" title="Título mediano" class="toolbar-btn px-2 min-h-[44px] flex items-center justify-center rounded-sm hover:bg-monolith-black/10 transition-colors text-monolith-black font-body text-xs font-semibold">H3</button>
+            <button type="button" data-cmd="formatBlock" data-value="p" title="Párrafo" class="toolbar-btn px-2 min-h-[44px] flex items-center justify-center rounded-sm hover:bg-monolith-black/10 transition-colors text-monolith-black font-body text-xs">¶</button>
             <span class="w-px h-5 bg-outline-variant mx-0.5"></span>
-            <button type="button" data-cmd="insertUnorderedList" title="Lista con viñetas" class="toolbar-btn w-7 h-7 flex items-center justify-center rounded-sm hover:bg-monolith-black/10 transition-colors text-monolith-black">
+            <button type="button" data-cmd="insertUnorderedList" title="Lista con viñetas" class="toolbar-btn min-w-[44px] min-h-[44px] flex items-center justify-center rounded-sm hover:bg-monolith-black/10 transition-colors text-monolith-black">
               <span class="material-symbols-outlined text-base">format_list_bulleted</span>
             </button>
-            <button type="button" data-cmd="insertOrderedList" title="Lista numerada" class="toolbar-btn w-7 h-7 flex items-center justify-center rounded-sm hover:bg-monolith-black/10 transition-colors text-monolith-black">
+            <button type="button" data-cmd="insertOrderedList" title="Lista numerada" class="toolbar-btn min-w-[44px] min-h-[44px] flex items-center justify-center rounded-sm hover:bg-monolith-black/10 transition-colors text-monolith-black">
               <span class="material-symbols-outlined text-base">format_list_numbered</span>
             </button>
             <span class="w-px h-5 bg-outline-variant mx-0.5"></span>
-            <button type="button" data-cmd="link" title="Insertar enlace" class="toolbar-btn w-7 h-7 flex items-center justify-center rounded-sm hover:bg-monolith-black/10 transition-colors text-monolith-black">
+            <button type="button" data-cmd="link" title="Insertar enlace" class="toolbar-btn min-w-[44px] min-h-[44px] flex items-center justify-center rounded-sm hover:bg-monolith-black/10 transition-colors text-monolith-black">
               <span class="material-symbols-outlined text-base">link</span>
             </button>
-            <button type="button" data-cmd="unlink" title="Quitar enlace" class="toolbar-btn w-7 h-7 flex items-center justify-center rounded-sm hover:bg-monolith-black/10 transition-colors text-secondary">
+            <button type="button" data-cmd="unlink" title="Quitar enlace" class="toolbar-btn min-w-[44px] min-h-[44px] flex items-center justify-center rounded-sm hover:bg-monolith-black/10 transition-colors text-secondary">
               <span class="material-symbols-outlined text-base">link_off</span>
             </button>
             <span class="w-px h-5 bg-outline-variant mx-0.5"></span>
-            <button type="button" data-cmd="removeFormat" title="Limpiar formato" class="toolbar-btn w-7 h-7 flex items-center justify-center rounded-sm hover:bg-monolith-black/10 transition-colors text-secondary">
+            <button type="button" data-cmd="removeFormat" title="Limpiar formato" class="toolbar-btn min-w-[44px] min-h-[44px] flex items-center justify-center rounded-sm hover:bg-monolith-black/10 transition-colors text-secondary">
               <span class="material-symbols-outlined text-base">format_clear</span>
             </button>
           </div>
 
-          <!-- Visual contenteditable -->
-          <div id="fieldBodyVisual" contenteditable="true" class="min-h-[320px] p-4 border-x border-b border-outline-variant bg-white text-monolith-black font-body text-body-md leading-relaxed focus:outline-none focus:border-clay-accent rounded-b-sm prose prose-sm max-w-none [&_h2]:font-headline [&_h2]:text-xl [&_h2]:mb-3 [&_h3]:font-headline [&_h3]:text-lg [&_h3]:mb-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mb-1 [&_a]:text-clay-accent [&_a]:underline" data-placeholder="Escribe aquí el contenido de la plantilla..."></div>
+        <!-- Visual contenteditable -->
+        <div id="fieldBodyVisual" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="bodyLabel" class="min-h-[320px] p-4 border-x border-b border-outline-variant bg-white text-monolith-black font-body text-body-md leading-relaxed focus:outline-none focus:border-clay-accent rounded-b-sm prose prose-sm max-w-none [&_h2]:font-headline [&_h2]:text-xl [&_h2]:mb-3 [&_h3]:font-headline [&_h3]:text-lg [&_h3]:mb-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mb-1 [&_a]:text-clay-accent [&_a]:underline" data-placeholder="Escribe aquí el contenido de la plantilla..."></div>
 
-          <!-- HTML textarea (hidden in visual mode) -->
-          <textarea id="fieldBodyHtml" rows="20" class="hidden w-full border-x border-b border-outline-variant p-3 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm leading-relaxed resize-y rounded-b-sm"></textarea>
+        <!-- HTML textarea (hidden in visual mode) -->
+        <textarea id="fieldBodyHtml" rows="20" aria-labelledby="bodyLabel" class="hidden w-full border-x border-b border-outline-variant p-3 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm leading-relaxed resize-y rounded-b-sm focus-visible:ring-2 focus-visible:ring-monolith-black"></textarea>
 
           <!-- Status bar -->
           <div class="flex items-center justify-between px-3 py-1.5 bg-off-white border border-t-0 border-outline-variant rounded-b-sm text-xs text-secondary">
@@ -157,17 +157,17 @@ import AdminLayout from "../_layout.astro";
   </form>
 
   <!-- Preview Modal -->
-  <div id="previewModal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+  <div id="previewModal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/40 backdrop-blur-sm p-4" role="dialog" aria-modal="true" aria-labelledby="previewModalTitle">
     <div class="modal-content bg-off-white border border-outline-variant shadow-lg rounded-sm w-full max-w-4xl max-h-[90vh] flex flex-col">
       <div class="flex items-center justify-between p-4 border-b border-outline-variant shrink-0">
         <div class="flex items-center gap-3 min-w-0 flex-1">
-          <h3 class="font-headline text-headline-md flex items-center gap-2">
+          <h3 id="previewModalTitle" class="font-headline text-headline-md flex items-center gap-2">
             <span class="material-symbols-outlined text-xl">visibility</span>
             Vista Previa
           </h3>
           <span id="previewSubject" class="font-body text-body-sm text-secondary truncate"></span>
         </div>
-        <button id="previewCloseX" class="w-8 h-8 flex items-center justify-center text-secondary hover:text-monolith-black transition-colors rounded-sm hover:bg-monolith-black/5 cursor-pointer shrink-0 ml-4">
+        <button id="previewCloseX" class="w-10 h-10 flex items-center justify-center text-secondary hover:text-monolith-black transition-colors rounded-sm hover:bg-monolith-black/5 cursor-pointer shrink-0 ml-4">
           <span class="material-symbols-outlined text-lg">close</span>
         </button>
       </div>

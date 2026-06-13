@@ -6,7 +6,7 @@ import AdminLayout from "../_layout.astro";
   <form id="blogForm" class="max-w-4xl">
     <div id="loading" class="font-body text-body-md text-secondary p-4">Loading...</div>
     <div id="formContent" class="hidden">
-      <div id="message" class="hidden font-body text-body-md p-3 mb-6 rounded-sm"></div>
+      <div id="message" class="hidden font-body text-body-md p-3 mb-6 rounded-sm" aria-live="polite"></div>
 
       <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-6 space-y-6">
         <h2 class="font-headline text-headline-md flex items-center gap-2">
@@ -14,47 +14,47 @@ import AdminLayout from "../_layout.astro";
           Editar Post
         </h2>
 
-        <div>
-          <label class="font-label-caps text-label-caps text-secondary block mb-2">TÍTULO *</label>
-          <div class="relative">
-            <input type="text" id="fieldTitle" required maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 pr-16 text-monolith-black focus:border-clay-accent focus:outline-none text-lg transition-colors" />
+      <div>
+        <label for="fieldTitle" class="font-label-caps text-label-caps text-secondary block mb-2">TÍTULO *</label>
+        <div class="relative">
+          <input type="text" id="fieldTitle" required maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 pr-16 text-monolith-black focus:border-clay-accent focus:outline-none text-lg transition-colors focus-visible:ring-2 focus-visible:ring-monolith-black" />
             <span id="titleCounter" class="absolute right-0 bottom-2 text-xs font-body text-secondary pointer-events-none">0/255</span>
           </div>
         </div>
 
-        <div>
-          <label class="font-label-caps text-label-caps text-secondary block mb-2">SLUG *</label>
-          <div class="relative">
-            <input type="text" id="fieldSlug" required maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 pr-16 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm transition-colors" />
+      <div>
+        <label for="fieldSlug" class="font-label-caps text-label-caps text-secondary block mb-2">SLUG *</label>
+        <div class="relative">
+          <input type="text" id="fieldSlug" required maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 pr-16 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm transition-colors focus-visible:ring-2 focus-visible:ring-monolith-black" />
             <span id="slugCounter" class="absolute right-0 bottom-2 text-xs font-body text-secondary pointer-events-none">0/255</span>
           </div>
         </div>
 
       <div>
-        <label class="font-label-caps text-label-caps text-secondary block mb-2">TEXTO INTRODUCTORIO (se muestra en la lista del blog)</label>
+        <label for="fieldExcerpt" class="font-label-caps text-label-caps text-secondary block mb-2">TEXTO INTRODUCTORIO (se muestra en la lista del blog)</label>
         <div class="relative">
-          <textarea id="fieldExcerpt" rows="3" maxlength="500" class="w-full bg-transparent border-b border-outline pb-2 pr-16 text-monolith-black focus:border-clay-accent focus:outline-none resize-none transition-colors"></textarea>
+          <textarea id="fieldExcerpt" rows="3" maxlength="500" class="w-full bg-transparent border-b border-outline pb-2 pr-16 text-monolith-black focus:border-clay-accent focus:outline-none resize-none transition-colors focus-visible:ring-2 focus-visible:ring-monolith-black"></textarea>
           <span id="excerptCounter" class="absolute right-0 bottom-2 text-xs font-body text-secondary pointer-events-none">0/500</span>
         </div>
       </div>
 
       <div>
-        <label class="font-label-caps text-label-caps text-secondary block mb-2">CONTENIDO *</label>
+        <label for="editor" class="font-label-caps text-label-caps text-secondary block mb-2">CONTENIDO *</label>
         <div id="editor" class="border border-outline" style="min-height: 380px;"></div>
         <input type="hidden" id="fieldContent" />
       </div>
 
       <div>
-        <label class="font-label-caps text-label-caps text-secondary block mb-2">IMAGEN MINIATURA (se muestra en la lista del blog)</label>
+        <label class="font-label-caps text-label-caps text-secondary block mb-2" id="thumbnailLabel">IMAGEN MINIATURA (se muestra en la lista del blog)</label>
         <div class="border border-dashed border-outline-variant rounded-sm p-4">
           <div class="flex items-center gap-4">
             <button type="button" class="upload-btn bg-monolith-black text-off-white font-label-caps text-label-caps h-9 px-4 rounded-sm hover:bg-monolith-black/90 transition-colors">SUBIR IMAGEN</button>
-            <input type="file" class="hidden file-input" accept="image/jpeg,image/png,image/webp" />
+            <input type="file" class="hidden file-input" accept="image/jpeg,image/png,image/webp" aria-labelledby="thumbnailLabel" />
             <span class="font-body text-body-sm text-secondary">JPEG, PNG o WebP</span>
           </div>
           <div class="mt-3 hidden preview-container">
             <div class="flex items-center gap-3">
-              <img class="w-24 h-18 object-cover rounded-sm border border-outline-variant" style="max-height:72px" />
+              <img class="w-24 h-18 object-cover rounded-sm border border-outline-variant" style="max-height:72px" alt="Vista previa miniatura" />
               <div>
                 <input type="hidden" class="image-url" name="thumbnail_image" />
                 <button type="button" class="remove-btn font-label-caps text-label-caps text-error hover:text-red-700 transition-colors">ELIMINAR</button>
@@ -65,11 +65,11 @@ import AdminLayout from "../_layout.astro";
       </div>
 
       <div>
-        <label class="font-label-caps text-label-caps text-secondary block mb-2">IMAGEN DESTACADA (para el detalle del post)</label>
+        <label class="font-label-caps text-label-caps text-secondary block mb-2" id="featuredLabel">IMAGEN DESTACADA (para el detalle del post)</label>
         <div class="border border-dashed border-outline-variant rounded-sm p-4">
           <div class="flex items-center gap-4">
             <button type="button" class="upload-btn bg-monolith-black text-off-white font-label-caps text-label-caps h-9 px-4 rounded-sm hover:bg-monolith-black/90 transition-colors">SUBIR IMAGEN</button>
-            <input type="file" class="hidden file-input" accept="image/jpeg,image/png,image/webp" />
+            <input type="file" class="hidden file-input" accept="image/jpeg,image/png,image/webp" aria-labelledby="featuredLabel" />
             <span class="font-body text-body-sm text-secondary">JPEG, PNG o WebP</span>
           </div>
           <div class="mt-3 hidden preview-container">
@@ -86,24 +86,48 @@ import AdminLayout from "../_layout.astro";
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
-            <label class="font-label-caps text-label-caps text-secondary block mb-2">AUTOR</label>
+            <label for="fieldAuthor" class="font-label-caps text-label-caps text-secondary block mb-2">AUTOR</label>
             <div class="relative">
               <input type="text" id="fieldAuthor" maxlength="100" class="w-full bg-transparent border-b border-outline pb-2 pr-16 text-monolith-black focus:border-clay-accent focus:outline-none transition-colors" />
               <span id="authorCounter" class="absolute right-0 bottom-2 text-xs font-body text-secondary pointer-events-none">0/100</span>
             </div>
           </div>
           <div>
-            <label class="font-label-caps text-label-caps text-secondary block mb-2">CATEGORÍA</label>
+            <label for="fieldCategory" class="font-label-caps text-label-caps text-secondary block mb-2">CATEGORÍA</label>
             <select id="fieldCategory" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none transition-colors">
               <option value="">Sin categoría</option>
             </select>
           </div>
           <div>
-            <label class="font-label-caps text-label-caps text-secondary block mb-2">ESTADO</label>
+            <label for="fieldStatus" class="font-label-caps text-label-caps text-secondary block mb-2">ESTADO</label>
             <select id="fieldStatus" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none transition-colors">
               <option value="draft">Borrador</option>
               <option value="published">Publicado</option>
             </select>
+          </div>
+        </div>
+
+        <!-- SEO Section -->
+        <div class="pt-6 mt-6 border-t border-outline-variant">
+          <h3 class="font-label-caps text-label-caps text-secondary mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-lg">travel_explore</span>
+            SEO & Open Graph
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="md:col-span-2">
+            <label for="fieldMetaTitle" class="font-label-caps text-label-caps text-secondary block mb-2">META TITLE</label>
+            <div class="relative">
+              <input type="text" id="fieldMetaTitle" maxlength="70" class="w-full bg-transparent border-b border-outline pb-2 pr-16 text-monolith-black focus:border-clay-accent focus:outline-none transition-colors focus-visible:ring-2 focus-visible:ring-monolith-black" />
+                <span class="absolute right-0 bottom-2 text-xs font-body text-secondary pointer-events-none counter-hint">Máx 60</span>
+              </div>
+            </div>
+            <div class="md:col-span-2">
+            <label for="fieldMetaDescription" class="font-label-caps text-label-caps text-secondary block mb-2">META DESCRIPTION</label>
+            <div class="relative">
+              <textarea id="fieldMetaDescription" maxlength="160" rows="2" class="w-full bg-transparent border-b border-outline pb-2 pr-16 text-monolith-black focus:border-clay-accent focus:outline-none resize-none transition-colors focus-visible:ring-2 focus-visible:ring-monolith-black"></textarea>
+                <span class="absolute right-0 bottom-2 text-xs font-body text-secondary pointer-events-none counter-hint">Máx 160</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -201,6 +225,8 @@ import AdminLayout from "../_layout.astro";
         document.getElementById("fieldSlug").value = post.slug || "";
         document.getElementById("fieldExcerpt").value = post.excerpt || "";
         document.getElementById("fieldAuthor").value = post.author || "Ram;Lop";
+        document.getElementById("fieldMetaTitle").value = post.meta_title || "";
+        document.getElementById("fieldMetaDescription").value = post.meta_description || "";
 
         function setBlogImage(fieldName, url) {
           var input = document.querySelector('input[name="' + fieldName + '"]');
@@ -301,6 +327,8 @@ import AdminLayout from "../_layout.astro";
         author: document.getElementById("fieldAuthor").value.trim() || "Ram;Lop",
         category_id: document.getElementById("fieldCategory").value || null,
         status: document.getElementById("fieldStatus").value,
+        meta_title: document.getElementById("fieldMetaTitle").value.trim(),
+        meta_description: document.getElementById("fieldMetaDescription").value.trim(),
       };
 
       if (!data.title || !data.slug || !data.content) {

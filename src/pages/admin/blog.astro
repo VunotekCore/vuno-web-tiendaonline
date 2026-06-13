@@ -4,20 +4,20 @@ import AdminLayout from "./_layout.astro";
 
 <AdminLayout title="Blog" currentPath="/admin/blog">
   <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-    <div class="flex items-center gap-4 w-full md:w-auto">
+    <div class="flex flex-wrap items-center gap-4 w-full md:w-auto">
       <div class="relative flex-1 md:w-56">
         <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-secondary pointer-events-none">search</span>
-        <input type="text" id="searchInput" placeholder="Buscar posts..." class="w-full h-10 pl-10 pr-3 bg-transparent border-b border-outline text-monolith-black focus:border-monolith-black focus:outline-none font-body text-body-md" />
+        <input type="text" id="searchInput" placeholder="Buscar posts..." aria-label="Buscar posts" class="w-full h-10 pl-10 pr-3 bg-transparent border-b border-outline text-monolith-black focus:border-monolith-black focus:outline-none font-body text-body-md focus-visible:ring-2 focus-visible:ring-monolith-black" />
       </div>
-      <select id="statusFilter" class="h-10 bg-transparent border-b border-outline text-monolith-black focus:border-monolith-black focus:outline-none font-body text-body-md">
+      <select id="statusFilter" aria-label="Filtrar por estado" class="h-10 bg-transparent border-b border-outline text-monolith-black focus:border-monolith-black focus:outline-none font-body text-body-md focus-visible:ring-2 focus-visible:ring-monolith-black">
         <option value="">Todos</option>
         <option value="published">Publicado</option>
         <option value="draft">Borrador</option>
       </select>
       <p class="font-body text-body-md text-secondary whitespace-nowrap" id="postCount">0 posts</p>
     </div>
-    <div class="flex gap-2">
-      <a href="/admin/blog/nuevo" class="bg-monolith-black text-off-white font-label-caps text-label-caps h-10 px-5 inline-flex items-center justify-center gap-1.5 rounded-md hover:bg-monolith-black/90 hover:shadow-sm transition-all duration-200 shrink-0">
+    <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+      <a href="/admin/blog/nuevo" class="bg-monolith-black text-off-white font-label-caps text-label-caps h-10 px-5 inline-flex items-center justify-center gap-1.5 rounded-md hover:bg-monolith-black/90 hover:shadow-sm transition-all duration-200 shrink-0 w-full sm:w-auto">
         <span class="material-symbols-outlined text-lg">add</span>
         NUEVO POST
       </a>
@@ -54,11 +54,11 @@ import AdminLayout from "./_layout.astro";
   </div>
 
   <!-- Delete Modal -->
-  <div id="deleteModal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+  <div id="deleteModal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/40 backdrop-blur-sm p-4" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
     <div class="modal-content bg-off-white border border-outline-variant shadow-lg rounded-sm p-6 w-full max-w-md">
       <div class="flex items-center gap-3 mb-4">
         <span class="material-symbols-outlined text-3xl text-error">warning</span>
-        <h3 class="font-headline text-headline-md">Eliminar Post</h3>
+        <h3 id="deleteModalTitle" class="font-headline text-headline-md">Eliminar Post</h3>
       </div>
       <p class="font-body text-body-md text-secondary mb-6">
         ¿Estás seguro de eliminar <strong id="deleteItemName" class="text-monolith-black"></strong>?
@@ -169,12 +169,18 @@ import AdminLayout from "./_layout.astro";
           <td class="p-4 font-body text-body-md text-secondary">${p.category_name || "—"}</td>
           <td class="p-4"><span class="inline-block font-label-caps text-label-caps px-2 py-1 rounded-sm ${badgeClass}">${p.status}</span></td>
           <td class="p-4 font-body text-body-md text-secondary">${date}</td>
-          <td class="p-4">
-            <div class="flex items-center gap-2">
-              <a href="/admin/blog/editar?id=${p.id}" class="material-symbols-outlined text-lg text-secondary hover:text-monolith-black transition-colors cursor-pointer">edit</a>
-              <span class="material-symbols-outlined text-lg text-secondary hover:text-error transition-colors cursor-pointer" onclick="confirmDelete(${p.id}, '${p.title.replace(/'/g, "\\'")}')">delete</span>
-            </div>
-          </td>
+           <td class="p-4">
+             <div class="flex gap-2">
+               <a href="/admin/blog/editar?id=${p.id}" class="inline-flex items-center gap-1 px-3 py-1.5 font-label-caps text-label-caps rounded-md transition-all duration-200 bg-neutral-600 text-off-white hover:bg-neutral-700 hover:shadow-sm">
+                 <span class="material-symbols-outlined text-sm">edit</span>
+                 EDITAR
+               </a>
+               <span class="inline-flex items-center gap-1 px-3 py-1.5 font-label-caps text-label-caps border rounded-md transition-all duration-200 bg-error text-off-white hover:bg-error/90 hover:shadow-sm cursor-pointer" onclick="confirmDelete(${p.id}, '${p.title.replace(/'/g, "\\'")}')">
+                 <span class="material-symbols-outlined text-sm">delete</span>
+                 ELIMINAR
+               </span>
+             </div>
+           </td>
         </tr>`;
       }).join("");
     }
@@ -193,12 +199,12 @@ import AdminLayout from "./_layout.astro";
             <span class="font-label-caps text-label-caps px-2 py-0.5 rounded-sm shrink-0 ${badgeClass}">${p.status}</span>
           </div>
           <p class="font-body text-body-sm text-secondary mb-3">${p.author || "—"} · ${p.category_name || "Sin categoría"}</p>
-          <div class="flex items-center gap-3">
-            <a href="/admin/blog/editar?id=${p.id}" class="flex items-center gap-1 font-label-caps text-label-caps text-monolith-black hover:text-secondary transition-colors">
-              <span class="material-symbols-outlined text-lg">edit</span> EDITAR
+          <div class="flex gap-2">
+            <a href="/admin/blog/editar?id=${p.id}" class="flex-1 inline-flex items-center justify-center gap-1 px-3 py-1.5 font-label-caps text-label-caps rounded-md transition-all duration-200 bg-neutral-600 text-off-white hover:bg-neutral-700 hover:shadow-sm">
+              <span class="material-symbols-outlined text-sm">edit</span> EDITAR
             </a>
-            <span class="flex items-center gap-1 font-label-caps text-label-caps text-error cursor-pointer hover:text-error/80 transition-colors" onclick="confirmDelete(${p.id}, '${p.title.replace(/'/g, "\\'")}')">
-              <span class="material-symbols-outlined text-lg">delete</span> ELIMINAR
+            <span class="flex-1 inline-flex items-center justify-center gap-1 px-3 py-1.5 font-label-caps text-label-caps border rounded-md transition-all duration-200 bg-error text-off-white hover:bg-error/90 hover:shadow-sm cursor-pointer" onclick="confirmDelete(${p.id}, '${p.title.replace(/'/g, "\\'")}')">
+              <span class="material-symbols-outlined text-sm">delete</span> ELIMINAR
             </span>
           </div>
         </div>`;

@@ -4,14 +4,14 @@ import AdminLayout from "./_layout.astro";
 
 <AdminLayout title="Categorías" currentPath="/admin/categorias">
   <div class="flex  flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-    <div class="flex items-center gap-4 w-full sm:w-auto">
+    <div class="flex flex-wrap items-center gap-4 w-full sm:w-auto">
       <p class="font-body text-body-md text-secondary whitespace-nowrap" id="categoryCount">0 categorías</p>
       <div class="relative w-full sm:w-48">
         <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-secondary pointer-events-none">search</span>
-        <input type="text" id="searchInput" placeholder="Buscar..." class="w-full h-10 pl-10 pr-3 bg-transparent border-b border-outline text-monolith-black focus:border-monolith-black focus:outline-none font-body text-body-md" />
+        <input type="text" id="searchInput" placeholder="Buscar..." aria-label="Buscar categorías" class="w-full h-10 pl-10 pr-3 bg-transparent border-b border-outline text-monolith-black focus:border-monolith-black focus:outline-none font-body text-body-md focus-visible:ring-2 focus-visible:ring-monolith-black" />
       </div>
     </div>
-    <button id="openCreateBtn" class="bg-monolith-black text-off-white font-label-caps text-label-caps h-10 px-5 inline-flex items-center justify-center gap-1.5 rounded-md hover:bg-monolith-black/90 hover:shadow-sm transition-all duration-200 shrink-0">
+    <button id="openCreateBtn" class="bg-monolith-black text-off-white font-label-caps text-label-caps h-10 px-5 inline-flex items-center justify-center gap-1.5 rounded-md hover:bg-monolith-black/90 hover:shadow-sm transition-all duration-200 shrink-0 w-full sm:w-auto">
       <span class="material-symbols-outlined text-lg">add</span>
       NUEVA CATEGORÍA
     </button>
@@ -45,22 +45,22 @@ import AdminLayout from "./_layout.astro";
   <div id="pagination" class="hidden mt-6 flex items-center justify-center gap-2"></div>
 
   <!-- Create Modal -->
-  <div id="createModal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+  <div id="createModal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/40 backdrop-blur-sm p-4" role="dialog" aria-modal="true" aria-labelledby="createModalTitle">
     <div class="modal-content bg-off-white border border-outline-variant shadow-lg rounded-sm p-6 w-full max-w-md">
       <div class="flex items-center justify-between mb-6">
-        <h3 class="font-headline text-headline-md flex items-center gap-2">
+        <h3 id="createModalTitle" class="font-headline text-headline-md flex items-center gap-2">
           <span class="material-symbols-outlined text-xl">add_circle</span>
           Nueva Categoría
         </h3>
-        <button id="createCloseX" class="w-8 h-8 flex items-center justify-center text-secondary hover:text-monolith-black transition-colors rounded-sm hover:bg-monolith-black/5 cursor-pointer">
+        <button id="createCloseX" class="w-10 h-10 flex items-center justify-center text-secondary hover:text-monolith-black transition-colors rounded-sm hover:bg-monolith-black/5 cursor-pointer">
           <span class="material-symbols-outlined text-lg">close</span>
         </button>
       </div>
       <div class="relative">
-        <input type="text" id="createInput" maxlength="100" class="w-full bg-transparent border-b-2 border-outline pb-2 pr-16 text-monolith-black focus:border-clay-accent focus:outline-none text-lg transition-colors duration-200" placeholder="Nombre de la categoría" autocomplete="off" />
+        <input type="text" id="createInput" maxlength="100" aria-label="Nombre de la categoría" class="w-full bg-transparent border-b-2 border-outline pb-2 pr-16 text-monolith-black focus:border-clay-accent focus:outline-none text-lg transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-monolith-black" placeholder="Nombre de la categoría" autocomplete="off" />
         <span id="createCounter" class="absolute right-0 bottom-2 text-xs font-body text-secondary pointer-events-none">0/100</span>
       </div>
-      <div id="createMsg" class="hidden font-body text-body-md text-sm mt-3"></div>
+      <div id="createMsg" class="hidden font-body text-body-md text-sm mt-3" aria-live="polite"></div>
       <div class="flex justify-end gap-3 mt-6">
         <button id="createCancelBtn" class="font-label-caps text-label-caps text-secondary border border-monolith-black/20 rounded-md px-4 h-10 hover:border-monolith-black hover:text-monolith-black transition-all">CANCELAR</button>
         <button id="createConfirmBtn" class="bg-monolith-black text-off-white font-label-caps text-label-caps rounded-md px-5 h-10 inline-flex items-center gap-1.5 hover:bg-monolith-black/90 hover:shadow-sm transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed">
@@ -72,22 +72,22 @@ import AdminLayout from "./_layout.astro";
   </div>
 
   <!-- Edit Modal -->
-  <div id="editModal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+  <div id="editModal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/40 backdrop-blur-sm p-4" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
     <div class="modal-content bg-off-white border border-outline-variant shadow-lg rounded-sm p-6 w-full max-w-md">
       <div class="flex items-center justify-between mb-6">
-        <h3 class="font-headline text-headline-md flex items-center gap-2">
+        <h3 id="editModalTitle" class="font-headline text-headline-md flex items-center gap-2">
           <span class="material-symbols-outlined text-xl">edit</span>
           Editar Categoría
         </h3>
-        <button id="editCloseX" class="w-8 h-8 flex items-center justify-center text-secondary hover:text-monolith-black transition-colors rounded-sm hover:bg-monolith-black/5 cursor-pointer">
+        <button id="editCloseX" class="w-10 h-10 flex items-center justify-center text-secondary hover:text-monolith-black transition-colors rounded-sm hover:bg-monolith-black/5 cursor-pointer">
           <span class="material-symbols-outlined text-lg">close</span>
         </button>
       </div>
       <div class="relative">
-        <input type="text" id="editInput" maxlength="100" class="w-full bg-transparent border-b-2 border-outline pb-2 pr-16 text-monolith-black focus:border-clay-accent focus:outline-none text-lg transition-colors duration-200" placeholder="Nombre de la categoría" autocomplete="off" />
+        <input type="text" id="editInput" maxlength="100" aria-label="Nombre de la categoría" class="w-full bg-transparent border-b-2 border-outline pb-2 pr-16 text-monolith-black focus:border-clay-accent focus:outline-none text-lg transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-monolith-black" placeholder="Nombre de la categoría" autocomplete="off" />
         <span id="editCounter" class="absolute right-0 bottom-2 text-xs font-body text-secondary pointer-events-none">0/100</span>
       </div>
-      <div id="editMsg" class="hidden font-body text-body-md text-sm mt-3"></div>
+      <div id="editMsg" class="hidden font-body text-body-md text-sm mt-3" aria-live="polite"></div>
       <div class="flex justify-end gap-3 mt-6">
         <button id="editCancelBtn" class="font-label-caps text-label-caps text-secondary border border-monolith-black/20 rounded-md px-4 h-10 hover:border-monolith-black hover:text-monolith-black transition-all">CANCELAR</button>
         <button id="editConfirmBtn" class="bg-monolith-black text-off-white font-label-caps text-label-caps rounded-md px-5 h-10 inline-flex items-center gap-1.5 hover:bg-monolith-black/90 hover:shadow-sm transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed">
@@ -99,11 +99,11 @@ import AdminLayout from "./_layout.astro";
   </div>
 
   <!-- Delete Modal -->
-  <div id="deleteModal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+  <div id="deleteModal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/40 backdrop-blur-sm p-4" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
     <div class="modal-content bg-off-white border border-outline-variant shadow-lg rounded-sm p-6 w-full max-w-md">
       <div class="flex items-center gap-3 mb-6">
         <span class="material-symbols-outlined text-3xl text-error">warning</span>
-        <h3 class="font-headline text-headline-md">Eliminar Categoría</h3>
+        <h3 id="deleteModalTitle" class="font-headline text-headline-md">Eliminar Categoría</h3>
       </div>
       <p class="font-body text-body-md text-secondary mb-6">
         ¿Estás seguro de eliminar <strong id="deleteItemName" class="text-monolith-black"></strong>?
@@ -249,12 +249,12 @@ import AdminLayout from "./_layout.astro";
       }
 
       function actionButtons(c) {
-        return `<div class="flex gap-2">
-          <button class="edit-btn inline-flex items-center gap-1 px-3 py-1.5 font-label-caps text-label-caps border rounded-md transition-all duration-200 border-monolith-black/20 text-secondary hover:border-monolith-black hover:text-monolith-black hover:bg-monolith-black/5" data-id="${c.id}" data-name="${c.name}">
+        return `<div class="flex gap-2 w-full">
+          <button class="edit-btn flex-1 inline-flex items-center justify-center gap-1 px-3 py-1.5 font-label-caps text-label-caps rounded-md transition-all duration-200 bg-neutral-600 text-off-white hover:bg-neutral-700 hover:shadow-sm" data-id="${c.id}" data-name="${c.name}">
             <span class="material-symbols-outlined text-sm">edit</span>
             EDITAR
           </button>
-          <button class="delete-btn inline-flex items-center gap-1 px-3 py-1.5 font-label-caps text-label-caps border rounded-md transition-all duration-200 border-error/20 text-secondary hover:border-error hover:text-error hover:bg-error/5" data-id="${c.id}" data-name="${c.name}">
+          <button class="delete-btn flex-1 inline-flex items-center justify-center gap-1 px-3 py-1.5 font-label-caps text-label-caps border rounded-md transition-all duration-200 bg-error text-off-white hover:bg-error/90 hover:shadow-sm" data-id="${c.id}" data-name="${c.name}">
             <span class="material-symbols-outlined text-sm">delete</span>
             ELIMINAR
           </button>
@@ -273,7 +273,7 @@ import AdminLayout from "./_layout.astro";
 
       // Mobile cards
       cards.innerHTML = cats.map(c => `
-        <div class="bg-off-white border border-outline-variant border-l-2 border-l-monolith-black shadow-sm hover:shadow-md hover:border-l-clay-accent transition-all duration-200 rounded-sm p-4 flex items-center justify-between">
+        <div class="bg-off-white border border-outline-variant border-l-2 border-l-monolith-black shadow-sm hover:shadow-md hover:border-l-clay-accent transition-all duration-200 rounded-sm p-4 flex flex-col gap-3">
           <div class="flex items-center gap-3 min-w-0">
             <div class="w-10 h-10 rounded-sm bg-monolith-black/5 flex items-center justify-center shrink-0">
               <span class="material-symbols-outlined text-xl text-monolith-black">category</span>
@@ -283,7 +283,7 @@ import AdminLayout from "./_layout.astro";
               <p class="font-body text-body-md text-secondary text-sm font-mono truncate">${c.slug}</p>
             </div>
           </div>
-          <div class="flex gap-2 shrink-0 ml-3">${actionButtons(c)}</div>
+          ${actionButtons(c)}
         </div>
       `).join("");
 

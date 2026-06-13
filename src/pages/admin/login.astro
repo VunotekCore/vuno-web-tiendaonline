@@ -3,7 +3,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import Button from "../../components/atoms/Button.astro";
 ---
 
-<BaseLayout title="Admin Login | Ram;Lop" description="Admin panel">
+<BaseLayout title="Admin Login | Ram;Lop" description="Admin panel" seo={{ noindex: true }}>
   <main class="min-h-screen flex items-center justify-center bg-background px-margin-mobile">
     <div class="w-full max-w-sm">
       <div class="text-center mb-12">
@@ -16,14 +16,14 @@ import Button from "../../components/atoms/Button.astro";
 
       <!-- Password form -->
       <form id="loginForm" class="flex flex-col gap-6">
-        <div id="errorMsg" class="hidden font-body text-body-md text-error bg-error/10 p-3 text-center"></div>
+        <div id="errorMsg" class="hidden font-body text-body-md text-error bg-error/10 p-3 text-center" aria-live="polite" aria-atomic="true"></div>
         <div>
-          <label class="font-label-caps text-label-caps text-secondary block mb-2">EMAIL</label>
-          <input id="email" type="email" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
+          <label for="email" class="font-label-caps text-label-caps text-secondary block mb-2">EMAIL</label>
+          <input id="email" type="email" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none focus-visible:ring-2 focus-visible:ring-monolith-black focus-visible:ring-offset-1 transition-colors" />
         </div>
         <div>
-          <label class="font-label-caps text-label-caps text-secondary block mb-2">PASSWORD</label>
-          <input id="password" type="password" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
+          <label for="password" class="font-label-caps text-label-caps text-secondary block mb-2">PASSWORD</label>
+          <input id="password" type="password" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none focus-visible:ring-2 focus-visible:ring-monolith-black focus-visible:ring-offset-1 transition-colors" />
         </div>
         <Button variant="primary" class="w-full mt-4" id="submitBtn">
           SIGN IN
@@ -32,11 +32,11 @@ import Button from "../../components/atoms/Button.astro";
 
       <!-- TOTP form (hidden initially) -->
       <form id="totpForm" class="hidden flex flex-col gap-6">
-        <div id="totpMsg" class="hidden font-body text-body-md text-error bg-error/10 p-3 text-center"></div>
+        <div id="totpMsg" class="hidden font-body text-body-md text-error bg-error/10 p-3 text-center" aria-live="polite" aria-atomic="true"></div>
         <p class="font-body text-body-md text-secondary text-center">Enter the code from your authenticator app or a backup code.</p>
         <div>
-          <label class="font-label-caps text-label-caps text-secondary block mb-2">VERIFICATION CODE</label>
-          <input id="totpCode" type="text" inputmode="numeric" autocomplete="one-time-code" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors text-center text-2xl tracking-[0.25em]" placeholder="000000" maxlength="8" />
+          <label for="totpCode" class="font-label-caps text-label-caps text-secondary block mb-2">VERIFICATION CODE</label>
+          <input id="totpCode" type="text" inputmode="numeric" autocomplete="one-time-code" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none focus-visible:ring-2 focus-visible:ring-monolith-black focus-visible:ring-offset-1 transition-colors text-center text-2xl tracking-[0.25em]" placeholder="000000" maxlength="8" />
         </div>
         <Button variant="primary" class="w-full mt-4" id="totpBtn">
           VERIFY
@@ -61,6 +61,11 @@ import Button from "../../components/atoms/Button.astro";
     const totpInput = document.getElementById("totpCode");
 
     let pendingEmail = "";
+
+    // Clear aria-invalid when user starts typing
+    emailInput.addEventListener("input", () => emailInput.removeAttribute("aria-invalid"));
+    passwordInput.addEventListener("input", () => passwordInput.removeAttribute("aria-invalid"));
+    totpInput.addEventListener("input", () => totpInput.removeAttribute("aria-invalid"));
 
     // On page load: check if 2FA is already pending (e.g. after refresh)
     (async function checkPending() {
@@ -111,6 +116,8 @@ import Button from "../../components/atoms/Button.astro";
       } catch (err) {
         errorMsg.textContent = err.message || "Invalid credentials";
         errorMsg.classList.remove("hidden");
+        emailInput.setAttribute("aria-invalid", "true");
+        passwordInput.setAttribute("aria-invalid", "true");
         submitBtn.disabled = false;
         submitBtn.textContent = "SIGN IN";
       }
@@ -139,6 +146,7 @@ import Button from "../../components/atoms/Button.astro";
       } catch (err) {
         totpMsg.textContent = err.message || "Invalid code";
         totpMsg.classList.remove("hidden");
+        totpInput.setAttribute("aria-invalid", "true");
         totpBtn.disabled = false;
         totpBtn.textContent = "VERIFY";
         totpInput.value = "";

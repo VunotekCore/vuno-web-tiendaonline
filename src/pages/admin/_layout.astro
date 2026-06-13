@@ -52,10 +52,11 @@ function isExpanded(item: NavItem): boolean {
 }
 ---
 
-<BaseLayout title={`${title} | Admin | Ram;Lop`}>
+<BaseLayout title={`${title} | Admin | Ram;Lop`} seo={{ noindex: true }}>
+  <a href="#admin-main" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[200] focus:px-4 focus:py-2 focus:bg-monolith-black focus:text-off-white focus:outline-none focus:ring-2 focus:ring-off-white" aria-label="Saltar al contenido principal">Saltar al contenido</a>
   <div class="min-h-screen flex bg-background">
     <!-- Sidebar -->
-    <aside class="hidden md:flex md:flex-col w-64 bg-monolith-black text-off-white shrink-0">
+    <aside class="hidden lg:flex lg:flex-col w-64 bg-monolith-black text-off-white shrink-0">
       <div class="px-6 py-6 border-b border-white/10">
         <a href="/admin" class="font-headline text-headline-md tracking-tighter block">
           <img data-store-logo alt="" class="h-6 w-auto hidden object-contain brightness-0 invert mb-1" />
@@ -128,7 +129,7 @@ function isExpanded(item: NavItem): boolean {
     </aside>
 
     <!-- Mobile top nav -->
-    <nav class="md:hidden fixed top-0 left-0 right-0 bg-monolith-black text-off-white z-50">
+    <nav class="lg:hidden fixed top-0 left-0 right-0 bg-monolith-black text-off-white z-50">
       <div class="flex items-center justify-between px-4 h-14">
         <a href="/admin" class="font-headline text-headline-md tracking-tighter"><span data-store-name>Ram;Lop</span></a>
         <button id="mobileMenuBtn" class="material-symbols-outlined text-2xl cursor-pointer">menu</button>
@@ -194,9 +195,9 @@ function isExpanded(item: NavItem): boolean {
     </nav>
 
     <!-- Main content -->
-    <div class="flex-1 flex flex-col min-h-screen pt-14 md:pt-0">
+    <main id="admin-main" class="flex-1 flex flex-col min-h-screen min-w-0 pt-14 lg:pt-0">
       <div class="border-b border-outline-variant bg-off-white">
-        <div class="px-6 py-4">
+        <div class="px-4 md:px-6 py-4">
           <h1 class="font-headline text-headline-md text-monolith-black">{title}</h1>
         </div>
       </div>
@@ -204,7 +205,7 @@ function isExpanded(item: NavItem): boolean {
       <div class="px-4 md:px-8 py-8 flex-grow">
         <slot />
       </div>
-    </div>
+    </main>
   </div>
 
   <script is:inline>

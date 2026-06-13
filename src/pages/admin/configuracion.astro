@@ -12,30 +12,33 @@ const tabs = [
   { id: "landing", label: "Landing", icon: "dashboard_customize" },
   { id: "sizeguide", label: "Guía de Talles", icon: "straighten" },
   { id: "policies", label: "Políticas", icon: "policy" },
+  { id: "seo", label: "SEO", icon: "travel_explore" },
 ];
 ---
 
 <AdminLayout title="Configuración" currentPath="/admin/configuracion">
-  <div id="loading" class="font-body text-body-md text-secondary p-4">Loading settings...</div>
+  <div id="loading" class="font-body text-body-md text-secondary p-4" aria-live="polite">Loading settings...</div>
 
   <div id="settingsContent" class="hidden">
-    <!-- Tabs -->
-    <!-- Group selector -->
-    <div class="mb-4 max-w-xs">
-      <select id="tabGroupSelect" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none">
-        <option value="general">General</option>
-        <option value="pagos">Pagos</option>
-        <option value="servicios">Servicios</option>
-        <option value="contenido">Contenido</option>
-      </select>
-    </div>
+    <!-- Mobile/tablet: dropdown -->
+    <select id="tab-select-mobile" class="lg:hidden w-full bg-transparent border-b border-outline pb-2 mb-8 text-monolith-black focus:border-clay-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-monolith-black font-body text-body-md text-center">
+      {tabs.map(t => (
+        <option value={t.id}>{t.label}</option>
+      ))}
+    </select>
 
-    <div class="border-b border-outline-variant mb-8 overflow-x-auto">
-      <div class="flex gap-1 min-w-max">
-        {tabs.map(t => (
+    <!-- Desktop: tab bar -->
+    <div class="hidden lg:block border-b border-outline-variant mb-8 overflow-x-auto">
+      <div class="flex gap-1" role="tablist">
+        {tabs.map((t, i) => (
           <button
-            class="tab-btn px-4 py-3 font-label-caps text-label-caps text-secondary hover:text-monolith-black border-b-2 border-transparent hover:border-monolith-black/30 transition-all whitespace-nowrap flex items-center gap-1.5"
+            class="tab-btn px-3 py-2.5 md:px-4 md:py-3 font-label-caps text-label-caps text-secondary hover:bg-monolith-black/5 hover:text-monolith-black rounded-t-sm transition-all whitespace-nowrap flex items-center gap-1.5"
+            role="tab"
+            id={"tab-btn-" + t.id}
+            aria-selected={i === 0 ? "true" : "false"}
+            aria-controls={"tab-" + t.id}
             data-tab={t.id}
+            tabindex={i === 0 ? "0" : "-1"}
           >
             <span class="material-symbols-outlined text-lg">{t.icon}</span>
             {t.label}
@@ -45,35 +48,41 @@ const tabs = [
     </div>
 
     <!-- Store Tab -->
-    <div id="tab-store" class="tab-content max-w-2xl">
-      <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
-        <h2 class="font-headline text-headline-md mb-6 flex items-center gap-2">
+    <div id="tab-store" class="tab-content max-w-full md:max-w-2xl" role="tabpanel" aria-labelledby="tab-btn-store">
+      <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-4 md:p-6">
+        <h2 class="font-headline text-headline-md mb-2 flex items-center gap-2">
           <span class="material-symbols-outlined text-xl">store</span>
           Información de la Tienda
         </h2>
+        <div class="mb-6 p-3 bg-sand-nude/30 border-l-2 border-clay-accent rounded-sm">
+          <p class="font-body text-body-md text-xs text-secondary leading-relaxed">
+            <span class="material-symbols-outlined text-sm align-text-bottom mr-1">info</span>
+            Datos básicos que identifican tu tienda. El nombre y logotipo se muestran en el navbar, emails y redes sociales. El cupón de bienvenida se envía automáticamente al suscribirse al newsletter.
+          </p>
+        </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="md:col-span-2">
-            <label class="font-label-caps text-label-caps text-secondary block mb-2">NOMBRE DE LA TIENDA</label>
-            <input type="text" id="store-name" maxlength="200" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none" />
+            <label for="store-name" class="font-label-caps text-label-caps text-secondary block mb-2">NOMBRE DE LA TIENDA</label>
+            <input type="text" id="store-name" maxlength="200" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-monolith-black" />
           </div>
           <div class="md:col-span-2">
-            <label class="font-label-caps text-label-caps text-secondary block mb-2">LEMA / SLOGAN</label>
-            <input type="text" id="store-slogan" maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none" />
+            <label for="store-slogan" class="font-label-caps text-label-caps text-secondary block mb-2">LEMA / SLOGAN</label>
+            <input type="text" id="store-slogan" maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-monolith-black" />
           </div>
           <div class="md:col-span-2">
-            <label class="font-label-caps text-label-caps text-secondary block mb-2">EMAIL DE CONTACTO</label>
-            <input type="email" id="store-email" maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none" />
+            <label for="store-email" class="font-label-caps text-label-caps text-secondary block mb-2">EMAIL DE CONTACTO</label>
+            <input type="email" id="store-email" maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-monolith-black" />
           </div>
           <div class="md:col-span-2">
-            <label class="font-label-caps text-label-caps text-secondary block mb-2">DESCRIPCIÓN</label>
-            <textarea id="store-description" maxlength="1000" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-clay-accent focus:outline-none resize-none h-24"></textarea>
+            <label for="store-description" class="font-label-caps text-label-caps text-secondary block mb-2">DESCRIPCIÓN</label>
+            <textarea id="store-description" maxlength="1000" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-clay-accent focus:outline-none resize-none h-24 focus-visible:ring-2 focus-visible:ring-monolith-black"></textarea>
           </div>
           <div class="md:col-span-2">
-            <label class="font-label-caps text-label-caps text-secondary block mb-2">LOGOTIPO</label>
+            <label id="logoLabel" class="font-label-caps text-label-caps text-secondary block mb-2">LOGOTIPO</label>
 
             <!-- Upload zone (shown when no logo) -->
-            <div id="logo-upload-zone" class="border-2 border-dashed border-outline-variant hover:border-clay-accent rounded-sm p-8 text-center cursor-pointer transition-colors">
-              <input type="file" id="logo-file-input" accept="image/png,image/jpeg,image/webp,image/svg+xml" class="hidden" />
+            <div id="logo-upload-zone" tabindex="0" role="button" class="border-2 border-dashed border-outline-variant hover:border-clay-accent rounded-sm p-4 md:p-8 text-center cursor-pointer transition-colors focus-visible:ring-2 focus-visible:ring-monolith-black">
+              <input type="file" id="logo-file-input" accept="image/png,image/jpeg,image/webp,image/svg+xml" class="hidden" aria-labelledby="logoLabel" />
               <span class="material-symbols-outlined text-3xl text-secondary block mb-2">upload</span>
               <p class="font-body text-body-md text-secondary mb-1">Arrastrá el logotipo o <span class="text-clay-accent underline">seleccioná un archivo</span></p>
               <p class="font-body text-body-md text-xs text-secondary">PNG, JPG, WEBP o SVG — Máx 1 MB — 800 × 400 px máx</p>
@@ -81,7 +90,7 @@ const tabs = [
 
             <!-- Preview area (shown when logo exists) -->
             <div id="logo-preview-area" class="hidden">
-              <div class="border border-outline-variant rounded-sm p-4 bg-white flex items-center gap-6">
+              <div class="border border-outline-variant rounded-sm p-4 bg-white flex flex-col sm:flex-row items-center gap-6">
                 <div class="w-48 h-16 flex items-center justify-center bg-sand-nude/30 rounded-sm overflow-hidden">
                   <img id="logo-preview-img" class="max-w-full max-h-full object-contain" alt="Logotipo actual" />
                 </div>
@@ -110,11 +119,11 @@ const tabs = [
             </div>
 
             <!-- Error message -->
-            <p id="logo-error" class="hidden font-body text-body-md text-xs text-error mt-1"></p>
+            <p id="logo-error" class="hidden font-body text-body-md text-xs text-error mt-1" aria-live="polite"></p>
           </div>
           <div class="md:col-span-2">
-            <label class="font-label-caps text-label-caps text-secondary block mb-2">CUPÓN DE BIENVENIDA NEWSLETTER</label>
-            <select id="store-newsletter_discount_code" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none">
+            <label for="store-newsletter_discount_code" class="font-label-caps text-label-caps text-secondary block mb-2">CUPÓN DE BIENVENIDA NEWSLETTER</label>
+            <select id="store-newsletter_discount_code" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-monolith-black">
               <option value="">— Sin descuento —</option>
             </select>
             <p class="font-body text-body-md text-xs text-secondary mt-1">Cupón que se incluirá en el email de bienvenida del newsletter. Los cupones se gestionan en <a href="/admin/cupones" class="text-clay-accent underline">Cupones</a>.</p>
@@ -124,57 +133,68 @@ const tabs = [
     </div>
 
     <!-- Receipt Tab -->
-    <div id="tab-receipt" class="tab-content hidden max-w-2xl">
-      <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
-        <h2 class="font-headline text-headline-md mb-6 flex items-center gap-2">
+    <div id="tab-receipt" class="tab-content hidden max-w-full md:max-w-2xl" role="tabpanel" aria-labelledby="tab-btn-receipt">
+      <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-4 md:p-6">
+        <h2 class="font-headline text-headline-md mb-2 flex items-center gap-2">
           <span class="material-symbols-outlined text-xl">receipt</span>
           Datos de Facturación / Recibo
         </h2>
+        <div class="mb-6 p-3 bg-sand-nude/30 border-l-2 border-clay-accent rounded-sm">
+          <p class="font-body text-body-md text-xs text-secondary leading-relaxed">
+            <span class="material-symbols-outlined text-sm align-text-bottom mr-1">info</span>
+            Datos fiscales que aparecen en los recibos de compra que se envían por email al cliente. Completá según tu país: RUC (Perú), NIT (Colombia), RFC (México), CUIT (Argentina) o Tax ID (EE.UU.).
+          </p>
+        </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="md:col-span-2">
-            <label class="font-label-caps text-label-caps text-secondary block mb-2">RAZÓN SOCIAL</label>
-            <input type="text" id="receipt-businessName" maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none" />
+            <label for="receipt-businessName" class="font-label-caps text-label-caps text-secondary block mb-2">RAZÓN SOCIAL</label>
+            <input type="text" id="receipt-businessName" maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-monolith-black" />
           </div>
           <div class="md:col-span-2">
-            <label class="font-label-caps text-label-caps text-secondary block mb-2">RUC / NIT / TAX ID</label>
-            <input type="text" id="receipt-taxId" maxlength="50" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none" />
+            <label for="receipt-taxId" class="font-label-caps text-label-caps text-secondary block mb-2">RUC / NIT / TAX ID</label>
+            <input type="text" id="receipt-taxId" maxlength="50" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-monolith-black" />
           </div>
           <div class="md:col-span-2">
-            <label class="font-label-caps text-label-caps text-secondary block mb-2">DIRECCIÓN</label>
-            <input type="text" id="receipt-address" maxlength="500" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none" />
+            <label for="receipt-address" class="font-label-caps text-label-caps text-secondary block mb-2">DIRECCIÓN</label>
+            <input type="text" id="receipt-address" maxlength="500" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-monolith-black" />
           </div>
           <div>
-            <label class="font-label-caps text-label-caps text-secondary block mb-2">CIUDAD</label>
-            <input type="text" id="receipt-city" maxlength="100" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none" />
+            <label for="receipt-city" class="font-label-caps text-label-caps text-secondary block mb-2">CIUDAD</label>
+            <input type="text" id="receipt-city" maxlength="100" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-monolith-black" />
           </div>
           <div>
-            <label class="font-label-caps text-label-caps text-secondary block mb-2">ESTADO / PROVINCIA</label>
-            <input type="text" id="receipt-state" maxlength="100" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none" />
+            <label for="receipt-state" class="font-label-caps text-label-caps text-secondary block mb-2">ESTADO / PROVINCIA</label>
+            <input type="text" id="receipt-state" maxlength="100" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-monolith-black" />
           </div>
           <div>
-            <label class="font-label-caps text-label-caps text-secondary block mb-2">CÓDIGO POSTAL</label>
-            <input type="text" id="receipt-zip" maxlength="20" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none" />
+            <label for="receipt-zip" class="font-label-caps text-label-caps text-secondary block mb-2">CÓDIGO POSTAL</label>
+            <input type="text" id="receipt-zip" maxlength="20" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-monolith-black" />
           </div>
           <div>
-            <label class="font-label-caps text-label-caps text-secondary block mb-2">TELÉFONO</label>
-            <input type="text" id="receipt-phone" maxlength="50" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none" />
+            <label for="receipt-phone" class="font-label-caps text-label-caps text-secondary block mb-2">TELÉFONO</label>
+            <input type="text" id="receipt-phone" maxlength="50" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-monolith-black" />
           </div>
         </div>
       </div>
     </div>
 
     <!-- Landing Tab -->
-    <div id="tab-landing" class="tab-content hidden max-w-2xl">
-      <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
-        <h2 class="font-headline text-headline-md mb-6 flex items-center gap-2">
+    <div id="tab-landing" class="tab-content hidden max-w-full md:max-w-2xl" role="tabpanel" aria-labelledby="tab-btn-landing">
+      <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-4 md:p-6">
+        <h2 class="font-headline text-headline-md mb-2 flex items-center gap-2">
           <span class="material-symbols-outlined text-xl">dashboard_customize</span>
           Landing — Página Principal
         </h2>
-        <p class="font-body text-body-md text-secondary mb-4">Personalizá el contenido de cada sección de la landing. Campos vacíos usan los valores por defecto.</p>
+        <div class="mb-6 p-3 bg-sand-nude/30 border-l-2 border-clay-accent rounded-sm">
+          <p class="font-body text-body-md text-xs text-secondary leading-relaxed">
+            <span class="material-symbols-outlined text-sm align-text-bottom mr-1">info</span>
+            Personalizá cada sección de la home. Seleccioná una sección del menú desplegable y editá sus textos en ambos idiomas. Desactivá una sección con el toggle para que no se muestre. Campos vacíos usan los valores por defecto del archivo de seed.
+          </p>
+        </div>
 
         <div class="mb-6">
-          <label class="font-label-caps text-label-caps text-secondary block mb-2">SECCIÓN</label>
-            <select id="landing-section-selector" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none">
+          <label for="landing-section-selector" class="font-label-caps text-label-caps text-secondary block mb-2">SECCIÓN</label>
+            <select id="landing-section-selector" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-monolith-black">
               <option value="hero">Hero</option>
               <option value="new_arrivals">New Arrivals</option>
               <option value="categories">Categories</option>
@@ -195,37 +215,49 @@ const tabs = [
     </div>
 
     <!-- ImageKit Tab -->
-    <div id="tab-imagekit" class="tab-content hidden max-w-2xl">
-      <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
-        <h2 class="font-headline text-headline-md mb-6 flex items-center gap-2">
+    <div id="tab-imagekit" class="tab-content hidden max-w-full md:max-w-2xl" role="tabpanel" aria-labelledby="tab-btn-imagekit">
+      <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-4 md:p-6">
+        <h2 class="font-headline text-headline-md mb-2 flex items-center gap-2">
           <span class="material-symbols-outlined text-xl">photo_library</span>
           ImageKit — Gestión de Imágenes
         </h2>
+        <div class="mb-6 p-3 bg-sand-nude/30 border-l-2 border-clay-accent rounded-sm">
+          <p class="font-body text-body-md text-xs text-secondary leading-relaxed">
+            <span class="material-symbols-outlined text-sm align-text-bottom mr-1">info</span>
+            ImageKit se usa para subir y optimizar imágenes (productos, blog, logos). Creá una cuenta gratis en <a href="https://imagekit.io" class="text-clay-accent underline" target="_blank">imagekit.io</a>, creá un bucket y copiá las keys aquí. El URL Endpoint tiene formato <code class="bg-white/50 px-1 rounded">https://ik.imagekit.io/tu_id</code>.
+          </p>
+        </div>
         <div class="space-y-6">
           <div>
-            <label class="font-label-caps text-label-caps text-secondary block mb-2">PUBLIC KEY</label>
-            <input type="text" id="imagekit-publicKey" maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm" />
+            <label for="imagekit-publicKey" class="font-label-caps text-label-caps text-secondary block mb-2">PUBLIC KEY</label>
+            <input type="text" id="imagekit-publicKey" maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm focus-visible:ring-2 focus-visible:ring-monolith-black" />
           </div>
           <div>
-            <label class="font-label-caps text-label-caps text-secondary block mb-2">PRIVATE KEY</label>
-            <input type="password" id="imagekit-privateKey" autocomplete="new-password" maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm" />
+            <label for="imagekit-privateKey" class="font-label-caps text-label-caps text-secondary block mb-2">PRIVATE KEY</label>
+            <input type="password" id="imagekit-privateKey" autocomplete="new-password" maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm focus-visible:ring-2 focus-visible:ring-monolith-black" />
           </div>
           <div>
-            <label class="font-label-caps text-label-caps text-secondary block mb-2">URL ENDPOINT</label>
-            <input type="text" id="imagekit-urlEndpoint" maxlength="500" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm" placeholder="https://ik.imagekit.io/your_id" />
+            <label for="imagekit-urlEndpoint" class="font-label-caps text-label-caps text-secondary block mb-2">URL ENDPOINT</label>
+            <input type="text" id="imagekit-urlEndpoint" maxlength="500" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm focus-visible:ring-2 focus-visible:ring-monolith-black" placeholder="https://ik.imagekit.io/your_id" />
           </div>
         </div>
       </div>
     </div>
 
     <!-- Stripe Tab -->
-    <div id="tab-stripe" class="tab-content hidden max-w-2xl">
-      <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
-        <h2 class="font-headline text-headline-md mb-6 flex items-center gap-2">
+    <div id="tab-stripe" class="tab-content hidden max-w-full md:max-w-2xl" role="tabpanel" aria-labelledby="tab-btn-stripe">
+      <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-4 md:p-6">
+        <h2 class="font-headline text-headline-md mb-2 flex items-center gap-2">
           <span class="material-symbols-outlined text-xl">credit_card</span>
           Stripe — Pasarela de Pago
         </h2>
-
+        <div class="mb-6 p-3 bg-sand-nude/30 border-l-2 border-clay-accent rounded-sm">
+          <p class="font-body text-body-md text-xs text-secondary leading-relaxed">
+            <span class="material-symbols-outlined text-sm align-text-bottom mr-1">info</span>
+            Stripe permite pagos con tarjeta de crédito/débito. Activá el toggle para habilitarlo. Obtené las keys desde <a href="https://dashboard.stripe.com/apikeys" class="text-clay-accent underline" target="_blank">dashboard.stripe.com/apikeys</a>. El Webhook Secret se configura en Stripe → Developers → Webhooks apuntando a <code class="bg-white/50 px-1 rounded">https://tudominio.com/api/stripe/webhook.php</code>. Usá keys de <strong>test</strong> (pk_test_*/sk_test_*/whsec_*) para desarrollo.
+          </p>
+        </div>
+        
         <div class="flex items-center justify-between pb-6 mb-6 border-b border-outline-variant">
           <div>
             <p class="font-body text-body-md text-monolith-black font-medium">Habilitar Stripe</p>
@@ -239,29 +271,35 @@ const tabs = [
 
         <div class="space-y-6">
           <div>
-            <label class="font-label-caps text-label-caps text-secondary block mb-2">PUBLISHABLE KEY</label>
-            <input type="text" id="stripe-publishableKey" maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm" placeholder="pk_live_..." />
+            <label for="stripe-publishableKey" class="font-label-caps text-label-caps text-secondary block mb-2">PUBLISHABLE KEY</label>
+            <input type="text" id="stripe-publishableKey" maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm focus-visible:ring-2 focus-visible:ring-monolith-black" placeholder="pk_live_..." />
           </div>
           <div>
-            <label class="font-label-caps text-label-caps text-secondary block mb-2">SECRET KEY</label>
-            <input type="password" id="stripe-secretKey" autocomplete="new-password" maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm" placeholder="sk_live_..." />
+            <label for="stripe-secretKey" class="font-label-caps text-label-caps text-secondary block mb-2">SECRET KEY</label>
+            <input type="password" id="stripe-secretKey" autocomplete="new-password" maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm focus-visible:ring-2 focus-visible:ring-monolith-black" placeholder="sk_live_..." />
           </div>
           <div>
-            <label class="font-label-caps text-label-caps text-secondary block mb-2">WEBHOOK SECRET</label>
-            <input type="password" id="stripe-webhookSecret" autocomplete="new-password" maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm" placeholder="whsec_..." />
+            <label for="stripe-webhookSecret" class="font-label-caps text-label-caps text-secondary block mb-2">WEBHOOK SECRET</label>
+            <input type="password" id="stripe-webhookSecret" autocomplete="new-password" maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm focus-visible:ring-2 focus-visible:ring-monolith-black" placeholder="whsec_..." />
           </div>
         </div>
       </div>
     </div>
 
     <!-- Transfer Tab -->
-    <div id="tab-transfer" class="tab-content hidden max-w-3xl">
-      <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
-        <h2 class="font-headline text-headline-md mb-6 flex items-center gap-2">
+    <div id="tab-transfer" class="tab-content hidden max-w-full md:max-w-3xl" role="tabpanel" aria-labelledby="tab-btn-transfer">
+      <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-4 md:p-6">
+        <h2 class="font-headline text-headline-md mb-2 flex items-center gap-2">
           <span class="material-symbols-outlined text-xl">account_balance</span>
           Transferencia Bancaria
         </h2>
-
+        <div class="mb-6 p-3 bg-sand-nude/30 border-l-2 border-clay-accent rounded-sm">
+          <p class="font-body text-body-md text-xs text-secondary leading-relaxed">
+            <span class="material-symbols-outlined text-sm align-text-bottom mr-1">info</span>
+            Método de pago offline: el cliente recibe los datos bancarios al finalizar la compra y sube el comprobante. Activá el toggle para habilitarlo. Agregá tantos bancos como necesites. Las instrucciones se incluyen en el email de confirmación.
+          </p>
+        </div>
+        
         <div class="flex items-center justify-between pb-6 mb-6 border-b border-outline-variant">
           <div>
             <p class="font-body text-body-md text-monolith-black font-medium">Habilitar Transferencia</p>
@@ -285,25 +323,25 @@ const tabs = [
     <!-- Bank entry template -->
     <template id="bank-template">
       <div class="bank-entry border border-outline-variant rounded-sm p-4 bg-white relative">
-        <button type="button" class="delete-bank absolute top-2 right-2 w-8 h-8 flex items-center justify-center text-secondary hover:text-error transition-colors" title="Eliminar banco">
+        <button type="button" class="delete-bank absolute top-2 right-2 w-10 h-10 flex items-center justify-center text-secondary hover:text-error transition-colors" title="Eliminar banco">
           <span class="material-symbols-outlined text-lg">close</span>
         </button>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label class="font-label-caps text-label-caps text-secondary block mb-1 text-xs">NOMBRE DEL BANCO</label>
-            <input type="text" data-bank-field="bankName" maxlength="200" class="w-full bg-transparent border-b border-outline pb-1.5 text-monolith-black focus:border-clay-accent focus:outline-none text-sm" />
+            <input type="text" data-bank-field="bankName" maxlength="200" class="w-full bg-transparent border-b border-outline pb-1.5 text-monolith-black focus:border-clay-accent focus:outline-none text-sm focus-visible:ring-2 focus-visible:ring-monolith-black" aria-label="NOMBRE DEL BANCO" />
           </div>
           <div>
             <label class="font-label-caps text-label-caps text-secondary block mb-1 text-xs">TITULAR DE LA CUENTA</label>
-            <input type="text" data-bank-field="accountHolder" maxlength="200" class="w-full bg-transparent border-b border-outline pb-1.5 text-monolith-black focus:border-clay-accent focus:outline-none text-sm" />
+            <input type="text" data-bank-field="accountHolder" maxlength="200" class="w-full bg-transparent border-b border-outline pb-1.5 text-monolith-black focus:border-clay-accent focus:outline-none text-sm focus-visible:ring-2 focus-visible:ring-monolith-black" aria-label="TITULAR DE LA CUENTA" />
           </div>
           <div>
             <label class="font-label-caps text-label-caps text-secondary block mb-1 text-xs">NÚMERO DE CUENTA</label>
-            <input type="text" data-bank-field="accountNumber" maxlength="50" class="w-full bg-transparent border-b border-outline pb-1.5 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm" />
+            <input type="text" data-bank-field="accountNumber" maxlength="50" class="w-full bg-transparent border-b border-outline pb-1.5 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm focus-visible:ring-2 focus-visible:ring-monolith-black" aria-label="NÚMERO DE CUENTA" />
           </div>
           <div>
             <label class="font-label-caps text-label-caps text-secondary block mb-1 text-xs">TIPO DE CUENTA</label>
-            <select data-bank-field="accountType" class="w-full bg-transparent border-b border-outline pb-1.5 text-monolith-black focus:border-clay-accent focus:outline-none text-sm">
+            <select data-bank-field="accountType" class="w-full bg-transparent border-b border-outline pb-1.5 text-monolith-black focus:border-clay-accent focus:outline-none text-sm focus-visible:ring-2 focus-visible:ring-monolith-black" aria-label="TIPO DE CUENTA">
               <option value="">Seleccionar...</option>
               <option value="Corriente">Corriente</option>
               <option value="Ahorro">Ahorro</option>
@@ -312,51 +350,57 @@ const tabs = [
           </div>
           <div>
             <label class="font-label-caps text-label-caps text-secondary block mb-1 text-xs">RUT / ABA / CÓDIGO</label>
-            <input type="text" data-bank-field="routingNumber" maxlength="50" class="w-full bg-transparent border-b border-outline pb-1.5 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm" />
+            <input type="text" data-bank-field="routingNumber" maxlength="50" class="w-full bg-transparent border-b border-outline pb-1.5 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm focus-visible:ring-2 focus-visible:ring-monolith-black" aria-label="RUT / ABA / CÓDIGO" />
           </div>
           <div class="md:col-span-2">
             <label class="font-label-caps text-label-caps text-secondary block mb-1 text-xs">INSTRUCCIONES</label>
-            <textarea data-bank-field="instructions" maxlength="500" class="w-full bg-transparent border border-outline p-2 text-monolith-black focus:border-clay-accent focus:outline-none resize-none h-16 text-sm" placeholder="Ej: Realiza el depósito y envía el comprobante a ..."></textarea>
+            <textarea data-bank-field="instructions" maxlength="500" class="w-full bg-transparent border border-outline p-2 text-monolith-black focus:border-clay-accent focus:outline-none resize-none h-16 text-sm focus-visible:ring-2 focus-visible:ring-monolith-black" aria-label="INSTRUCCIONES" placeholder="Ej: Realiza el depósito y envía el comprobante a ..."></textarea>
           </div>
         </div>
       </div>
     </template>
 
     <!-- SMTP Tab -->
-    <div id="tab-smtp" class="tab-content hidden max-w-2xl">
-      <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
-        <h2 class="font-headline text-headline-md mb-6 flex items-center gap-2">
+    <div id="tab-smtp" class="tab-content hidden max-w-full md:max-w-2xl" role="tabpanel" aria-labelledby="tab-btn-smtp">
+      <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-4 md:p-6">
+        <h2 class="font-headline text-headline-md mb-2 flex items-center gap-2">
           <span class="material-symbols-outlined text-xl">mail</span>
           Email / SMTP — Notificaciones
         </h2>
+        <div class="mb-6 p-3 bg-sand-nude/30 border-l-2 border-clay-accent rounded-sm">
+          <p class="font-body text-body-md text-xs text-secondary leading-relaxed">
+            <span class="material-symbols-outlined text-sm align-text-bottom mr-1">info</span>
+            Configuración del servidor SMTP para enviar emails transaccionales (confirmación de compra, notificaciones al admin, recuperación de contraseña, newsletter). Usá <strong>Gmail</strong> con contraseña de aplicación, <strong>SendGrid</strong>, <strong>Mailgun</strong> o el servicio de tu hosting. Puerto común: 587 (TLS) o 465 (SSL). El <em>Email de Notificaciones</em> recibe alertas de nuevos pedidos y mensajes del formulario de contacto.
+          </p>
+        </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="md:col-span-2">
-            <label class="font-label-caps text-label-caps text-secondary block mb-2">SMTP HOST</label>
-            <input type="text" id="smtp-host" maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm" placeholder="smtp.gmail.com" />
+            <label for="smtp-host" class="font-label-caps text-label-caps text-secondary block mb-2">SMTP HOST</label>
+            <input type="text" id="smtp-host" maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm focus-visible:ring-2 focus-visible:ring-monolith-black" placeholder="smtp.gmail.com" />
           </div>
           <div>
-            <label class="font-label-caps text-label-caps text-secondary block mb-2">SMTP PORT</label>
-            <input type="text" id="smtp-port" maxlength="10" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm" placeholder="587" />
+            <label for="smtp-port" class="font-label-caps text-label-caps text-secondary block mb-2">SMTP PORT</label>
+            <input type="text" id="smtp-port" maxlength="10" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm focus-visible:ring-2 focus-visible:ring-monolith-black" placeholder="587" />
           </div>
           <div>
-            <label class="font-label-caps text-label-caps text-secondary block mb-2">SMTP USER</label>
-            <input type="text" id="smtp-user" maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm" />
+            <label for="smtp-user" class="font-label-caps text-label-caps text-secondary block mb-2">SMTP USER</label>
+            <input type="text" id="smtp-user" maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm focus-visible:ring-2 focus-visible:ring-monolith-black" />
           </div>
           <div>
-            <label class="font-label-caps text-label-caps text-secondary block mb-2">SMTP PASSWORD</label>
-            <input type="password" id="smtp-pass" autocomplete="new-password" maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm" />
+            <label for="smtp-pass" class="font-label-caps text-label-caps text-secondary block mb-2">SMTP PASSWORD</label>
+            <input type="password" id="smtp-pass" autocomplete="new-password" maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm focus-visible:ring-2 focus-visible:ring-monolith-black" />
           </div>
           <div>
-            <label class="font-label-caps text-label-caps text-secondary block mb-2">FROM EMAIL</label>
-            <input type="email" id="smtp-fromEmail" maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none" placeholder="tienda@vuno.com" />
+            <label for="smtp-fromEmail" class="font-label-caps text-label-caps text-secondary block mb-2">FROM EMAIL</label>
+            <input type="email" id="smtp-fromEmail" maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-monolith-black" placeholder="tienda@vuno.com" />
           </div>
           <div>
-            <label class="font-label-caps text-label-caps text-secondary block mb-2">FROM NAME</label>
-            <input type="text" id="smtp-fromName" maxlength="100" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none" placeholder="Ram;Lop" />
+            <label for="smtp-fromName" class="font-label-caps text-label-caps text-secondary block mb-2">FROM NAME</label>
+            <input type="text" id="smtp-fromName" maxlength="100" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-monolith-black" placeholder="Ram;Lop" />
           </div>
           <div class="md:col-span-2">
-            <label class="font-label-caps text-label-caps text-secondary block mb-2">EMAIL DE NOTIFICACIONES</label>
-            <input type="email" id="smtp-adminEmail" maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none" placeholder="admin@ramlop.com" />
+            <label for="smtp-adminEmail" class="font-label-caps text-label-caps text-secondary block mb-2">EMAIL DE NOTIFICACIONES</label>
+            <input type="email" id="smtp-adminEmail" maxlength="255" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-monolith-black" placeholder="admin@ramlop.com" />
             <p class="font-body text-body-md text-xs text-secondary/60 mt-1">Destino de notificaciones de nuevos pedidos y formulario de contacto.</p>
           </div>
         </div>
@@ -364,25 +408,31 @@ const tabs = [
     </div>
 
     <!-- Moneda Tab -->
-    <div id="tab-moneda" class="tab-content hidden max-w-4xl">
-      <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
-        <h2 class="font-headline text-headline-md mb-6 flex items-center gap-2">
+    <div id="tab-moneda" class="tab-content hidden max-w-full md:max-w-4xl" role="tabpanel" aria-labelledby="tab-btn-moneda">
+      <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-4 md:p-6">
+        <h2 class="font-headline text-headline-md mb-2 flex items-center gap-2">
           <span class="material-symbols-outlined text-xl">payments</span>
           Moneda — Configuración de divisas
         </h2>
-
+        <div class="mb-6 p-3 bg-sand-nude/30 border-l-2 border-clay-accent rounded-sm">
+          <p class="font-body text-body-md text-xs text-secondary leading-relaxed">
+            <span class="material-symbols-outlined text-sm align-text-bottom mr-1">info</span>
+            Seleccioná la moneda principal de tu tienda y configurá las tasas de cambio. Los precios en los productos se guardan en USD y se convierten automáticamente usando la tasa de cambio ingresada. Ej: si la tasa de MXN es 20.0, un producto de $50 USD se mostrará como $1,000 MXN. Agregá todas las monedas que necesites.
+          </p>
+        </div>
+        
         <!-- Store Currency Selector -->
         <div class="pb-6 mb-6 border-b border-outline-variant">
-          <label class="font-label-caps text-label-caps text-secondary block mb-2">MONEDA PRINCIPAL DE LA TIENDA</label>
+          <label for="storeCurrencySelect" class="font-label-caps text-label-caps text-secondary block mb-2">MONEDA PRINCIPAL DE LA TIENDA</label>
           <p class="font-body text-body-md text-sm text-secondary mb-3">Los precios se convertirán automáticamente de USD a esta moneda usando la tasa de cambio</p>
-          <select id="storeCurrencySelect" class="w-full max-w-xs bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none text-sm">
+          <select id="storeCurrencySelect" class="w-full max-w-xs bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-monolith-black text-sm">
             <option value="">Seleccionar moneda...</option>
           </select>
         </div>
 
         <!-- Exchange Rates Table -->
         <div>
-          <label class="font-label-caps text-label-caps text-secondary block mb-2">TASAS DE CAMBIO (vs USD)</label>
+          <label class="font-label-caps text-label-caps text-secondary block mb-2" id="ratesLabel">TASAS DE CAMBIO (vs USD)</label>
           <p class="font-body text-body-md text-sm text-secondary mb-3">Exchange rate = 1 USD en la moneda destino. Ej: 20.0 MXN = 1 USD</p>
           <div class="overflow-x-auto">
             <table class="w-full text-left text-sm" id="ratesTable">
@@ -413,28 +463,34 @@ const tabs = [
     </div>
 
     <!-- Size Guide Tab -->
-    <div id="tab-sizeguide" class="tab-content hidden">
-      <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
-        <h2 class="font-headline text-headline-md mb-6 flex items-center gap-2">
+    <div id="tab-sizeguide" class="tab-content hidden" role="tabpanel" aria-labelledby="tab-btn-sizeguide">
+      <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-4 md:p-6">
+        <h2 class="font-headline text-headline-md mb-2 flex items-center gap-2">
           <span class="material-symbols-outlined text-xl">straighten</span>
           Guía de Talles
         </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl">
+        <div class="mb-6 p-3 bg-sand-nude/30 border-l-2 border-clay-accent rounded-sm">
+          <p class="font-body text-body-md text-xs text-secondary leading-relaxed">
+            <span class="material-symbols-outlined text-sm align-text-bottom mr-1">info</span>
+            Tabla de conversión de talles que se muestra en la página de cada producto. Agregá filas con las equivalencias entre sistemas (US, EU, UK) y centímetros. El título y footer se muestran arriba y abajo de la tabla. Personalizá para cada tipo de calzado si es necesario.
+          </p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-full md:max-w-2xl">
           <div>
-            <label class="font-label-caps text-label-caps text-secondary block mb-2">TÍTULO (ES)</label>
-            <input type="text" id="size_guide-title_es" maxlength="100" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none" />
+            <label for="size_guide-title_es" class="font-label-caps text-label-caps text-secondary block mb-2">TÍTULO (ES)</label>
+            <input type="text" id="size_guide-title_es" maxlength="100" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-monolith-black" />
           </div>
           <div>
-            <label class="font-label-caps text-label-caps text-secondary block mb-2">TITLE (EN)</label>
-            <input type="text" id="size_guide-title_en" maxlength="100" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none" />
+            <label for="size_guide-title_en" class="font-label-caps text-label-caps text-secondary block mb-2">TITLE (EN)</label>
+            <input type="text" id="size_guide-title_en" maxlength="100" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-monolith-black" />
           </div>
           <div class="md:col-span-2">
-            <label class="font-label-caps text-label-caps text-secondary block mb-2">PIE / FOOTER (ES)</label>
-            <input type="text" id="size_guide-footer_es" maxlength="300" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none" />
+            <label for="size_guide-footer_es" class="font-label-caps text-label-caps text-secondary block mb-2">PIE / FOOTER (ES)</label>
+            <input type="text" id="size_guide-footer_es" maxlength="300" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-monolith-black" />
           </div>
           <div class="md:col-span-2">
-            <label class="font-label-caps text-label-caps text-secondary block mb-2">PIE / FOOTER (EN)</label>
-            <input type="text" id="size_guide-footer_en" maxlength="300" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none" />
+            <label for="size_guide-footer_en" class="font-label-caps text-label-caps text-secondary block mb-2">PIE / FOOTER (EN)</label>
+            <input type="text" id="size_guide-footer_en" maxlength="300" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-monolith-black" />
           </div>
         </div>
         <div class="mt-6 pt-6 border-t border-outline-variant">
@@ -464,23 +520,29 @@ const tabs = [
     </div>
 
     <!-- Policies Tab -->
-    <div id="tab-policies" class="tab-content hidden">
-      <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
-        <h2 class="font-headline text-headline-md mb-6 flex items-center gap-2">
+    <div id="tab-policies" class="tab-content hidden" role="tabpanel" aria-labelledby="tab-btn-policies">
+      <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-4 md:p-6">
+        <h2 class="font-headline text-headline-md mb-2 flex items-center gap-2">
           <span class="material-symbols-outlined text-xl">policy</span>
           Políticas
         </h2>
-        <div class="space-y-6 max-w-3xl">
+        <div class="mb-6 p-3 bg-sand-nude/30 border-l-2 border-clay-accent rounded-sm">
+          <p class="font-body text-body-md text-xs text-secondary leading-relaxed">
+            <span class="material-symbols-outlined text-sm align-text-bottom mr-1">info</span>
+            Textos legales que se muestran en los modales del footer (Envíos, Devoluciones, Privacidad). Completá ambos idiomas. Podés usar HTML básico para dar formato (negritas, listas, enlaces).
+          </p>
+        </div>
+        <div class="space-y-6 max-w-full md:max-w-3xl">
           <div>
             <h3 class="font-label-caps text-label-caps text-secondary mb-3 pb-1 border-b border-outline-variant">ENVÍOS / SHIPPING</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label class="font-label-caps text-label-caps text-secondary block mb-2">ES</label>
-                <textarea id="policies-shipping_es" maxlength="2000" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-clay-accent focus:outline-none resize-none h-28 text-sm"></textarea>
+                <label for="policies-shipping_es" class="font-label-caps text-label-caps text-secondary block mb-2">ES</label>
+                <textarea id="policies-shipping_es" maxlength="2000" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-clay-accent focus:outline-none resize-none h-28 text-sm focus-visible:ring-2 focus-visible:ring-monolith-black"></textarea>
               </div>
               <div>
-                <label class="font-label-caps text-label-caps text-secondary block mb-2">EN</label>
-                <textarea id="policies-shipping_en" maxlength="2000" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-clay-accent focus:outline-none resize-none h-28 text-sm"></textarea>
+                <label for="policies-shipping_en" class="font-label-caps text-label-caps text-secondary block mb-2">EN</label>
+                <textarea id="policies-shipping_en" maxlength="2000" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-clay-accent focus:outline-none resize-none h-28 text-sm focus-visible:ring-2 focus-visible:ring-monolith-black"></textarea>
               </div>
             </div>
           </div>
@@ -488,12 +550,12 @@ const tabs = [
             <h3 class="font-label-caps text-label-caps text-secondary mb-3 pb-1 border-b border-outline-variant">DEVOLUCIONES / RETURNS</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label class="font-label-caps text-label-caps text-secondary block mb-2">ES</label>
-                <textarea id="policies-returns_es" maxlength="2000" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-clay-accent focus:outline-none resize-none h-28 text-sm"></textarea>
+                <label for="policies-returns_es" class="font-label-caps text-label-caps text-secondary block mb-2">ES</label>
+                <textarea id="policies-returns_es" maxlength="2000" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-clay-accent focus:outline-none resize-none h-28 text-sm focus-visible:ring-2 focus-visible:ring-monolith-black"></textarea>
               </div>
               <div>
-                <label class="font-label-caps text-label-caps text-secondary block mb-2">EN</label>
-                <textarea id="policies-returns_en" maxlength="2000" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-clay-accent focus:outline-none resize-none h-28 text-sm"></textarea>
+                <label for="policies-returns_en" class="font-label-caps text-label-caps text-secondary block mb-2">EN</label>
+                <textarea id="policies-returns_en" maxlength="2000" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-clay-accent focus:outline-none resize-none h-28 text-sm focus-visible:ring-2 focus-visible:ring-monolith-black"></textarea>
               </div>
             </div>
           </div>
@@ -501,14 +563,85 @@ const tabs = [
             <h3 class="font-label-caps text-label-caps text-secondary mb-3 pb-1 border-b border-outline-variant">PRIVACIDAD / PRIVACY</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label class="font-label-caps text-label-caps text-secondary block mb-2">ES</label>
-                <textarea id="policies-privacy_es" maxlength="2000" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-clay-accent focus:outline-none resize-none h-28 text-sm"></textarea>
+                <label for="policies-privacy_es" class="font-label-caps text-label-caps text-secondary block mb-2">ES</label>
+                <textarea id="policies-privacy_es" maxlength="2000" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-clay-accent focus:outline-none resize-none h-28 text-sm focus-visible:ring-2 focus-visible:ring-monolith-black"></textarea>
               </div>
               <div>
-                <label class="font-label-caps text-label-caps text-secondary block mb-2">EN</label>
-                <textarea id="policies-privacy_en" maxlength="2000" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-clay-accent focus:outline-none resize-none h-28 text-sm"></textarea>
+                <label for="policies-privacy_en" class="font-label-caps text-label-caps text-secondary block mb-2">EN</label>
+                <textarea id="policies-privacy_en" maxlength="2000" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-clay-accent focus:outline-none resize-none h-28 text-sm focus-visible:ring-2 focus-visible:ring-monolith-black"></textarea>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SEO Tab -->
+    <div id="tab-seo" class="tab-content hidden max-w-full md:max-w-2xl" role="tabpanel" aria-labelledby="tab-btn-seo">
+      <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-4 md:p-6">
+        <h2 class="font-headline text-headline-md mb-2 flex items-center gap-2">
+          <span class="material-symbols-outlined text-xl">travel_explore</span>
+          SEO — Optimización para Motores de Búsqueda
+        </h2>
+        <div class="mb-6 p-3 bg-sand-nude/30 border-l-2 border-clay-accent rounded-sm">
+          <p class="font-body text-body-md text-xs text-secondary leading-relaxed">
+            <span class="material-symbols-outlined text-sm align-text-bottom mr-1">info</span>
+            Configuración global de SEO. Los valores de título y descripción global se usan como fallback si una página no define los suyos. La imagen OG por defecto se usa para redes sociales. Verificá tu sitio en Google Search Console y Bing Webmaster Tools para aparecer en resultados de búsqueda. Cada producto y post de blog tiene su propia sección SEO para personalizar título y descripción.
+          </p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="md:col-span-2">
+            <label for="seo-global_title" class="font-label-caps text-label-caps text-secondary block mb-2">TÍTULO GLOBAL (fallback)</label>
+            <input type="text" id="seo-global_title" maxlength="200" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-monolith-black" placeholder="Vunotek | Calzado Artesanal para Damas" />
+            <p class="font-body text-body-md text-xs text-secondary/60 mt-1">Aparece en la pestaña del navegador y como título en resultados de Google. Se usa si una página (producto, blog) no tiene su propio título SEO.</p>
+          </div>
+          <div class="md:col-span-2">
+            <label for="seo-global_description" class="font-label-caps text-label-caps text-secondary block mb-2">DESCRIPCIÓN GLOBAL (fallback)</label>
+            <textarea id="seo-global_description" maxlength="500" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-clay-accent focus:outline-none resize-none h-24 focus-visible:ring-2 focus-visible:ring-monolith-black" placeholder="Calzado artesanal para damas con diseño minimalista arquitectónico."></textarea>
+            <p class="font-body text-body-md text-xs text-secondary/60 mt-1">El párrafo que Google muestra debajo del título en resultados de búsqueda. Máximo 160 caracteres. Mismo fallback: si el producto/blog no define la suya, se usa esta.</p>
+          </div>
+          <div class="md:col-span-2">
+            <label for="seo-og_default_image" class="font-label-caps text-label-caps text-secondary block mb-2">IMAGEN OG POR DEFECTO</label>
+            <input type="text" id="seo-og_default_image" maxlength="500" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm focus-visible:ring-2 focus-visible:ring-monolith-black" placeholder="https://ik.imagekit.io/vunotek/og-default.jpg" />
+            <p class="font-body text-body-md text-xs text-secondary/60 mt-1">Imagen que se muestra al compartir un link en WhatsApp, Facebook, Twitter. Sin esta, los enlaces se ven solo con texto, sin previsualización. Medida recomendada: 1200×630 px.</p>
+          </div>
+          <div>
+            <label for="seo-twitter_site" class="font-label-caps text-label-caps text-secondary block mb-2">TWITTER / X (@handle)</label>
+            <input type="text" id="seo-twitter_site" maxlength="100" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-monolith-black" placeholder="@vunotek" />
+            <p class="font-body text-body-md text-xs text-secondary/60 mt-1">Aparece en el card cuando alguien comparte un link en X/Twitter. Opcional.</p>
+          </div>
+          <div>
+            <label for="seo-facebook_page_id" class="font-label-caps text-label-caps text-secondary block mb-2">FACEBOOK PAGE ID</label>
+            <input type="text" id="seo-facebook_page_id" maxlength="100" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-monolith-black" />
+            <p class="font-body text-body-md text-xs text-secondary/60 mt-1">ID de tu página de Facebook. Opcional.</p>
+          </div>
+          <div>
+            <label for="seo-google_site_verification" class="font-label-caps text-label-caps text-secondary block mb-2">GOOGLE SITE VERIFICATION</label>
+            <input type="text" id="seo-google_site_verification" maxlength="200" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm focus-visible:ring-2 focus-visible:ring-monolith-black" />
+            <p class="font-body text-body-md text-xs text-secondary/60 mt-1">Código que te da <strong>Google Search Console</strong> para verificar que sos dueño del sitio. Sin esto, Google no te muestra datos de búsqueda ni permite monitorear el rendimiento. <a href="https://search.google.com/search-console" class="text-clay-accent underline" target="_blank">Ir a Search Console</a>.</p>
+          </div>
+          <div>
+            <label for="seo-bing_site_verification" class="font-label-caps text-label-caps text-secondary block mb-2">BING SITE VERIFICATION</label>
+            <input type="text" id="seo-bing_site_verification" maxlength="200" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm focus-visible:ring-2 focus-visible:ring-monolith-black" />
+            <p class="font-body text-body-md text-xs text-secondary/60 mt-1">Código de <strong>Bing Webmaster Tools</strong>. Misma función que Google Search Console pero para Bing. Opcional si no te interesa el tráfico de Bing.</p>
+          </div>
+          <div>
+            <label for="seo-ga_id" class="font-label-caps text-label-caps text-secondary block mb-2">GOOGLE ANALYTICS ID</label>
+            <input type="text" id="seo-ga_id" maxlength="50" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm focus-visible:ring-2 focus-visible:ring-monolith-black" placeholder="G-XXXXXXXX" />
+            <p class="font-body text-body-md text-xs text-secondary/60 mt-1">Código de seguimiento de <strong>Google Analytics 4</strong> (formato G-XXXXXXXX). Activa la medición de visitas, páginas vistas y conversiones. Sin esto, no tenés estadísticas de tráfico.</p>
+          </div>
+          <div>
+            <label for="seo-robots_default" class="font-label-caps text-label-caps text-secondary block mb-2">META ROBOTS GLOBAL</label>
+            <select id="seo-robots_default" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-monolith-black">
+              <option value="index,follow">index, follow</option>
+              <option value="noindex,nofollow">noindex, nofollow</option>
+            </select>
+            <p class="font-body text-body-md text-xs text-secondary/60 mt-1"><strong>index,follow</strong> (recomendado): Google indexa el sitio normalmente. <strong>noindex,nofollow</strong>: bloquea la indexación (solo usar si el sitio está en desarrollo o es un entorno de prueba).</p>
+          </div>
+          <div>
+            <label for="seo-theme_color" class="font-label-caps text-label-caps text-secondary block mb-2">THEME COLOR</label>
+            <input type="text" id="seo-theme_color" maxlength="20" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm focus-visible:ring-2 focus-visible:ring-monolith-black" placeholder="#1A1A1A" />
+            <p class="font-body text-body-md text-xs text-secondary/60 mt-1">Color de la barra de dirección del navegador en <strong>mobile</strong> (Chrome, Safari). Solo estético, no afecta SEO ni funcionalidad. Debe ser un color hexadecimal (ej: <code>#1A1A1A</code> para barra negra).</p>
           </div>
         </div>
       </div>
@@ -517,11 +650,11 @@ const tabs = [
     <!-- Size guide row template -->
     <template id="size-guide-row-template">
       <tr class="size-guide-row border-b border-outline-variant/50">
-        <td class="py-1.5 pr-4"><input type="text" class="sg-us w-full bg-transparent border-b border-outline pb-1 text-monolith-black focus:border-clay-accent focus:outline-none text-sm" maxlength="6" /></td>
-        <td class="py-1.5 pr-4"><input type="text" class="sg-eu w-full bg-transparent border-b border-outline pb-1 text-monolith-black focus:border-clay-accent focus:outline-none text-sm" maxlength="6" /></td>
-        <td class="py-1.5 pr-4"><input type="text" class="sg-uk w-full bg-transparent border-b border-outline pb-1 text-monolith-black focus:border-clay-accent focus:outline-none text-sm" maxlength="6" /></td>
-        <td class="py-1.5 pr-4"><input type="text" class="sg-cm w-full bg-transparent border-b border-outline pb-1 text-monolith-black focus:border-clay-accent focus:outline-none text-sm" maxlength="6" /></td>
-        <td class="py-1.5"><button class="sg-delete w-7 h-7 flex items-center justify-center text-secondary hover:text-error transition-colors" title="Eliminar fila"><span class="material-symbols-outlined text-lg">remove_circle</span></button></td>
+        <td class="py-1.5 pr-4"><input type="text" class="sg-us w-full bg-transparent border-b border-outline pb-1 text-monolith-black focus:border-clay-accent focus:outline-none text-sm focus-visible:ring-2 focus-visible:ring-monolith-black" maxlength="6" aria-label="US" /></td>
+        <td class="py-1.5 pr-4"><input type="text" class="sg-eu w-full bg-transparent border-b border-outline pb-1 text-monolith-black focus:border-clay-accent focus:outline-none text-sm focus-visible:ring-2 focus-visible:ring-monolith-black" maxlength="6" aria-label="EU" /></td>
+        <td class="py-1.5 pr-4"><input type="text" class="sg-uk w-full bg-transparent border-b border-outline pb-1 text-monolith-black focus:border-clay-accent focus:outline-none text-sm focus-visible:ring-2 focus-visible:ring-monolith-black" maxlength="6" aria-label="UK" /></td>
+        <td class="py-1.5 pr-4"><input type="text" class="sg-cm w-full bg-transparent border-b border-outline pb-1 text-monolith-black focus:border-clay-accent focus:outline-none text-sm focus-visible:ring-2 focus-visible:ring-monolith-black" maxlength="6" aria-label="CM" /></td>
+        <td class="py-1.5"><button class="sg-delete w-7 h-7 flex items-center justify-center text-secondary hover:text-error transition-colors focus-visible:ring-2 focus-visible:ring-monolith-black" title="Eliminar fila"><span class="material-symbols-outlined text-lg">remove_circle</span></button></td>
       </tr>
     </template>
 
@@ -532,29 +665,29 @@ const tabs = [
         <div class="space-y-4">
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="font-label-caps text-label-caps text-secondary block mb-1 text-xs">CÓDIGO (3 letras)</label>
-              <input type="text" id="modal-currency-code" maxlength="3" class="w-full bg-transparent border-b border-outline pb-1.5 text-monolith-black focus:border-clay-accent focus:outline-none text-sm uppercase font-mono" placeholder="EUR" />
+              <label for="modal-currency-code" class="font-label-caps text-label-caps text-secondary block mb-1 text-xs">CÓDIGO (3 letras)</label>
+              <input type="text" id="modal-currency-code" maxlength="3" class="w-full bg-transparent border-b border-outline pb-1.5 text-monolith-black focus:border-clay-accent focus:outline-none text-sm uppercase font-mono focus-visible:ring-2 focus-visible:ring-monolith-black" placeholder="EUR" />
             </div>
             <div>
-              <label class="font-label-caps text-label-caps text-secondary block mb-1 text-xs">SÍMBOLO</label>
-              <input type="text" id="modal-currency-symbol" maxlength="10" class="w-full bg-transparent border-b border-outline pb-1.5 text-monolith-black focus:border-clay-accent focus:outline-none text-sm" placeholder="€" />
+              <label for="modal-currency-symbol" class="font-label-caps text-label-caps text-secondary block mb-1 text-xs">SÍMBOLO</label>
+              <input type="text" id="modal-currency-symbol" maxlength="10" class="w-full bg-transparent border-b border-outline pb-1.5 text-monolith-black focus:border-clay-accent focus:outline-none text-sm focus-visible:ring-2 focus-visible:ring-monolith-black" placeholder="€" />
             </div>
           </div>
           <div>
-            <label class="font-label-caps text-label-caps text-secondary block mb-1 text-xs">NOMBRE</label>
-            <input type="text" id="modal-currency-name" maxlength="100" class="w-full bg-transparent border-b border-outline pb-1.5 text-monolith-black focus:border-clay-accent focus:outline-none text-sm" placeholder="Euro" />
+            <label for="modal-currency-name" class="font-label-caps text-label-caps text-secondary block mb-1 text-xs">NOMBRE</label>
+            <input type="text" id="modal-currency-name" maxlength="100" class="w-full bg-transparent border-b border-outline pb-1.5 text-monolith-black focus:border-clay-accent focus:outline-none text-sm focus-visible:ring-2 focus-visible:ring-monolith-black" placeholder="Euro" />
           </div>
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="font-label-caps text-label-caps text-secondary block mb-1 text-xs">TASA DE CAMBIO (vs USD)</label>
-              <input type="number" id="modal-currency-rate" step="0.000001" min="0.000001" class="w-full bg-transparent border-b border-outline pb-1.5 text-monolith-black focus:border-clay-accent focus:outline-none text-sm" placeholder="21.5" />
+              <label for="modal-currency-rate" class="font-label-caps text-label-caps text-secondary block mb-1 text-xs">TASA DE CAMBIO (vs USD)</label>
+              <input type="number" id="modal-currency-rate" step="0.000001" min="0.000001" class="w-full bg-transparent border-b border-outline pb-1.5 text-monolith-black focus:border-clay-accent focus:outline-none text-sm focus-visible:ring-2 focus-visible:ring-monolith-black" placeholder="21.5" />
             </div>
             <div>
-              <label class="font-label-caps text-label-caps text-secondary block mb-1 text-xs">DECIMALES</label>
-              <input type="number" id="modal-currency-decimals" min="0" max="6" value="2" class="w-full bg-transparent border-b border-outline pb-1.5 text-monolith-black focus:border-clay-accent focus:outline-none text-sm" />
+              <label for="modal-currency-decimals" class="font-label-caps text-label-caps text-secondary block mb-1 text-xs">DECIMALES</label>
+              <input type="number" id="modal-currency-decimals" min="0" max="6" value="2" class="w-full bg-transparent border-b border-outline pb-1.5 text-monolith-black focus:border-clay-accent focus:outline-none text-sm focus-visible:ring-2 focus-visible:ring-monolith-black" />
             </div>
           </div>
-          <p id="modal-error" class="font-body text-body-md text-sm text-red-600 hidden"></p>
+          <p id="modal-error" class="font-body text-body-md text-sm text-red-600 hidden" role="alert"></p>
         </div>
         <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-outline-variant">
           <button id="modalCancelBtn" class="font-label-caps text-label-caps text-secondary h-9 px-5 hover:text-monolith-black transition-colors">CANCELAR</button>
@@ -568,7 +701,7 @@ const tabs = [
 
     <!-- Save button -->
     <div class="mt-8 pt-6 border-t border-outline-variant">
-      <button id="saveBtn" class="bg-monolith-black text-off-white font-label-caps text-label-caps h-12 px-8 inline-flex items-center justify-center gap-1.5 rounded-md hover:bg-monolith-black/90 hover:shadow-sm transition-all duration-200">
+      <button id="saveBtn" class="w-full sm:w-auto bg-monolith-black text-off-white font-label-caps text-label-caps h-12 px-8 inline-flex items-center justify-center gap-1.5 rounded-md hover:bg-monolith-black/90 hover:shadow-sm transition-all duration-200">
         <span id="saveIcon" class="material-symbols-outlined text-lg">save</span>
         <span id="saveText">GUARDAR CONFIGURACIÓN</span>
       </button>
@@ -586,16 +719,8 @@ const tabs = [
       transfer: { bool: ["enabled"] },
       size_guide: ["title_es", "title_en", "footer_es", "footer_en"],
       policies: ["shipping_es", "shipping_en", "returns_es", "returns_en", "privacy_es", "privacy_en"],
+      seo: ["global_title", "global_description", "og_default_image", "twitter_site", "facebook_page_id", "google_site_verification", "bing_site_verification", "ga_id", "robots_default", "theme_color"],
     };
-
-    const tabGroups = [
-      { id: "general", label: "General", tabs: ["store", "receipt", "sizeguide", "moneda", "policies"] },
-      { id: "pagos", label: "Pagos", tabs: ["stripe", "transfer"] },
-      { id: "servicios", label: "Servicios", tabs: ["imagekit", "smtp"] },
-      { id: "contenido", label: "Contenido", tabs: ["landing"] },
-    ];
-
-    let currentGroup = "general";
 
     const bankFields = ["bankName", "accountHolder", "accountNumber", "accountType", "routingNumber", "instructions"];
 
@@ -735,6 +860,8 @@ const tabs = [
       });
     }
 
+    const SENSITIVE_FIELDS = ['pass', 'privateKey', 'secretKey', 'webhookSecret'];
+
     function loadSettings(settings) {
       for (const [section, fields] of Object.entries(fieldMap)) {
         const textFields = Array.isArray(fields) ? fields : (fields.text || []);
@@ -742,7 +869,13 @@ const tabs = [
 
         for (const field of textFields) {
           const el = document.getElementById(`${section}-${field}`);
-          if (el) el.value = settings[section]?.[field] ?? "";
+          if (!el) continue;
+          if (SENSITIVE_FIELDS.includes(field)) {
+            // Sensitive: never expose real value to DOM
+            el.value = '••••••••';
+          } else {
+            el.value = settings[section]?.[field] ?? "";
+          }
         }
         for (const field of boolFields) {
           const el = document.getElementById(`${section}-${field}`);
@@ -838,10 +971,10 @@ const tabs = [
         for (const f of esFields) {
           const isTextarea = f.startsWith('paragraph_') || f.startsWith('desc_');
           html += `<div class="md:col-span-2">
-            <label class="font-label-caps text-label-caps text-secondary block mb-2">${landingFieldLabels[f]}</label>
+            <label for="landing-${sectionKey}-${f}" class="font-label-caps text-label-caps text-secondary block mb-2">${landingFieldLabels[f]}</label>
             ${isTextarea
-              ? `<textarea id="landing-${sectionKey}-${f}" maxlength="500" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-clay-accent focus:outline-none resize-none h-20">${(data[f] || '')}</textarea>`
-              : `<input type="text" id="landing-${sectionKey}-${f}" autocomplete="off" maxlength="${f.includes('title') ? '200' : '100'}" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none" value="${escapeHtml(data[f] || '')}" />`
+              ? `<textarea id="landing-${sectionKey}-${f}" maxlength="500" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-clay-accent focus:outline-none resize-none h-20 focus-visible:ring-2 focus-visible:ring-monolith-black">${(data[f] || '')}</textarea>`
+              : `<input type="text" id="landing-${sectionKey}-${f}" autocomplete="off" maxlength="${f.includes('title') ? '200' : '100'}" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-monolith-black" value="${escapeHtml(data[f] || '')}" />`
             }
           </div>`;
         }
@@ -852,10 +985,10 @@ const tabs = [
         for (const f of enFields) {
           const isTextarea = f.startsWith('paragraph_') || f.startsWith('desc_');
           html += `<div class="md:col-span-2">
-            <label class="font-label-caps text-label-caps text-secondary block mb-2">${landingFieldLabels[f]}</label>
+            <label for="landing-${sectionKey}-${f}" class="font-label-caps text-label-caps text-secondary block mb-2">${landingFieldLabels[f]}</label>
             ${isTextarea
-              ? `<textarea id="landing-${sectionKey}-${f}" maxlength="500" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-clay-accent focus:outline-none resize-none h-20">${(data[f] || '')}</textarea>`
-              : `<input type="text" id="landing-${sectionKey}-${f}" autocomplete="off" maxlength="${f.includes('title') ? '200' : '100'}" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none" value="${escapeHtml(data[f] || '')}" />`
+              ? `<textarea id="landing-${sectionKey}-${f}" maxlength="500" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-clay-accent focus:outline-none resize-none h-20 focus-visible:ring-2 focus-visible:ring-monolith-black">${(data[f] || '')}</textarea>`
+              : `<input type="text" id="landing-${sectionKey}-${f}" autocomplete="off" maxlength="${f.includes('title') ? '200' : '100'}" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-monolith-black" value="${escapeHtml(data[f] || '')}" />`
             }
           </div>`;
         }
@@ -865,8 +998,8 @@ const tabs = [
       for (const ext of section.extras) {
         if (ext === 'cta_category_slug') {
           html += `<div class="md:col-span-2">
-            <label class="font-label-caps text-label-caps text-secondary block mb-2">${landingFieldLabels[ext]}</label>
-            <select id="landing-${sectionKey}-${ext}" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none">
+            <label for="landing-${sectionKey}-${ext}" class="font-label-caps text-label-caps text-secondary block mb-2">${landingFieldLabels[ext]}</label>
+            <select id="landing-${sectionKey}-${ext}" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-monolith-black">
               <option value="">Catálogo general</option>
             </select>
             <p class="font-body text-body-md text-xs text-secondary mt-1" id="landing-${sectionKey}-cta-preview">Link: /es/catalogo</p>
@@ -882,7 +1015,7 @@ const tabs = [
         } else if (ext === 'testimonial_items') {
           html += `<div class="md:col-span-2">
             <label class="font-label-caps text-label-caps text-secondary block mb-2">${landingFieldLabels[ext]}</label>
-            <div id="testimonial-items-container" class="space-y-4"></div>
+            <div id="testimonial-items-container" class="space-y-4" aria-label="${landingFieldLabels[ext]}"></div>
             <button type="button" id="addTestimonialBtn" class="mt-2 font-label-caps text-label-caps text-secondary hover:text-monolith-black inline-flex items-center gap-1.5 transition-colors">
               <span class="material-symbols-outlined text-lg">add_circle</span>
               AGREGAR TESTIMONIO
@@ -891,10 +1024,10 @@ const tabs = [
         } else if (ext === 'image_url') {
           var imgUrl = data['image_url'] || '';
           html += '<div class="md:col-span-2">';
-          html += '<label class="font-label-caps text-label-caps text-secondary block mb-2">' + landingFieldLabels[ext] + '</label>';
-
+          html += '<label for="landing-' + sectionKey + '-image-input" class="font-label-caps text-label-caps text-secondary block mb-2">' + landingFieldLabels[ext] + '</label>';
+          
           // Upload zone
-          html += '<div id="landing-' + sectionKey + '-image-zone" class="border-2 border-dashed border-outline-variant hover:border-clay-accent rounded-sm p-6 text-center cursor-pointer transition-colors' + (imgUrl ? ' hidden' : '') + '">';
+          html += '<div id="landing-' + sectionKey + '-image-zone" tabindex="0" role="button" class="border-2 border-dashed border-outline-variant hover:border-clay-accent rounded-sm p-6 text-center cursor-pointer transition-colors focus-visible:ring-2 focus-visible:ring-monolith-black' + (imgUrl ? ' hidden' : '') + '">';
           html += '<input type="file" id="landing-' + sectionKey + '-image-input" accept="image/png,image/jpeg,image/webp" class="hidden" />';
           html += '<span class="material-symbols-outlined text-2xl text-secondary block mb-1">upload</span>';
           html += '<p class="font-body text-body-md text-secondary mb-1">Arrastrá la imagen o <span class="text-clay-accent underline">seleccioná un archivo</span></p>';
@@ -904,7 +1037,7 @@ const tabs = [
           // Preview area
           html += '<div id="landing-' + sectionKey + '-image-preview" class="border border-outline-variant rounded-sm p-3 bg-white flex items-center gap-4' + (imgUrl ? '' : ' hidden') + '">';
           html += '<div class="w-24 h-24 flex items-center justify-center bg-sand-nude/30 rounded-sm overflow-hidden flex-shrink-0">';
-          html += '<img id="landing-' + sectionKey + '-image-preview-img" class="max-w-full max-h-full object-contain" src="' + escapeHtml(imgUrl) + '" alt="" />';
+          html += '<img id="landing-' + sectionKey + '-image-preview-img" class="max-w-full max-h-full object-contain" src="' + escapeHtml(imgUrl) + '" alt="' + (landingFieldLabels[ext] || 'Imagen') + '" />';
           html += '</div>';
           html += '<div class="flex flex-col gap-1.5">';
           html += '<button type="button" class="landing-image-replace-btn font-label-caps text-label-caps text-clay-accent hover:text-monolith-black transition-colors inline-flex items-center gap-1 cursor-pointer" data-section="' + sectionKey + '">';
@@ -923,19 +1056,19 @@ const tabs = [
           html += '<div class="w-full bg-outline-variant rounded-full h-1">';
           html += '<div id="landing-' + sectionKey + '-image-progress-bar" class="bg-monolith-black h-1 rounded-full transition-all duration-300" style="width: 0%"></div>';
           html += '</div>';
-          html += '<p id="landing-' + sectionKey + '-image-progress-text" class="font-body text-body-md text-xs text-secondary mt-1">Subiendo...</p>';
+          html += '<p id="landing-' + sectionKey + '-image-progress-text" class="font-body text-body-md text-xs text-secondary mt-1" aria-live="polite">Subiendo...</p>';
           html += '</div>';
 
           // Error + helper
-          html += '<p id="landing-' + sectionKey + '-image-error" class="hidden font-body text-body-md text-xs text-error mt-1"></p>';
+          html += '<p id="landing-' + sectionKey + '-image-error" class="hidden font-body text-body-md text-xs text-error mt-1" aria-live="polite"></p>';
           if (landingFieldHelpers[ext]) {
             html += '<p class="font-body text-body-md text-xs text-secondary mt-1">' + landingFieldHelpers[ext] + '</p>';
           }
           html += '</div>';
         } else {
           html += '<div class="md:col-span-2">' +
-            '<label class="font-label-caps text-label-caps text-secondary block mb-2">' + landingFieldLabels[ext] + '</label>' +
-            '<input type="text" id="landing-' + sectionKey + '-' + ext + '" autocomplete="off" maxlength="500" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none" placeholder="' + (landingFieldPlaceholders[ext] || '') + '" value="' + escapeHtml(data[ext] || '') + '" />' +
+            '<label for="landing-' + sectionKey + '-' + ext + '" class="font-label-caps text-label-caps text-secondary block mb-2">' + landingFieldLabels[ext] + '</label>' +
+            '<input type="text" id="landing-' + sectionKey + '-' + ext + '" autocomplete="off" maxlength="500" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-monolith-black" placeholder="' + (landingFieldPlaceholders[ext] || '') + '" value="' + escapeHtml(data[ext] || '') + '" />' +
             (landingFieldHelpers[ext] ? '<p class="font-body text-body-md text-xs text-secondary mt-1">' + landingFieldHelpers[ext] + '</p>' : '') +
             '</div>';
         }
@@ -1036,21 +1169,21 @@ const tabs = [
       const div = document.createElement('div');
       div.className = 'testimonial-entry border border-outline-variant rounded-sm p-4 bg-white relative';
       div.innerHTML = `
-        <button type="button" class="delete-testimonial absolute top-2 right-2 w-8 h-8 flex items-center justify-center text-secondary hover:text-error transition-colors" title="Eliminar testimonio">
+        <button type="button" class="delete-testimonial absolute top-2 right-2 w-10 h-10 flex items-center justify-center text-secondary hover:text-error transition-colors" title="Eliminar testimonio">
           <span class="material-symbols-outlined text-lg">close</span>
         </button>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label class="font-label-caps text-label-caps text-secondary block mb-1 text-xs">NOMBRE</label>
-            <input type="text" data-testimonial-field="name" maxlength="100" class="w-full bg-transparent border-b border-outline pb-1.5 text-monolith-black focus:border-clay-accent focus:outline-none text-sm" value="${escapeHtml(data?.name || '')}" />
+            <input type="text" data-testimonial-field="name" maxlength="100" class="w-full bg-transparent border-b border-outline pb-1.5 text-monolith-black focus:border-clay-accent focus:outline-none text-sm focus-visible:ring-2 focus-visible:ring-monolith-black" aria-label="NOMBRE" value="${escapeHtml(data?.name || '')}" />
           </div>
           <div>
             <label class="font-label-caps text-label-caps text-secondary block mb-1 text-xs">PUNTUACIÓN (1-5)</label>
-            <input type="number" data-testimonial-field="rating" min="1" max="5" class="w-full bg-transparent border-b border-outline pb-1.5 text-monolith-black focus:border-clay-accent focus:outline-none text-sm" value="${data?.rating || 5}" />
+            <input type="number" data-testimonial-field="rating" min="1" max="5" class="w-full bg-transparent border-b border-outline pb-1.5 text-monolith-black focus:border-clay-accent focus:outline-none text-sm focus-visible:ring-2 focus-visible:ring-monolith-black" aria-label="PUNTUACIÓN (1-5)" value="${data?.rating || 5}" />
           </div>
           <div class="md:col-span-3">
             <label class="font-label-caps text-label-caps text-secondary block mb-1 text-xs">TEXTO</label>
-            <textarea data-testimonial-field="text" maxlength="500" class="w-full bg-transparent border border-outline p-2 text-monolith-black focus:border-clay-accent focus:outline-none resize-none h-16 text-sm">${escapeHtml(data?.text || '')}</textarea>
+            <textarea data-testimonial-field="text" maxlength="500" class="w-full bg-transparent border border-outline p-2 text-monolith-black focus:border-clay-accent focus:outline-none resize-none h-16 text-sm focus-visible:ring-2 focus-visible:ring-monolith-black" aria-label="TEXTO">${escapeHtml(data?.text || '')}</textarea>
           </div>
         </div>
       `;
@@ -1283,6 +1416,7 @@ const tabs = [
       if (!zone || !fileInput) return;
 
       zone.addEventListener('click', function () { fileInput.click(); });
+      zone.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); } });
 
       zone.addEventListener('dragover', function (e) {
         e.preventDefault();
@@ -1402,6 +1536,7 @@ const tabs = [
 
       // Click upload zone
       zone.addEventListener('click', function () { fileInput.click(); });
+      zone.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); } });
 
       // Drag & drop
       zone.addEventListener('dragover', function (e) {
@@ -1457,42 +1592,52 @@ const tabs = [
       }
     }
 
-    // --- Tab groups ---
-    function filterTabsByGroup(groupId) {
-      const group = tabGroups.find(g => g.id === groupId);
-      if (!group) return;
-      currentGroup = groupId;
-      document.querySelectorAll(".tab-btn").forEach(btn => {
-        btn.classList.toggle("hidden", !group.tabs.includes(btn.dataset.tab));
+    // --- Tab switching ---
+    function activateTab(btn) {
+      document.querySelectorAll(".tab-btn").forEach(b => {
+        b.classList.remove("bg-monolith-black", "text-off-white");
+        b.classList.add("text-secondary");
+        b.setAttribute("aria-selected", "false");
+        b.setAttribute("tabindex", "-1");
       });
-      var activeTab = document.querySelector(".tab-btn.text-monolith-black");
-      if (!activeTab || !group.tabs.includes(activeTab.dataset.tab)) {
-        var firstBtn = document.querySelector(".tab-btn:not(.hidden)");
-        if (firstBtn) firstBtn.click();
-      }
+      btn.classList.remove("text-secondary");
+      btn.classList.add("bg-monolith-black", "text-off-white");
+      btn.setAttribute("aria-selected", "true");
+      btn.setAttribute("tabindex", "0");
+      btn.focus();
+
+      document.querySelectorAll(".tab-content").forEach(tc => tc.classList.add("hidden"));
+      document.getElementById("tab-" + btn.dataset.tab).classList.remove("hidden");
+
+      // Sync mobile dropdown
+      const select = document.getElementById("tab-select-mobile");
+      if (select) select.value = btn.dataset.tab;
     }
 
-    document.getElementById("tabGroupSelect")?.addEventListener("change", function () {
-      filterTabsByGroup(this.value);
+    // Mobile dropdown change handler
+    document.getElementById("tab-select-mobile")?.addEventListener("change", function () {
+      const btn = document.querySelector(`[data-tab="${this.value}"]`);
+      if (btn) activateTab(btn);
     });
 
-    // --- Tab switching ---
     document.querySelectorAll(".tab-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        document.querySelectorAll(".tab-btn").forEach(b => {
-          b.classList.remove("text-monolith-black", "border-monolith-black");
-          b.classList.add("text-secondary", "border-transparent");
-        });
-        btn.classList.remove("text-secondary", "border-transparent");
-        btn.classList.add("text-monolith-black", "border-monolith-black");
-
-        document.querySelectorAll(".tab-content").forEach(tc => tc.classList.add("hidden"));
-        document.getElementById("tab-" + btn.dataset.tab).classList.remove("hidden");
+      btn.addEventListener("click", () => activateTab(btn));
+      btn.addEventListener("keydown", e => {
+        const tabs = Array.from(document.querySelectorAll(".tab-btn"));
+        const idx = tabs.indexOf(btn);
+        if (e.key === "ArrowRight") {
+          e.preventDefault();
+          const next = tabs[(idx + 1) % tabs.length];
+          activateTab(next);
+        } else if (e.key === "ArrowLeft") {
+          e.preventDefault();
+          const prev = tabs[(idx - 1 + tabs.length) % tabs.length];
+          activateTab(prev);
+        }
       });
     });
 
-    filterTabsByGroup("general");
-    document.querySelector(".tab-btn:not(.hidden)")?.click();
+    document.querySelector(".tab-btn")?.click();
 
     function loadCouponSelect() {
       const sel = document.getElementById("store-newsletter_discount_code");
@@ -1560,7 +1705,12 @@ const tabs = [
 
         for (const field of textFields) {
           const el = document.getElementById(`${section}-${field}`);
-          settings[section][field] = el ? el.value : "";
+          const val = el ? el.value : "";
+          // Skip sensitive fields if unchanged (placeholder) or cleared
+          if (SENSITIVE_FIELDS.includes(field) && (!val || val === '••••••••')) {
+            continue;
+          }
+          settings[section][field] = val;
         }
         for (const field of boolFields) {
           const el = document.getElementById(`${section}-${field}`);
@@ -1666,7 +1816,7 @@ const tabs = [
               class="active-checkbox w-4 h-4 text-monolith-black border-outline rounded-sm focus:ring-monolith-black cursor-pointer" />
           </td>
           <td class="py-3 text-sm">
-            ${c.code !== "USD" ? `<button data-delete-code="${c.code}" class="delete-currency w-7 h-7 flex items-center justify-center text-secondary hover:text-error transition-colors" title="Desactivar moneda">
+            ${c.code !== "USD" ? `<button data-delete-code="${c.code}" class="delete-currency w-10 h-10 flex items-center justify-center text-secondary hover:text-error transition-colors" title="Desactivar moneda">
               <span class="material-symbols-outlined text-lg">delete</span>
             </button>` : '<span class="text-secondary text-xs">Base</span>'}
           </td>

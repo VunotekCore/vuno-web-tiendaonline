@@ -6,7 +6,7 @@ const validStatuses = ["pending", "paid", "shipped", "delivered", "cancelled"];
 
 <AdminLayout title="Detalle de Pedido" currentPath="/admin/pedidos">
   <div id="loading" class="font-body text-body-md text-secondary p-4">Loading order...</div>
-  <div id="message" class="hidden font-body text-body-md p-3 mb-6"></div>
+  <div id="message" class="hidden font-body text-body-md p-3 mb-6" aria-live="polite" aria-atomic="true"></div>
 
   <div id="orderContent" class="hidden">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
@@ -136,7 +136,8 @@ const validStatuses = ["pending", "paid", "shipped", "delivered", "cancelled"];
       </h2>
       <form id="statusForm" class="flex items-end gap-4">
         <div class="flex-grow">
-          <select id="statusSelect" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors">
+          <label for="statusSelect" class="sr-only">Estado del pedido</label>
+          <select id="statusSelect" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none focus-visible:ring-2 focus-visible:ring-monolith-black focus-visible:ring-offset-1 transition-colors">
             {validStatuses.map(s => <option value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
           </select>
         </div>
@@ -241,8 +242,8 @@ const validStatuses = ["pending", "paid", "shipped", "delivered", "cancelled"];
             <td class="p-4 font-body text-body-md text-secondary">${item.selectedColor || '—'}</td>
             <td class="p-4 font-body text-body-md text-secondary">${item.selectedSize || '—'}</td>
             <td class="p-4 font-body text-body-md">${item.quantity || 1}</td>
-            <td class="p-4 font-price-display text-price-display">${o.display_symbol || '$'}${((item.product?.display_price ?? item.product?.price) || 0).toFixed(2)}</td>
-            <td class="p-4 font-price-display text-price-display">${o.display_symbol || '$'}${(((item.product?.display_price ?? item.product?.price) || 0) * (item.quantity || 1)).toFixed(2)}</td>
+            <td class="p-4 font-price-display text-price-display">${o.display_symbol || '$'}${window.formatPrice((item.product?.display_price ?? item.product?.price) || 0)}</td>
+            <td class="p-4 font-price-display text-price-display">${o.display_symbol || '$'}${window.formatPrice(((item.product?.display_price ?? item.product?.price) || 0) * (item.quantity || 1))}</td>
           </tr>
         `).join("");
 
@@ -254,13 +255,13 @@ const validStatuses = ["pending", "paid", "shipped", "delivered", "cancelled"];
                 <span class="material-symbols-outlined text-lg text-monolith-black">check_indeterminate_small</span>
                 <span class="font-body text-body-md text-monolith-black font-medium">${item.product?.name || ''}</span>
               </div>
-              <span class="font-price-display text-price-display whitespace-nowrap ml-3">${o.display_symbol || '$'}${(((item.product?.display_price ?? item.product?.price) || 0) * (item.quantity || 1)).toFixed(2)}</span>
+              <span class="font-price-display text-price-display whitespace-nowrap ml-3">${o.display_symbol || '$'}${window.formatPrice(((item.product?.display_price ?? item.product?.price) || 0) * (item.quantity || 1))}</span>
             </div>
             <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm font-body text-body-md text-secondary ml-8">
               <span>Color: <span class="text-monolith-black">${item.selectedColor || '—'}</span></span>
               <span>Size: <span class="text-monolith-black">${item.selectedSize || '—'}</span></span>
               <span>Qty: <span class="text-monolith-black">${item.quantity || 1}</span></span>
-              <span>@ <span class="text-monolith-black">${o.display_symbol || '$'}${((item.product?.display_price ?? item.product?.price) || 0).toFixed(2)}</span></span>
+              <span>@ <span class="text-monolith-black">${o.display_symbol || '$'}${window.formatPrice((item.product?.display_price ?? item.product?.price) || 0)}</span></span>
             </div>
           </div>
         `).join("");
@@ -273,12 +274,12 @@ const validStatuses = ["pending", "paid", "shipped", "delivered", "cancelled"];
         if (o.discountTotal && o.discountTotal > 0) {
           if (discountRow) discountRow.classList.remove("hidden");
           var sym = o.display_symbol || "$";
-          if (discountEl) discountEl.textContent = "-" + sym + o.discountTotal.toFixed(2);
+          if (discountEl) discountEl.textContent = "-" + sym + window.formatPrice(o.discountTotal);
           if (discountRowMobile) discountRowMobile.classList.remove("hidden");
-          if (discountElMobile) discountElMobile.textContent = "-" + sym + o.discountTotal.toFixed(2);
+          if (discountElMobile) discountElMobile.textContent = "-" + sym + window.formatPrice(o.discountTotal);
         }
 
-        const total = (o.display_symbol || "$") + (o.display_total || o.total || 0).toFixed(2);
+        const total = (o.display_symbol || "$") + window.formatPrice(o.display_total || o.total || 0);
         document.getElementById("orderTotal").textContent = total;
         document.getElementById("orderTotalMobile").textContent = total;
 

@@ -84,38 +84,24 @@ import AdminLayout from "../_layout.astro";
 
   </div>
 
-  <!-- Progress + Result -->
-  <div id="progressArea" class="hidden mt-8 bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
-    <div class="flex items-center gap-4 mb-4">
-      <span class="material-symbols-outlined text-2xl text-monolith-black animate-spin" id="progressIcon">progress_activity</span>
-      <div>
-        <p class="font-headline text-headline-sm" id="progressTitle">Enviando campaña...</p>
-        <p class="font-body text-body-md text-secondary" id="progressText">0 / 0 enviados</p>
-      </div>
-    </div>
-    <div class="w-full bg-monolith-black/5 h-2 rounded-sm overflow-hidden">
-      <div id="progressBar" class="bg-monolith-black h-2 rounded-sm transition-all duration-300" style="width:0%"></div>
-    </div>
-    <div id="progressErrors" class="mt-3 hidden">
-      <p class="font-body text-body-sm text-error flex items-center gap-1">
-        <span class="material-symbols-outlined text-sm">warning</span>
-        <span id="errorCount">0</span> errores — revisa el log del servidor
-      </p>
-    </div>
-  </div>
-
-  <div id="resultArea" class="hidden mt-8 bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
-    <div class="flex items-start gap-4">
-      <span class="material-symbols-outlined text-3xl text-monolith-black" id="resultIcon">check_circle</span>
-      <div class="flex-1">
-        <p class="font-headline text-headline-sm" id="resultTitle">Campaña enviada</p>
-        <p class="font-body text-body-md text-secondary mt-1" id="resultText">Se enviaron correctamente.</p>
-        <div class="mt-4 flex gap-3">
-          <button id="resultNewBtn" class="font-label-caps text-label-caps h-10 px-5 inline-flex items-center gap-1.5 border border-monolith-black/20 text-secondary rounded-md hover:border-monolith-black hover:text-monolith-black transition-all duration-200">
-            <span class="material-symbols-outlined text-lg">add</span>
-            NUEVA CAMPAÑA
-          </button>
+  <!-- Progress Modal -->
+  <div id="progressModal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+    <div class="modal-content bg-off-white border border-outline-variant shadow-lg rounded-sm p-6 w-full max-w-md">
+      <div class="flex items-center gap-4 mb-4">
+        <span class="material-symbols-outlined text-2xl text-monolith-black animate-spin" id="progressIcon">progress_activity</span>
+        <div class="flex-1 min-w-0">
+          <p class="font-headline text-headline-md" id="progressTitle">Enviando campaña...</p>
+          <p class="font-body text-body-md text-secondary mt-1" id="progressText">0 / 0 enviados</p>
         </div>
+      </div>
+      <div class="w-full bg-monolith-black/5 h-2 rounded-sm overflow-hidden">
+        <div id="progressBar" class="bg-monolith-black h-2 rounded-sm transition-all duration-300" style="width:0%"></div>
+      </div>
+      <div id="progressErrors" class="mt-4 hidden">
+        <p class="font-body text-body-sm text-error flex items-center gap-1">
+          <span class="material-symbols-outlined text-sm">warning</span>
+          <span id="errorCount">0</span> errores — revisa el log del servidor
+        </p>
       </div>
     </div>
   </div>
@@ -143,6 +129,26 @@ import AdminLayout from "../_layout.astro";
     </div>
   </div>
 
+  <!-- Result Modal -->
+  <div id="resultModal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+    <div class="modal-content bg-off-white border border-outline-variant shadow-lg rounded-sm p-6 w-full max-w-md">
+      <div class="flex items-start gap-3 mb-4">
+        <span id="resultModalIcon" class="material-symbols-outlined text-3xl text-monolith-black">check_circle</span>
+        <div class="flex-1 min-w-0">
+          <h3 id="resultModalTitle" class="font-headline text-headline-md">Campaña enviada</h3>
+          <p id="resultModalText" class="font-body text-body-md text-secondary mt-1">Se enviaron correctamente.</p>
+        </div>
+      </div>
+      <div class="flex justify-end gap-3">
+        <button id="resultModalNewBtn" class="font-label-caps text-label-caps text-secondary border border-monolith-black/20 rounded-md px-4 h-10 hover:border-monolith-black hover:text-monolith-black transition-all">
+          <span class="material-symbols-outlined text-lg align-middle mr-1">add</span>
+          NUEVA CAMPAÑA
+        </button>
+        <button id="resultModalCloseBtn" class="bg-monolith-black text-off-white font-label-caps text-label-caps rounded-md px-4 h-10 hover:bg-monolith-black/90 transition-all">CERRAR</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Error Modal (reusable) -->
   <div id="errorModal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/40 backdrop-blur-sm p-4">
     <div class="modal-content bg-off-white border border-outline-variant shadow-lg rounded-sm p-6 w-full max-w-md">
@@ -165,7 +171,7 @@ import AdminLayout from "../_layout.astro";
       from { opacity: 0; transform: scale(0.95) translateY(8px); }
       to { opacity: 1; transform: scale(1) translateY(0); }
     }
-    #confirmModal:not(.hidden), #errorModal:not(.hidden) {
+    #confirmModal:not(.hidden), #errorModal:not(.hidden), #resultModal:not(.hidden), #progressModal:not(.hidden) {
       display: flex;
     }
   </style>
@@ -252,7 +258,7 @@ import AdminLayout from "../_layout.astro";
     // --- Load subscriber count ---
     async function loadSubscriberCount() {
       try {
-        const res = await fetch("/api/suscriptores/list.php?limit=1&page=1");
+        const res = await fetch("/api/suscriptores/list.php?limit=1&page=1&is_active=1");
         const data = await res.json();
         totalSubscribers = data.total || 0;
         document.getElementById("subscriberCount").innerHTML =
@@ -397,35 +403,39 @@ import AdminLayout from "../_layout.astro";
     }
 
     function showProgress() {
-      document.getElementById("progressArea").classList.remove("hidden");
-      document.getElementById("resultArea").classList.add("hidden");
       document.getElementById("progressTitle").textContent = "Enviando campaña...";
       document.getElementById("progressIcon").textContent = "progress_activity";
       document.getElementById("progressIcon").classList.add("animate-spin");
       document.getElementById("progressErrors").classList.add("hidden");
       updateProgress(0, totalSubscribers);
+      openModal("progressModal");
     }
 
     function showResult(success, sent, failed, total) {
-      document.getElementById("progressArea").classList.add("hidden");
-      document.getElementById("resultArea").classList.remove("hidden");
+      closeModal("progressModal");
+
+      const icon = document.getElementById("resultModalIcon");
+      const title = document.getElementById("resultModalTitle");
+      const text = document.getElementById("resultModalText");
 
       if (success && failed === 0) {
-        document.getElementById("resultIcon").textContent = "check_circle";
-        document.getElementById("resultTitle").textContent = "Campaña enviada";
-        document.getElementById("resultText").textContent =
-          "Se enviaron " + sent + " emails correctamente a " + total + " suscriptores.";
+        icon.textContent = "check_circle";
+        icon.className = "material-symbols-outlined text-3xl text-monolith-black";
+        title.textContent = "Campaña enviada";
+        text.textContent = "Se enviaron " + sent + " emails correctamente a " + total + " suscriptores.";
       } else if (success && failed > 0) {
-        document.getElementById("resultIcon").textContent = "warning";
-        document.getElementById("resultTitle").textContent = "Campaña enviada con errores";
-        document.getElementById("resultText").textContent =
-          "Se enviaron " + sent + " de " + total + " emails. " + failed + " fallaron (revisa el log del servidor).";
+        icon.textContent = "warning";
+        icon.className = "material-symbols-outlined text-3xl text-clay-accent";
+        title.textContent = "Campaña enviada con errores";
+        text.textContent = "Se enviaron " + sent + " de " + total + " emails. " + failed + " fallaron (revisa el log del servidor).";
       } else {
-        document.getElementById("resultIcon").textContent = "error";
-        document.getElementById("resultTitle").textContent = "Error al enviar";
-        document.getElementById("resultText").textContent =
-          "No se pudo completar el envío.";
+        icon.textContent = "error";
+        icon.className = "material-symbols-outlined text-3xl text-error";
+        title.textContent = "Error al enviar";
+        text.textContent = "No se pudo completar el envío.";
       }
+
+      openModal("resultModal");
     }
 
     document.getElementById("campaignBtn").addEventListener("click", function () {
@@ -490,9 +500,8 @@ import AdminLayout from "../_layout.astro";
       }
     });
 
-    // --- New campaign button ---
-    document.getElementById("resultNewBtn").addEventListener("click", function () {
-      document.getElementById("resultArea").classList.add("hidden");
+    // --- Reset form to initial state ---
+    function resetForm() {
       document.getElementById("templateSelect").value = "";
       selectedTemplate = null;
       document.getElementById("subjectInput").value = "";
@@ -500,7 +509,12 @@ import AdminLayout from "../_layout.astro";
       document.getElementById("previewArea").classList.add("hidden");
       document.getElementById("testBtn").disabled = true;
       document.getElementById("campaignBtn").disabled = true;
-      document.getElementById("progressArea").classList.add("hidden");
+      closeModal("progressModal");
+    }
+
+    document.getElementById("resultModalNewBtn").addEventListener("click", function () {
+      closeModal("resultModal");
+      resetForm();
     });
 
     // --- Global Escape key ---
@@ -508,6 +522,8 @@ import AdminLayout from "../_layout.astro";
       if (e.key === "Escape") {
         if (!document.getElementById("confirmModal").classList.contains("hidden")) closeModal("confirmModal");
         if (!document.getElementById("errorModal").classList.contains("hidden")) closeModal("errorModal");
+        if (!document.getElementById("resultModal").classList.contains("hidden")) closeModal("resultModal");
+        if (!document.getElementById("progressModal").classList.contains("hidden")) closeModal("progressModal");
       }
     });
 
@@ -517,6 +533,13 @@ import AdminLayout from "../_layout.astro";
     });
     document.getElementById("errorModal").addEventListener("click", function (e) {
       if (e.target === e.currentTarget) closeModal("errorModal");
+    });
+
+    document.getElementById("resultModalCloseBtn").addEventListener("click", function () {
+      closeModal("resultModal");
+    });
+    document.getElementById("resultModal").addEventListener("click", function (e) {
+      if (e.target === e.currentTarget) closeModal("resultModal");
     });
 
     // --- Init ---
