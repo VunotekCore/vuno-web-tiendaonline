@@ -19,15 +19,17 @@ if (empty($input['title']) || empty($input['slug']) || empty($input['content']))
 
 try {
     $id = createBlogPost([
-        'title'          => $input['title'],
-        'slug'           => $input['slug'],
+        'title'           => $input['title'],
+        'slug'            => $input['slug'],
         'excerpt'         => $input['excerpt'] ?? '',
         'thumbnail_image' => $input['thumbnail_image'] ?? '',
         'content'         => $input['content'],
         'featured_image'  => $input['featured_image'] ?? '',
-        'author'         => $input['author'] ?? 'Ram;Lop',
-        'status'         => $input['status'] ?? 'draft',
-        'category_id'    => !empty($input['category_id']) ? (int)$input['category_id'] : null,
+        'author'          => $input['author'] ?? 'Ram;Lop',
+        'status'          => $input['status'] ?? 'draft',
+        'category_id'     => !empty($input['category_id']) ? (int)$input['category_id'] : null,
+        'meta_title'      => $input['meta_title'] ?? '',
+        'meta_description' => $input['meta_description'] ?? '',
     ]);
 
     logAdminAction('create', 'blog_post', (string)$id, 'Blog post created: ' . $input['title']);

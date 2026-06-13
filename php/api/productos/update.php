@@ -39,6 +39,9 @@ $product = [
     'sizes' => $input['sizes'] ?? $existing['sizes'],
     'stocks' => $input['stocks'] ?? [],
     'isFeatured' => !empty($input['isFeatured']),
+    'metaTitle' => $input['metaTitle'] ?? ($existing['metaTitle'] ?? ''),
+    'metaDescription' => $input['metaDescription'] ?? ($existing['metaDescription'] ?? ''),
+    'ogImageUrl' => $input['ogImageUrl'] ?? ($existing['ogImageUrl'] ?? ''),
     'createdAt' => $existing['createdAt'],
 ];
 

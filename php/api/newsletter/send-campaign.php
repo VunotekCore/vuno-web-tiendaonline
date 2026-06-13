@@ -135,6 +135,10 @@ try {
         $vars = [
             'subscriber_name' => $name,
             'unsubscribe_url' => $unsubscribeUrl,
+            'title'           => $template['name'] ?? 'Novedades',
+            'message'         => '',
+            'content_block'   => '',
+            'preheader'       => 'Campaña: ' . ($subjectOverride ?: $template['subject']),
         ];
 
         $result = sendTemplatedEmail($template['code'], $sub['email'], $vars, null,

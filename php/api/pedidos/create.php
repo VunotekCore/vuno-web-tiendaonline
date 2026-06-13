@@ -42,6 +42,8 @@ try {
         'shipping' => (float)($input['shipping'] ?? 0),
         'tax' => (float)($input['tax'] ?? 0),
         'total' => (float)($input['total'] ?? 0),
+        'currency' => $input['currency'] ?? 'USD',
+        'exchange_rate' => (float)($input['exchange_rate'] ?? 1.0),
         'status' => $input['status'] ?? 'pending',
         'paymentMethod' => $input['paymentMethod'] ?? 'stripe',
         'paymentStatus' => $input['paymentStatus'] ?? 'pending',
@@ -54,6 +56,9 @@ try {
     ];
 
     saveOrder($order);
+    deductStock($order['id']);
+
+    $order = addDisplayPricesToOrder($order);
 
     if ($order['paymentMethod'] === 'transfer') {
         try {

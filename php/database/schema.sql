@@ -1321,6 +1321,8 @@ CREATE TABLE blog_posts (
     author            VARCHAR(200) DEFAULT 'Ram;Lop',
     status            ENUM('draft', 'published') DEFAULT 'draft',
     category_id       INT UNSIGNED DEFAULT NULL,
+    meta_title        VARCHAR(255),
+    meta_description  VARCHAR(500),
     published_at      TIMESTAMP NULL,
     created_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

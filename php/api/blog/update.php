@@ -19,7 +19,7 @@ if (!$id) {
 }
 
 $data = [];
-foreach (['title', 'slug', 'excerpt', 'thumbnail_image', 'content', 'featured_image', 'author', 'status', 'category_id'] as $key) {
+foreach (['title', 'slug', 'excerpt', 'thumbnail_image', 'content', 'featured_image', 'author', 'status', 'category_id', 'meta_title', 'meta_description'] as $key) {
     if (array_key_exists($key, $input)) {
         $data[$key] = $input[$key];
     }

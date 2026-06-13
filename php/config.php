@@ -27,6 +27,39 @@ function env(string $key, mixed $default = null): mixed
     return $value !== false && $value !== null ? $value : $default;
 }
 
+// --- Secrets Encryption ---
+define('SENSITIVE_KEYS', ['pass', 'privateKey', 'private_key', 'secretKey', 'secret_key', 'webhookSecret']);
+
+function getEncryptionKey(): string {
+    $file = __DIR__ . '/encryption.key';
+    if (!file_exists($file)) {
+        file_put_contents($file, bin2hex(random_bytes(32)));
+    }
+    return trim(file_get_contents($file));
+}
+
+function encryptSecret(string $plaintext): string {
+    $key = hex2bin(getEncryptionKey());
+    $iv = random_bytes(12);
+    $tag = '';
+    $ciphertext = @openssl_encrypt($plaintext, 'aes-256-gcm', $key, OPENSSL_RAW_DATA, $iv, $tag);
+    if ($ciphertext === false) {
+        throw new \RuntimeException('Encryption failed');
+    }
+    return base64_encode($iv . $tag . $ciphertext);
+}
+
+function decryptSecret(string $encoded): string {
+    $key = hex2bin(getEncryptionKey());
+    $data = base64_decode($encoded);
+    if ($data === false || strlen($data) < 29) return ''; // too short to be valid
+    $iv = substr($data, 0, 12);
+    $tag = substr($data, 12, 16);
+    $cipher = substr($data, 28);
+    $result = @openssl_decrypt($cipher, 'aes-256-gcm', $key, OPENSSL_RAW_DATA, $iv, $tag);
+    return $result !== false ? $result : '';
+}
+
 // --- Product Constraints ---
 define('MAX_PRODUCT_IMAGES', 20);
 

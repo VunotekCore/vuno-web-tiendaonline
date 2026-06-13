@@ -38,6 +38,16 @@ $customerId = (int)$db->lastInsertId();
 $stmt = $db->prepare('UPDATE orders SET customer_id = ? WHERE customer_email = ? AND customer_id IS NULL');
 $stmt->execute([$customerId, $email]);
 
+// Update customer last_order_at from linked orders
+if ($stmt->rowCount() > 0) {
+    $db->prepare('UPDATE customers c
+        SET c.last_order_at = (
+            SELECT MAX(o.created_at) FROM orders o WHERE o.customer_id = ?
+        )
+        WHERE c.id = ?')
+        ->execute([$customerId, $customerId]);
+}
+
 $token = bin2hex(random_bytes(32));
 $expiresAt = date('Y-m-d H:i:s', strtotime('+30 days'));
 $stmt = $db->prepare('INSERT INTO customer_sessions (customer_id, token, ip_address, user_agent, expires_at) VALUES (?, ?, ?, ?, ?)');

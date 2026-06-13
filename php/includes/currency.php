@@ -91,6 +91,7 @@ function convertToUsd(float $localPrice, float $exchangeRate, int $decimals = 2)
     return round($localPrice / $exchangeRate, $decimals);
 }
 
+if (!function_exists('formatPrice')) {
 function formatPrice(float $price, string $currencyCode, string $symbol, int $decimals = 2): string
 {
     if (class_exists('NumberFormatter')) {
@@ -107,6 +108,7 @@ function formatPrice(float $price, string $currencyCode, string $symbol, int $de
     // Symbol position: most currencies put symbol before
     // But some (like COP) use "$" before
     return $symbol . $formatted;
+}
 }
 
 function formatPriceSimple(float $price, string $symbol = '$', int $decimals = 2): string

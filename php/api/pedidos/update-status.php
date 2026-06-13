@@ -25,7 +25,10 @@ if (!in_array($input['status'], $validStatuses)) {
 
 $paymentStatus = null;
 if ($input['status'] === 'paid') $paymentStatus = 'completed';
-if ($input['status'] === 'cancelled') $paymentStatus = 'failed';
+if ($input['status'] === 'cancelled') {
+    $paymentStatus = 'failed';
+    restoreStock($input['id']);
+}
 
 try {
     $order = getOrderById($input['id']);

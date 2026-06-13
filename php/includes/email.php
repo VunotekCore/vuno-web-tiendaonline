@@ -66,7 +66,7 @@ function getStoreTemplateVars(): array
         'store_logo_url'   => '',
         'store_slogan'     => 'Architectural Minimalism in Footwear',
         'store_email'      => '',
-        'store_logo_block' => '<p style="margin:0;font-family:\'Playfair Display\',Georgia,serif;font-size:20px;color:#f5f3f0;letter-spacing:0.02em">Ram;Lop</p>',
+        'store_logo_block' => '<p style="margin:0;font-family:\'Playfair Display\',Georgia,serif;font-size:20px;color:#1a1a1a;letter-spacing:0.02em">Ram;Lop</p>',
     ];
 
     try {
@@ -96,7 +96,39 @@ function getStoreTemplateVars(): array
         if ($vars['store_logo_url']) {
             $vars['store_logo_block'] = '<img src="' . $vars['store_logo_url'] . '" alt="' . $name . '" height="28" style="border:0;height:28px;line-height:100%;outline:none;text-decoration:none;display:block" />';
         } else {
-            $vars['store_logo_block'] = '<p style="margin:0;font-family:\'Playfair Display\',Georgia,serif;font-size:20px;color:#f5f3f0;letter-spacing:0.02em">' . $name . '</p>';
+            $vars['store_logo_block'] = '<p style="margin:0;font-family:\'Playfair Display\',Georgia,serif;font-size:20px;color:#1a1a1a;letter-spacing:0.02em">' . $name . '</p>';
+        }
+
+        // --- discount_block ---
+        $discountCode = $store['newsletter_discount_code'] ?? '';
+        if ($discountCode) {
+            $vars['discount_block'] = '<div style="background-color:#faf9f8;border:1px solid #e0ddd9;border-radius:2px;padding:24px 16px;margin:24px 0;text-align:center">
+                <p style="margin:0 0 4px;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:#9A9A9A;font-weight:700">Your Welcome Discount</p>
+                <p style="margin:0;font-family:\'Playfair Display\',Georgia,serif;font-size:28px;color:#1a1a1a;letter-spacing:0.04em">' . htmlspecialchars($discountCode) . '</p>
+                <p style="margin:8px 0 0;font-size:12px;color:#6b6b6b">Use code at checkout</p>
+            </div>';
+        } else {
+            $vars['discount_block'] = '';
+        }
+
+        // --- social_links_block ---
+        $social = $settings['landing']['social'] ?? [];
+        if (is_array($social) && !empty($social['enabled'])) {
+            $links = [];
+            $networks = [
+                'facebook'  => ['url' => $social['facebook_url'] ?? '', 'label' => 'Facebook'],
+                'instagram' => ['url' => $social['instagram_url'] ?? '', 'label' => 'Instagram'],
+                'tiktok'    => ['url' => $social['tiktok_url'] ?? '', 'label' => 'TikTok'],
+            ];
+            foreach ($networks as $net) {
+                if (!empty($net['url'])) {
+                    $url = htmlspecialchars($net['url']);
+                    $links[] = '<td style="padding:0 4px"><a href="' . $url . '" style="display:inline-block;padding:8px 16px;background-color:#1a1a1a;color:#f5f3f0;text-decoration:none;font-size:11px;letter-spacing:0.05em;border-radius:2px;text-transform:uppercase">' . $net['label'] . '</a></td>';
+                }
+            }
+            $vars['social_links_block'] = $links ? implode('', $links) : '';
+        } else {
+            $vars['social_links_block'] = '';
         }
     } catch (\Exception $e) {
         // Defaults already set above
@@ -128,6 +160,11 @@ function renderTemplate(string $templateCode, array $vars): array
     $body = strtr($source['body_html'], $replacements);
     $subject = strtr($source['subject'], $replacements);
     $preheader = strtr($source['preheader'], $replacements);
+
+    // Strip any remaining {{...}} placeholders that weren't provided
+    $body = preg_replace('/\{\{[^}]+}}/', '', $body);
+    $subject = preg_replace('/\{\{[^}]+}}/', '', $subject);
+    $preheader = preg_replace('/\{\{[^}]+}}/', '', $preheader);
 
     return [
         'subject'   => $subject,
@@ -325,7 +362,7 @@ function sendNewOrderNotification(array $order): array
         'customer_name'    => $name,
         'customer_email'   => $email,
         'order_id'         => $orderId,
-        'order_total'      => $currencySymbol . $total,
+        'order_total'      => $total,
         'payment_method'   => $paymentMethod,
         'order_status'     => $status,
         'items_count'      => (string)$itemsCount,

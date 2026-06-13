@@ -17,35 +17,40 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 $page = max(1, (int)($_GET['page'] ?? 1));
 $limit = min(50, max(1, (int)($_GET['limit'] ?? 10)));
 $search = trim($_GET['search'] ?? '');
+$isActive = isset($_GET['is_active']) ? (int)$_GET['is_active'] : null;
 $offset = ($page - 1) * $limit;
 
 try {
     $db = getDb();
 
+    $where = '1=1';
+    $params = [];
+
     if ($search) {
-        $like = '%' . $search . '%';
-        $countStmt = $db->prepare('SELECT COUNT(*) FROM newsletter_subscribers WHERE email LIKE ?');
-        $countStmt->execute([$like]);
-        $total = (int)$countStmt->fetchColumn();
-
-        $stmt = $db->prepare(
-            'SELECT id, email, is_active, subscribed_at, unsubscribed_at, created_at
-             FROM newsletter_subscribers
-             WHERE email LIKE ?
-             ORDER BY created_at DESC
-             LIMIT ? OFFSET ?'
-        );
-        $stmt->execute([$like, $limit, $offset]);
-    } else {
-        $total = (int)$db->query('SELECT COUNT(*) FROM newsletter_subscribers')->fetchColumn();
-
-        $stmt = $db->query(
-            'SELECT id, email, is_active, subscribed_at, unsubscribed_at, created_at
-             FROM newsletter_subscribers
-             ORDER BY created_at DESC
-             LIMIT ' . $limit . ' OFFSET ' . $offset
-        );
+        $where .= ' AND email LIKE ?';
+        $params[] = '%' . $search . '%';
     }
+
+    if ($isActive !== null) {
+        $where .= ' AND is_active = ?';
+        $params[] = $isActive;
+    }
+
+    $countStmt = $db->prepare("SELECT COUNT(*) FROM newsletter_subscribers WHERE {$where}");
+    $countStmt->execute($params);
+    $total = (int)$countStmt->fetchColumn();
+
+    $stmt = $db->prepare(
+        "SELECT id, email, is_active, subscribed_at, unsubscribed_at, created_at
+         FROM newsletter_subscribers
+         WHERE {$where}
+         ORDER BY created_at DESC
+         LIMIT ? OFFSET ?"
+    );
+    $execParams = $params;
+    $execParams[] = $limit;
+    $execParams[] = $offset;
+    $stmt->execute($execParams);
 
     $items = $stmt->fetchAll();
 
