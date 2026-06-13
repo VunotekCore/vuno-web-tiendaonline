@@ -17,6 +17,7 @@ $customerId = getCustomerIdFromToken($token);
 if (!$customerId) jsonError('Unauthorized', 401);
 
 $input = json_decode(file_get_contents('php://input'), true);
+if (!is_array($input)) jsonError('Invalid request body', 400);
 $items = $input['items'] ?? [];
 
 setCartItems($customerId, $items);

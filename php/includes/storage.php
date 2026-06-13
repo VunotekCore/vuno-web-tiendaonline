@@ -237,8 +237,11 @@ function buildProduct(string $id, ?string $lang = null): array
         'variants'    => $variantRows,
         'totalStock'  => $totalStock,
         'lowStockThreshold' => isset($row['low_stock_threshold']) ? (int)$row['low_stock_threshold'] : 5,
-        'createdAt'   => date('c', strtotime($row['created_at'])),
-        'isFeatured'  => (bool)($row['is_featured'] ?? false),
+        'createdAt'        => date('c', strtotime($row['created_at'])),
+        'isFeatured'       => (bool)($row['is_featured'] ?? false),
+        'metaTitle'        => $row['meta_title'] ?? '',
+        'metaDescription'  => $row['meta_description'] ?? '',
+        'ogImageUrl'       => $row['og_image_url'] ?? '',
     ];
 
     return addDisplayPricesToProduct($result);
@@ -254,12 +257,17 @@ function saveProduct(array $product): void
         ? max(0, min(99, (int)$product['lowStockThreshold']))
         : 5;
     $isFeatured = !empty($product['isFeatured']) ? 1 : 0;
+    $metaTitle = $product['metaTitle'] ?? '';
+    $metaDescription = $product['metaDescription'] ?? '';
+    $ogImageUrl = $product['ogImageUrl'] ?? '';
     $stmt = $db->prepare(
-        'INSERT INTO products (id, name, slug, description, price, currency, size_prefix, low_stock_threshold, is_featured, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        'INSERT INTO products (id, name, slug, description, price, currency, size_prefix, low_stock_threshold, is_featured, meta_title, meta_description, og_image_url, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
          ON DUPLICATE KEY UPDATE name = VALUES(name), slug = VALUES(slug),
          description = VALUES(description), price = VALUES(price), currency = VALUES(currency),
-         size_prefix = VALUES(size_prefix), low_stock_threshold = VALUES(low_stock_threshold), is_featured = VALUES(is_featured)'
+         size_prefix = VALUES(size_prefix), low_stock_threshold = VALUES(low_stock_threshold),
+         is_featured = VALUES(is_featured),
+         meta_title = VALUES(meta_title), meta_description = VALUES(meta_description), og_image_url = VALUES(og_image_url)'
     );
     $createdAt = $product['createdAt'] ?? date('c');
     $stmt->execute([
@@ -272,6 +280,9 @@ function saveProduct(array $product): void
         $product['size_prefix'] ?? 'EU',
         $lowStockThreshold,
         $isFeatured,
+        $metaTitle,
+        $metaDescription,
+        $ogImageUrl,
         date('Y-m-d H:i:s', strtotime($createdAt)),
     ]);
 
@@ -501,16 +512,20 @@ function buildOrder(array $row): array
     $itemStmt->execute([$row['id']]);
     $itemRows = $itemStmt->fetchAll();
 
+    $exchangeRate = (float)($row['exchange_rate'] ?? 1.0);
+
     $items = [];
     foreach ($itemRows as $ir) {
+        $unitPrice = (float)$ir['unit_price'];
         $items[] = [
             'product' => [
-                'id'       => $ir['product_id'],
-                'name'     => $ir['product_name'],
-                'slug'     => $ir['product_slug'],
-                'price'    => (float)$ir['product_price'],
-                'currency' => $ir['product_currency'] ?: 'USD',
-                'images'   => $ir['product_image'] ? [$ir['product_image']] : [],
+                'id'             => $ir['product_id'],
+                'name'           => $ir['product_name'],
+                'slug'           => $ir['product_slug'],
+                'price'          => (float)$ir['product_price'],
+                'currency'       => $ir['product_currency'] ?: 'USD',
+                'images'         => $ir['product_image'] ? [$ir['product_image']] : [],
+                'display_price'  => round($unitPrice * $exchangeRate, 2),
             ],
             'quantity'     => (int)$ir['quantity'],
             'selectedColor' => $ir['selected_color'] ?? '',
@@ -748,6 +763,42 @@ function deductStock(string $orderId): void
             'INSERT INTO stock_movements (variant_id, quantity_change, stock_before, stock_after, reference_type, reference_id, notes)
              VALUES (?, ?, ?, ?, ?, ?, ?)'
         )->execute([$variant['id'], -$qty, $stockBefore, $stockAfter, 'order', $orderId, 'Order payment confirmed']);
+    }
+}
+
+function restoreStock(string $orderId): void
+{
+    $db = getDb();
+
+    $stmt = $db->prepare(
+        'SELECT oi.product_id, oi.selected_color, oi.selected_size, oi.quantity
+         FROM order_items oi
+         JOIN orders o ON o.id = oi.order_id
+         WHERE o.order_number = ?'
+    );
+    $stmt->execute([$orderId]);
+    $items = $stmt->fetchAll();
+
+    if (empty($items)) return;
+
+    foreach ($items as $item) {
+        $variant = resolveVariant($item['product_id'], $item['selected_color'], $item['selected_size']);
+        if (!$variant) {
+            error_log("[Stock] Variant not found for product {$item['product_id']}, color '{$item['selected_color']}', size '{$item['selected_size']}'");
+            continue;
+        }
+
+        $qty = (int)$item['quantity'];
+        $stockBefore = (int)$variant['stock'];
+        $stockAfter = $stockBefore + $qty;
+
+        $db->prepare('UPDATE product_variants SET stock = ? WHERE id = ?')
+           ->execute([$stockAfter, $variant['id']]);
+
+        $db->prepare(
+            'INSERT INTO stock_movements (variant_id, quantity_change, stock_before, stock_after, reference_type, reference_id, notes)
+             VALUES (?, ?, ?, ?, ?, ?, ?)'
+        )->execute([$variant['id'], $qty, $stockBefore, $stockAfter, 'cancellation', $orderId, 'Order cancelled — stock restored']);
     }
 }
 
@@ -1117,6 +1168,19 @@ function getSettings(): array
         $settings[$section][$key] = $value;
     }
 
+    // Decrypt sensitive keys
+    foreach ($settings as $section => &$kv) {
+        foreach (SENSITIVE_KEYS as $sk) {
+            if (isset($kv[$sk]) && $kv[$sk] !== '') {
+                $decrypted = decryptSecret($kv[$sk]);
+                if ($decrypted !== '') {
+                    $kv[$sk] = $decrypted;
+                }
+            }
+        }
+    }
+    unset($kv);
+
     // Convert 'enabled' keys to boolean
     $boolKeys = ['enabled'];
     foreach ($settings as $section => &$kv) {
@@ -1191,6 +1255,10 @@ function saveSettings(array $input): void
                 // Convert booleans to '1'/'0'
                 if (is_bool($value)) {
                     $value = $value ? '1' : '0';
+                }
+                // Encrypt sensitive keys
+                if (in_array($key, SENSITIVE_KEYS, true) && $value !== '') {
+                    $value = encryptSecret((string)$value);
                 }
                 // JSON-encode nested arrays (e.g. landing sub-sections)
                 if (is_array($value)) {
@@ -1275,7 +1343,7 @@ function getDashboardStats(): array
 
         // Recent orders
         $recent = $db->query(
-            'SELECT o.order_number, o.customer_name, o.total, os.code AS status_code, o.created_at, pm.code AS payment_method_code
+            'SELECT o.order_number, o.customer_name, o.total, o.exchange_rate, o.currency, os.code AS status_code, o.created_at, pm.code AS payment_method_code
              FROM orders o
              JOIN order_statuses os ON os.id = o.status_id
              JOIN payment_methods pm ON pm.id = o.payment_method_id
@@ -1311,20 +1379,35 @@ function getDashboardStats(): array
         $stmt3->execute([$monthStart, $monthEnd]);
         $monthlyOrderCount = (int)$stmt3->fetchColumn();
 
+        // Convert monthly revenue to display currency (use store-wide rate)
+        $storeCurrencyCode = env('STORE_CURRENCY', 'NIO');
+        $storeCurrency = getCurrency($storeCurrencyCode);
+        $storeRate = (float)($storeCurrency['exchange_rate'] ?? 37.0);
+        $storeSymbol = $storeCurrency['symbol'] ?? 'C$';
+        $displayMonthlyRevenue = round($monthlyRevenue * $storeRate, 2);
+
         return [
-            'totalProducts'    => $totalProducts,
-            'totalOrders'      => $totalOrders,
-            'monthlyRevenue'   => $monthlyRevenue,
-            'monthlyOrderCount' => $monthlyOrderCount,
-            'statusCounts'     => $statusCounts,
-            'recentOrders'     => array_map(fn($r) => [
-                'id'            => $r['order_number'],
-                'customerName'  => $r['customer_name'],
-                'total'         => (float)$r['total'],
-                'status'        => $r['status_code'],
-                'createdAt'     => date('c', strtotime($r['created_at'])),
-                'paymentMethod' => $r['payment_method_code'],
-            ], $recent),
+            'totalProducts'         => $totalProducts,
+            'totalOrders'           => $totalOrders,
+            'monthlyRevenue'        => $monthlyRevenue,
+            'displayMonthlyRevenue' => $displayMonthlyRevenue,
+            'displaySymbol'         => $storeSymbol,
+            'monthlyOrderCount'     => $monthlyOrderCount,
+            'statusCounts'          => $statusCounts,
+            'recentOrders'          => array_map(function($r) use ($storeSymbol) {
+                $rate = (float)($r['exchange_rate'] ?? 37.0);
+                $total = (float)$r['total'];
+                return [
+                    'id'            => $r['order_number'],
+                    'customerName'  => $r['customer_name'],
+                    'total'         => $total,
+                    'displayTotal'  => round($total * $rate, 2),
+                    'displaySymbol' => $storeSymbol,
+                    'status'        => $r['status_code'],
+                    'createdAt'     => date('c', strtotime($r['created_at'])),
+                    'paymentMethod' => $r['payment_method_code'],
+                ];
+            }, $recent),
             'lowStockProducts' => array_map(fn($p) => [
                 'id'   => $p['id'],
                 'name' => $p['name'],
@@ -1838,8 +1921,8 @@ function createBlogPost(array $data): int
 {
     $db = getDb();
     $stmt = $db->prepare(
-        'INSERT INTO blog_posts (title, slug, excerpt, thumbnail_image, content, featured_image, author, status, category_id, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())'
+        'INSERT INTO blog_posts (title, slug, excerpt, thumbnail_image, content, featured_image, author, status, category_id, meta_title, meta_description, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())'
     );
     $stmt->execute([
         $data['title'],
@@ -1851,6 +1934,8 @@ function createBlogPost(array $data): int
         $data['author'] ?? 'Ram;Lop',
         $data['status'] ?? 'draft',
         $data['category_id'] ?? null,
+        $data['meta_title'] ?? '',
+        $data['meta_description'] ?? '',
     ]);
 
     $id = (int)$db->lastInsertId();
@@ -1870,7 +1955,7 @@ function updateBlogPost(int $id, array $data): void
     $fields = [];
     $params = [];
 
-    foreach (['title', 'slug', 'excerpt', 'thumbnail_image', 'content', 'featured_image', 'author', 'status', 'category_id'] as $key) {
+    foreach (['title', 'slug', 'excerpt', 'thumbnail_image', 'content', 'featured_image', 'author', 'status', 'category_id', 'meta_title', 'meta_description'] as $key) {
         if (array_key_exists($key, $data)) {
             $fields[] = "{$key} = ?";
             $params[] = $data[$key];
@@ -2092,8 +2177,8 @@ function setCartItems(int $customerId, array $items): void
                     $customerId,
                     $item['product_id'] ?? $item['product']['id'] ?? '',
                     (int)($item['quantity'] ?? 1),
-                    $item['selected_color'] ?? '',
-                    $item['selected_size'] ?? '',
+                    $item['selected_color'] ?? $item['selectedColor'] ?? '',
+                    $item['selected_size'] ?? $item['selectedSize'] ?? '',
                 ]);
             }
         }
