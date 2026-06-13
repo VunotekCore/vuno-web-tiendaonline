@@ -37,7 +37,7 @@ const ctaLink = data?.cta_category_slug
 ---
 
 <section
-  class="relative w-full min-h-[90vh] flex flex-col lg:flex-row bg-monolith-black overflow-hidden"
+  class="relative w-full min-h-[90vh] flex flex-col md:flex-row bg-monolith-black overflow-hidden"
   id="heroSlideshow"
   data-section="hero"
   data-slides={JSON.stringify(slidesData)}
@@ -45,7 +45,7 @@ const ctaLink = data?.cta_category_slug
   <div class="noise-overlay opacity-[0.06]"></div>
 
   <!-- Image Panel -->
-  <div class="relative lg:w-[55%] overflow-hidden h-[55vh] lg:h-[90vh]" id="heroImageContainer">
+  <div class="relative md:w-[55%] overflow-hidden h-[55vh] md:h-[90vh]" id="heroImageContainer">
     {heroProducts.length > 0 && heroProducts.map((p, i) => (
       <div
         class="hero-slide-wrap absolute inset-0 bg-monolith-black transition-opacity duration-1000"
@@ -77,7 +77,7 @@ const ctaLink = data?.cta_category_slug
   </div>
 
   <!-- Text Panel -->
-  <div class="relative lg:w-[45%] flex flex-col justify-center px-margin-mobile md:px-16 py-16 lg:py-0 z-10">
+  <div class="relative md:w-[45%] flex flex-col justify-center px-margin-mobile md:px-16 py-10 md:py-16 lg:py-0 z-10">
     <span class="font-label-caps text-label-caps text-clay-accent tracking-[0.15em] mb-6 animate-slideUp" data-field="label">
       {label}
     </span>
@@ -108,7 +108,7 @@ const ctaLink = data?.cta_category_slug
   </div>
 
   <!-- Scroll indicator -->
-  <div class="hidden lg:flex absolute bottom-12 left-[55%] translate-x-[-55px] z-10 flex-col items-center gap-2" aria-hidden="true">
+  <div class="hidden md:flex absolute bottom-12 left-[55%] translate-x-[-55px] z-10 flex-col items-center gap-2" aria-hidden="true">
     <span class="font-label-caps text-label-caps text-off-white/40 tracking-[0.2em] text-[10px]">
       {lang === "es" ? "EXPLORA" : "DISCOVER"}
     </span>
