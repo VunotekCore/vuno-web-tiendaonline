@@ -1,6 +1,16 @@
 import type { Product, Order, Category, BlogPost } from "./types";
 import type { Locale } from "../i18n/utils";
 
+export interface SocialPlatformConfig {
+  enabled: boolean;
+  url: string;
+}
+
+export interface SocialImageItem {
+  image_url: string;
+  platform: string;
+}
+
 export interface LandingSectionData {
   label_es?: string;
   label_en?: string;
@@ -22,6 +32,8 @@ export interface LandingSectionData {
   placeholder_es?: string;
   placeholder_en?: string;
   items?: TestimonialItem[];
+  platforms?: Record<string, SocialPlatformConfig>;
+  images?: SocialImageItem[];
 }
 
 export interface TestimonialItem {

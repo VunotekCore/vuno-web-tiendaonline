@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 require_once __DIR__ . '/../../config.php';
 require_once __DIR__ . '/../../includes/storage.php';
 require_once __DIR__ . '/../../includes/currency.php';
@@ -103,6 +105,8 @@ $public = [
             'facebook_url' => $settings['landing']['social']['facebook_url'] ?? '',
             'instagram_url' => $settings['landing']['social']['instagram_url'] ?? '',
             'tiktok_url' => $settings['landing']['social']['tiktok_url'] ?? '',
+            'platforms' => $settings['landing']['social']['platforms'] ?? [],
+            'images' => $settings['landing']['social']['images'] ?? [],
         ],
         'blog' => [
             'enabled' => $settings['landing']['blog']['enabled'] ?? true,

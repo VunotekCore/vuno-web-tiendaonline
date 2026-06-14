@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /**
  * Newsletter Subscription Endpoint
  * POST /api/email/newsletter.php
@@ -38,7 +40,6 @@ try {
             $stmt->execute([$existing['id']]);
             jsonResponse(['success' => true, 'message' => 'Welcome back! You have been re-subscribed.']);
         }
-        return;
     }
 
     $stmt = $db->prepare('INSERT INTO newsletter_subscribers (email) VALUES (?)');
@@ -51,14 +52,27 @@ try {
     $social = $landing['social'] ?? [];
 
     $socialLinks = '';
-    $socialUrls = [
-        'facebook'  => $social['facebook_url'] ?? '',
-        'instagram' => $social['instagram_url'] ?? '',
-        'tiktok'    => $social['tiktok_url'] ?? '',
-    ];
-    foreach ($socialUrls as $name => $url) {
-        if ($url) {
-            $socialLinks .= '<td style="padding-right:12px"><a href="' . htmlspecialchars($url) . '" style="color:#1a1a1a;text-decoration:none;font-size:13px;font-weight:600">' . ucfirst($name) . '</a></td>';
+    $socialPlatforms = $social['platforms'] ?? [];
+    if (!empty($socialPlatforms)) {
+        foreach ($socialPlatforms as $name => $cfg) {
+            $url = $cfg['url'] ?? '';
+            $enabled = $cfg['enabled'] ?? false;
+            if ($enabled && $url) {
+                $label = ucfirst((string)$name);
+                $socialLinks .= '<td style="padding-right:12px"><a href="' . htmlspecialchars($url) . '" style="color:#1a1a1a;text-decoration:none;font-size:13px;font-weight:600">' . htmlspecialchars($label) . '</a></td>';
+            }
+        }
+    } else {
+        // Fallback: old flat fields
+        $socialUrls = [
+            'facebook'  => $social['facebook_url'] ?? '',
+            'instagram' => $social['instagram_url'] ?? '',
+            'tiktok'    => $social['tiktok_url'] ?? '',
+        ];
+        foreach ($socialUrls as $name => $url) {
+            if ($url) {
+                $socialLinks .= '<td style="padding-right:12px"><a href="' . htmlspecialchars($url) . '" style="color:#1a1a1a;text-decoration:none;font-size:13px;font-weight:600">' . ucfirst($name) . '</a></td>';
+            }
         }
     }
     if (!$socialLinks) {

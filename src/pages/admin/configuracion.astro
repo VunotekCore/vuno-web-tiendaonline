@@ -921,7 +921,7 @@ const tabs = [
       categories: { label: 'Categories', fields: ['label', 'title'], extras: ['enabled', 'cta_link', 'cta_category_slug'] },
       brand_values: { label: 'Brand Values', fields: ['label', 'title', 'paragraph', 'cta'], extras: ['enabled', 'image_url', 'cta_link', 'cta_category_slug'] },
       closing_cta: { label: 'Closing CTA', fields: ['label', 'title', 'subtitle', 'cta'], extras: ['enabled', 'cta_link', 'cta_category_slug'] },
-      social: { label: 'Social Media', fields: ['title'], extras: ['enabled', 'facebook_url', 'instagram_url', 'tiktok_url'] },
+      social: { label: 'Social Media', fields: ['title'], extras: ['enabled', 'platforms', 'images'] },
       testimonials: { label: 'Testimonials', fields: ['title', 'subtitle'], extras: ['enabled', 'testimonial_items'] },
       blog: { label: 'Blog Journal', fields: ['label', 'title', 'desc', 'view_all'], extras: ['enabled'] },
     };
@@ -938,9 +938,6 @@ const tabs = [
       cta_link: 'CTA LINK (URL personalizada)',
       cta_category_slug: 'CTA LINK — CATEGORÍA',
       enabled: 'HABILITAR SECCIÓN',
-      facebook_url: 'FACEBOOK URL',
-      instagram_url: 'INSTAGRAM URL',
-      tiktok_url: 'TIKTOK URL',
       testimonial_items: 'TESTIMONIOS',
     };
 
@@ -1065,6 +1062,39 @@ const tabs = [
             html += '<p class="font-body text-body-md text-xs text-secondary mt-1">' + landingFieldHelpers[ext] + '</p>';
           }
           html += '</div>';
+        } else if (ext === 'platforms') {
+          var platformList = ['facebook', 'instagram', 'tiktok', 'linkedin', 'youtube'];
+          var platformLabelsMap = { facebook: 'Facebook', instagram: 'Instagram', tiktok: 'TikTok', linkedin: 'LinkedIn', youtube: 'YouTube' };
+          var savedPlatforms = data['platforms'] || {};
+          html += '<div class="md:col-span-2"><div class="border-b border-outline-variant pb-4 mb-4"><span class="font-label-caps text-label-caps text-clay-accent tracking-[0.15em]">PLATAFORMAS</span></div></div>';
+          for (var pi = 0; pi < platformList.length; pi++) {
+            var pName = platformList[pi];
+            var pData = savedPlatforms[pName] || { enabled: false, url: '' };
+            var pEnabled = pData.enabled ? 'checked' : '';
+            var pUrl = escapeHtml(pData.url || '');
+            html += '<div class="md:col-span-2 flex items-start gap-4 py-3 border-b border-outline-variant/40">';
+            html += '<div class="flex items-center gap-3 pt-2 min-w-[140px]">';
+            html += '<label class="relative inline-flex items-center cursor-pointer">';
+            html += '<input type="checkbox" id="landing-' + sectionKey + '-platform-' + pName + '" class="sr-only peer" ' + pEnabled + ' />';
+            html += '<div class="w-10 h-5.5 bg-outline-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[\'\'] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-outline-variant after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-monolith-black"></div>';
+            html += '</label>';
+            html += '<span class="font-body text-body-md text-monolith-black">' + platformLabelsMap[pName] + '</span>';
+            html += '</div>';
+            html += '<div class="flex-1">';
+            html += '<input type="text" id="landing-' + sectionKey + '-platform-url-' + pName + '" autocomplete="off" maxlength="500" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none text-sm focus-visible:ring-2 focus-visible:ring-monolith-black" placeholder="https://' + pName + '.com/..." value="' + pUrl + '" />';
+            html += '</div>';
+            html += '</div>';
+          }
+        } else if (ext === 'images') {
+          var savedImages = data['images'] || [];
+          html += '<div class="md:col-span-2"><div class="border-b border-outline-variant pb-4 mb-4"><span class="font-label-caps text-label-caps text-clay-accent tracking-[0.15em]">IMÁGENES DEL GRID</span></div></div>';
+          html += '<div class="md:col-span-2">';
+          html += '<div id="social-images-container" class="space-y-4" aria-label="IMÁGENES DEL GRID"></div>';
+          html += '<button type="button" id="addSocialImageBtn" class="mt-2 font-label-caps text-label-caps text-secondary hover:text-monolith-black inline-flex items-center gap-1.5 transition-colors">';
+          html += '<span class="material-symbols-outlined text-lg">add_circle</span>';
+          html += 'AGREGAR IMAGEN';
+          html += '</button>';
+          html += '</div>';
         } else {
           html += '<div class="md:col-span-2">' +
             '<label for="landing-' + sectionKey + '-' + ext + '" class="font-label-caps text-label-caps text-secondary block mb-2">' + landingFieldLabels[ext] + '</label>' +
@@ -1085,6 +1115,11 @@ const tabs = [
       // Load testimonial items
       if (section.extras.includes('testimonial_items')) {
         loadTestimonialItems(data.items || []);
+      }
+
+      // Load social images
+      if (section.extras.includes('images')) {
+        loadSocialImages(data.images || []);
       }
 
       // Initialize image upload for sections with image_url
@@ -1131,6 +1166,16 @@ const tabs = [
         addBtn.addEventListener('click', () => {
           const container = document.getElementById('testimonial-items-container');
           container.appendChild(createTestimonialEntry({}));
+          markDirty('landing');
+        });
+      }
+
+      // Add social image button
+      const addImgBtn = document.getElementById('addSocialImageBtn');
+      if (addImgBtn) {
+        addImgBtn.addEventListener('click', () => {
+          const container = document.getElementById('social-images-container');
+          container.appendChild(createSocialImageEntry({}));
           markDirty('landing');
         });
       }
@@ -1220,6 +1265,137 @@ const tabs = [
       });
     }
 
+    // --- Social images management ---
+    function createSocialImageEntry(data) {
+      const div = document.createElement('div');
+      div.className = 'social-image-entry border border-outline-variant rounded-sm p-4 bg-white relative';
+      var platformOptions = [
+        { value: 'facebook', label: 'Facebook' },
+        { value: 'instagram', label: 'Instagram' },
+        { value: 'tiktok', label: 'TikTok' },
+        { value: 'linkedin', label: 'LinkedIn' },
+        { value: 'youtube', label: 'YouTube' },
+      ];
+      var platOpts = '';
+      for (var pi = 0; pi < platformOptions.length; pi++) {
+        var opt = platformOptions[pi];
+        platOpts += '<option value="' + opt.value + '"' + (data?.platform === opt.value ? ' selected' : '') + '>' + opt.label + '</option>';
+      }
+      var imgUrl = data?.image_url || '';
+      div.innerHTML = `
+        <button type="button" class="delete-social-image absolute top-2 right-2 w-10 h-10 flex items-center justify-center text-secondary hover:text-error transition-colors" title="Eliminar imagen">
+          <span class="material-symbols-outlined text-lg">close</span>
+        </button>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="md:col-span-2">
+            <label class="font-label-caps text-label-caps text-secondary block mb-1 text-xs">URL DE LA IMAGEN</label>
+            <div class="flex gap-2 items-start">
+              <input type="text" data-social-image-field="image_url" maxlength="500" class="flex-1 bg-transparent border-b border-outline pb-1.5 text-monolith-black focus:border-clay-accent focus:outline-none text-sm focus-visible:ring-2 focus-visible:ring-monolith-black" placeholder="https://ik.imagekit.io/..." value="${escapeHtml(imgUrl)}" />
+              <button type="button" class="social-image-upload-btn font-label-caps text-label-caps text-clay-accent hover:text-monolith-black transition-colors whitespace-nowrap flex items-center gap-1 cursor-pointer text-xs mt-1">
+                <span class="material-symbols-outlined text-lg">upload</span> SUBIR
+              </button>
+            </div>
+            <div class="social-image-upload-zone hidden mt-2 border-2 border-dashed border-outline-variant hover:border-clay-accent rounded-sm p-4 text-center cursor-pointer transition-colors">
+              <input type="file" accept="image/png,image/jpeg,image/webp" class="hidden" />
+              <span class="material-symbols-outlined text-xl text-secondary block mb-1">add_photo_alternate</span>
+              <p class="font-body text-body-md text-xs text-secondary">Seleccionar archivo</p>
+            </div>
+            <div class="social-image-preview mt-2' + (imgUrl ? '' : ' hidden') + '">
+              <img src="${escapeHtml(imgUrl)}" alt="" class="w-20 h-20 object-cover rounded-sm border border-outline-variant" />
+            </div>
+          </div>
+          <div>
+            <label class="font-label-caps text-label-caps text-secondary block mb-1 text-xs">PLATAFORMA</label>
+            <select data-social-image-field="platform" class="w-full bg-transparent border-b border-outline pb-1.5 text-monolith-black focus:border-clay-accent focus:outline-none text-sm focus-visible:ring-2 focus-visible:ring-monolith-black">${platOpts}</select>
+          </div>
+        </div>
+      `;
+
+      // Delete handler
+      div.querySelector('.delete-social-image').addEventListener('click', () => {
+        div.remove();
+        markDirty('landing');
+      });
+
+      // Upload handler
+      var uploadBtn = div.querySelector('.social-image-upload-btn');
+      var uploadZone = div.querySelector('.social-image-upload-zone');
+      var fileInput = uploadZone.querySelector('input[type="file"]');
+      var previewDiv = div.querySelector('.social-image-preview');
+      var urlInput = div.querySelector('[data-social-image-field="image_url"]');
+
+      uploadBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        fileInput.click();
+      });
+
+      uploadZone.addEventListener('click', function () {
+        fileInput.click();
+      });
+
+      fileInput.addEventListener('change', function () {
+        var file = fileInput.files[0];
+        if (!file) return;
+        // Show uploading state
+        uploadBtn.textContent = 'SUBIR...';
+        uploadBtn.disabled = true;
+
+        var formData = new FormData();
+        formData.append('image', file);
+
+        fetch('/api/imagekit/upload.php', {
+          method: 'POST',
+          body: formData,
+          headers: window.VunoAuth ? { 'Authorization': 'Bearer ' + (window.VunoAuth.getToken ? window.VunoAuth.getToken() : '') } : {},
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (res.url) {
+            urlInput.value = res.url;
+            previewDiv.innerHTML = '<img src="' + escapeHtml(res.url) + '" alt="" class="w-20 h-20 object-cover rounded-sm border border-outline-variant" />';
+            previewDiv.classList.remove('hidden');
+            uploadZone.classList.add('hidden');
+            markDirty('landing');
+          }
+        })
+        .catch(function () {})
+        .finally(function () {
+          uploadBtn.textContent = 'SUBIR';
+          uploadBtn.disabled = false;
+        });
+      });
+
+      // Change/mark dirty
+      div.querySelectorAll('[data-social-image-field]').forEach(function (el) {
+        el.addEventListener('change', function () { markDirty('landing'); });
+        el.addEventListener('input', function () { markDirty('landing'); });
+      });
+
+      return div;
+    }
+
+    function loadSocialImages(items) {
+      const container = document.getElementById('social-images-container');
+      if (!container) return;
+      container.innerHTML = '';
+      if (!items || items.length === 0) {
+        container.appendChild(createSocialImageEntry({}));
+        return;
+      }
+      items.forEach(function (item) { container.appendChild(createSocialImageEntry(item)); });
+    }
+
+    function collectSocialImages() {
+      const entries = document.querySelectorAll('#social-images-container .social-image-entry');
+      return Array.from(entries).map(function (entry) {
+        var item = {};
+        entry.querySelectorAll('[data-social-image-field]').forEach(function (el) {
+          item[el.dataset.socialImageField] = el.value;
+        });
+        return item;
+      });
+    }
+
     function collectLandingSettings() {
       const collected = {};
       for (const [key, section] of Object.entries(landingSections)) {
@@ -1242,6 +1418,24 @@ const tabs = [
         for (const f of allFields) {
           if (f === 'testimonial_items') {
             collected[key]['items'] = collectTestimonialItems();
+            continue;
+          }
+          if (f === 'platforms') {
+            var platCollected = {};
+            var platNames = ['facebook', 'instagram', 'tiktok', 'linkedin', 'youtube'];
+            for (var pii = 0; pii < platNames.length; pii++) {
+              var pn = platNames[pii];
+              var enabledEl = document.getElementById('landing-' + key + '-platform-' + pn);
+              var urlEl = document.getElementById('landing-' + key + '-platform-url-' + pn);
+              if (enabledEl && urlEl) {
+                platCollected[pn] = { enabled: enabledEl.checked, url: urlEl.value };
+              }
+            }
+            collected[key]['platforms'] = platCollected;
+            continue;
+          }
+          if (f === 'images') {
+            collected[key]['images'] = collectSocialImages();
             continue;
           }
           const el = document.getElementById(`landing-${key}-${f}`);
