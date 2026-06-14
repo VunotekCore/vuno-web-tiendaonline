@@ -119,5 +119,6 @@ skills-lock.json
 # Encryption key (auto-generated, do not version)
 php/encryption.key
 
-# Database config (per-environment, edit manually)
+# Database config & installer lock (per-environment)
 php/database/config.php
+php/.installer-lock
