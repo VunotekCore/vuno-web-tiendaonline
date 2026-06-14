@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /**
  * POST /api/pedidos/update-receipt.php
  * Updates the transfer receipt URL for a pending order

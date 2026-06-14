@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /**
  * Seed/Reseed all email templates from file-based sources into DB.
  * Only superadmin can run this.

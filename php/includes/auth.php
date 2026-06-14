@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /**
  * Admin Authentication - PHP Sessions (API mode)
  *
@@ -68,7 +70,6 @@ function getAdminUserId(string $email): int
     if ($id) return (int)$id;
 
     jsonError('Usuario no encontrado en la base de datos', 401);
-    exit;
 }
 
 function isAdminLoggedIn(): bool

@@ -28,7 +28,6 @@ try {
     if (!$customer) {
         // Don't reveal if email exists
         jsonResponse(['message' => $responseMsg]);
-        return;
     }
 
     // Delete any existing unused tokens for this email

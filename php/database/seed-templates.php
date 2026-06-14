@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /**
  * Seed initial HTML email templates from file-based sources into the database.
  * Run: php php/database/seed-templates.php

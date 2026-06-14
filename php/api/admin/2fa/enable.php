@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /**
  * POST /api/admin/2fa/enable.php
  * Enable 2FA after verifying the first TOTP code.

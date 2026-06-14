@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 
 function getImageKitAuth(?string $privateKey = null): string
 {
@@ -40,12 +42,16 @@ function imageKitRequest(string $method, string $endpoint, array $options = [], 
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
 
-    $data = json_decode($response, true);
-    if ($httpCode >= 400) {
-        throw new \RuntimeException('ImageKit error: ' . ($data['message'] ?? $response ?? 'Unknown'));
+    if ($response === false) {
+        throw new \RuntimeException('ImageKit cURL error: ' . curl_error($ch));
     }
 
-    return $data ?: [];
+    $data = json_decode($response, true);
+    if ($httpCode >= 400) {
+        throw new \RuntimeException('ImageKit error: ' . ($data['message'] ?? $response));
+    }
+
+    return is_array($data) ? $data : [];
 }
 
 function uploadImage(string $filePath, string $fileName, string $folder = '', ?string $privateKey = null): array
@@ -78,15 +84,19 @@ function uploadImage(string $filePath, string $fileName, string $folder = '', ?s
     curl_close($ch);
 
     if ($errno) {
-        throw new \RuntimeException('ImageKit cURL error: ' . $error);
+        throw new \RuntimeException('ImageKit upload cURL error: ' . $error);
+    }
+
+    if ($response === false) {
+        throw new \RuntimeException('ImageKit upload error: empty response');
     }
 
     $result = json_decode($response, true);
     if ($httpCode >= 400) {
-        throw new \RuntimeException('ImageKit upload error (HTTP ' . $httpCode . '): ' . ($result['message'] ?? $response ?? 'Unknown'));
+        throw new \RuntimeException('ImageKit upload error (HTTP ' . $httpCode . '): ' . ($result['message'] ?? $response));
     }
 
-    return $result ?: [];
+    return is_array($result) ? $result : [];
 }
 
 function getImageKitFile(string $fileId): array

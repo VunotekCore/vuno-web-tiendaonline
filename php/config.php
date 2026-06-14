@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /**
  * Ram;Lop - PHP Backend Configuration
  * Loads environment variables from .env or hosting environment.
@@ -23,8 +25,10 @@ if (file_exists($envFile)) {
 
 function env(string $key, mixed $default = null): mixed
 {
-    $value = $_ENV[$key] ?? getenv($key);
-    return $value !== false && $value !== null ? $value : $default;
+    if (isset($_ENV[$key])) return $_ENV[$key];
+    $value = getenv($key);
+    if ($value === false) return $default;
+    return $value;
 }
 
 // --- Secrets Encryption ---
@@ -63,12 +67,16 @@ function decryptSecret(string $encoded): string {
 // --- Product Constraints ---
 define('MAX_PRODUCT_IMAGES', 20);
 
-// --- Database Constants ---
-define('DB_HOST', env('DB_HOST', 'localhost'));
-define('DB_PORT', env('DB_PORT', '3306'));
-define('DB_NAME', env('DB_NAME', 'vuno_ramlop_ecommerce'));
-define('DB_USER', env('DB_USER', 'dail'));
-define('DB_PASS', env('DB_PASS', ''));
+// --- Database Constants (from local config or env fallback) ---
+$localDb = __DIR__ . '/database/config.php';
+if (file_exists($localDb)) {
+    require_once $localDb;
+}
+if (!defined('DB_HOST')) define('DB_HOST', env('DB_HOST', 'localhost'));
+if (!defined('DB_PORT')) define('DB_PORT', env('DB_PORT', '3306'));
+if (!defined('DB_NAME')) define('DB_NAME', env('DB_NAME', 'vuno_ramlop_ecommerce'));
+if (!defined('DB_USER')) define('DB_USER', env('DB_USER', 'dail'));
+if (!defined('DB_PASS')) define('DB_PASS', env('DB_PASS', ''));
 
 // --- Database Connection ---
 function getDb(): PDO
@@ -139,14 +147,16 @@ function setCorsHeaders(): void
 }
 
 // --- JSON Response Helper ---
-function jsonResponse(mixed $data, int $status = 200): void
+/** @return never */
+function jsonResponse(mixed $data, int $status = 200): never
 {
     http_response_code($status);
     echo json_encode($data, JSON_UNESCAPED_UNICODE);
     exit;
 }
 
-function jsonError(string $message, int $status = 400): void
+/** @return never */
+function jsonError(string $message, int $status = 400): never
 {
     jsonResponse(['error' => $message], $status);
 }

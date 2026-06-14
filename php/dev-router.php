@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /**
  * Dev server router for PHP built-in server.
  * Serves static files from dist/ and routes dynamic blog posts.

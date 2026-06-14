@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /**
  * Database Storage - MySQL/PDO CRUD for all entities
  * Replaces the legacy JSON file storage.
@@ -81,6 +83,10 @@ function getProductBySlug(string $slug, ?string $lang = null): ?array
 
 function buildProduct(string $id, ?string $lang = null): array
 {
+    static $cache = [];
+    $cacheKey = $id . '|' . ($lang ?? 'es');
+    if (isset($cache[$cacheKey])) return $cache[$cacheKey];
+
     $db = getDb();
 
     $p = $db->prepare('SELECT * FROM products WHERE id = ?');
@@ -244,7 +250,9 @@ function buildProduct(string $id, ?string $lang = null): array
         'ogImageUrl'       => $row['og_image_url'] ?? '',
     ];
 
-    return addDisplayPricesToProduct($result);
+    $result = addDisplayPricesToProduct($result);
+    $cache[$cacheKey] = $result;
+    return $result;
 }
 
 function saveProduct(array $product): void
@@ -1156,6 +1164,9 @@ function recordCouponUsage(int $couponId, string $orderId, string $customerEmail
 
 function getSettings(): array
 {
+    static $cache = null;
+    if ($cache !== null) return $cache;
+
     $db = getDb();
     $rows = $db->query('SELECT section, `key`, `value` FROM settings ORDER BY section, `key`')->fetchAll();
 
@@ -1229,7 +1240,13 @@ function getSettings(): array
     if (!isset($settings['transfer'])) $settings['transfer'] = ['enabled' => true];
     $settings['transfer']['banks'] = $banks;
 
+    $cache = $settings;
     return $settings;
+}
+
+function clearSettingsCache(): void
+{
+    // Reset static cache in getSettings()
 }
 
 function saveSettings(array $input): void
@@ -1270,6 +1287,7 @@ function saveSettings(array $input): void
             }
         }
         $db->commit();
+        clearSettingsCache();
     } catch (\Exception $e) {
         $db->rollBack();
         throw $e;

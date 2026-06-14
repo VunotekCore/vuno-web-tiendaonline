@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /**
  * Export newsletter subscribers as CSV.
  * GET /api/suscriptores/export.php

@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /**
  * POST /api/monedas/update-rate.php - Update currency exchange rates (admin only)
  */

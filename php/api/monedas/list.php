@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /**
  * GET /api/monedas/list.php - List all currencies
  * Public: no auth required (used by checkout frontend)

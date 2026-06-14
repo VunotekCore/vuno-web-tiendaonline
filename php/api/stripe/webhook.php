@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /**
  * POST /api/stripe/webhook.php
  * Receives Stripe webhook events

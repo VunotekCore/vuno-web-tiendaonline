@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /**
  * Manually unsubscribe a newsletter subscriber.
  * POST /api/suscriptores/unsubscribe.php
@@ -35,7 +37,6 @@ try {
 
     if (!$subscriber['is_active']) {
         jsonResponse(['success' => true, 'message' => 'Subscriber was already inactive.']);
-        return;
     }
 
     $stmt = $db->prepare('UPDATE newsletter_subscribers SET is_active = 0, unsubscribed_at = NOW(), updated_at = NOW() WHERE id = ?');

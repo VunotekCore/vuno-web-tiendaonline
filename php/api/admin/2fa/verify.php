@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /**
  * POST /api/admin/2fa/verify.php
  * Verify TOTP code or backup code during login step-up.

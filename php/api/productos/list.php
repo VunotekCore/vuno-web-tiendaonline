@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /**
  * GET /api/productos/list.php - List products with pagination and search
  * Query params: ?limit=10&offset=0&search=zapato

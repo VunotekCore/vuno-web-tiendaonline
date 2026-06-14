@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /**
  * POST /api/monedas/create.php - Create a new currency (admin only)
  */

@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /**
  * Email Service - PHP
  * Uses PHPMailer (composer require phpmailer/phpmailer)
@@ -381,50 +383,4 @@ function sendNewOrderNotification(array $order): array
     return sendTemplatedEmail('new_order_notification', $adminEmail, $vars);
 }
 
-/**
- * Legacy: send plain email with custom HTML.
- */
-function sendEmail(string $to, string $subject, string $html, ?string $fromEmail = null): array
-{
-    $settings = getSettings();
-    $smtp = $settings['smtp'] ?? [];
 
-    $host = $smtp['host'] ?? '';
-    $user = $smtp['user'] ?? '';
-    $pass = $smtp['pass'] ?? '';
-    $port = $smtp['port'] ?? '587';
-    $from = $fromEmail ?: ($smtp['fromEmail'] ?? 'noreply@vuno.com');
-    $fromName = $smtp['fromName'] ?? 'Ram;Lop';
-
-    if (!$host || !$user) {
-        error_log("[Ram;Lop Email] SMTP not configured. Would send to: $to, Subject: $subject");
-        return ['success' => true, 'note' => 'Email not sent (SMTP not configured)'];
-    }
-
-    try {
-        $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
-        $mail->isSMTP();
-        $mail->Host = $host;
-        $mail->Port = (int)$port;
-        $mail->SMTPAuth = true;
-        $mail->Username = $user;
-        $mail->Password = $pass;
-        $mail->SMTPSecure = (int)$port === 587
-            ? \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS
-            : \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS;
-        $mail->CharSet = 'UTF-8';
-
-        $mail->setFrom($from, $fromName);
-        $mail->addAddress($to);
-        $mail->isHTML(true);
-        $mail->Subject = $subject;
-        $mail->Body = $html;
-        $mail->AltBody = strip_tags($html);
-
-        $mail->send();
-        return ['success' => true];
-    } catch (\PHPMailer\PHPMailer\Exception $e) {
-        error_log("[Ram;Lop Email] Failed: " . $e->getMessage());
-        return ['success' => false, 'error' => $e->getMessage()];
-    }
-}

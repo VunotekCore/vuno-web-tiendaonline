@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /**
  * GET /api/pedidos/get.php?id=X - Get single order by ID
  */

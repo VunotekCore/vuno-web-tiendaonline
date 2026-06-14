@@ -1,0 +1,10 @@
+parameters:
+    scanFiles:
+        - php/includes/storage.php
+        - php/includes/email.php
+    level: 6
+    paths:
+        - php/api
+        - php/includes
+        - php/config.php
+    treatPhpDocTypesAsCertain: false

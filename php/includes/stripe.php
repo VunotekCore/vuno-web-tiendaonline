@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /**
  * Stripe Service - PHP
  * Uses Stripe SDK (composer require stripe/stripe-php)

@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /**
  * POST /api/admin/2fa/disable.php
  * Disable 2FA. Requires password + current TOTP code.

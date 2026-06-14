@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /**
  * List newsletter subscribers with pagination and search.
  * GET /api/suscriptores/list.php?page=1&limit=10&search=...

@@ -18,7 +18,6 @@ switch ($method) {
     case 'GET':
         $addresses = getCustomerAddresses($customerId);
         jsonResponse(['addresses' => $addresses]);
-        break;
 
     case 'POST':
         $input = json_decode(file_get_contents('php://input'), true);
@@ -29,7 +28,6 @@ switch ($method) {
         $id = createCustomerAddress($customerId, $input);
         $address = getCustomerAddress($id, $customerId);
         jsonResponse(['address' => $address], 201);
-        break;
 
     case 'PUT':
         $input = json_decode(file_get_contents('php://input'), true);
@@ -39,7 +37,6 @@ switch ($method) {
         updateCustomerAddress($addressId, $customerId, $input);
         $address = getCustomerAddress($addressId, $customerId);
         jsonResponse(['address' => $address]);
-        break;
 
     case 'DELETE':
         $input = json_decode(file_get_contents('php://input'), true);
@@ -48,7 +45,6 @@ switch ($method) {
 
         deleteCustomerAddress($addressId, $customerId);
         jsonResponse(['success' => true]);
-        break;
 
     default:
         jsonError('Method not allowed', 405);

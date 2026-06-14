@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /**
  * GET /api/pedidos/list.php - List orders with pagination, search, and status filter
  * Query params: ?limit=10&offset=0&search=maria&status=pending

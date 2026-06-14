@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /**
  * Restore a single template from its file-based source into DB.
  * Only superadmin can run this.

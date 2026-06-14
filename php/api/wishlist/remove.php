@@ -31,7 +31,6 @@ if (!$customerId && !empty($data['email'])) {
 
 if (!$customerId) {
     jsonResponse(['success' => true]);
-    return;
 }
 
 $variantId = !empty($data['variant_id']) ? (int)$data['variant_id'] : null;

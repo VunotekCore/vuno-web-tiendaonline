@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /**
  * Send Newsletter Campaign (batch)
  * POST /api/newsletter/send-campaign.php
@@ -89,7 +91,6 @@ if ($testEmail) {
         'error'   => $result['error'] ?? null,
         'done'    => true,
     ]);
-    return;
 }
 
 // ---- Campaign mode: send batch to active subscribers ----
@@ -121,7 +122,6 @@ try {
             'next_offset' => $offset,
             'done'        => true,
         ]);
-        return;
     }
 
     $sent   = 0;

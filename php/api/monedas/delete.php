@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /**
  * POST /api/monedas/delete.php - Deactivate a currency (admin only)
  */

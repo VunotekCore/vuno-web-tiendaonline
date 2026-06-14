@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 require_once __DIR__ . '/../../config.php';
 require_once __DIR__ . '/../../includes/storage.php';
 
@@ -12,6 +14,7 @@ $slug = $_GET['slug'] ?? '';
 $id = (int)($_GET['id'] ?? 0);
 $lang = isset($_GET['lang']) ? trim($_GET['lang']) : null;
 
+$post = null;
 if ($slug) {
     $post = getBlogPostBySlug($slug, $lang);
 } elseif ($id) {

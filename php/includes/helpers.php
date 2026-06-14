@@ -1,22 +1,9 @@
 <?php
+declare(strict_types=1);
+
 /**
  * Utility helpers - equivalent to src/lib/utils.ts and src/lib/cart.ts
  */
-
-if (!function_exists('formatPrice')) {
-    function formatPrice(float $price, string $currency = 'USD', string $symbol = '$', int $decimals = 2): string
-    {
-        if (class_exists('NumberFormatter')) {
-            $fmt = new NumberFormatter('es_419', NumberFormatter::CURRENCY);
-            $fmt->setTextAttribute(NumberFormatter::CURRENCY_CODE, $currency);
-            $fmt->setAttribute(NumberFormatter::MIN_FRACTION_DIGITS, $decimals);
-            $fmt->setAttribute(NumberFormatter::MAX_FRACTION_DIGITS, $decimals);
-            $formatted = $fmt->formatCurrency($price, $currency);
-            if ($formatted !== false) return $formatted;
-        }
-        return $symbol . number_format($price, $decimals);
-    }
-}
 
 function generateOrderId(): string
 {
@@ -41,11 +28,6 @@ function calculateSubtotal(array $items): float
         $total += ($item['product']['price'] ?? 0) * ($item['quantity'] ?? 1);
     }
     return $total;
-}
-
-function calculateTotal(array $items): float
-{
-    return calculateSubtotal($items);
 }
 
 function escapeHtml(string $text): string

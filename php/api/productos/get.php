@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /**
  * GET /api/productos/get.php?id=X - Get single product by ID
  */

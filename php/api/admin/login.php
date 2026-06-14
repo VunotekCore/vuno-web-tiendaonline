@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /**
  * POST /api/admin/login.php - Authenticate admin with rate limiting
  */

@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /**
  * POST /api/stripe/create-payment-intent.php
  * Creates a Stripe PaymentIntent from cart items

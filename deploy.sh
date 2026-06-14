@@ -19,7 +19,8 @@ echo "📦 Copying PHP backend to dist/..."
 rm -rf dist/api dist/includes dist/blog dist/email-templates dist/database dist/config.php dist/composer.json dist/vendor dist/encryption.key dist/.htaccess
 cp -r php/api dist/api
 cp -r php/includes dist/includes
-cp -r php/blog dist/blog
+# php/blog/ does not exist yet — uncomment when blog static pages are added
+# cp -r php/blog dist/blog
 cp -r php/email-templates dist/email-templates
 cp -r php/database dist/database
 cp php/config.php dist/config.php

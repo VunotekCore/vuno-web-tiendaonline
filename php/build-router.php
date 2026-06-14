@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 // Router for PHP built-in server during Astro build
 // Maps /api/* requests from astro build to php/api/*
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);

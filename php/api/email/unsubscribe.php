@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /**
  * Newsletter Unsubscribe Endpoint
  * GET /api/email/unsubscribe.php?email=user@example.com

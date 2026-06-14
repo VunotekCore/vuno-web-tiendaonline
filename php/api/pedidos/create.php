@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 require_once __DIR__ . '/../../config.php';
 require_once __DIR__ . '/../../includes/storage.php';
 require_once __DIR__ . '/../../includes/email.php';
@@ -22,7 +24,6 @@ try {
     // Idempotency check — if order already exists, return success
     if (getOrderById($orderId)) {
         jsonResponse(['success' => true, 'id' => $orderId, 'existing' => true]);
-        exit;
     }
 
     // Resolve customer from auth token if not provided directly
