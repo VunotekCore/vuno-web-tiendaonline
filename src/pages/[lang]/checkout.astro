@@ -169,7 +169,7 @@ const steps = [
               </div>
               <div class="flex justify-between">
                 <span class="font-body text-body-md text-secondary">{t("cart.shipping", lang)}</span>
-                <span class="font-body text-body-md">{t("checkout.shippingFree", lang)}</span>
+                <span class="font-body text-body-md" id="shippingCost">{t("checkout.shippingFree", lang)}</span>
               </div>
 
               <div class="border-t border-outline-variant/30 pt-4">
@@ -293,9 +293,53 @@ const steps = [
     let pendingOrder = null;
     let appliedCoupon = null;
     let couponDiscount = 0;
+    let shippingCost = 0;
+    let shippingLabel = '';
 
     function getCustomerEmail() {
       return document.getElementById("customerEmail").value.trim();
+    }
+
+    async function calculateShipping() {
+      const items = window.VunoCart.getItems();
+      if (items.length === 0) {
+        shippingCost = 0;
+        shippingLabel = '';
+        return;
+      }
+      const subtotal = window.VunoCart.getSubtotal();
+      try {
+        const res = await fetch("/api/shipping/calculate.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ subtotal }),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          shippingCost = data.shipping || 0;
+          shippingLabel = data.label || checkoutI18n.shippingFree;
+        } else {
+          shippingCost = 0;
+          shippingLabel = checkoutI18n.shippingFree;
+        }
+      } catch {
+        shippingCost = 0;
+        shippingLabel = checkoutI18n.shippingFree;
+      }
+      const shippingEl = document.getElementById("shippingCost");
+      if (shippingEl) {
+        const items = window.VunoCart.getItems();
+        const symbol = getDisplaySymbol(items);
+        if (shippingCost > 0) {
+          const rate = items[0]?.product?.display_price && items[0]?.product?.price
+            ? (items[0].product.display_price / items[0].product.price)
+            : 1;
+          shippingEl.textContent = symbol + window.formatPrice(shippingCost * rate);
+        } else {
+          shippingEl.textContent = checkoutI18n.shippingFree;
+        }
+      }
+      renderSummaryTotal();
     }
 
     async function applyCoupon() {
@@ -370,12 +414,12 @@ const steps = [
       const items = window.VunoCart.getItems();
       const symbol = getDisplaySymbol(items);
       const displaySubtotal = getDisplaySubtotal(items);
-      // couponDiscount is in USD; we need to convert to display
       const rate = items[0]?.product?.display_price && items[0]?.product?.price
         ? (items[0].product.display_price / items[0].product.price)
         : 1;
       const displayDiscount = couponDiscount * rate;
-      const total = Math.max(0, displaySubtotal - displayDiscount);
+      const displayShipping = shippingCost * rate;
+      const total = Math.max(0, displaySubtotal - displayDiscount + displayShipping);
       document.getElementById("summaryTotal").textContent = symbol + window.formatPrice(total);
     }
 
@@ -518,7 +562,7 @@ const steps = [
       `}).join("");
       const displaySubtotal = getDisplaySubtotal(items);
       document.getElementById("summarySubtotal").textContent = `${symbol}${window.formatPrice(displaySubtotal)}`;
-      renderSummaryTotal();
+      calculateShipping();
     }
 
     document.querySelectorAll('input[name="payment"]').forEach(radio => {
@@ -567,7 +611,7 @@ const steps = [
       const city = document.getElementById("customerCity").value.trim();
       const zip = document.getElementById("customerZip").value.trim();
       const subtotal = window.VunoCart.getSubtotal(); // USD
-      const total = Math.max(0, subtotal - couponDiscount); // USD
+      const total = Math.max(0, subtotal - couponDiscount + shippingCost); // USD
       const firstItem = items[0]?.product;
       const displayCurrency = firstItem?.display_currency || "USD";
       const displaySymbol = firstItem?.display_symbol || "$";
@@ -579,7 +623,7 @@ const steps = [
         id: "RL-" + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 5).toUpperCase(),
         items: items,
         subtotal: subtotal,
-        shipping: 0,
+        shipping: shippingCost,
         tax: 0,
         discountTotal: couponDiscount,
         total: total,

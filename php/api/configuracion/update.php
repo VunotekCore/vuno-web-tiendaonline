@@ -13,7 +13,7 @@ requireRole('superadmin');
 $input = json_decode(file_get_contents('php://input'), true);
 if (!$input || !is_array($input)) jsonError('Invalid data');
 
-$allowedKeys = ['store', 'receipt', 'imagekit', 'stripe', 'transfer', 'smtp', 'currency', 'landing', 'policies', 'size_guide', 'seo'];
+$allowedKeys = ['store', 'receipt', 'imagekit', 'stripe', 'transfer', 'smtp', 'currency', 'landing', 'policies', 'size_guide', 'seo', 'shipping'];
 $settings = getSettings();
 foreach ($allowedKeys as $key) {
     if (isset($input[$key]) && is_array($input[$key])) {
