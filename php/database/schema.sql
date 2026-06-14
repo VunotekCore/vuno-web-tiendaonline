@@ -475,6 +475,7 @@ CREATE TABLE orders (
     payment_status_id       INT UNSIGNED NOT NULL,
     stripe_payment_intent_id VARCHAR(255) DEFAULT NULL,
     transfer_receipt_url    VARCHAR(500) DEFAULT NULL,
+    selected_bank_id        INT UNSIGNED DEFAULT NULL,
     coupon_id               INT UNSIGNED DEFAULT NULL,
     shipping_method_id      INT UNSIGNED DEFAULT NULL,
 
