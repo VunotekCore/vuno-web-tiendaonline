@@ -63,6 +63,12 @@ const siteUrl = import.meta.env.PROD ? "https://vuno.com" : "http://localhost:43
       <link rel="alternate" hreflang={locale} href={url} />
     ))}
     <link rel="alternate" hreflang="x-default" href={`${siteUrl}/es/`} />
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
     <link rel="dns-prefetch" href="https://ik.imagekit.io" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -147,19 +153,40 @@ const siteUrl = import.meta.env.PROD ? "https://vuno.com" : "http://localhost:43
     <ProfileEditModal lang={lang} />
     <OrderDetailModal lang={lang} />
 
-    <!-- WhatsApp Floating Button -->
-    <a
+    <!-- WhatsApp Floating Button + Popover -->
+    <button
       id="whatsapp-btn"
-      href="#"
-      target="_blank"
-      rel="noopener noreferrer"
+      type="button"
       aria-label="Chatea con nosotros por WhatsApp"
-      class="hidden fixed bottom-6 right-6 z-[80] w-14 h-14 bg-[#25D366] hover:bg-[#20BD5A] rounded-full shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-300 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#25D366]"
+      class="hidden fixed bottom-6 right-6 z-[80] w-14 h-14 bg-[#25D366] hover:bg-[#20BD5A] rounded-full shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-300 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#25D366] cursor-pointer"
     >
-      <svg viewBox="0 0 24 24" class="w-7 h-7 fill-white" aria-hidden="true">
+      <svg viewBox="0 0 24 24" class="w-7 h-7 fill-white pointer-events-none" aria-hidden="true">
         <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
       </svg>
-    </a>
+    </button>
+
+    <!-- WhatsApp Popover -->
+    <div id="wa-popover" class="hidden fixed bottom-24 right-6 z-[80] w-72 bg-off-white border border-outline-variant shadow-xl rounded-sm" role="dialog" aria-label="Chat de WhatsApp">
+      <div class="flex items-center justify-between px-4 py-3 border-b border-outline-variant">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-lg text-[#25D366]">chat</span>
+          <span class="font-label-caps text-label-caps text-monolith-black tracking-wider">WhatsApp</span>
+        </div>
+        <button type="button" id="wa-popover-close" class="text-secondary hover:text-monolith-black transition-colors p-0.5" aria-label="Cerrar">
+          <span class="material-symbols-outlined text-lg">close</span>
+        </button>
+      </div>
+      <div class="p-4">
+        <p class="font-body text-body-md text-sm text-secondary mb-3">Escribí tu mensaje y te responderemos a la brevedad:</p>
+        <textarea id="wa-message" rows="4" maxlength="500" class="w-full border border-outline-variant p-3 text-monolith-black text-sm resize-none focus:border-clay-accent focus:outline-none rounded-sm" placeholder="Escribí tu mensaje..."></textarea>
+      </div>
+      <div class="px-4 pb-4">
+        <button type="button" id="wa-send" class="w-full font-label-caps text-label-caps bg-[#25D366] text-white rounded-sm h-10 hover:bg-[#20BD5A] transition-all flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined text-base">send</span>
+          Enviar por WhatsApp
+        </button>
+      </div>
+    </div>
 
     <script is:inline>
       window.formatPrice = function (value) {
@@ -334,73 +361,130 @@ const siteUrl = import.meta.env.PROD ? "https://vuno.com" : "http://localhost:43
       })
 
       // Contact form submission
-      document.getElementById('contactForm').addEventListener('submit', function (e) {
-        e.preventDefault()
-        var btn = document.getElementById('contactSubmitBtn')
-        var error = document.getElementById('contactError')
-        error.classList.add('hidden')
+      var contactForm = document.getElementById('contactForm');
+      if (contactForm) {
+        contactForm.addEventListener('submit', function (e) {
+          e.preventDefault()
+          var btn = document.getElementById('contactSubmitBtn')
+          var error = document.getElementById('contactError')
+          var success = document.getElementById('contactSuccess')
+          error.classList.add('hidden')
 
-        var name = document.getElementById('contact-name').value.trim()
-        var email = document.getElementById('contact-email').value.trim()
-        var phone = document.getElementById('contact-phone').value.trim()
-        var subject = document.getElementById('contact-subject').value
-        var message = document.getElementById('contact-message').value.trim()
-        var website = document.getElementById('contact-website').value
+          var name = document.getElementById('contact-name').value.trim()
+          var email = document.getElementById('contact-email').value.trim()
+          var phone = document.getElementById('contact-phone').value.trim()
+          var subject = document.getElementById('contact-subject').value
+          var message = document.getElementById('contact-message').value.trim()
+          var website = document.getElementById('contact-website').value
 
-        // Validation
-        if (!name || !email || !subject || !message) {
-          error.textContent = document.querySelector('[data-i18n="contact.errorRequired"]')?.textContent
-          error.classList.remove('hidden')
-          return
-        }
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-          error.textContent = document.querySelector('[data-i18n="contact.errorEmail"]')?.textContent
-          error.classList.remove('hidden')
-          return
-        }
-
-        btn.disabled = true
-        btn.textContent = document.querySelector('[data-i18n="contact.sending"]')?.textContent
-
-        fetch('/api/contact/send.php', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: name, email: email, phone: phone, subject: subject, message: message, website: website })
-        })
-          .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d } }) })
-          .then(function (res) {
-            if (res.ok && res.data.success) {
-              document.getElementById('contactForm').classList.add('hidden')
-              document.getElementById('contactSuccess').classList.remove('hidden')
-            } else {
-              throw new Error('api_error')
-            }
-          })
-          .catch(function () {
-            error.textContent = document.querySelector('[data-i18n="contact.errorMessage"]')?.textContent
+          // Validation
+          if (!name || !email || !subject || !message) {
+            error.textContent = document.querySelector('[data-i18n="contact.errorRequired"]')?.textContent
             error.classList.remove('hidden')
-          })
-          .finally(function () {
-            btn.disabled = false
-            btn.textContent = document.querySelector('[data-i18n="contact.send"]')?.textContent
-          })
-      })
+            return
+          }
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            error.textContent = document.querySelector('[data-i18n="contact.errorEmail"]')?.textContent
+            error.classList.remove('hidden')
+            return
+          }
 
-      // WhatsApp floating button
+          btn.disabled = true
+          btn.textContent = document.querySelector('[data-i18n="contact.sending"]')?.textContent
+
+          fetch('/api/contact/send.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: name, email: email, phone: phone, subject: subject, message: message, website: website })
+          })
+            .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d } }) })
+            .then(function (res) {
+              if (res.ok && res.data.success) {
+                contactForm.classList.add('hidden')
+                success.classList.remove('hidden')
+              } else {
+                throw new Error('api_error')
+              }
+            })
+            .catch(function () {
+              error.textContent = document.querySelector('[data-i18n="contact.errorMessage"]')?.textContent
+              error.classList.remove('hidden')
+            })
+            .finally(function () {
+              btn.disabled = false
+              btn.textContent = document.querySelector('[data-i18n="contact.send"]')?.textContent
+            })
+        })
+      }
+
+      // WhatsApp floating button + popover
       (function () {
         var btn = document.getElementById('whatsapp-btn')
-        if (!btn) return
+        var popover = document.getElementById('wa-popover')
+        var closeBtn = document.getElementById('wa-popover-close')
+        var sendBtn = document.getElementById('wa-send')
+        var textarea = document.getElementById('wa-message')
+        if (!btn || !popover) return
 
+        var waNumber = ''
+        var openedByBtn = false
+
+        function openPopover() {
+          popover.classList.remove('hidden')
+          openedByBtn = true
+          setTimeout(function () { textarea.focus() }, 100)
+        }
+
+        function closePopover() {
+          popover.classList.add('hidden')
+          openedByBtn = false
+        }
+
+        function sendMessage() {
+          if (!waNumber) return
+          var msg = textarea.value.trim()
+          var url = 'https://wa.me/' + encodeURIComponent(waNumber)
+          if (msg) url += '?text=' + encodeURIComponent(msg)
+          window.open(url, '_blank')
+          closePopover()
+        }
+
+        btn.addEventListener('click', function (e) {
+          e.preventDefault()
+          if (popover.classList.contains('hidden')) {
+            openPopover()
+          } else {
+            closePopover()
+          }
+        })
+
+        closeBtn.addEventListener('click', closePopover)
+        sendBtn.addEventListener('click', sendMessage)
+
+        // Enter en textarea envía
+        textarea.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault()
+            sendMessage()
+          }
+        })
+
+        // Click fuera cierra
+        document.addEventListener('click', function (e) {
+          if (!openedByBtn) return
+          var target = e.target
+          if (btn.contains(target) || popover.contains(target)) return
+          closePopover()
+        })
+
+        // Fetch config
         fetch('/api/configuracion/public.php')
           .then(function (r) { return r.json() })
           .then(function (data) {
             var wa = data.whatsapp || {}
             if (wa.enabled && wa.number) {
-              var url = 'https://wa.me/' + encodeURIComponent(wa.number)
-              if (wa.message) {
-                url += '?text=' + encodeURIComponent(wa.message)
-              }
-              btn.href = url
+              waNumber = wa.number
+              if (wa.message) textarea.value = wa.message
               btn.classList.remove('hidden')
             }
           })

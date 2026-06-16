@@ -212,23 +212,23 @@ import AdminLayout from "../_layout.astro";
 
         if (orders.length > 0) {
           tbody.innerHTML = orders.map(function (o) {
-            var sym = o.currency === 'NIO' ? 'C$' : '$';
+            var sym = o.display_symbol || (o.currency === 'NIO' ? 'C$' : '$');
             return '<tr class="border-b border-outline-variant/50 hover:bg-monolith-black/[0.02] transition-colors">' +
               '<td class="p-4 font-medium">' + (o.order_number || o.id) + '</td>' +
               '<td class="p-4 text-secondary">' + new Date(o.created_at).toLocaleDateString() + '</td>' +
               '<td class="p-4">' + statusBadge(o.status_code) + '</td>' +
               '<td class="p-4 text-secondary">' + (o.payment_method_code || '—') + '</td>' +
-              '<td class="p-4 font-price-display text-price-display">' + sym + window.formatPrice(o.total || 0) + '</td>' +
+               '<td class="p-4 font-price-display text-price-display">' + sym + window.formatPrice((o.display_total ?? o.total) || 0) + '</td>' +
               '<td class="p-4"><a href="/admin/pedidos/detalle?id=' + o.id + '" class="font-label-caps text-label-caps text-monolith-black hover:text-clay-accent transition-colors inline-flex items-center gap-1">' +
               '<span class="material-symbols-outlined text-lg">visibility</span> VER</a></td></tr>';
           }).join('');
 
           cards.innerHTML = orders.map(function (o) {
-            var sym = o.currency === 'NIO' ? 'C$' : '$';
+            var sym = o.display_symbol || (o.currency === 'NIO' ? 'C$' : '$');
             return '<div class="py-4 flex items-center justify-between">' +
               '<div><p class="font-body text-body-md text-monolith-black font-medium">' + (o.order_number || o.id) + '</p>' +
               '<p class="font-body text-body-md text-secondary text-sm">' + new Date(o.created_at).toLocaleDateString() + '</p></div>' +
-              '<div class="text-right"><p class="font-price-display text-price-display">' + sym + window.formatPrice(o.total || 0) + '</p>' +
+               '<div class="text-right"><p class="font-price-display text-price-display">' + sym + window.formatPrice((o.display_total ?? o.total) || 0) + '</p>' +
               statusBadge(o.status_code) + '</div></div>';
           }).join('');
         }

@@ -477,16 +477,28 @@ function getOrders(?int $limit = null, ?int $offset = null, ?string $search = nu
 function getOrderById(string $id): ?array
 {
     $db = getDb();
-    // Search by order_number
-    $stmt = $db->prepare(
-        'SELECT o.*, os.code AS status_code, pm.code AS payment_method_code, ps.code AS payment_status_code
-         FROM orders o
-         JOIN order_statuses os ON os.id = o.status_id
-         JOIN payment_methods pm ON pm.id = o.payment_method_id
-         JOIN payment_statuses ps ON ps.id = o.payment_status_id
-         WHERE o.order_number = ?'
-    );
-    $stmt->execute([$id]);
+    // Search by order_number or numeric id
+    if (ctype_digit($id)) {
+        $stmt = $db->prepare(
+            'SELECT o.*, os.code AS status_code, pm.code AS payment_method_code, ps.code AS payment_status_code
+             FROM orders o
+             JOIN order_statuses os ON os.id = o.status_id
+             JOIN payment_methods pm ON pm.id = o.payment_method_id
+             JOIN payment_statuses ps ON ps.id = o.payment_status_id
+             WHERE o.id = ? OR o.order_number = ?'
+        );
+        $stmt->execute([(int)$id, $id]);
+    } else {
+        $stmt = $db->prepare(
+            'SELECT o.*, os.code AS status_code, pm.code AS payment_method_code, ps.code AS payment_status_code
+             FROM orders o
+             JOIN order_statuses os ON os.id = o.status_id
+             JOIN payment_methods pm ON pm.id = o.payment_method_id
+             JOIN payment_statuses ps ON ps.id = o.payment_status_id
+             WHERE o.order_number = ?'
+        );
+        $stmt->execute([$id]);
+    }
     $row = $stmt->fetch();
     if (!$row) return null;
     return buildOrder($row);
@@ -2404,7 +2416,8 @@ function getCustomerById(int $id): ?array
     // Order history
     $orderStmt = $db->prepare('
         SELECT o.id, o.order_number, o.created_at, o.total, o.currency,
-               os.code AS status_code, pm.code AS payment_method_code
+               o.exchange_rate, os.code AS status_code,
+               pm.code AS payment_method_code
         FROM orders o
         JOIN order_statuses os ON os.id = o.status_id
         JOIN payment_methods pm ON pm.id = o.payment_method_id
@@ -2413,7 +2426,15 @@ function getCustomerById(int $id): ?array
         LIMIT 20
     ');
     $orderStmt->execute([$id]);
-    $customer['orders'] = $orderStmt->fetchAll();
+    $orders = $orderStmt->fetchAll();
+    foreach ($orders as &$order) {
+        $rate = (float)($order['exchange_rate'] ?? 1.0);
+        $order['display_total'] = convertFromUsd((float)$order['total'], $rate);
+        $currency = getCurrency($order['currency'] ?? 'USD');
+        $order['display_symbol'] = $currency ? $currency['symbol'] : '$';
+    }
+    unset($order);
+    $customer['orders'] = $orders;
 
     // Wishlist
     $customer['wishlist'] = getWishlist($id);
