@@ -2337,3 +2337,122 @@ function deleteCustomerAddress(int $addressId, int $customerId): void
     $stmt = $db->prepare('DELETE FROM customer_addresses WHERE id = ? AND customer_id = ?');
     $stmt->execute([$addressId, $customerId]);
 }
+
+function getCustomers(?int $limit = null, ?int $offset = null, ?string $search = null): array
+{
+    $db = getDb();
+
+    $countSql = 'SELECT COUNT(*) FROM customers';
+    $sql = 'SELECT * FROM customers';
+    $conditions = [];
+    $params = [];
+
+    if ($search) {
+        $like = '%' . $search . '%';
+        $conditions[] = '(name LIKE ? OR email LIKE ? OR phone LIKE ?)';
+        $params[] = $like;
+        $params[] = $like;
+        $params[] = $like;
+    }
+
+    if ($conditions) {
+        $where = ' WHERE ' . implode(' AND ', $conditions);
+        $countSql .= $where;
+        $sql .= $where;
+    }
+
+    $countStmt = $db->prepare($countSql);
+    $countStmt->execute($params);
+    $total = (int)$countStmt->fetchColumn();
+
+    $sql .= ' ORDER BY created_at DESC';
+    if ($limit !== null) {
+        $sql .= ' LIMIT ?';
+        $params[] = $limit;
+    }
+    if ($offset !== null) {
+        $sql .= ' OFFSET ?';
+        $params[] = $offset;
+    }
+
+    $stmt = $db->prepare($sql);
+    $stmt->execute($params);
+    $rows = $stmt->fetchAll();
+
+    $customers = [];
+    foreach ($rows as $row) {
+        $customers[] = buildCustomer($row);
+    }
+    return ['items' => $customers, 'total' => $total];
+}
+
+function getCustomerById(int $id): ?array
+{
+    $db = getDb();
+    $stmt = $db->prepare('SELECT * FROM customers WHERE id = ?');
+    $stmt->execute([$id]);
+    $row = $stmt->fetch();
+    if (!$row) return null;
+
+    $customer = buildCustomer($row);
+
+    // Addresses
+    $addrStmt = $db->prepare('SELECT * FROM customer_addresses WHERE customer_id = ? ORDER BY is_default_shipping DESC, created_at DESC');
+    $addrStmt->execute([$id]);
+    $customer['addresses'] = $addrStmt->fetchAll();
+
+    // Order history
+    $orderStmt = $db->prepare('
+        SELECT o.id, o.order_number, o.created_at, o.total, o.currency,
+               os.code AS status_code, pm.code AS payment_method_code
+        FROM orders o
+        JOIN order_statuses os ON os.id = o.status_id
+        JOIN payment_methods pm ON pm.id = o.payment_method_id
+        WHERE o.customer_id = ?
+        ORDER BY o.created_at DESC
+        LIMIT 20
+    ');
+    $orderStmt->execute([$id]);
+    $customer['orders'] = $orderStmt->fetchAll();
+
+    // Wishlist
+    $customer['wishlist'] = getWishlist($id);
+
+    return $customer;
+}
+
+function deleteCustomer(int $id): void
+{
+    $db = getDb();
+    $db->beginTransaction();
+    try {
+        $db->prepare('DELETE FROM customer_addresses WHERE customer_id = ?')->execute([$id]);
+        $db->prepare('DELETE FROM customer_sessions WHERE customer_id = ?')->execute([$id]);
+        $db->prepare('DELETE FROM wishlist_items WHERE customer_id = ?')->execute([$id]);
+        $db->prepare('DELETE FROM cart_items WHERE customer_id = ?')->execute([$id]);
+        $db->prepare('UPDATE orders SET customer_id = NULL WHERE customer_id = ?')->execute([$id]);
+        $db->prepare('UPDATE product_reviews SET customer_id = NULL WHERE customer_id = ?')->execute([$id]);
+        $db->prepare('DELETE FROM customers WHERE id = ?')->execute([$id]);
+        $db->commit();
+    } catch (\Exception $e) {
+        $db->rollBack();
+        throw $e;
+    }
+}
+
+function buildCustomer(array $row): array
+{
+    return [
+        'id'           => (int)$row['id'],
+        'email'        => $row['email'],
+        'name'         => $row['name'],
+        'phone'        => $row['phone'] ?? '',
+        'is_verified'  => (bool)$row['is_verified'],
+        'notes'        => $row['notes'] ?? '',
+        'last_order_at' => $row['last_order_at']
+            ? date('c', strtotime($row['last_order_at']))
+            : null,
+        'created_at'   => date('c', strtotime($row['created_at'])),
+        'updated_at'   => date('c', strtotime($row['updated_at'])),
+    ];
+}

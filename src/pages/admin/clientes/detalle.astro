@@ -1,0 +1,257 @@
+---
+import AdminLayout from "../_layout.astro";
+---
+
+<AdminLayout title="Detalle de Cliente" currentPath="/admin/clientes">
+  <div id="loading" class="font-body text-body-md text-secondary p-4">Loading customer...</div>
+  <div id="error" class="hidden font-body text-body-md text-error bg-error/10 p-3 rounded-sm"></div>
+
+  <div id="customerContent" class="hidden">
+    <!-- Customer Info -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
+        <h2 class="font-headline text-headline-md mb-4 flex items-center gap-2">
+          <span class="material-symbols-outlined text-xl">person</span>
+          <span id="customerName"></span>
+        </h2>
+        <div class="space-y-3 font-body text-body-md">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-base text-secondary">mail</span>
+            <span class="text-secondary">Email:</span>
+            <a id="customerEmail" class="text-monolith-black hover:text-clay-accent transition-colors"></a>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-base text-secondary">phone</span>
+            <span class="text-secondary">Teléfono:</span>
+            <span id="customerPhone"></span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-base text-secondary">verified</span>
+            <span class="text-secondary">Verificado:</span>
+            <span id="customerVerified"></span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-base text-secondary">calendar_today</span>
+            <span class="text-secondary">Registrado:</span>
+            <span id="customerCreated"></span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-base text-secondary">history</span>
+            <span class="text-secondary">Último pedido:</span>
+            <span id="customerLastOrder"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-6">
+        <h2 class="font-headline text-headline-md mb-4 flex items-center gap-2">
+          <span class="material-symbols-outlined text-xl">notes</span>
+          Notas internas
+        </h2>
+        <p id="customerNotes" class="font-body text-body-md text-secondary leading-relaxed whitespace-pre-wrap">Sin notas.</p>
+      </div>
+    </div>
+
+    <!-- Addresses -->
+    <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm mb-8">
+      <div class="px-6 py-4 border-b border-outline-variant">
+        <h2 class="font-headline text-headline-md flex items-center gap-2">
+          <span class="material-symbols-outlined text-xl">home</span>
+          Direcciones
+        </h2>
+      </div>
+      <div id="addressesContainer" class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <p class="font-body text-body-md text-secondary md:col-span-2">Sin direcciones guardadas.</p>
+      </div>
+    </div>
+
+    <!-- Order History -->
+    <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm mb-8">
+      <div class="px-6 py-4 border-b border-outline-variant">
+        <h2 class="font-headline text-headline-md flex items-center gap-2">
+          <span class="material-symbols-outlined text-xl">receipt_long</span>
+          Historial de Pedidos
+        </h2>
+      </div>
+      <div class="hidden md:block overflow-x-auto">
+        <table class="w-full text-left">
+          <thead>
+            <tr class="bg-monolith-black/5 font-label-caps text-label-caps text-secondary">
+              <th class="p-4 font-medium">PEDIDO</th>
+              <th class="p-4 font-medium">FECHA</th>
+              <th class="p-4 font-medium">ESTADO</th>
+              <th class="p-4 font-medium">PAGO</th>
+              <th class="p-4 font-medium">TOTAL</th>
+              <th class="p-4 font-medium">ACCIONES</th>
+            </tr>
+          </thead>
+          <tbody id="ordersBody">
+            <tr><td colspan="6" class="p-8 text-center font-body text-body-md text-secondary">Sin pedidos.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="ordersCards" class="block md:hidden divide-y divide-outline-variant/50 px-6">
+        <p class="font-body text-body-md text-secondary py-4 text-center">Sin pedidos.</p>
+      </div>
+    </div>
+
+    <!-- Wishlist -->
+    <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm mb-8">
+      <div class="px-6 py-4 border-b border-outline-variant">
+        <h2 class="font-headline text-headline-md flex items-center gap-2">
+          <span class="material-symbols-outlined text-xl">favorite</span>
+          Wishlist
+        </h2>
+      </div>
+      <div id="wishlistContainer" class="p-6">
+        <p class="font-body text-body-md text-secondary">Sin productos en wishlist.</p>
+      </div>
+    </div>
+
+    <div class="mt-6">
+      <a href="/admin/clientes" class="inline-flex items-center gap-1.5 font-label-caps text-label-caps text-secondary hover:text-monolith-black transition-colors">
+        <span class="material-symbols-outlined text-lg">arrow_back</span>
+        Volver a Clientes
+      </a>
+    </div>
+  </div>
+
+  <style>
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      font-family: 'Hanken Grotesk', sans-serif;
+      font-size: 0.625rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.25rem 0.5rem;
+      border-radius: 2px;
+    }
+  </style>
+
+  <script>
+    // @ts-nocheck
+    const statusStyles = {
+      pending: "bg-clay-accent/20 text-clay-accent",
+      paid: "bg-monolith-black text-off-white",
+      shipped: "bg-monolith-black/80 text-off-white",
+      delivered: "bg-monolith-black text-off-white",
+      cancelled: "bg-error/20 text-error",
+    };
+
+    function statusBadge(status) {
+      return `<span class="status-badge ${statusStyles[status] || ''}">
+        <span class="w-1.5 h-1.5 rounded-full ${status === 'cancelled' ? 'bg-error' : status === 'pending' ? 'bg-clay-accent' : 'bg-off-white'}"></span>
+        ${(status || '').toUpperCase()}
+      </span>`;
+    }
+
+    (async function () {
+      const params = new URLSearchParams(window.location.search);
+      const customerId = params.get("id");
+
+      if (!customerId) {
+        document.getElementById("loading").textContent = "No customer ID specified.";
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/clientes/get.php?id=" + encodeURIComponent(customerId));
+        if (!res.ok) throw new Error("Customer not found");
+        const c = await res.json();
+
+        document.getElementById("customerName").textContent = c.name || "Unknown";
+        document.getElementById("customerEmail").textContent = c.email;
+        document.getElementById("customerEmail").href = "mailto:" + c.email;
+        document.getElementById("customerPhone").textContent = c.phone || "—";
+        document.getElementById("customerVerified").innerHTML = c.is_verified
+          ? '<span class="text-green-600 flex items-center gap-1"><span class="material-symbols-outlined text-sm">check_circle</span>Sí</span>'
+          : '<span class="text-secondary">No</span>';
+        document.getElementById("customerCreated").textContent = c.created_at
+          ? new Date(c.created_at).toLocaleDateString("es-NI", { year: "numeric", month: "long", day: "numeric" })
+          : "—";
+        document.getElementById("customerLastOrder").textContent = c.last_order_at
+          ? new Date(c.last_order_at).toLocaleDateString("es-NI", { year: "numeric", month: "long", day: "numeric" })
+          : "—";
+        document.getElementById("customerNotes").textContent = c.notes || "Sin notas.";
+
+        // Addresses
+        var addrContainer = document.getElementById("addressesContainer");
+        var addrs = c.addresses || [];
+        if (addrs.length > 0) {
+          addrContainer.innerHTML = addrs.map(function (a) {
+            var labels = [];
+            if (a.is_default_shipping) labels.push('Envío');
+            if (a.is_default_billing) labels.push('Facturación');
+            var badgeHtml = labels.length > 0
+              ? '<div class="flex gap-1 mb-2">' + labels.map(function (l) {
+                  return '<span class="font-label-caps text-label-caps text-[10px] bg-monolith-black text-off-white px-1.5 py-0.5 rounded-sm">' + l + '</span>';
+                }).join('') + '</div>'
+              : '';
+            return '<div class="border border-outline-variant rounded-sm p-4">' +
+              badgeHtml +
+              '<p class="font-body text-body-md text-monolith-black font-medium">' + (a.label || 'Dirección') + '</p>' +
+              '<p class="font-body text-body-md text-secondary text-sm mt-1">' + a.address_line1 +
+              (a.address_line2 ? ', ' + a.address_line2 : '') + '</p>' +
+              '<p class="font-body text-body-md text-secondary text-sm">' +
+              (a.city ? a.city + ', ' : '') + (a.state ? a.state + ' ' : '') + (a.zip || '') + '</p>' +
+              (a.phone ? '<p class="font-body text-body-md text-secondary text-sm mt-1">' + a.phone + '</p>' : '') +
+              '</div>';
+          }).join('');
+        } else {
+          addrContainer.innerHTML = '<p class="font-body text-body-md text-secondary md:col-span-2">Sin direcciones guardadas.</p>';
+        }
+
+        // Orders
+        var orders = c.orders || [];
+        var tbody = document.getElementById("ordersBody");
+        var cards = document.getElementById("ordersCards");
+
+        if (orders.length > 0) {
+          tbody.innerHTML = orders.map(function (o) {
+            var sym = o.currency === 'NIO' ? 'C$' : '$';
+            return '<tr class="border-b border-outline-variant/50 hover:bg-monolith-black/[0.02] transition-colors">' +
+              '<td class="p-4 font-medium">' + (o.order_number || o.id) + '</td>' +
+              '<td class="p-4 text-secondary">' + new Date(o.created_at).toLocaleDateString() + '</td>' +
+              '<td class="p-4">' + statusBadge(o.status_code) + '</td>' +
+              '<td class="p-4 text-secondary">' + (o.payment_method_code || '—') + '</td>' +
+              '<td class="p-4 font-price-display text-price-display">' + sym + window.formatPrice(o.total || 0) + '</td>' +
+              '<td class="p-4"><a href="/admin/pedidos/detalle?id=' + o.id + '" class="font-label-caps text-label-caps text-monolith-black hover:text-clay-accent transition-colors inline-flex items-center gap-1">' +
+              '<span class="material-symbols-outlined text-lg">visibility</span> VER</a></td></tr>';
+          }).join('');
+
+          cards.innerHTML = orders.map(function (o) {
+            var sym = o.currency === 'NIO' ? 'C$' : '$';
+            return '<div class="py-4 flex items-center justify-between">' +
+              '<div><p class="font-body text-body-md text-monolith-black font-medium">' + (o.order_number || o.id) + '</p>' +
+              '<p class="font-body text-body-md text-secondary text-sm">' + new Date(o.created_at).toLocaleDateString() + '</p></div>' +
+              '<div class="text-right"><p class="font-price-display text-price-display">' + sym + window.formatPrice(o.total || 0) + '</p>' +
+              statusBadge(o.status_code) + '</div></div>';
+          }).join('');
+        }
+
+        // Wishlist
+        var wishlist = c.wishlist || [];
+        var wlContainer = document.getElementById("wishlistContainer");
+        if (wishlist.length > 0) {
+          wlContainer.innerHTML = '<div class="space-y-2">' + wishlist.map(function (w) {
+            return '<div class="flex items-center justify-between border-b border-outline-variant/50 pb-2 last:border-0">' +
+              '<a href="/producto/' + w.slug + '" class="font-body text-body-md text-monolith-black hover:text-clay-accent transition-colors" target="_blank">' + w.name + '</a>' +
+              '<span class="font-price-display text-price-display text-sm">' + (w.currency === 'NIO' ? 'C$' : '$') + window.formatPrice(w.price) + '</span>' +
+              '</div>';
+          }).join('') + '</div>';
+        }
+
+        document.getElementById("loading").classList.add("hidden");
+        document.getElementById("customerContent").classList.remove("hidden");
+      } catch (err) {
+        document.getElementById("loading").textContent = "Error loading customer.";
+        document.getElementById("error").textContent = err.message;
+        document.getElementById("error").classList.remove("hidden");
+      }
+    })();
+  </script>
+</AdminLayout>
