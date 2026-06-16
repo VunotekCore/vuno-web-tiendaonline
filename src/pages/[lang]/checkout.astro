@@ -770,6 +770,7 @@ const steps = [
       const order = buildOrderObject(payment);
       const subtotal = order.subtotal;
       if (payment === "stripe") {
+        document.getElementById("processingModal").classList.remove("hidden");
         try {
           const createRes = await fetch("/api/pedidos/create.php", {
             method: "POST",
@@ -809,13 +810,20 @@ const steps = [
             window.VunoCart.clear();
             localStorage.removeItem("vuno_cart_backup");
             localStorage.setItem("vuno_last_order_" + order.id, JSON.stringify(order));
+            document.getElementById("processingModal").classList.add("hidden");
             showOrderSuccessModal(order);
           } else {
             throw new Error("Payment was not successful: " + paymentIntent.status);
           }
         } catch (err) {
-          document.getElementById("paymentError").textContent = err.message;
-          document.getElementById("paymentError").classList.remove("hidden");
+          document.getElementById("processingModal").classList.add("hidden");
+          window.VunoModal.alert({
+            type: "error",
+            title: "Error en el pago",
+            message: err.message,
+            buttonText: "INTENTAR DE NUEVO",
+            onClose: function () { window.location.reload(); }
+          });
           this.disabled = false;
           this.textContent = checkoutI18n.placeOrder;
           submitting = false;

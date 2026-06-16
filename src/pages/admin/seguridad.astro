@@ -184,9 +184,9 @@ import AdminLayout from "./_layout.astro";
         document.getElementById("stepPassword").classList.add("hidden");
         document.getElementById("stepQR").classList.remove("hidden");
 
-        // Generate QR code image via Google Charts API (no library needed)
+        // Generate QR code image via free API (no key needed)
         const qrUri = encodeURIComponent(data.qrUri);
-        document.getElementById("qrImage").src = "https://chart.googleapis.com/chart?chs=200x200&chld=M|0&cht=qr&chl=" + qrUri;
+        document.getElementById("qrImage").src = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=10&data=" + qrUri;
         document.getElementById("secretDisplay").textContent = data.secret;
         document.getElementById("qrEmail").textContent = data.email;
         document.getElementById("stepQRCode").value = "";

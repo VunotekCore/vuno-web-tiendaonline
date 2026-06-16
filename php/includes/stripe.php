@@ -7,12 +7,14 @@ declare(strict_types=1);
  */
 
 require_once __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__ . '/storage.php';
 
 function getStripeClient(): \Stripe\StripeClient
 {
-    $key = env('STRIPE_SECRET_KEY');
+    $settings = getSettings();
+    $key = $settings['stripe']['secretKey'] ?? '';
     if (!$key) {
-        throw new \RuntimeException('STRIPE_SECRET_KEY not configured');
+        throw new \RuntimeException('Stripe secret key not configured in admin settings');
     }
     return new \Stripe\StripeClient($key);
 }
@@ -47,9 +49,10 @@ function createPaymentIntent(array $items, string $customerEmail = '', ?float $t
 
 function handleWebhook(): array
 {
-    $secret = env('STRIPE_WEBHOOK_SECRET');
+    $settings = getSettings();
+    $secret = $settings['stripe']['webhookSecret'] ?? '';
     if (!$secret) {
-        throw new \RuntimeException('STRIPE_WEBHOOK_SECRET not configured');
+        throw new \RuntimeException('Stripe webhook secret not configured in admin settings');
     }
 
     $payload = file_get_contents('php://input');

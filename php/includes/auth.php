@@ -181,11 +181,11 @@ function generateTotpSecret(): string
     return \OTPHP\TOTP::generate()->getSecret();
 }
 
-function getTotpProvisioningUri(string $secret, string $email): string
+function getTotpProvisioningUri(string $secret, string $email, ?string $issuer = null): string
 {
     $totp = \OTPHP\TOTP::createFromSecret($secret);
     $totp->setLabel($email);
-    $totp->setIssuer('Ram;Lop Admin');
+    $totp->setIssuer($issuer ?? 'Ram;Lop Admin');
     return $totp->getProvisioningUri();
 }
 

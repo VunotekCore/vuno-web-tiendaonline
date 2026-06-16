@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../../../config.php';
 require_once __DIR__ . '/../../../includes/auth.php';
+require_once __DIR__ . '/../../../includes/storage.php';
 
 setCorsHeaders();
 
@@ -36,9 +37,12 @@ if ((bool)$stmt->fetchColumn()) {
 }
 
 // Generate new secret (always regenerate on setup)
-$secret = generateTotpSecret();
-$email  = $_SESSION['admin_email'] ?? 'admin@vuno.com';
-$uri    = getTotpProvisioningUri($secret, $email);
+    $settings = getSettings();
+    $storeName = $settings['store']['name'] ?? 'Ram;Lop';
+
+    $secret = generateTotpSecret();
+    $email  = $_SESSION['admin_email'];
+    $uri    = getTotpProvisioningUri($secret, $email, $storeName);
 
 // Store secret temporarily (not yet enabled)
 $db->prepare('UPDATE admin_users SET totp_secret = ? WHERE id = ?')

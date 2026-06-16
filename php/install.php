@@ -1,6 +1,6 @@
 <?php
 /**
- * Ram;Lop — Web Installer
+ * Vuno-store — Web Installer
  *
  * One-time setup wizard for production deployment.
  * Flow:
@@ -47,7 +47,7 @@ if ($isInstalled) {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Ya Instalado — Ram;Lop</title>
+        <title>Ya Instalado — Vuno-Store</title>
         <style>
             * { margin: 0; padding: 0; box-sizing: border-box; }
             body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: #faf9f8; color: #1A1A1A; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
@@ -61,7 +61,7 @@ if ($isInstalled) {
     <body>
         <div class="card">
             <div class="badge">✓ Instalado</div>
-            <h1>Ram;Lop ya está configurado</h1>
+            <h1>Vuno-Store ya está configurado</h1>
             <p>El instalador ya fue ejecutado. Si necesitas reinstalar, eliminá el archivo <code>php/.installer-lock</code> del servidor y volvé a acceder a esta página.</p>
             <p><a href="/admin/login" style="color:#1A1A1A;text-decoration:underline;font-weight:500;">Ir al panel administrador →</a></p>
             <div class="lock-note">o eliminá install.php después de la instalación.</div>
@@ -83,7 +83,7 @@ function renderHeader(string $title, string $stepTitle, int $step = 1): void
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title><?= htmlspecialchars($title) ?> — Ram;Lop Installer</title>
+        <title><?= htmlspecialchars($title) ?> — Vuno-Store Installer</title>
         <style>
             * { margin: 0; padding: 0; box-sizing: border-box; }
             body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: #faf9f8; color: #1A1A1A; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
@@ -119,7 +119,7 @@ function renderHeader(string $title, string $stepTitle, int $step = 1): void
 function renderFooter(): void
 {
     ?>
-            <div class="footer">Ram;Lop Installer v<?= INSTALLER_VERSION ?></div>
+            <div class="footer">Vuno-Store Installer v<?= INSTALLER_VERSION ?></div>
         </div>
     </body>
     </html>
@@ -197,7 +197,7 @@ if ($step === 1) {
             </div>
         </div>
         <label for="db_name">Nombre de la Base de Datos</label>
-        <input type="text" id="db_name" name="db_name" value="<?= htmlspecialchars($_POST['db_name'] ?? 'vuno_ramlop_ecommerce') ?>" required>
+        <input type="text" id="db_name" name="db_name" value="<?= htmlspecialchars($_POST['db_name'] ?? 'vuno_ecommerce') ?>" required>
         <div class="hint">Se creará automáticamente si no existe.</div>
         <label for="db_user">Usuario</label>
         <input type="text" id="db_user" name="db_user" value="<?= htmlspecialchars($_POST['db_user'] ?? '') ?>" required autocomplete="off">
@@ -393,7 +393,7 @@ PHP;
                 // Success!
                 echo renderHeader('¡Instalación Completa!', 'Finalizado', $step);
                 ?>
-                <div class="success">✓ Ram;Lop está listo.</div>
+                <div class="success">✓ Vuno-Store está listo.</div>
                 <ul>
                     <li><strong>Tienda:</strong> <?= htmlspecialchars($storeName) ?></li>
                     <li><strong>Admin email:</strong> <?= htmlspecialchars($adminEmail) ?></li>
@@ -429,7 +429,7 @@ PHP;
 
         <h2 style="font-size:15px;font-weight:600;margin:24px 0 4px;letter-spacing:-.01em;">Tienda</h2>
         <label for="store_name">Nombre de la Tienda *</label>
-        <input type="text" id="store_name" name="store_name" value="<?= htmlspecialchars($_POST['store_name'] ?? 'Ram;Lop') ?>" required>
+        <input type="text" id="store_name" name="store_name" value="<?= htmlspecialchars($_POST['store_name'] ?? 'Vuno Store') ?>" required>
         <label for="store_email">Email de Contacto *</label>
         <input type="email" id="store_email" name="store_email" value="<?= htmlspecialchars($_POST['store_email'] ?? '') ?>" required>
         <div class="hint">Email público que verán los clientes.</div>

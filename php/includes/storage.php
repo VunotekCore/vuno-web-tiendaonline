@@ -1366,7 +1366,7 @@ function getDashboardStats(): array
 
         $paidStatusId = (int)$db->query("SELECT id FROM order_statuses WHERE code = 'paid'")->fetchColumn();
         $stmt = $db->prepare(
-            'SELECT COUNT(*), COALESCE(SUM(total), 0) FROM orders WHERE status_id = ? AND created_at BETWEEN ? AND ?'
+            'SELECT COUNT(*) AS cnt, COALESCE(SUM(total), 0) AS revenue FROM orders WHERE status_id = ? AND created_at BETWEEN ? AND ?'
         );
         $stmt->execute([$paidStatusId, $monthStart, $monthEnd]);
         $monthlyData = $stmt->fetch();
@@ -1400,7 +1400,7 @@ function getDashboardStats(): array
              ORDER BY p.name'
         )->fetchAll();
 
-        $monthlyRevenue = (float)$monthlyData['SUM(o.total)'];
+        $monthlyRevenue = (float)$monthlyData['revenue'];
 
         // All orders this month (includes all statuses)
         $stmt3 = $db->prepare(
