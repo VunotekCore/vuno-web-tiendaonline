@@ -36,13 +36,23 @@ try {
         }
     }
 
+    $subtotal = (float)($input['subtotal'] ?? 0);
+    $shipping = (float)($input['shipping'] ?? 0);
+    $discountTotal = (float)($input['discountTotal'] ?? 0);
+
+    // Calculate tax server-side from settings (security: override client value)
+    $settings = getSettings();
+    $taxRate = (float)($settings['tax']['rate'] ?? 0) / 100;
+    $tax = round(($subtotal - $discountTotal) * $taxRate, 2);
+    $total = round(max(0, $subtotal - $discountTotal + $shipping + $tax), 2);
+
     $order = [
         'id' => $orderId,
         'items' => $input['items'],
-        'subtotal' => (float)($input['subtotal'] ?? 0),
-        'shipping' => (float)($input['shipping'] ?? 0),
-        'tax' => (float)($input['tax'] ?? 0),
-        'total' => (float)($input['total'] ?? 0),
+        'subtotal' => $subtotal,
+        'shipping' => $shipping,
+        'tax' => $tax,
+        'total' => $total,
         'currency' => $input['currency'] ?? 'USD',
         'exchange_rate' => (float)($input['exchange_rate'] ?? 1.0),
         'status' => $input['status'] ?? 'pending',
@@ -54,6 +64,8 @@ try {
         'customer' => $input['customer'] ?? [],
         'customerId' => $customerId,
         'createdAt' => $input['createdAt'] ?? date('c'),
+        'discountTotal' => $discountTotal,
+        'couponCode' => $input['couponCode'] ?? null,
     ];
 
     saveOrder($order);
@@ -63,8 +75,6 @@ try {
 
     if ($order['paymentMethod'] === 'transfer') {
         try {
-            $bankAccounts = getBankAccounts();
-            sendOrderConfirmation($order, $bankAccounts);
             sendNewOrderNotification($order);
         } catch (\Throwable $e) {
             error_log('Order created but email failed: ' . $e->getMessage());

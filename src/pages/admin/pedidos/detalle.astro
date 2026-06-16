@@ -109,6 +109,14 @@ const validStatuses = ["pending", "paid", "shipped", "delivered", "cancelled"];
                 <td colspan="5" class="p-4 text-right font-body text-body-md text-clay-accent">Discount</td>
                 <td class="p-4 font-price-display text-price-display text-clay-accent" id="orderDiscount"></td>
               </tr>
+              <tr class="border-t border-outline-variant/50">
+                <td colspan="5" class="p-4 text-right font-body text-body-md text-secondary">Shipping</td>
+                <td class="p-4 font-price-display text-price-display" id="orderShipping"></td>
+              </tr>
+              <tr id="taxRow" class="border-t border-outline-variant/50">
+                <td colspan="5" class="p-4 text-right font-body text-body-md text-secondary">IVA</td>
+                <td class="p-4 font-price-display text-price-display" id="orderTax"></td>
+              </tr>
               <tr class="font-headline text-headline-md border-t border-outline-variant">
                 <td colspan="5" class="p-4 text-right">Total</td>
                 <td class="p-4 font-price-display text-price-display text-monolith-black" id="orderTotal"></td>
@@ -122,6 +130,14 @@ const validStatuses = ["pending", "paid", "shipped", "delivered", "cancelled"];
       <div id="discountRowMobile" class="hidden md:hidden border-t border-outline-variant/50 px-6 py-3 flex justify-between items-center">
         <span class="font-body text-body-md text-clay-accent">Discount</span>
         <span class="font-price-display text-price-display text-clay-accent" id="orderDiscountMobile"></span>
+      </div>
+      <div id="shippingRowMobile" class="block md:hidden border-t border-outline-variant/50 px-6 py-3 flex justify-between items-center">
+        <span class="font-body text-body-md text-secondary">Shipping</span>
+        <span class="font-price-display text-price-display" id="orderShippingMobile"></span>
+      </div>
+      <div id="taxRowMobile" class="block md:hidden border-t border-outline-variant/50 px-6 py-3 flex justify-between items-center">
+        <span class="font-body text-body-md text-secondary">IVA</span>
+        <span class="font-price-display text-price-display" id="orderTaxMobile"></span>
       </div>
       <div class="block md:hidden border-t border-outline-variant px-6 py-4 flex justify-between items-center">
         <span class="font-headline text-headline-md">Total</span>
@@ -271,13 +287,27 @@ const validStatuses = ["pending", "paid", "shipped", "delivered", "cancelled"];
         const discountEl = document.getElementById("orderDiscount");
         const discountRowMobile = document.getElementById("discountRowMobile");
         const discountElMobile = document.getElementById("orderDiscountMobile");
-        if (o.discountTotal && o.discountTotal > 0) {
+        if (o.display_discountTotal && o.display_discountTotal > 0) {
           if (discountRow) discountRow.classList.remove("hidden");
           var sym = o.display_symbol || "$";
-          if (discountEl) discountEl.textContent = "-" + sym + window.formatPrice(o.discountTotal);
+          if (discountEl) discountEl.textContent = "-" + sym + window.formatPrice(o.display_discountTotal);
           if (discountRowMobile) discountRowMobile.classList.remove("hidden");
-          if (discountElMobile) discountElMobile.textContent = "-" + sym + window.formatPrice(o.discountTotal);
+          if (discountElMobile) discountElMobile.textContent = "-" + sym + window.formatPrice(o.display_discountTotal);
         }
+
+        // Shipping
+        var shippingVal = (o.display_symbol || "$") + window.formatPrice(o.display_shipping || o.shipping || 0);
+        var shippingEl = document.getElementById("orderShipping");
+        var shippingElMobile = document.getElementById("orderShippingMobile");
+        if (shippingEl) shippingEl.textContent = shippingVal;
+        if (shippingElMobile) shippingElMobile.textContent = shippingVal;
+
+        // Tax
+        const taxVal = (o.display_symbol || "$") + window.formatPrice(o.display_tax || o.tax || 0);
+        const taxEl = document.getElementById("orderTax");
+        const taxElMobile = document.getElementById("orderTaxMobile");
+        if (taxEl) taxEl.textContent = taxVal;
+        if (taxElMobile) taxElMobile.textContent = taxVal;
 
         const total = (o.display_symbol || "$") + window.formatPrice(o.display_total || o.total || 0);
         document.getElementById("orderTotal").textContent = total;

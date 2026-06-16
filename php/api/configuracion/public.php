@@ -153,6 +153,9 @@ $public = [
         'footer_es' => $settings['size_guide']['footer_es'] ?? '',
         'footer_en' => $settings['size_guide']['footer_en'] ?? '',
     ],
+    'tax' => [
+        'rate' => $settings['tax']['rate'] ?? '',
+    ],
 ];
 
 jsonResponse($public);

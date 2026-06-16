@@ -187,6 +187,11 @@ const steps = [
                 </div>
               </div>
 
+              <div id="summaryTaxRow" class="hidden flex justify-between items-center">
+                <span class="font-body text-body-md text-secondary">{t("cart.taxes", lang)}</span>
+                <span class="font-price-display text-price-display text-base" id="summaryTax">$0.00</span>
+              </div>
+
               <div class="border-t border-outline-variant/30 pt-4">
                 <div class="flex justify-between">
                   <span class="font-headline text-headline-md">{t("cart.total", lang)}</span>
@@ -295,6 +300,7 @@ const steps = [
     let couponDiscount = 0;
     let shippingCost = 0;
     let shippingLabel = '';
+    let taxRate = 0;
 
     function getCustomerEmail() {
       return document.getElementById("customerEmail").value.trim();
@@ -419,8 +425,17 @@ const steps = [
         : 1;
       const displayDiscount = couponDiscount * rate;
       const displayShipping = shippingCost * rate;
-      const total = Math.max(0, displaySubtotal - displayDiscount + displayShipping);
+      const displayTax = Math.max(0, (displaySubtotal - displayDiscount) * taxRate);
+      const total = Math.max(0, displaySubtotal - displayDiscount + displayShipping + displayTax);
       document.getElementById("summaryTotal").textContent = symbol + window.formatPrice(total);
+      const taxRow = document.getElementById("summaryTaxRow");
+      const taxEl = document.getElementById("summaryTax");
+      if (taxRate > 0) {
+        taxRow.classList.remove("hidden");
+        taxEl.textContent = symbol + window.formatPrice(displayTax);
+      } else {
+        taxRow.classList.add("hidden");
+      }
     }
 
     let selectedBankId = null;
@@ -485,6 +500,7 @@ const steps = [
         document.querySelector('#transferOption input[type="radio"]').checked = true;
       }
       banks = settings?.transfer?.banks || [];
+      taxRate = (parseFloat(settings?.tax?.rate) || 0) / 100;
       const publishableKey = settings?.stripe?.publishableKey;
       if (publishableKey && stripeEnabled) {
         stripe = Stripe(publishableKey);
@@ -611,7 +627,8 @@ const steps = [
       const city = document.getElementById("customerCity").value.trim();
       const zip = document.getElementById("customerZip").value.trim();
       const subtotal = window.VunoCart.getSubtotal(); // USD
-      const total = Math.max(0, subtotal - couponDiscount + shippingCost); // USD
+      const tax = Math.max(0, Math.round((subtotal - couponDiscount) * taxRate * 100) / 100);
+      const total = Math.max(0, subtotal - couponDiscount + shippingCost + tax); // USD
       const firstItem = items[0]?.product;
       const displayCurrency = firstItem?.display_currency || "USD";
       const displaySymbol = firstItem?.display_symbol || "$";
@@ -624,7 +641,7 @@ const steps = [
         items: items,
         subtotal: subtotal,
         shipping: shippingCost,
-        tax: 0,
+        tax: tax,
         discountTotal: couponDiscount,
         total: total,
         currency: displayCurrency,
@@ -668,6 +685,7 @@ const steps = [
 
     function successModalClose() {
       document.getElementById("successModal").classList.add("hidden");
+      window.location.href = "/" + LANG + "/catalogo";
     }
 
     document.getElementById("successModalClose").addEventListener("click", successModalClose);

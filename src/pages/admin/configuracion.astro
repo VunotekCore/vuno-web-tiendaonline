@@ -12,6 +12,7 @@ const tabs = [
   { id: "shipping", label: "Envío", icon: "local_shipping" },
   { id: "landing", label: "Landing", icon: "dashboard_customize" },
   { id: "sizeguide", label: "Guía de Talles", icon: "straighten" },
+  { id: "tax", label: "Impuestos", icon: "receipt_long" },
   { id: "policies", label: "Políticas", icon: "policy" },
   { id: "seo", label: "SEO", icon: "travel_explore" },
 ];
@@ -29,11 +30,11 @@ const tabs = [
     </select>
 
     <!-- Desktop: tab bar -->
-    <div class="hidden lg:block border-b border-outline-variant mb-8 overflow-x-auto">
-      <div class="flex gap-1" role="tablist">
+    <div class="hidden lg:block border-b border-outline-variant mb-8">
+      <div class="grid grid-cols-6" role="tablist">
         {tabs.map((t, i) => (
           <button
-            class="tab-btn px-3 py-2.5 md:px-4 md:py-3 font-label-caps text-label-caps text-secondary hover:bg-monolith-black/5 hover:text-monolith-black rounded-t-sm transition-all whitespace-nowrap flex items-center gap-1.5"
+            class="tab-btn px-2 py-2.5 md:py-3 font-label-caps text-label-caps text-secondary hover:bg-monolith-black/5 hover:text-monolith-black rounded-t-sm transition-all flex items-center justify-center gap-1.5 overflow-hidden"
             role="tab"
             id={"tab-btn-" + t.id}
             aria-selected={i === 0 ? "true" : "false"}
@@ -41,8 +42,8 @@ const tabs = [
             data-tab={t.id}
             tabindex={i === 0 ? "0" : "-1"}
           >
-            <span class="material-symbols-outlined text-lg">{t.icon}</span>
-            {t.label}
+            <span class="material-symbols-outlined text-lg shrink-0">{t.icon}</span>
+            <span class="truncate">{t.label}</span>
           </button>
         ))}
       </div>
@@ -565,6 +566,30 @@ const tabs = [
       </div>
     </div>
 
+    <!-- Tax Tab -->
+    <div id="tab-tax" class="tab-content hidden max-w-full md:max-w-2xl" role="tabpanel" aria-labelledby="tab-btn-tax">
+      <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-4 md:p-6">
+        <h2 class="font-headline text-headline-md mb-2 flex items-center gap-2">
+          <span class="material-symbols-outlined text-xl">receipt_long</span>
+          Impuestos — IVA / Tax Rate
+        </h2>
+        <div class="mb-6 p-3 bg-sand-nude/30 border-l-2 border-clay-accent rounded-sm">
+          <p class="font-body text-body-md text-xs text-secondary leading-relaxed">
+            <span class="material-symbols-outlined text-sm align-text-bottom mr-1">info</span>
+            Establecé el porcentaje de impuesto (IVA) que se aplica al subtotal después de descuentos. El cálculo es: <code class="bg-monolith-black/5 px-1 rounded">(subtotal - descuento) × tasa%</code>. Dejá en 0 si no aplica impuesto.
+          </p>
+        </div>
+        <div class="max-w-xs">
+          <label for="tax-rate" class="font-label-caps text-label-caps text-secondary block mb-2">TASA DE IMPUESTO (%)</label>
+          <div class="flex items-center gap-2">
+            <input type="number" id="tax-rate" step="0.01" min="0" max="100" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-monolith-black" placeholder="15" />
+            <span class="font-body text-body-md text-secondary shrink-0">%</span>
+          </div>
+          <p class="font-body text-body-md text-xs text-secondary mt-1">Ej: 15 para IVA 15%. El impuesto se calcula sobre (subtotal - descuento).</p>
+        </div>
+      </div>
+    </div>
+
     <!-- Policies Tab -->
     <div id="tab-policies" class="tab-content hidden" role="tabpanel" aria-labelledby="tab-btn-policies">
       <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-4 md:p-6">
@@ -765,6 +790,7 @@ const tabs = [
       transfer: { bool: ["enabled"] },
       size_guide: ["title_es", "title_en", "footer_es", "footer_en"],
       shipping: { text: ["base_rate", "free_above", "estimated_days"], bool: ["enabled"] },
+      tax: ["rate"],
       policies: ["shipping_es", "shipping_en", "returns_es", "returns_en", "privacy_es", "privacy_en"],
       seo: ["global_title", "global_description", "og_default_image", "twitter_site", "facebook_page_id", "google_site_verification", "bing_site_verification", "ga_id", "robots_default", "theme_color"],
     };
