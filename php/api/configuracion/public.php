@@ -153,6 +153,11 @@ $public = [
         'footer_es' => $settings['size_guide']['footer_es'] ?? '',
         'footer_en' => $settings['size_guide']['footer_en'] ?? '',
     ],
+    'whatsapp' => [
+        'enabled' => $settings['whatsapp']['enabled'] ?? false,
+        'number' => $settings['whatsapp']['number'] ?? '',
+        'message' => $settings['whatsapp']['message'] ?? '',
+    ],
     'tax' => [
         'rate' => $settings['tax']['rate'] ?? '',
     ],

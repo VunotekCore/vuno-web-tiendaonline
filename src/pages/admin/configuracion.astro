@@ -12,6 +12,7 @@ const tabs = [
   { id: "shipping", label: "Envío", icon: "local_shipping" },
   { id: "landing", label: "Landing", icon: "dashboard_customize" },
   { id: "sizeguide", label: "Guía de Talles", icon: "straighten" },
+  { id: "whatsapp", label: "WhatsApp", icon: "chat" },
   { id: "tax", label: "Impuestos", icon: "receipt_long" },
   { id: "policies", label: "Políticas", icon: "policy" },
   { id: "seo", label: "SEO", icon: "travel_explore" },
@@ -566,6 +567,46 @@ const tabs = [
       </div>
     </div>
 
+    <!-- WhatsApp Tab -->
+    <div id="tab-whatsapp" class="tab-content hidden max-w-full md:max-w-2xl" role="tabpanel" aria-labelledby="tab-btn-whatsapp">
+      <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-4 md:p-6">
+        <h2 class="font-headline text-headline-md mb-2 flex items-center gap-2">
+          <span class="material-symbols-outlined text-xl">chat</span>
+          WhatsApp — Chat Flotante
+        </h2>
+        <div class="mb-6 p-3 bg-sand-nude/30 border-l-2 border-clay-accent rounded-sm">
+          <p class="font-body text-body-md text-xs text-secondary leading-relaxed">
+            <span class="material-symbols-outlined text-sm align-text-bottom mr-1">info</span>
+            Mostrá un botón flotante de WhatsApp en la esquina inferior derecha de la tienda. Los clientes hacen clic y se abre una conversación directa con el número configurado. El mensaje predefinido se envía automáticamente al abrir el chat.
+          </p>
+        </div>
+
+        <div class="flex items-center justify-between pb-6 mb-6 border-b border-outline-variant">
+          <div>
+            <p class="font-body text-body-md text-monolith-black font-medium">Habilitar WhatsApp</p>
+            <p class="font-body text-body-md text-sm text-secondary">Muestra el botón flotante de WhatsApp en la tienda</p>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="whatsapp-enabled" class="sr-only peer" />
+            <div class="w-12 h-6.5 bg-outline-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[3px] after:start-[3px] after:bg-white after:border-outline-variant after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-monolith-black"></div>
+          </label>
+        </div>
+
+        <div class="space-y-6">
+          <div>
+            <label for="whatsapp-number" class="font-label-caps text-label-caps text-secondary block mb-2">NÚMERO DE WHATSAPP</label>
+            <input type="text" id="whatsapp-number" maxlength="20" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-clay-accent focus:outline-none font-mono text-sm focus-visible:ring-2 focus-visible:ring-monolith-black" placeholder="50588888888" />
+            <p class="font-body text-body-md text-xs text-secondary mt-1">Número completo en formato internacional, sin <code class="bg-monolith-black/5 px-1 rounded">+</code> ni espacios. Ej: <code class="bg-monolith-black/5 px-1 rounded">50588888888</code> para Nicaragua.</p>
+          </div>
+          <div>
+            <label for="whatsapp-message" class="font-label-caps text-label-caps text-secondary block mb-2">MENSAJE PREDEFINIDO</label>
+            <textarea id="whatsapp-message" maxlength="500" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-clay-accent focus:outline-none resize-none h-20 text-sm focus-visible:ring-2 focus-visible:ring-monolith-black" placeholder="Hola, quiero consultar sobre..."></textarea>
+            <p class="font-body text-body-md text-xs text-secondary mt-1">Texto que se envía automáticamente al abrir el chat. Se codifica en la URL, sin caracteres especiales.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Tax Tab -->
     <div id="tab-tax" class="tab-content hidden max-w-full md:max-w-2xl" role="tabpanel" aria-labelledby="tab-btn-tax">
       <div class="bg-off-white border border-outline-variant shadow-sm rounded-sm p-4 md:p-6">
@@ -790,6 +831,7 @@ const tabs = [
       transfer: { bool: ["enabled"] },
       size_guide: ["title_es", "title_en", "footer_es", "footer_en"],
       shipping: { text: ["base_rate", "free_above", "estimated_days"], bool: ["enabled"] },
+      whatsapp: { text: ["number", "message"], bool: ["enabled"] },
       tax: ["rate"],
       policies: ["shipping_es", "shipping_en", "returns_es", "returns_en", "privacy_es", "privacy_en"],
       seo: ["global_title", "global_description", "og_default_image", "twitter_site", "facebook_page_id", "google_site_verification", "bing_site_verification", "ga_id", "robots_default", "theme_color"],
