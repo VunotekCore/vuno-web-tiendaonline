@@ -95,7 +95,7 @@ function renderPlatformIcon(platform: string): string {
               />
               <div class="absolute inset-0 bg-gradient-to-t from-monolith-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               <span class="absolute bottom-3 left-3 inline-flex items-center gap-1.5 bg-off-white/90 backdrop-blur-sm px-2.5 py-1 text-xs font-label-caps text-monolith-black opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                {renderPlatformIcon(item.platform)}
+                <span set:html={renderPlatformIcon(item.platform)} />
                 {platLabel}
               </span>
             </a>
@@ -114,8 +114,8 @@ function renderPlatformIcon(platform: string): string {
             class="group flex items-center justify-center w-12 h-12 md:w-14 md:h-14 rounded-full border border-outline-variant hover:border-monolith-black hover:bg-monolith-black transition-all duration-300"
             aria-label={platformLabels[name] || name}
             title={platformLabels[name] || name}
+            set:html={renderPlatformIcon(name)}
           >
-            {renderPlatformIcon(name)}
           </a>
         ))}
       </div>

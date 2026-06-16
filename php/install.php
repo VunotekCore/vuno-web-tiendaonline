@@ -75,7 +75,7 @@ if ($isInstalled) {
 // --- Step Router ---
 $step = isset($_POST['_step']) ? (int)$_POST['_step'] : 1;
 
-function renderHeader(string $title, string $stepTitle): void
+function renderHeader(string $title, string $stepTitle, int $step = 1): void
 {
     ?>
     <!DOCTYPE html>
@@ -111,7 +111,7 @@ function renderHeader(string $title, string $stepTitle): void
     </head>
     <body>
         <div class="card">
-            <div class="step-indicator">Paso <?= htmlspecialchars((string)$_POST['_step'] ?? '1') ?> de 3 — <?= htmlspecialchars($stepTitle) ?></div>
+            <div class="step-indicator">Paso <?= $step ?> de 3 — <?= htmlspecialchars($stepTitle) ?></div>
             <h1><?= htmlspecialchars($title) ?></h1>
     <?php
 }
@@ -156,7 +156,7 @@ if ($step === 1) {
                 new PDO($checkDsn, $dbUser, $dbPass, [PDO::ATTR_TIMEOUT => 3]);
 
                 // Store in session? No — pass via hidden fields
-                echo renderHeader('Conexión Exitosa', 'Base de Datos');
+                echo renderHeader('Conexión Exitosa', 'Base de Datos', $step);
                 ?>
                 <div class="success">✓ Conexión establecida correctamente a <strong><?= htmlspecialchars($dbName) ?></strong></div>
                 <p style="font-size:14px;color:#6b6b6b;line-height:1.6;">La base de datos está accesible. Ahora vamos a crear las tablas e insertar los datos de demostración.</p>
@@ -179,7 +179,7 @@ if ($step === 1) {
         }
     }
 
-    echo renderHeader('Configurar Base de Datos', 'Base de Datos');
+    echo renderHeader('Configurar Base de Datos', 'Base de Datos', $step);
     if ($error) echo '<div class="error">' . $error . '</div>';
     ?>
     <p style="font-size:14px;color:#6b6b6b;line-height:1.6;margin-bottom:8px;">Ingresá los datos de conexión a tu base de datos MySQL. Los conseguís en el panel de <strong>Hostinger</strong> → Bases de Datos → MySQL.</p>
@@ -219,7 +219,7 @@ if ($step === 2) {
     $dbPass = $_POST['db_pass'] ?? '';
 
     if (!$dbHost || !$dbName || !$dbUser) {
-        echo renderHeader('Error', 'Instalación');
+        echo renderHeader('Error', 'Instalación', $step);
         echo '<div class="error">Faltan datos de conexión. Volvé al paso 1.</div>';
         echo '<form method="post"><input type="hidden" name="_step" value="1"><button class="btn">Volver</button></form>';
         renderFooter();
@@ -228,58 +228,59 @@ if ($step === 2) {
 
     $schemaFile = __DIR__ . '/database/schema.sql';
     if (!file_exists($schemaFile)) {
-        echo renderHeader('Error', 'Instalación');
+        echo renderHeader('Error', 'Instalación', $step);
         echo '<div class="error">No se encontró el archivo <code>php/database/schema.sql</code>. Verificá que el archivo exista.</div>';
         renderFooter();
         exit;
     }
 
     try {
-        $dsn = sprintf('mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4', $dbHost, $dbPort, $dbName);
-        $pdo = new PDO($dsn, $dbUser, $dbPass, [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_TIMEOUT => 30,
-        ]);
-
         $sql = file_get_contents($schemaFile);
         if ($sql === false) throw new \RuntimeException('No se pudo leer schema.sql');
 
-        // Remove USE and CREATE DATABASE statements (we already selected the DB)
-        $lines = explode("\n", $sql);
-        $filtered = [];
-        foreach ($lines as $line) {
-            $trimmed = trim($line);
-            if (preg_match('/^(CREATE\s+DATABASE|USE\s+)/i', $trimmed)) {
-                continue;
-            }
-            $filtered[] = $line;
-        }
-        $sql = implode("\n", $filtered);
+        // Remove USE and CREATE DATABASE blocks (multi-line) — DB already selected
+        $sql = preg_replace('/CREATE\s+DATABASE\s+.*?;/is', '', $sql);
+        $sql = preg_replace('/USE\s+.*?;/i', '', $sql);
 
-        // Split by semicolons and execute each statement
-        $statements = explode(';', $sql);
+        // Use mysqli::multi_query() — handles semicolons inside string literals
+        // (CSS in email templates would break a naive explode(';'))
+        mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+        $mysqli = new mysqli($dbHost, $dbUser, $dbPass, $dbName, (int)$dbPort);
+        $mysqli->set_charset('utf8mb4');
+
         $count = 0;
         $errors = [];
-        foreach ($statements as $stmt) {
-            $stmt = trim($stmt);
-            if ($stmt === '' || str_starts_with($stmt, '--') || str_starts_with($stmt, '#')) {
+
+        // Strip comment-only lines (multi_query can choke on bare -- comments)
+        $cleanLines = [];
+        foreach (explode("\n", $sql) as $line) {
+            $trimmed = trim($line);
+            if ($trimmed === '' || str_starts_with($trimmed, '--') || str_starts_with($trimmed, '#')) {
                 continue;
             }
-            try {
-                $pdo->exec($stmt);
-                $count++;
-            } catch (\PDOException $e) {
-                // Ignore "already exists" errors (idempotent)
-                $code = $e->getCode();
-                if ($code !== '42S01' && $code !== '23000' && $code !== '42S21' && $code !== '42S22') {
-                    $errors[] = htmlspecialchars(mb_substr($stmt, 0, 80)) . ' → ' . htmlspecialchars($e->getMessage());
-                } else {
-                    $count++;
-                }
-            }
+            $cleanLines[] = $line;
+        }
+        $cleanSql = implode("\n", $cleanLines);
+
+        if (!$mysqli->multi_query($cleanSql)) {
+            throw new \RuntimeException('multi_query failed: ' . $mysqli->error);
         }
 
-        echo renderHeader('Base de Datos Instalada', 'Instalación');
+        do {
+            // Consume result sets (SELECT queries, etc.) to avoid "commands out of sync"
+            $result = $mysqli->store_result();
+            if ($result) $result->free();
+
+            if ($mysqli->errno) {
+                $errors[] = htmlspecialchars('Error #' . $mysqli->errno . ': ' . $mysqli->error);
+            } else {
+                $count++;
+            }
+        } while ($mysqli->more_results() && $mysqli->next_result());
+
+        $mysqli->close();
+
+        echo renderHeader('Base de Datos Instalada', 'Instalación', $step);
         if (empty($errors)) {
             echo '<div class="success">✓ Base de datos instalada correctamente. <strong>' . $count . '</strong> sentencias ejecutadas.</div>';
         } else {
@@ -307,7 +308,7 @@ if ($step === 2) {
         exit;
 
     } catch (\Exception $e) {
-        echo renderHeader('Error', 'Instalación');
+        echo renderHeader('Error', 'Instalación', $step);
         echo '<div class="error">' . htmlspecialchars($e->getMessage()) . '</div>';
         echo '<form method="post"><input type="hidden" name="_step" value="1"><button class="btn">Volver</button></form>';
         renderFooter();
@@ -390,7 +391,7 @@ PHP;
                 file_put_contents(LOCK_FILE, date('c') . ' — Installed via install.php');
 
                 // Success!
-                echo renderHeader('¡Instalación Completa!', 'Finalizado');
+                echo renderHeader('¡Instalación Completa!', 'Finalizado', $step);
                 ?>
                 <div class="success">✓ Ram;Lop está listo.</div>
                 <ul>
@@ -414,7 +415,7 @@ PHP;
         }
     }
 
-    echo renderHeader('Configurar Tienda', 'Tienda y Admin');
+    echo renderHeader('Configurar Tienda', 'Tienda y Admin', $step);
     if ($error) echo '<div class="error">' . $error . '</div>';
     ?>
     <p style="font-size:14px;color:#6b6b6b;line-height:1.6;margin-bottom:8px;">Estos datos se guardarán en la base de datos y en <code>php/database/config.php</code>.</p>
