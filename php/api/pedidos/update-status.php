@@ -8,6 +8,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../../config.php';
 require_once __DIR__ . '/../../includes/auth.php';
 require_once __DIR__ . '/../../includes/storage.php';
+require_once __DIR__ . '/../../includes/email.php';
 
 setCorsHeaders();
 
@@ -35,11 +36,22 @@ if ($input['status'] === 'cancelled') {
 try {
     $order = getOrderById($input['id']);
     $oldStatus = $order['status'] ?? 'unknown';
-    updateOrderStatus($input['id'], $input['status'], $paymentStatus);
-    logAdminAction('update', 'order', $input['id'], 'Order status changed: ' . $oldStatus . ' → ' . $input['status'], [
+    $newStatus = $input['status'];
+    updateOrderStatus($input['id'], $newStatus, $paymentStatus);
+    logAdminAction('update', 'order', $input['id'], 'Order status changed: ' . $oldStatus . ' → ' . $newStatus, [
         'from_status' => $oldStatus,
-        'to_status' => $input['status'],
+        'to_status' => $newStatus,
     ]);
+
+    if ($newStatus !== $oldStatus && in_array($newStatus, ['paid', 'shipped', 'delivered'])) {
+        try {
+            $bankAccounts = getBankAccounts();
+            sendOrderConfirmation($order, $bankAccounts, $newStatus);
+        } catch (\Throwable $e) {
+            error_log('Status change email failed: ' . $e->getMessage());
+        }
+    }
+
     jsonResponse(['success' => true]);
 } catch (\Exception $e) {
     jsonError($e->getMessage(), 404);

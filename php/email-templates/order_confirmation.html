@@ -1,5 +1,5 @@
-Subject: Order Confirmation #{{order_id}} — {{store_name}}
-Preheader: Your order #{{order_id}} has been confirmed
+Subject: {{status_subject}} — {{store_name}}
+Preheader: {{status_preheader}}
 
 <!DOCTYPE html>
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
@@ -50,7 +50,7 @@ p{display:block;margin:13px 0}
             <td style="font-family:'Hanken Grotesk',Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#1a1a1a">
 
               <h1 style="font-family:'Playfair Display',Georgia,serif;font-size:24px;color:#1a1a1a;margin:0 0 8px;font-weight:400">Thank you, {{customer_name}}!</h1>
-              <p style="margin:0 0 24px;color:#6b6b6b">Your order <strong style="color:#1a1a1a">#{{order_id}}</strong> has been confirmed. Here's a summary of your purchase:</p>
+              <p style="margin:0 0 24px;color:#6b6b6b">{{status_message}} Here's a summary of your purchase:</p>
 
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:24px">
                 <thead>
@@ -65,8 +65,6 @@ p{display:block;margin:13px 0}
                 </tbody>
               </table>
 
-              {{coupon_discount_block}}
-
               {{transfer_details_block}}
 
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
@@ -74,9 +72,14 @@ p{display:block;margin:13px 0}
                   <td style="padding:4px 0;font-size:14px;color:#6b6b6b">Subtotal</td>
                   <td style="padding:4px 0;font-size:14px;color:#1a1a1a;text-align:right">{{currency_symbol}}{{order_subtotal}}</td>
                 </tr>
+                {{coupon_discount_row}}
                 <tr>
                   <td style="padding:4px 0;font-size:14px;color:#6b6b6b">Shipping</td>
                   <td style="padding:4px 0;font-size:14px;color:#1a1a1a;text-align:right">{{order_shipping}}</td>
+                </tr>
+                <tr>
+                  <td style="padding:4px 0;font-size:14px;color:#6b6b6b">IVA</td>
+                  <td style="padding:4px 0;font-size:14px;color:#1a1a1a;text-align:right">{{order_tax}}</td>
                 </tr>
                 <tr>
                   <td style="padding:12px 0 4px;border-top:2px solid #1a1a1a;font-size:16px;color:#1a1a1a;font-weight:600">Total</td>

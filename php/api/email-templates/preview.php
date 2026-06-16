@@ -34,6 +34,7 @@ $testVars = [
     'order_shipping'    => 'Free',
     'order_total'       => '615.00',
     'coupon_discount_block' => '',
+    'order_tax'         => '$0.00',
     'currency_symbol'   => '$',
     'payment_method'    => 'stripe',
     'order_status'      => 'paid',

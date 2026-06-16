@@ -14,11 +14,13 @@ define('EMAIL_TEMPLATE_DIR', __DIR__ . '/../email-templates');
 
 /**
  * Load an email template from DB or file.
- * Checks DB first (email_templates table), falls back to file in email-templates/.
+ * DB is authoritative — once a template exists in DB, it is returned as-is
+ * (the user edits templates via the admin UI). The file is only used as
+ * initial seed when no DB record exists yet.
  */
 function loadTemplateSource(string $templateCode): array
 {
-    // Try DB first
+    // Try DB first — DB is authoritative once it exists
     try {
         $dbTemplate = getEmailTemplateByCode($templateCode);
         if ($dbTemplate && $dbTemplate['is_active']) {
@@ -33,28 +35,23 @@ function loadTemplateSource(string $templateCode): array
         // DB not available, fall through to file
     }
 
-    // Fallback to file
-    $filePath = EMAIL_TEMPLATE_DIR . '/' . $templateCode . '.html';
-    if (!file_exists($filePath)) {
-        throw new RuntimeException("Email template not found: {$templateCode}");
+    // Seed from file if no DB record exists
+    $fileTemplate = loadEmailTemplateFromFile($templateCode);
+    if ($fileTemplate) {
+        try {
+            createEmailTemplate($fileTemplate);
+        } catch (\Exception $e) {
+            // DB might be unavailable; still return the file version
+        }
+        return [
+            'subject'   => $fileTemplate['subject'],
+            'body_html' => $fileTemplate['body_html'],
+            'preheader' => $fileTemplate['preheader'] ?? '',
+            'source'    => 'file',
+        ];
     }
 
-    $raw = file_get_contents($filePath);
-
-    $subject = '';
-    $preheader = '';
-    if (preg_match('/^Subject:\s*(.+)$/m', $raw, $m)) $subject = trim($m[1]);
-    if (preg_match('/^Preheader:\s*(.+)$/m', $raw, $m)) $preheader = trim($m[1]);
-
-    $body = preg_replace('/^(Subject|Preheader):\s*.+\n+/m', '', $raw);
-    $body = trim($body);
-
-    return [
-        'subject'   => $subject,
-        'body_html' => $body,
-        'preheader' => $preheader,
-        'source'    => 'file',
-    ];
+    throw new RuntimeException("Email template not found: {$templateCode}");
 }
 
 /**
@@ -208,7 +205,7 @@ function renderOrderItemsHtml(array $items, string $currencySymbol = '$'): strin
 /**
  * Send an email using a template file.
  */
-function sendTemplatedEmail(string $templateCode, string $to, array $vars, ?string $fromEmail = null, ?string $subjectOverride = null): array
+function sendTemplatedEmail(string $templateCode, string $to, array $vars, ?string $fromEmail = null, ?string $subjectOverride = null, ?string $cc = null): array
 {
     $template = renderTemplate($templateCode, $vars);
     if ($subjectOverride !== null && $subjectOverride !== '') {
@@ -245,6 +242,9 @@ function sendTemplatedEmail(string $templateCode, string $to, array $vars, ?stri
 
         $mail->setFrom($from, $fromName);
         $mail->addAddress($to);
+        if ($cc) {
+            $mail->addCC($cc);
+        }
         $mail->isHTML(true);
         $mail->Subject = $template['subject'];
         $mail->Body = $template['body_html'];
@@ -261,7 +261,7 @@ function sendTemplatedEmail(string $templateCode, string $to, array $vars, ?stri
 /**
  * Send order confirmation email to the customer.
  */
-function sendOrderConfirmation(array $order, array $bankAccounts = []): array
+function sendOrderConfirmation(array $order, array $bankAccounts = [], string $status = 'paid'): array
 {
     $name = htmlspecialchars($order['customer']['name'] ?? 'Customer');
     $orderId = htmlspecialchars($order['id']);
@@ -277,18 +277,25 @@ function sendOrderConfirmation(array $order, array $bankAccounts = []): array
 
     $itemsHtml = renderOrderItemsHtml($order['items'] ?? [], $currencySymbol);
 
-    $couponBlock = '';
+    $couponRow = '';
     if ($discount > 0) {
         $displayDiscount = $order['display_discountTotal'] ?? $discount;
-        $couponBlock = '<p style="margin:-16px 0 24px;font-size:13px;color:#6b6b6b">Discount applied: -' . $currencySymbol . number_format((float)$displayDiscount, 2) . '</p>';
+        $couponRow = '<tr>
+        <td style="padding:4px 0;font-size:14px;color:#6b6b6b">Discount</td>
+        <td style="padding:4px 0;font-size:14px;color:#1a1a1a;text-align:right">-' . $currencySymbol . number_format((float)$displayDiscount, 2) . '</td>
+    </tr>';
     }
+
+    // Tax value (formatted, always passed — template has the IVA row)
+    $tax = (float)($order['display_tax'] ?? $order['tax'] ?? 0);
+    $orderTax = $currencySymbol . number_format($tax, 2);
 
     // Build transfer details block if payment method is transfer
     $transferBlock = '';
     if (($order['paymentMethod'] ?? '') === 'transfer' && !empty($bankAccounts)) {
         $rows = '';
         foreach ($bankAccounts as $ba) {
-            $name = htmlspecialchars($ba['bankName'] ?? '');
+            $bankName = htmlspecialchars($ba['bankName'] ?? '');
             $holder = htmlspecialchars($ba['accountHolder'] ?? '');
             $number = htmlspecialchars($ba['accountNumber'] ?? '');
             $type = htmlspecialchars($ba['accountType'] ?? '');
@@ -296,7 +303,7 @@ function sendOrderConfirmation(array $order, array $bankAccounts = []): array
             $instr = htmlspecialchars($ba['instructions'] ?? '');
 
             $rows .= '<tr>';
-            $rows .= '<td style="padding:12px 16px;border-bottom:1px solid #e0ddd9;font-size:13px;color:#1a1a1a">' . $name . '</td>';
+            $rows .= '<td style="padding:12px 16px;border-bottom:1px solid #e0ddd9;font-size:13px;color:#1a1a1a">' . $bankName . '</td>';
             $rows .= '<td style="padding:12px 16px;border-bottom:1px solid #e0ddd9;font-size:13px;color:#1a1a1a">' . $holder . '</td>';
             $rows .= '<td style="padding:12px 16px;border-bottom:1px solid #e0ddd9;font-size:13px;color:#1a1a1a">' . $number . '</td>';
             $rows .= '<td style="padding:12px 16px;border-bottom:1px solid #e0ddd9;font-size:13px;color:#9A9A9A">' . ($type ?: '—') . '</td>';
@@ -322,6 +329,25 @@ function sendOrderConfirmation(array $order, array $bankAccounts = []): array
 </td></tr></table>';
     }
 
+    $statusMessages = [
+        'paid' => [
+            'subject'   => "Order Confirmation #{$orderId}",
+            'preheader' => "Your order #{$orderId} has been confirmed",
+            'message'   => "Your order <strong style=\"color:#1a1a1a\">#{$orderId}</strong> has been confirmed.",
+        ],
+        'shipped' => [
+            'subject'   => "Order Shipped #{$orderId}",
+            'preheader' => "Your order #{$orderId} is on its way!",
+            'message'   => "Your order <strong style=\"color:#1a1a1a\">#{$orderId}</strong> has been shipped.",
+        ],
+        'delivered' => [
+            'subject'   => "Order Delivered #{$orderId}",
+            'preheader' => "Your order #{$orderId} has been delivered",
+            'message'   => "Your order <strong style=\"color:#1a1a1a\">#{$orderId}</strong> has been delivered.",
+        ],
+    ];
+    $msg = $statusMessages[$status] ?? $statusMessages['paid'];
+
     $vars = [
         'customer_name'          => $name,
         'order_id'               => $orderId,
@@ -329,10 +355,14 @@ function sendOrderConfirmation(array $order, array $bankAccounts = []): array
         'order_subtotal'         => $subtotal,
         'order_shipping'         => $shipping,
         'order_total'            => $total,
-        'coupon_discount_block'  => $couponBlock,
+        'coupon_discount_row'    => $couponRow,
+        'order_tax'              => $orderTax,
         'transfer_details_block' => $transferBlock,
         'currency_symbol'        => $currencySymbol,
-        'preheader'              => "Your order #{$orderId} has been confirmed",
+        'status_subject'         => $msg['subject'],
+        'status_preheader'       => $msg['preheader'],
+        'status_message'         => $msg['message'],
+        'preheader'              => $msg['preheader'],
     ];
 
     return sendTemplatedEmail('order_confirmation', $order['customer']['email'], $vars);
@@ -348,6 +378,10 @@ function sendNewOrderNotification(array $order): array
     $orderId = htmlspecialchars($order['id']);
     $currencySymbol = $order['display_symbol'] ?? '$';
     $total = number_format((float)($order['display_total'] ?? $order['total'] ?? 0), 2);
+    $subtotal = number_format((float)($order['display_subtotal'] ?? $order['subtotal'] ?? 0), 2);
+    $shipping = (float)($order['display_shipping'] ?? $order['shipping'] ?? 0) > 0
+        ? $currencySymbol . number_format((float)($order['display_shipping'] ?? $order['shipping'] ?? 0), 2)
+        : 'Free';
     $paymentMethod = htmlspecialchars($order['paymentMethod'] ?? '');
     $status = htmlspecialchars($order['status'] ?? '');
     $itemsCount = count($order['items'] ?? []);
@@ -357,21 +391,38 @@ function sendNewOrderNotification(array $order): array
         $receiptBlock = '<p style="margin:0 0 8px">Receipt: <a href="' . htmlspecialchars($order['transferReceipt']) . '" style="color:#1a1a1a">View payment receipt</a></p>';
     }
 
+    // Coupon discount row
+    $discount = (float)($order['discountTotal'] ?? 0);
+    $discountRow = '';
+    if ($discount > 0) {
+        $displayDiscount = $order['display_discountTotal'] ?? $discount;
+        $discountRow = '<tr><td style="padding:4px 0;font-size:14px;color:#6b6b6b">Discount</td><td style="padding:4px 0;font-size:14px;color:#1a1a1a">-' . $currencySymbol . number_format((float)$displayDiscount, 2) . '</td></tr>';
+    }
+
+    // Tax value (formatted, always passed — template has the IVA row)
+    $tax = (float)($order['display_tax'] ?? $order['tax'] ?? 0);
+    $orderTax = $currencySymbol . number_format($tax, 2);
+
     $appUrl = env('APP_URL', 'http://localhost:4321');
     $adminUrl = $appUrl . '/admin/pedidos/detalle?id=' . urlencode($orderId);
 
     $vars = [
-        'customer_name'    => $name,
-        'customer_email'   => $email,
-        'order_id'         => $orderId,
-        'order_total'      => $total,
-        'payment_method'   => $paymentMethod,
-        'order_status'     => $status,
-        'items_count'      => (string)$itemsCount,
-        'receipt_block'    => $receiptBlock,
-        'admin_order_url'  => $adminUrl,
-        'currency_symbol'  => $currencySymbol,
-        'preheader'        => "New order #{$orderId}: {$name}",
+        'customer_name'      => $name,
+        'customer_email'     => $email,
+        'order_id'           => $orderId,
+        'order_subtotal'     => $subtotal,
+        'order_shipping'     => $shipping,
+        'order_total'        => $total,
+        'coupon_discount_row' => $discountRow,
+        'order_tax'          => $orderTax,
+        'payment_method'     => $paymentMethod,
+        'order_status'       => $status,
+        'items_count'        => (string)$itemsCount,
+        'order_items_html'   => renderOrderItemsHtml($order['items'] ?? [], $currencySymbol),
+        'receipt_block'      => $receiptBlock,
+        'admin_order_url'    => $adminUrl,
+        'currency_symbol'    => $currencySymbol,
+        'preheader'          => "New order #{$orderId}: {$name}",
     ];
 
     $settings = getSettings();
@@ -380,7 +431,7 @@ function sendNewOrderNotification(array $order): array
         error_log('[Ram;Lop Email] Notificaciones: no hay email configurado en Admin → SMTP → Email de Notificaciones.');
         return ['success' => false, 'error' => 'Admin notification email not configured'];
     }
-    return sendTemplatedEmail('new_order_notification', $adminEmail, $vars);
+    return sendTemplatedEmail('new_order_notification', $adminEmail, $vars, cc: $order['customer']['email'] ?? '');
 }
 
 

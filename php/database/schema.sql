@@ -736,75 +736,6 @@ CREATE TABLE category_translations (
     UNIQUE KEY uk_category_lang (category_id, lang)
 ) ENGINE=InnoDB;
 
-CREATE TABLE blog_post_translations (
-    id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    blog_post_id  INT UNSIGNED NOT NULL,
-    lang          CHAR(2) NOT NULL,
-    title         VARCHAR(255),
-    excerpt       TEXT,
-    content       LONGTEXT,
-    created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (blog_post_id) REFERENCES blog_posts(id) ON DELETE CASCADE,
-    UNIQUE KEY uk_post_lang (blog_post_id, lang)
-) ENGINE=InnoDB;
-
-CREATE TABLE blog_category_translations (
-    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    category_id INT UNSIGNED NOT NULL,
-    lang        CHAR(2) NOT NULL,
-    name        VARCHAR(200) NOT NULL,
-    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (category_id) REFERENCES blog_categories(id) ON DELETE CASCADE,
-    UNIQUE KEY uk_bcat_lang (category_id, lang)
-) ENGINE=InnoDB;
-
--- English translations for seed categories
-INSERT INTO category_translations (category_id, lang, name) VALUES
-('cat-heels', 'en', 'Heels'),
-('cat-sandals', 'en', 'Sandals'),
-('cat-mules', 'en', 'Mules'),
-('cat-boots', 'en', 'Boots'),
-('cat-flats', 'en', 'Flats');
-
--- English translations for seed products
-INSERT INTO product_translations (product_id, lang, name, description, details) VALUES
-('prod-001', 'en',
- 'Architectural Stiletto Noir',
- 'Redefining the classic silhouette, this stiletto features sharp architectural lines and a sculpted 90mm heel. Made in Italy from premium smooth calf leather, its minimalist design eliminates unnecessary seams for a purist finish.',
- '["100% Calf leather exterior","Leather lining and insole","Sculptural 90mm heel","Made in Italy","Clean with soft dry cloth"]'),
-('prod-002', 'en',
- 'Nude Structural Sandal',
- 'A sandal that embraces the foot\'s shape with clean lines and sculptural aesthetics. Its nude leather construction blends with the skin for a lengthening and sophisticated visual effect.',
- '["100% Calf leather","Leather sole","Adjustable buckle in gold metal","Block heel 60mm","Handmade in Spain"]'),
-('prod-003', 'en',
- 'Classic Pointed Pump',
- 'The ultimate pump for the power woman. Elongated silhouette with pointed toe and 85mm heel. Crafted from calf leather for a perfect fit and timeless elegance.',
- '["Italian calf leather","Lambskin lining","85mm stiletto heel","Leather sole with insignia","Made in Italy"]'),
-('prod-004', 'en',
- 'Geometric Block Mule',
- 'An architectural statement mule. Its sculpted block heel and minimalist silhouette make it the centerpiece of any outfit. Crafted in high-resistance black leather.',
- '["Black calf leather","70mm geometric block heel","Engraved rubber sole","20mm concealed platform","Made in Portugal"]'),
-('prod-005', 'en',
- 'Minimal Kitten Heel',
- 'Discreet elegance with a 50mm kitten heel that lengthens the silhouette without sacrificing comfort. Its clean design and pristine white leather make it a collection essential.',
- '["White calf leather","50mm kitten heel","Rounded toe","Natural leather lining","Made in Italy"]'),
-('prod-006', 'en',
- 'Architectural Cage Sandal',
- 'An exploration of negative space. This cage sandal interweaves black leather straps in a geometric structure that envelops the foot. Sculptural 100mm heel for an imposing silhouette.',
- '["Calf leather straps","Sculptural 100mm heel","Adjustable buckle closure","Cushioned anatomical footbed","Handmade in Spain"]'),
-('prod-007', 'en',
- 'Sculptural Block Bootie',
- 'A block bootie that defies convention. Angled sculpted heel and cropped silhouette for an avant-garde look. High-resistance black leather and rear zipper for easy fitting.',
- '["Black calf leather","80mm angular block heel","Gold rear zipper","Almond toe","Made in Portugal"]');
-
--- English translations for blog categories
-INSERT INTO blog_category_translations (category_id, lang, name) VALUES
-(1, 'en', 'Trends'),
-(2, 'en', 'Care'),
-(3, 'en', 'Behind the Design');
-
 -- =============================================================================
 -- Seed Data
 -- =============================================================================
@@ -1125,6 +1056,45 @@ INSERT INTO product_images (product_id, url, alt_text, sort_order, is_primary) V
 ('prod-007', 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=800&q=80', 'Botín Bloque vista frontal', 1, TRUE),
 ('prod-007', 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=800&q=80', 'Botín Bloque vista lateral', 2, FALSE);
 
+-- English translations for seed categories
+INSERT INTO category_translations (category_id, lang, name) VALUES
+('cat-heels', 'en', 'Heels'),
+('cat-sandals', 'en', 'Sandals'),
+('cat-mules', 'en', 'Mules'),
+('cat-boots', 'en', 'Boots'),
+('cat-flats', 'en', 'Flats');
+
+-- English translations for seed products
+INSERT INTO product_translations (product_id, lang, name, description, details) VALUES
+('prod-001', 'en',
+ 'Architectural Stiletto Noir',
+ 'Redefining the classic silhouette, this stiletto features sharp architectural lines and a sculpted 90mm heel. Made in Italy from premium smooth calf leather, its minimalist design eliminates unnecessary seams for a purist finish.',
+ '["100% Calf leather exterior","Leather lining and insole","Sculptural 90mm heel","Made in Italy","Clean with soft dry cloth"]'),
+('prod-002', 'en',
+ 'Nude Structural Sandal',
+ 'A sandal that embraces the foot\'s shape with clean lines and sculptural aesthetics. Its nude leather construction blends with the skin for a lengthening and sophisticated visual effect.',
+ '["100% Calf leather","Leather sole","Adjustable buckle in gold metal","Block heel 60mm","Handmade in Spain"]'),
+('prod-003', 'en',
+ 'Classic Pointed Pump',
+ 'The ultimate pump for the power woman. Elongated silhouette with pointed toe and 85mm heel. Crafted from calf leather for a perfect fit and timeless elegance.',
+ '["Italian calf leather","Lambskin lining","85mm stiletto heel","Leather sole with insignia","Made in Italy"]'),
+('prod-004', 'en',
+ 'Geometric Block Mule',
+ 'An architectural statement mule. Its sculpted block heel and minimalist silhouette make it the centerpiece of any outfit. Crafted in high-resistance black leather.',
+ '["Black calf leather","70mm geometric block heel","Engraved rubber sole","20mm concealed platform","Made in Portugal"]'),
+('prod-005', 'en',
+ 'Minimal Kitten Heel',
+ 'Discreet elegance with a 50mm kitten heel that lengthens the silhouette without sacrificing comfort. Its clean design and pristine white leather make it a collection essential.',
+ '["White calf leather","50mm kitten heel","Rounded toe","Natural leather lining","Made in Italy"]'),
+('prod-006', 'en',
+ 'Architectural Cage Sandal',
+ 'An exploration of negative space. This cage sandal interweaves black leather straps in a geometric structure that envelops the foot. Sculptural 100mm heel for an imposing silhouette.',
+ '["Calf leather straps","Sculptural 100mm heel","Adjustable buckle closure","Cushioned anatomical footbed","Handmade in Spain"]'),
+('prod-007', 'en',
+ 'Sculptural Block Bootie',
+ 'A block bootie that defies convention. Angled sculpted heel and cropped silhouette for an avant-garde look. High-resistance black leather and rear zipper for easy fitting.',
+ '["Black calf leather","80mm angular block heel","Gold rear zipper","Almond toe","Made in Portugal"]');
+
 -- Admin roles
 INSERT INTO admin_roles (code, name) VALUES
 ('superadmin', 'Super Administrador'),
@@ -1334,8 +1304,711 @@ CREATE TABLE blog_posts (
     INDEX idx_slug (slug)
 ) ENGINE=InnoDB;
 
+CREATE TABLE blog_post_translations (
+    id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    blog_post_id  INT UNSIGNED NOT NULL,
+    lang          CHAR(2) NOT NULL,
+    title         VARCHAR(255),
+    excerpt       TEXT,
+    content       LONGTEXT,
+    created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (blog_post_id) REFERENCES blog_posts(id) ON DELETE CASCADE,
+    UNIQUE KEY uk_post_lang (blog_post_id, lang)
+) ENGINE=InnoDB;
+
+CREATE TABLE blog_category_translations (
+    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    category_id INT UNSIGNED NOT NULL,
+    lang        CHAR(2) NOT NULL,
+    name        VARCHAR(200) NOT NULL,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (category_id) REFERENCES blog_categories(id) ON DELETE CASCADE,
+    UNIQUE KEY uk_bcat_lang (category_id, lang)
+) ENGINE=InnoDB;
+
+-- =============================================================================
+-- Email Templates
+-- =============================================================================
+INSERT INTO email_templates (code, name, subject, body_html, is_active) VALUES
+('new_order_notification', 'New order notification', 'New Order #{{order_id}} — {{store_name}} Admin', '<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="format-detection" content="telephone=no">
+<title>New Order #{{order_id}}</title>
+<style type="text/css">
+body{margin:0;padding:0;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}
+table,td{border-collapse:collapse;mso-table-lspace:0;mso-table-rspace:0}
+img{border:0;height:auto;line-height:100%;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic}
+p{display:block;margin:13px 0}
+@media only screen and (max-width:600px){
+  .email-container{width:100%!important}
+  .stack-cell{display:block!important;width:100%!important}
+}
+</style>
+</head>
+<body style="margin:0;padding:0;background-color:#f5f3f0;font-family:''Hanken Grotesk'',Arial,Helvetica,sans-serif">
+<div style="display:none;font-size:1px;color:#ffffff;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">{{preheader}}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f5f3f0">
+<tr><td align="center" style="padding:40px 16px">
+
+  <table role="presentation" class="email-container" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%">
+
+    <!-- Logo -->
+    <tr>
+      <td align="center" style="padding:0 0 32px 0">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td style="background-color:#1a1a1a;padding:12px 32px;border-radius:2px">
+              {{store_logo_block}}
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- Content -->
+    <tr>
+      <td style="background-color:#ffffff;padding:32px;border-radius:2px;box-shadow:0 1px 2px rgba(0,0,0,0.06)">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td style="font-family:''Hanken Grotesk'',Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#1a1a1a">
+
+              <h1 style="font-family:''Playfair Display'',Georgia,serif;font-size:24px;color:#1a1a1a;margin:0 0 16px;font-weight:400">New Order #{{order_id}}</h1>
+
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:16px">
+                <tr><td style="padding:4px 0;font-size:14px;color:#6b6b6b">Customer</td><td style="padding:4px 0;font-size:14px;color:#1a1a1a">{{customer_name}} ({{customer_email}})</td></tr>
+                <tr><td style="padding:4px 0;font-size:14px;color:#6b6b6b">Subtotal</td><td style="padding:4px 0;font-size:14px;color:#1a1a1a">{{currency_symbol}}{{order_subtotal}}</td></tr>
+                <tr><td style="padding:4px 0;font-size:14px;color:#6b6b6b">Shipping</td><td style="padding:4px 0;font-size:14px;color:#1a1a1a">{{order_shipping}}</td></tr>
+                {{coupon_discount_row}}
+                <tr><td style="padding:4px 0;font-size:14px;color:#6b6b6b">IVA</td><td style="padding:4px 0;font-size:14px;color:#1a1a1a">{{order_tax}}</td></tr>
+                <tr><td style="padding:8px 0 4px;border-top:2px solid #1a1a1a;font-size:14px;color:#1a1a1a;font-weight:600">Total</td><td style="padding:8px 0 4px;border-top:2px solid #1a1a1a;font-size:14px;color:#1a1a1a;font-weight:600">{{currency_symbol}}{{order_total}}</td></tr>
+                <tr><td style="padding:4px 0;font-size:14px;color:#6b6b6b">Payment</td><td style="padding:4px 0;font-size:14px;color:#1a1a1a;text-transform:capitalize">{{payment_method}}</td></tr>
+                <tr><td style="padding:4px 0;font-size:14px;color:#6b6b6b">Status</td><td style="padding:4px 0;font-size:14px;color:#1a1a1a;text-transform:capitalize">{{order_status}}</td></tr>
+              </table>
+
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:16px">
+                <thead>
+                  <tr>
+                    <th style="padding:6px 0;border-bottom:2px solid #1a1a1a;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:#9A9A9A;text-align:left;font-weight:700">Item</th>
+                    <th style="padding:6px 0;border-bottom:2px solid #1a1a1a;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:#9A9A9A;text-align:center;font-weight:700">Qty</th>
+                    <th style="padding:6px 0;border-bottom:2px solid #1a1a1a;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:#9A9A9A;text-align:right;font-weight:700">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {{order_items_html}}
+                </tbody>
+              </table>
+
+              {{receipt_block}}
+
+              <p style="margin:16px 0 0;font-size:13px;color:#9A9A9A">View in admin: <a href="{{admin_order_url}}" style="color:#1a1a1a">{{order_id}}</a></p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- Footer -->
+    <tr>
+      <td style="padding:24px 0 0 0;font-family:''Hanken Grotesk'',Arial,Helvetica,sans-serif;font-size:12px;line-height:1.5;color:#9A9A9A;text-align:center">
+        <p style="margin:0 0 4px">&copy; 2026 {{store_name}}. {{store_slogan}}.</p>
+        <p style="margin:0">Este es un correo automático, por favor no respondas a este mensaje.</p>
+      </td>
+    </tr>
+
+  </table>
+
+</td></tr>
+</table>
+</body>
+</html>', TRUE),
+('order_confirmation', 'Order confirmation', '{{status_subject}} — {{store_name}}', '<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="format-detection" content="telephone=no">
+<title>Order Confirmation #{{order_id}}</title>
+<style type="text/css">
+body{margin:0;padding:0;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}
+table,td{border-collapse:collapse;mso-table-lspace:0;mso-table-rspace:0}
+img{border:0;height:auto;line-height:100%;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic}
+p{display:block;margin:13px 0}
+@media only screen and (max-width:600px){
+  .email-container{width:100%!important}
+  .stack-cell{display:block!important;width:100%!important}
+  .hide-mobile{display:none!important}
+  .p-resp{padding:20px 16px!important}
+}
+</style>
+</head>
+<body style="margin:0;padding:0;background-color:#f5f3f0;font-family:''Hanken Grotesk'',Arial,Helvetica,sans-serif">
+<div style="display:none;font-size:1px;color:#ffffff;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">{{preheader}}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f5f3f0">
+<tr><td align="center" style="padding:40px 16px">
+
+  <table role="presentation" class="email-container" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%">
+
+    <!-- Logo -->
+    <tr>
+      <td align="center" style="padding:0 0 32px 0">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td style="background-color:#1a1a1a;padding:12px 32px;border-radius:2px">
+              {{store_logo_block}}
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- Content -->
+    <tr>
+      <td style="background-color:#ffffff;padding:32px;border-radius:2px;box-shadow:0 1px 2px rgba(0,0,0,0.06)">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td style="font-family:''Hanken Grotesk'',Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#1a1a1a">
+
+              <h1 style="font-family:''Playfair Display'',Georgia,serif;font-size:24px;color:#1a1a1a;margin:0 0 8px;font-weight:400">Thank you, {{customer_name}}!</h1>
+              <p style="margin:0 0 24px;color:#6b6b6b">{{status_message}} Here''s a summary of your purchase:</p>
+
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:24px">
+                <thead>
+                  <tr>
+                    <th style="padding:8px 0;border-bottom:2px solid #1a1a1a;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:#9A9A9A;text-align:left">Item</th>
+                    <th style="padding:8px 0;border-bottom:2px solid #1a1a1a;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:#9A9A9A;text-align:center">Qty</th>
+                    <th style="padding:8px 0;border-bottom:2px solid #1a1a1a;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:#9A9A9A;text-align:right">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {{order_items_html}}
+                </tbody>
+              </table>
+
+              {{transfer_details_block}}
+
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="padding:4px 0;font-size:14px;color:#6b6b6b">Subtotal</td>
+                  <td style="padding:4px 0;font-size:14px;color:#1a1a1a;text-align:right">{{currency_symbol}}{{order_subtotal}}</td>
+                </tr>
+                {{coupon_discount_row}}
+                <tr>
+                  <td style="padding:4px 0;font-size:14px;color:#6b6b6b">Shipping</td>
+                  <td style="padding:4px 0;font-size:14px;color:#1a1a1a;text-align:right">{{order_shipping}}</td>
+                </tr>
+                <tr>
+                  <td style="padding:4px 0;font-size:14px;color:#6b6b6b">IVA</td>
+                  <td style="padding:4px 0;font-size:14px;color:#1a1a1a;text-align:right">{{order_tax}}</td>
+                </tr>
+                <tr>
+                  <td style="padding:12px 0 4px;border-top:2px solid #1a1a1a;font-size:16px;color:#1a1a1a;font-weight:600">Total</td>
+                  <td style="padding:12px 0 4px;border-top:2px solid #1a1a1a;font-size:16px;color:#1a1a1a;font-weight:600;text-align:right">{{currency_symbol}}{{order_total}}</td>
+                </tr>
+              </table>
+
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- Footer -->
+    <tr>
+      <td style="padding:24px 0 0 0;font-family:''Hanken Grotesk'',Arial,Helvetica,sans-serif;font-size:12px;line-height:1.5;color:#9A9A9A;text-align:center">
+        <p style="margin:0 0 4px">&copy; 2026 {{store_name}}. {{store_slogan}}.</p>
+        <p style="margin:0">Este es un correo automático, por favor no respondas a este mensaje.</p>
+      </td>
+    </tr>
+
+  </table>
+
+</td></tr>
+</table>
+</body>
+</html>', TRUE),
+('contact_notification', 'Contact notification', '{{subject}} — {{name}} &lt;{{email}}&gt;', '<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="format-detection" content="telephone=no">
+<title>Nuevo mensaje de contacto</title>
+<style type="text/css">
+body{margin:0;padding:0;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}
+table,td{border-collapse:collapse;mso-table-lspace:0;mso-table-rspace:0}
+img{border:0;height:auto;line-height:100%;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic}
+p{display:block;margin:13px 0}
+@media only screen and (max-width:600px){
+  .email-container{width:100%!important}
+  .stack-cell{display:block!important;width:100%!important}
+}
+</style>
+</head>
+<body style="margin:0;padding:0;background-color:#f5f3f0;font-family:''Hanken Grotesk'',Arial,Helvetica,sans-serif">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f5f3f0">
+<tr><td align="center" style="padding:40px 16px">
+
+  <table role="presentation" class="email-container" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%">
+
+    <!-- Header -->
+    <tr>
+      <td align="center" style="padding:0 0 24px 0">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td style="background-color:#1a1a1a;padding:12px 32px;border-radius:2px">
+              {{store_logo_block}}
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr>
+      <td style="background-color:#ffffff;border-radius:2px;padding:32px">
+
+        <h1 style="margin:0 0 4px 0;font-family:''Playfair Display'',Georgia,serif;font-size:22px;font-weight:400;color:#1a1a1a;letter-spacing:0.01em">Nuevo mensaje de contacto</h1>
+        <p style="margin:0 0 20px 0;font-size:13px;color:#9a9a9a">Recibido desde el formulario de contacto de {{store_name}}</p>
+
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td style="padding:10px 0;border-bottom:1px solid #f0eeeb">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td width="100" style="font-size:13px;color:#9a9a9a;vertical-align:top;padding-right:12px">Nombre</td>
+                  <td style="font-size:14px;color:#1a1a1a">{{name}}</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:10px 0;border-bottom:1px solid #f0eeeb">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td width="100" style="font-size:13px;color:#9a9a9a;vertical-align:top;padding-right:12px">Email</td>
+                  <td style="font-size:14px;color:#1a1a1a">{{email}}</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:10px 0;border-bottom:1px solid #f0eeeb">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td width="100" style="font-size:13px;color:#9a9a9a;vertical-align:top;padding-right:12px">Teléfono</td>
+                  <td style="font-size:14px;color:#1a1a1a">{{phone}}</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:10px 0;border-bottom:1px solid #f0eeeb">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td width="100" style="font-size:13px;color:#9a9a9a;vertical-align:top;padding-right:12px">Asunto</td>
+                  <td style="font-size:14px;color:#1a1a1a;font-weight:600">{{subject}}</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+
+        <h3 style="margin:24px 0 8px 0;font-size:13px;color:#9a9a9a;font-weight:500;text-transform:uppercase;letter-spacing:0.08em">Mensaje</h3>
+        <div style="font-size:14px;color:#1a1a1a;line-height:1.6;background-color:#faf9f8;padding:16px;border:1px solid #f0eeeb;border-radius:2px;white-space:pre-wrap">{{message}}</div>
+
+      </td>
+    </tr>
+
+    <!-- Footer -->
+    <tr>
+      <td align="center" style="padding:24px 0 0 0">
+        <p style="margin:0;font-size:11px;color:#9a9a9a">Enviado desde el formulario de contacto de {{store_name}}</p>
+      </td>
+    </tr>
+
+  </table>
+
+</td></tr>
+</table>
+</body>
+</html>', TRUE),
+('welcome', 'Welcome', 'Welcome to {{store_name}} — {{customer_name}}', '<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="format-detection" content="telephone=no">
+<title>Welcome to {{store_name}}</title>
+<style type="text/css">
+body{margin:0;padding:0;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}
+table,td{border-collapse:collapse;mso-table-lspace:0;mso-table-rspace:0}
+img{border:0;height:auto;line-height:100%;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic}
+p{display:block;margin:13px 0}
+@media only screen and (max-width:600px){
+  .email-container{width:100%!important}
+}
+</style>
+</head>
+<body style="margin:0;padding:0;background-color:#f5f3f0;font-family:''Hanken Grotesk'',Arial,Helvetica,sans-serif">
+<div style="display:none;font-size:1px;color:#ffffff;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">{{preheader}}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f5f3f0">
+<tr><td align="center" style="padding:40px 16px">
+
+  <table role="presentation" class="email-container" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%">
+
+    <!-- Logo -->
+    <tr>
+      <td align="center" style="padding:0 0 32px 0">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td style="background-color:#1a1a1a;padding:12px 32px;border-radius:2px">
+              {{store_logo_block}}
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- Content -->
+    <tr>
+      <td style="background-color:#ffffff;padding:32px;border-radius:2px;box-shadow:0 1px 2px rgba(0,0,0,0.06)">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td style="font-family:''Hanken Grotesk'',Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#1a1a1a">
+
+              <h1 style="font-family:''Playfair Display'',Georgia,serif;font-size:24px;color:#1a1a1a;margin:0 0 16px;font-weight:400">Welcome, {{customer_name}}.</h1>
+
+              <p style="margin:0 0 16px">Thank you for creating an account at {{store_name}}. We are delighted to have you as part of our community.</p>
+
+              <p style="margin:0 0 16px">With your account you can:</p>
+
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 24px">
+                <tr><td style="padding:4px 0;font-size:14px;color:#1a1a1a">✦ &nbsp;Track your orders in real time</td></tr>
+                <tr><td style="padding:4px 0;font-size:14px;color:#1a1a1a">✦ &nbsp;Save your favorite styles to your wishlist</td></tr>
+                <tr><td style="padding:4px 0;font-size:14px;color:#1a1a1a">✦ &nbsp;Manage your shipping addresses</td></tr>
+                <tr><td style="padding:4px 0;font-size:14px;color:#1a1a1a">✦ &nbsp;Enjoy a faster checkout experience</td></tr>
+              </table>
+
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 24px">
+                <tr>
+                  <td style="background-color:#1a1a1a;border-radius:2px;text-align:center">
+                    <a href="{{store_url}}" style="display:inline-block;padding:14px 36px;font-family:''Hanken Grotesk'',Arial,Helvetica,sans-serif;font-size:14px;font-weight:600;letter-spacing:0.08em;color:#f5f3f0;text-decoration:none;text-transform:uppercase">Explore the Collection</a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin:0;font-size:13px;color:#6b6b6b">If you have any questions, simply reply to this email or visit our help center.</p>
+
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- Footer -->
+    <tr>
+      <td style="padding:24px 0 0 0;font-family:''Hanken Grotesk'',Arial,Helvetica,sans-serif;font-size:12px;line-height:1.5;color:#9A9A9A;text-align:center">
+        <p style="margin:0 0 4px">&copy; 2026 {{store_name}}. {{store_slogan}}.</p>
+        <p style="margin:0">This is an automated message, please do not reply.</p>
+      </td>
+    </tr>
+
+  </table>
+
+</td></tr>
+</table>
+</body>
+</html>', TRUE),
+('newsletter_welcome', 'Newsletter welcome', 'Welcome to {{store_name}} — {{store_slogan}}', '<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="format-detection" content="telephone=no">
+<title>Welcome to {{store_name}}</title>
+<style type="text/css">
+body{margin:0;padding:0;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}
+table,td{border-collapse:collapse;mso-table-lspace:0;mso-table-rspace:0}
+img{border:0;height:auto;line-height:100%;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic}
+p{display:block;margin:13px 0}
+@media only screen and (max-width:600px){
+  .email-container{width:100%!important}
+  .stack-cell{display:block!important;width:100%!important}
+  .hide-mobile{display:none!important}
+  .p-resp{padding:20px 16px!important}
+}
+</style>
+</head>
+<body style="margin:0;padding:0;background-color:#f5f3f0;font-family:''Hanken Grotesk'',Arial,Helvetica,sans-serif">
+<div style="display:none;font-size:1px;color:#ffffff;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">{{preheader}}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f5f3f0">
+<tr><td align="center" style="padding:40px 16px">
+
+  <table role="presentation" class="email-container" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%">
+
+    <!-- Logo -->
+    <tr>
+      <td align="center" style="padding:0 0 32px 0">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td style="background-color:transparent;padding:12px 32px;border-radius:2px">
+              {{store_logo_block}}
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- Content -->
+    <tr>
+      <td style="background-color:#ffffff;padding:32px;border-radius:2px;box-shadow:0 1px 2px rgba(0,0,0,0.06)">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td style="font-family:''Hanken Grotesk'',Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#1a1a1a">
+
+              <h1 style="font-family:''Playfair Display'',Georgia,serif;font-size:24px;color:#1a1a1a;margin:0 0 8px;font-weight:400">Welcome to {{store_name}}, {{subscriber_name}}!</h1>
+              <p style="margin:0 0 24px;color:#6b6b6b">Thanks for joining our community. You''ll now receive exclusive updates on new collections, artisan stories, and special offers.</p>
+
+              {{discount_block}}
+
+              <p style="margin:24px 0 8px;color:#1a1a1a;font-weight:600">What to expect:</p>
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 24px">
+                <tr><td style="padding:4px 0;font-size:14px;color:#6b6b6b;padding-left:12px">✦ &nbsp;New collection launches and restocks</td></tr>
+                <tr><td style="padding:4px 0;font-size:14px;color:#6b6b6b;padding-left:12px">✦ &nbsp;Behind-the-scenes artisan stories</td></tr>
+                <tr><td style="padding:4px 0;font-size:14px;color:#6b6b6b;padding-left:12px">✦ &nbsp;Exclusive subscriber-only discounts</td></tr>
+                <tr><td style="padding:4px 0;font-size:14px;color:#6b6b6b;padding-left:12px">✦ &nbsp;Style guides and care tips</td></tr>
+              </table>
+
+              <p style="margin:0 0 24px;color:#6b6b6b">Follow us on social media for daily inspiration:</p>
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  {{social_links_block}}
+                </tr>
+              </table>
+
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- Footer -->
+    <tr>
+      <td style="padding:24px 0 0 0;font-family:''Hanken Grotesk'',Arial,Helvetica,sans-serif;font-size:12px;line-height:1.5;color:#9A9A9A;text-align:center">
+        <p style="margin:0 0 4px">&copy; 2026 {{store_name}}. {{store_slogan}}.</p>
+        <p style="margin:0">You received this email because you subscribed to our newsletter.</p>
+        <p style="margin:0"><a href="{{unsubscribe_url}}" style="color:#9A9A9A;text-decoration:underline">Unsubscribe</a></p>
+      </td>
+    </tr>
+
+  </table>
+
+</td></tr>
+</table>
+</body>
+</html>', TRUE),
+('newsletter_campaign', 'Newsletter campaign', '{{subject}}', '<!DOCTYPE html>
+<html lang="es" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="format-detection" content="telephone=no">
+<title>{{subject}}</title>
+<style type="text/css">
+body{margin:0;padding:0;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}
+table,td{border-collapse:collapse;mso-table-lspace:0;mso-table-rspace:0}
+img{border:0;height:auto;line-height:100%;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic}
+p{display:block;margin:13px 0}
+@media only screen and (max-width:600px){
+  .email-container{width:100%!important}
+  .stack-cell{display:block!important;width:100%!important}
+  .hide-mobile{display:none!important}
+  .p-resp{padding:20px 16px!important}
+}
+</style>
+</head>
+<body style="margin:0;padding:0;background-color:#f5f3f0;font-family:''Hanken Grotesk'',Arial,Helvetica,sans-serif">
+<div style="display:none;font-size:1px;color:#ffffff;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">{{preheader}}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f5f3f0">
+<tr><td align="center" style="padding:40px 16px">
+
+  <table role="presentation" class="email-container" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%">
+
+    <!-- Logo -->
+    <tr>
+      <td align="center" style="padding:0 0 32px 0">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td style="background-color:#1a1a1a;padding:12px 32px;border-radius:2px">
+              {{store_logo_block}}
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- Content -->
+    <tr>
+      <td style="background-color:#ffffff;padding:32px;border-radius:2px;box-shadow:0 1px 2px rgba(0,0,0,0.06)">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td style="font-family:''Hanken Grotesk'',Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#1a1a1a">
+
+              <h1 style="font-family:''Playfair Display'',Georgia,serif;font-size:24px;color:#1a1a1a;margin:0 0 8px;font-weight:400">{{title}}</h1>
+              <p style="margin:0 0 24px;color:#6b6b6b">{{message}}</p>
+
+              {{content_block}}
+
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- Footer -->
+    <tr>
+      <td style="padding:24px 0 0 0;font-family:''Hanken Grotesk'',Arial,Helvetica,sans-serif;font-size:12px;line-height:1.5;color:#9A9A9A;text-align:center">
+        <p style="margin:0 0 4px">&copy; 2026 {{store_name}}. {{store_slogan}}.</p>
+        <p style="margin:0 4px">You are receiving this email because you subscribed to our newsletter.</p>
+        <p style="margin:0"><a href="{{unsubscribe_url}}" style="color:#9A9A9A;text-decoration:underline">Unsubscribe</a></p>
+        <p style="margin:4px 0 0;font-size:11px;color:#ccc">{{store_name}} &middot; {{store_email}}</p>
+      </td>
+    </tr>
+
+  </table>
+
+</td></tr>
+</table>
+</body>
+</html>', TRUE),
+('password_reset', 'Password reset', 'Reset Your Password — {{store_name}}', '<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="format-detection" content="telephone=no">
+<title>Reset Your Password</title>
+<style type="text/css">
+body{margin:0;padding:0;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}
+table,td{border-collapse:collapse;mso-table-lspace:0;mso-table-rspace:0}
+img{border:0;height:auto;line-height:100%;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic}
+p{display:block;margin:13px 0}
+@media only screen and (max-width:600px){
+  .email-container{width:100%!important}
+}
+</style>
+</head>
+<body style="margin:0;padding:0;background-color:#f5f3f0;font-family:''Hanken Grotesk'',Arial,Helvetica,sans-serif">
+<div style="display:none;font-size:1px;color:#ffffff;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">{{preheader}}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f5f3f0">
+<tr><td align="center" style="padding:40px 16px">
+
+  <table role="presentation" class="email-container" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%">
+
+    <!-- Logo -->
+    <tr>
+      <td align="center" style="padding:0 0 32px 0">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td style="background-color:#1a1a1a;padding:12px 32px;border-radius:2px">
+              {{store_logo_block}}
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- Content -->
+    <tr>
+      <td style="background-color:#ffffff;padding:32px;border-radius:2px;box-shadow:0 1px 2px rgba(0,0,0,0.06)">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td style="font-family:''Hanken Grotesk'',Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#1a1a1a">
+
+              <h1 style="font-family:''Playfair Display'',Georgia,serif;font-size:24px;color:#1a1a1a;margin:0 0 16px;font-weight:400">Reset Your Password</h1>
+
+              <p style="margin:0 0 16px">Hi {{customer_name}},</p>
+
+              <p style="margin:0 0 16px">We received a request to reset the password for your {{store_name}} account. Click the button below to set a new password. This link will expire in 1 hour.</p>
+
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 24px">
+                <tr>
+                  <td style="background-color:#1a1a1a;border-radius:2px;text-align:center">
+                    <a href="{{reset_url}}" style="display:inline-block;padding:14px 36px;font-family:''Hanken Grotesk'',Arial,Helvetica,sans-serif;font-size:14px;font-weight:600;letter-spacing:0.08em;color:#f5f3f0;text-decoration:none;text-transform:uppercase">Reset Password</a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin:0 0 16px;font-size:13px;color:#6b6b6b">If you didn''t request a password reset, you can safely ignore this email. Your password will not be changed.</p>
+
+              <p style="margin:0;font-size:13px;color:#6b6b6b">Or copy this link into your browser:<br>
+              <a href="{{reset_url}}" style="color:#1a1a1a;word-break:break-all">{{reset_url}}</a></p>
+
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- Footer -->
+    <tr>
+      <td style="padding:24px 0 0 0;font-family:''Hanken Grotesk'',Arial,Helvetica,sans-serif;font-size:12px;line-height:1.5;color:#9A9A9A;text-align:center">
+        <p style="margin:0 0 4px">&copy; 2026 {{store_name}}. {{store_slogan}}.</p>
+        <p style="margin:0">This is an automated message, please do not reply.</p>
+      </td>
+    </tr>
+
+  </table>
+
+</td></tr>
+</table>
+</body>
+</html>', TRUE);
 -- Seed blog categories
 INSERT INTO blog_categories (name, slug, description) VALUES
 ('Tendencias', 'tendencias', 'Últimas tendencias en calzado artesanal'),
 ('Cuidados', 'cuidados', 'Guías para el cuidado de tus zapatos'),
 ('Detrás del Diseño', 'detras-del-diseno', 'Historias del proceso creativo y artesanal');
+
+-- Seed blog posts
+INSERT INTO blog_posts (title, slug, excerpt, thumbnail_image, content, featured_image, author, category_id, status, published_at) VALUES
+('5 Tendencias de Moda que Definirán Esta Temporada', 'tendencias-moda-temporada',
+ 'Descubre las cinco tendencias imprescindibles que están marcando el rumbo de la moda: desde el calzado escultural hasta los accesorios que roban miradas.',
+ 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=600&q=80',
+ '<h2>El Regreso del Minimalismo Arquitectónico</h2><p>Esta temporada, la moda abraza la pureza de las líneas limpias y las siluetas depuradas. Los diseñadores apuestan por formas escultóricas que recuerdan a la arquitectura brutalista, con bloques geométricos y tacones que desafían la gravedad.</p><p>Los materiales nobles como el cuero vacuno, la piel de becerro y los acabados satinados dominan las colecciones. Los colores tierra, el negro monólito y los tonos nude se consolidan como la paleta esencial del armario consciente.</p>',
+ 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=1200&q=80',
+ 'María Ram;Lop', 1, 'published', NOW() - INTERVAL 7 DAY),
+('Guía Completa para el Cuidado de Tus Zapatos Artesanales', 'guia-cuidado-zapatos-artesanales',
+ 'Aprende a preservar la belleza y durabilidad de tus zapatos hechos a mano con nuestra guía experta de cuidados, limpieza y almacenamiento.',
+ 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=600&q=80',
+ '<h2>Por Qué el Cuidado es Esencial</h2><p>Un par de zapatos artesanales es una inversión en calidad, diseño y sostenibilidad. Cuidarlos adecuadamente no solo prolonga su vida útil, sino que honra el trabajo del artesano que los creó.</p><p>Con los cuidados apropiados, unos zapatos artesanales de buena calidad pueden durar décadas.</p>',
+ 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=1200&q=80',
+ 'Ram;Lop', 2, 'published', NOW() - INTERVAL 4 DAY),
+('El Proceso Artesanal: De la Inspiración al Calzado', 'proceso-artesanal-inspiracion-calzado',
+ 'Te llevamos detrás del taller para mostrarte cómo nace cada diseño: desde el boceto inicial hasta el último punto de costura en nuestras piezas artesanales.',
+ 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=600&q=80',
+ '<h2>La Chispa Creativa</h2><p>Todo comienza con una imagen mental. La arquitectura minimalista es nuestra musa constante: líneas rectas, volúmenes precisos, espacios vacíos que respiran.</p><p>El proceso creativo es iterativo. Boceto tras boceto, vamos depurando la forma hasta encontrar la silueta que encapsula la visión inicial.</p>',
+ 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=1200&q=80',
+ 'Carlos Mendoza', 3, 'published', NOW() - INTERVAL 1 DAY),
+('Cómo Combinar tus Zapatos con los Accesorios Perfectos', 'como-combinar-zapatos-accesorios',
+ 'Dominar el arte de coordinar calzado, carteras y accesorios puede transformar cualquier look. Te compartimos las claves para crear combinaciones armónicas y sofisticadas.',
+ 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=600&q=80',
+ '<h2>La Regla de Oro: Menos es Más</h2><p>En la moda consciente, la máxima de menos es más sigue vigente. La clave está en elegir un punto focal y construir alrededor de él.</p><p>Si tus zapatos son la pieza protagonista, el resto de accesorios deben acompañar sin competir.</p>',
+ 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=1200&q=80',
+ 'Ram;Lop', 1, 'published', NOW());
+
+-- Seed coupons
+INSERT INTO coupons (code, description, discount_type, discount_value, min_order_amount, max_uses, max_uses_per_customer, is_active, starts_at, expires_at) VALUES
+('WELCOME10', '10% de descuento en tu primera compra', 'percentage', 10, 0, 100, 1, TRUE, NOW(), NOW() + INTERVAL 90 DAY),
+('VIP50', 'C$50 de descuento en compras mayores a C$500', 'fixed', 50, 500, 50, 1, TRUE, NOW(), NOW() + INTERVAL 365 DAY);
