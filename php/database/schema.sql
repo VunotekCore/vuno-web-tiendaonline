@@ -1099,7 +1099,8 @@ INSERT INTO product_translations (product_id, lang, name, description, details) 
 INSERT INTO admin_roles (code, name) VALUES
 ('superadmin', 'Super Administrador'),
 ('editor', 'Editor'),
-('viewer', 'Visor');
+('viewer', 'Visor'),
+('cashier', 'Vendedor / Cajero');
 
 -- Default admin user (password: admin123)
 INSERT INTO admin_users (email, password_hash, name, role_id, is_active) VALUES
@@ -1114,9 +1115,12 @@ INSERT INTO order_statuses (code, name, sort_order) VALUES
 ('cancelled', 'Cancelado', 5);
 
 -- Payment methods
-INSERT INTO payment_methods (code, name, sort_order) VALUES
+INSERT IGNORE INTO payment_methods (code, name, sort_order) VALUES
 ('stripe', 'Tarjeta (Stripe)', 1),
-('transfer', 'Transferencia Bancaria', 2);
+('transfer', 'Transferencia Bancaria', 2),
+('pos_cash', 'Efectivo (POS)', 3),
+('pos_card', 'Tarjeta (POS)', 4),
+('pos_transfer', 'Transferencia (POS)', 5);
 
 -- Payment statuses
 INSERT INTO payment_statuses (code, name) VALUES
@@ -1124,6 +1128,16 @@ INSERT INTO payment_statuses (code, name) VALUES
 ('completed', 'Completado'),
 ('failed', 'Fallido'),
 ('refunded', 'Reembolsado');
+
+-- ============================================================
+--  Migration: origin column for orders (POS module)
+-- ============================================================
+SET @col_exists = (SELECT COUNT(*) FROM information_schema.COLUMNS
+                   WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'orders' AND COLUMN_NAME = 'origin');
+SET @sql = IF(@col_exists = 0,
+              'ALTER TABLE orders ADD COLUMN origin ENUM(''online'',''pos'') NOT NULL DEFAULT ''online'' AFTER total',
+              'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 -- Default settings
 INSERT INTO settings (section, `key`, value) VALUES

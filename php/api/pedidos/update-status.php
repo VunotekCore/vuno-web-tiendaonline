@@ -14,7 +14,7 @@ setCorsHeaders();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') jsonError('Method not allowed', 405);
 if (!isAdminLoggedIn()) jsonError('Unauthorized', 401);
-requireRole('superadmin', 'editor');
+requireRole('superadmin', 'editor', 'cashier');
 
 $input = json_decode(file_get_contents('php://input'), true);
 if (!$input || empty($input['id']) || empty($input['status'])) {

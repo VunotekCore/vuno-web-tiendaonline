@@ -6,7 +6,6 @@ const validStatuses = ["pending", "paid", "shipped", "delivered", "cancelled"];
 
 <AdminLayout title="Detalle de Pedido" currentPath="/admin/pedidos">
   <div id="loading" class="font-body text-body-md text-secondary p-4">Loading order...</div>
-  <div id="message" class="hidden font-body text-body-md p-3 mb-6" aria-live="polite" aria-atomic="true"></div>
 
   <div id="orderContent" class="hidden">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
@@ -227,7 +226,14 @@ const validStatuses = ["pending", "paid", "shipped", "delivered", "cancelled"];
           ? new Date(o.createdAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" })
           : '';
         document.getElementById("orderStatus").innerHTML = statusBadge(o.status);
-        document.getElementById("orderPayment").textContent = o.paymentMethod === 'stripe' ? 'Card (Stripe)' : 'Bank Transfer';
+        const payLabels = {
+          stripe: 'Card (Stripe)',
+          transfer: 'Bank Transfer',
+          pos_cash: 'Efectivo (POS)',
+          pos_card: 'Tarjeta (POS)',
+          pos_transfer: 'Transferencia (POS)',
+        };
+        document.getElementById("orderPayment").textContent = payLabels[o.paymentMethod] || o.paymentMethod;
         document.getElementById("orderPaymentStatus").textContent = o.paymentStatus || 'N/A';
 
         if (o.transferReceipt) {
@@ -314,7 +320,9 @@ const validStatuses = ["pending", "paid", "shipped", "delivered", "cancelled"];
         document.getElementById("orderTotalMobile").textContent = total;
 
         // Status select
-        document.getElementById("statusSelect").value = o.status || 'pending';
+        const statusSelect = document.getElementById("statusSelect");
+        statusSelect.value = o.status || 'pending';
+        statusSelect.dataset.current = o.status || 'pending';
 
         document.getElementById("loading").classList.add("hidden");
         document.getElementById("orderContent").classList.remove("hidden");
@@ -329,27 +337,33 @@ const validStatuses = ["pending", "paid", "shipped", "delivered", "cancelled"];
       e.preventDefault();
       const params = new URLSearchParams(window.location.search);
       const orderId = params.get("id");
-      const status = document.getElementById("statusSelect").value;
+      const select = document.getElementById("statusSelect");
+      const currentStatus = select.dataset.current;
+      const newStatus = select.value;
+      if (newStatus === currentStatus) {
+        if (window.VunoToast) window.VunoToast.info("No changes", "The order is already " + newStatus);
+        return;
+      }
 
-      const msg = document.getElementById("message");
       setLoading("statusSubmitBtn", "statusSubmitIcon", "statusSubmitText", true, "Updating...");
       try {
         const res = await fetch("/api/pedidos/update-status.php", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: orderId, status }),
+          body: JSON.stringify({ id: orderId, status: newStatus }),
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error);
-        msg.className = "font-body text-body-md p-3 mb-6 bg-green-100 text-green-800 rounded-sm";
-        msg.textContent = "Order status updated to: " + status;
-        msg.classList.remove("hidden");
-        location.reload();
+        setLoading("statusSubmitBtn", "statusSubmitIcon", "statusSubmitText", false);
+        const badge = document.getElementById("orderStatus");
+        if (badge) badge.innerHTML = statusBadge(newStatus);
+        const sel = document.getElementById("statusSelect");
+        sel.value = newStatus;
+        sel.dataset.current = newStatus;
+        if (window.VunoToast) window.VunoToast.success("Status updated", "Order status changed to " + newStatus);
       } catch (err) {
         setLoading("statusSubmitBtn", "statusSubmitIcon", "statusSubmitText", false);
-        msg.className = "font-body text-body-md p-3 mb-6 bg-red-100 text-error rounded-sm";
-        msg.textContent = err.message;
-        msg.classList.remove("hidden");
+        if (window.VunoToast) window.VunoToast.error("Error", err.message);
       }
     });
 

@@ -13,37 +13,41 @@ interface NavItem {
   label: string;
   icon: string;
   class?: string;
-  children?: { href: string; label: string; icon?: string }[];
+  children?: { href: string; label: string; icon?: string; class?: string }[];
 }
 
 const navItems: NavItem[] = [
-  { href: "/admin", label: "Dashboard", icon: "dashboard" },
-  { href: "/admin/productos", label: "Productos", icon: "inventory_2" },
-  { href: "/admin/resenas", label: "Reseñas", icon: "reviews" },
-  { href: "/admin/clientes", label: "Clientes", icon: "group" },
+  { href: "/admin/pos/dashboard", label: "Mostrador", icon: "point_of_sale", class: "nav-pos" },
+  { href: "/admin/pos", label: "POS", icon: "point_of_sale", class: "nav-pos" },
+  { href: "/admin", label: "Dashboard", icon: "dashboard", class: "nav-cashier-hide" },
+  { href: "/admin/productos", label: "Productos", icon: "inventory_2", class: "nav-cashier-hide" },
+  { href: "/admin/resenas", label: "Reseñas", icon: "reviews", class: "nav-cashier-hide" },
+  { href: "/admin/clientes", label: "Clientes", icon: "group", class: "nav-cashier-hide" },
   {
     href: "/admin/blog",
     label: "Blog",
     icon: "article",
+    class: "nav-cashier-hide",
     children: [
-      { href: "/admin/blog/categorias", label: "Categorías", icon: "category" },
+      { href: "/admin/blog/categorias", label: "Categorías", icon: "category", class: "nav-cashier-hide" },
     ],
   },
-  { href: "/admin/suscriptores", label: "Suscriptores", icon: "contacts" },
-  { href: "/admin/newsletter/campanas", label: "Campañas", icon: "campaign" },
+  { href: "/admin/suscriptores", label: "Suscriptores", icon: "contacts", class: "nav-cashier-hide" },
+  { href: "/admin/newsletter/campanas", label: "Campañas", icon: "campaign", class: "nav-cashier-hide" },
   { href: "/admin/pedidos", label: "Pedidos", icon: "receipt_long" },
   {
     href: "/admin/configuracion",
     label: "Configuración",
     icon: "settings",
+    class: "nav-cashier-hide",
     children: [
-      { href: "/admin/categorias", label: "Categorías", icon: "category" },
-      { href: "/admin/cupones", label: "Cupones", icon: "confirmation_number" },
-      { href: "/admin/email-templates", label: "Plantillas Email", icon: "mail" },
-      { href: "/admin/seguridad", label: "Seguridad", icon: "security" },
+      { href: "/admin/categorias", label: "Categorías", icon: "category", class: "nav-cashier-hide" },
+      { href: "/admin/cupones", label: "Cupones", icon: "confirmation_number", class: "nav-cashier-hide" },
+      { href: "/admin/email-templates", label: "Plantillas Email", icon: "mail", class: "nav-cashier-hide" },
+      { href: "/admin/seguridad", label: "Seguridad", icon: "security", class: "nav-cashier-hide" },
     ],
   },
-  { href: "/admin/usuarios", label: "Usuarios", icon: "group", class: "nav-superadmin" },
+  { href: "/admin/usuarios", label: "Usuarios", icon: "group", class: "nav-superadmin nav-cashier-hide" },
 ];
 
 function isExpanded(item: NavItem): boolean {
@@ -53,7 +57,7 @@ function isExpanded(item: NavItem): boolean {
 }
 ---
 
-<BaseLayout title={`${title} | Admin | Ram;Lop`} seo={{ noindex: true }}>
+<BaseLayout title={`${title} | Admin | Ram;Lop`} seo={{ noindex: true }} hideWhatsapp={true}>
   <a href="#admin-main" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[200] focus:px-4 focus:py-2 focus:bg-monolith-black focus:text-off-white focus:outline-none focus:ring-2 focus:ring-off-white" aria-label="Saltar al contenido principal">Saltar al contenido</a>
   <div class="min-h-screen flex bg-background">
     <!-- Sidebar -->
@@ -69,7 +73,7 @@ function isExpanded(item: NavItem): boolean {
       <nav class="flex-1 px-4 py-6 space-y-1">
         {navItems.map(item => (
           item.children ? (
-            <div>
+            <div class={item.class || ''}>
               <a
                 href={item.href}
                 class={`flex items-center gap-4 px-3 py-3 font-label-caps text-label-caps rounded-sm transition-colors ${
@@ -138,7 +142,7 @@ function isExpanded(item: NavItem): boolean {
       <div id="mobileMenu" class="hidden px-4 pb-4 space-y-1">
         {navItems.map(item => (
           item.children ? (
-            <div>
+            <div class={item.class || ''}>
               <a
                 href={item.href}
                 class={`flex items-center gap-4 px-3 py-3 font-label-caps text-label-caps rounded-sm transition-colors ${
@@ -177,7 +181,7 @@ function isExpanded(item: NavItem): boolean {
                 currentPath === item.href
                   ? "bg-white/10 text-off-white"
                   : "text-stone-gray hover:text-off-white hover:bg-white/5"
-              }`}
+              } ${item.class || ''}`}
             >
               <span class="material-symbols-outlined text-xl">{item.icon}</span>
               {item.label}
@@ -221,9 +225,21 @@ function isExpanded(item: NavItem): boolean {
         // Expose role globally for child pages
         window.adminRole = data.role;
 
-        // Hide role-restricted nav items based on user role
+        // Role-based navigation visibility
         if (data.role !== "superadmin") {
           document.querySelectorAll(".nav-superadmin").forEach(el => el.remove());
+        }
+
+        if (data.role === "cashier") {
+          // Cashier sees only Mostrador and Pedidos
+          document.querySelectorAll(".nav-cashier-hide").forEach(el => el.remove());
+          // Redirect if on restricted page
+          var allowedPaths = ["/admin/pos", "/admin/pedidos", "/admin/login"];
+          var current = window.location.pathname;
+          var isAllowed = allowedPaths.some(function (p) { return current === p || current.startsWith(p + "/"); });
+          if (!isAllowed) {
+            window.location.href = "/admin/pos/dashboard";
+          }
         }
       } catch {
         window.location.href = "/admin/login";

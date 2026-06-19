@@ -206,7 +206,7 @@ function buildProduct(string $id, ?string $lang = null): array
 
     // Build variant stock matrix for admin
     $var2 = $db->prepare(
-        'SELECT pc.name AS color_name, ps.value AS size_value, pv.stock
+        'SELECT pv.id, pc.name AS color_name, ps.value AS size_value, pv.stock, pv.price_override
          FROM product_variants pv
          JOIN product_colors pc ON pc.id = pv.color_id
          JOIN product_sizes ps ON ps.id = pv.size_id
@@ -563,6 +563,7 @@ function buildOrder(array $row): array
         'total'          => (float)$row['total'],
         'currency'       => $row['currency'] ?: 'USD',
         'exchange_rate'  => (float)($row['exchange_rate'] ?? 1.0),
+        'origin'         => $row['origin'] ?? 'online',
         'status'         => $row['status_code'],
         'paymentMethod'  => $row['payment_method_code'],
         'paymentStatus'  => $row['payment_status_code'],
@@ -613,11 +614,11 @@ function saveOrder(array $order): void
         'INSERT INTO orders (
             order_number, customer_id, customer_name, customer_email, customer_phone,
             shipping_line1, shipping_city, shipping_state, shipping_zip, shipping_country,
-            subtotal, shipping_total, tax_total, discount_total, total, currency, exchange_rate,
+            subtotal, shipping_total, tax_total, discount_total, total, origin, currency, exchange_rate,
             status_id, payment_method_id, payment_status_id,
             stripe_payment_intent_id, transfer_receipt_url, selected_bank_id, coupon_id,
             created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     );
 
     $stmt->execute([
@@ -636,6 +637,7 @@ function saveOrder(array $order): void
         $order['tax'] ?? 0,
         $discountTotal,
         $order['total'] ?? 0,
+        $order['origin'] ?? 'online',
         $order['currency'] ?? 'USD',
         $order['exchange_rate'] ?? 1.0,
         $statusId,

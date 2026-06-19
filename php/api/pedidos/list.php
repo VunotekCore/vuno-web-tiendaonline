@@ -13,7 +13,7 @@ require_once __DIR__ . '/../../includes/storage.php';
 setCorsHeaders();
 startAdminSession();
 if (!isAdminLoggedIn()) jsonError('Unauthorized', 401);
-requireRole('superadmin', 'editor', 'viewer');
+requireRole('superadmin', 'editor', 'viewer', 'cashier');
 
 $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : null;
 $offset = isset($_GET['offset']) ? (int)$_GET['offset'] : null;

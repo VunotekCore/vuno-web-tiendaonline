@@ -84,11 +84,25 @@ import AdminLayout from "./_layout.astro";
     }
 
     function paymentLabel(method) {
-      return method === 'stripe' ? 'Card' : 'Transfer';
+      const labels = {
+        stripe: 'Card',
+        transfer: 'Transfer',
+        pos_cash: 'Efectivo (POS)',
+        pos_card: 'Tarjeta (POS)',
+        pos_transfer: 'Transferencia (POS)',
+      };
+      return labels[method] || method;
     }
 
     function paymentIcon(method) {
-      return method === 'stripe' ? 'credit_card' : 'account_balance';
+      const icons = {
+        stripe: 'credit_card',
+        transfer: 'account_balance',
+        pos_cash: 'payments',
+        pos_card: 'credit_card',
+        pos_transfer: 'account_balance',
+      };
+      return icons[method] || 'payments';
     }
 
     function renderOrders(orders) {

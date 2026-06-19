@@ -27,9 +27,10 @@ interface Props {
   lang?: Locale;
   alternateUrls?: Partial<Record<Locale, string>>;
   seo?: SEOData;
+  hideWhatsapp?: boolean;
 }
 
-const { title, description, lang = "es", alternateUrls = {}, seo = {} } = Astro.props;
+const { title, description, lang = "es", alternateUrls = {}, seo = {}, hideWhatsapp = false } = Astro.props;
 const apiBase = import.meta.env.DEV ? "http://localhost:8000" : "";
 const siteUrl = import.meta.env.PROD ? "https://vuno.com" : "http://localhost:4321";
 ---
@@ -153,6 +154,8 @@ const siteUrl = import.meta.env.PROD ? "https://vuno.com" : "http://localhost:43
     <ProfileEditModal lang={lang} />
     <OrderDetailModal lang={lang} />
 
+    {!hideWhatsapp && (
+    <>
     <!-- WhatsApp Floating Button + Popover -->
     <button
       id="whatsapp-btn"
@@ -187,6 +190,8 @@ const siteUrl = import.meta.env.PROD ? "https://vuno.com" : "http://localhost:43
         </button>
       </div>
     </div>
+    </>
+    )}
 
     <script is:inline>
       window.formatPrice = function (value) {

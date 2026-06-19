@@ -2,13 +2,8 @@
 import BaseLayout from '../../../layouts/BaseLayout.astro'
 import Navbar from '../../../components/organisms/Navbar.astro'
 import Footer from '../../../components/organisms/Footer.astro'
-import AnimatedReveal from '../../../components/atoms/AnimatedReveal.astro'
 import { getProducts } from '../../../lib/storage'
-import { imgTransform } from '../../../lib/images'
 import { t, type Locale } from '../../../i18n/utils'
-import { formatPrice } from '../../../utils/formatPrice'
-import JSONLDProduct from '../../../components/seo/JSONLDProduct.astro'
-import JSONLDBreadcrumb from '../../../components/seo/JSONLDBreadcrumb.astro'
 
 export async function getStaticPaths() {
   const esProducts = await getProducts('es')
@@ -19,28 +14,7 @@ export async function getStaticPaths() {
   return paths
 }
 
-const { lang, slug } = Astro.params as { lang: Locale; slug: string }
-const products = await getProducts(lang)
-const product = products.find((p) => p.slug === slug) || null
-const relatedProducts = products.filter((p) => p.slug !== slug).slice(0, 4)
-
-if (!product) return Astro.redirect('/404')
-
-// Collect all gallery images per color for the frontend
-const colorGalleryMap: Record<string, string[]> = {}
-const byColor = (product as any).imagesByColor || {}
-for (const c of product.colors) {
-  const perColor = byColor[c.name] || []
-  const globalImgs = product.images || []
-  colorGalleryMap[c.name] = perColor.length ? [...perColor, ...globalImgs] : globalImgs
-}
-
-const currentPath = Astro.url.pathname
-const siteUrl = import.meta.env.PROD ? 'https://vuno.com' : 'http://localhost:4321'
-const alternateUrls = {
-  es: `${siteUrl}/es/producto/${slug}`,
-  en: `${siteUrl}/en/producto/${slug}`
-}
+const { lang } = Astro.params as { lang: Locale }
 
 const i18n = {
   selectSize: t('product.selectSize', lang),
@@ -63,1377 +37,1104 @@ const i18n = {
   reviewsReview: t('product.reviews.review', lang),
   reviewsReviews: t('product.reviews.reviews', lang),
   reviewsEmpty: t('product.reviews.empty', lang),
-  reviewsAnonymous: t('product.reviews.anonymous', lang)
+  reviewsAnonymous: t('product.reviews.anonymous', lang),
+  collection: t('product.collection', lang),
+  sizeGuideLabel: t('product.sizeGuide', lang),
+  relatedTitle: t('product.related', lang),
+  relatedViewAll: t('product.related.viewAll', lang),
+  shippingText: t('product.shippingText', lang),
+  descriptionLabel: t('product.description', lang),
+  careLabel: t('product.care', lang),
+  shippingLabel: t('product.shipping', lang),
+  colorLabel: t('product.color', lang),
+  sizeLabel: t('product.size', lang),
 }
+
+const currentPath = Astro.url.pathname
 ---
 
 <BaseLayout
-  title={product.metaTitle || product.name}
-  description={product.metaDescription || product.description}
+  title=""
+  description=""
   lang={lang}
-  alternateUrls={alternateUrls}
-  seo={{
-    ogImage: product.ogImageUrl || product.images?.[0],
-    ogType: 'product',
-    description: product.metaDescription || product.description,
-  }}
 >
-  <JSONLDProduct
-    name={product.name}
-    description={product.description || ''}
-    image={product.images || []}
-    slug={slug}
-    price={product.price}
-    currency={product.currency || 'USD'}
-    sku={product.id}
-    brand="Vunotek"
-    availability={(product.totalStock ?? 0) > 0 ? 'InStock' : 'OutOfStock'}
-  />
-  <JSONLDBreadcrumb
-    items={[
-      { name: lang === 'es' ? 'Inicio' : 'Home', url: `${siteUrl}/${lang}/` },
-      { name: lang === 'es' ? 'Catálogo' : 'Catalog', url: `${siteUrl}/${lang}/catalogo` },
-      { name: product.category || '', url: `${siteUrl}/${lang}/catalogo${product.category ? '?categoria=' + product.category : ''}` },
-      { name: product.name, url: `${siteUrl}/${lang}/producto/${slug}` },
-    ].filter(i => i.name)}
-  />
   <Navbar lang={lang} currentPath={currentPath} />
 
-  <main
-    class="w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop pt-14 md:pt-20 pb-section-gap"
-  >
-    <!-- Editorial Gallery Layout -->
-    <section class="grid grid-cols-1 md:grid-cols-12 gap-gutter relative">
-      <!-- Gallery Column -->
-      <div class="md:col-span-7 relative" id="galleryColumn">
-        <div class="md:sticky md:top-20 md:pb-section-gap">
-          <div class="flex gap-2">
-            <!-- Main Image -->
-            <div class="flex-1 min-w-0">
-              <div
-                class="w-full bg-surface-container overflow-hidden relative cursor-zoom-in group flex items-center justify-center"
-                id="mainImageWrap"
-                style="max-height: min(65dvh, 550px); height: min(65dvh, 550px);"
-              >
-                <img
-                  id="mainImage"
-                  src={product.images[0]}
-                  alt={product.name}
-                  width="600"
-                  height="600"
-                  class="max-w-full max-h-full object-contain transition-all duration-500"
-                  style="view-transition-name: product-main"
-                />
-                <div
-                  class="absolute inset-0 bg-monolith-black/0 group-hover:bg-monolith-black/5 transition-colors duration-300"
-                >
-                </div>
-                <!-- Magnifier lens -->
-                <div class="product-magnifier" id="magnifierLens"></div>
-                <div id="imageCounter" class="absolute top-4 left-4 z-10">
-                  <span
-                    class="bg-off-white/90 backdrop-blur-sm px-3 py-1.5 font-label-caps text-label-caps text-monolith-black text-xs"
-                    >01 / {product.images.length}</span
-                  >
-                </div>
-                <button
-                  id="zoomBtn"
-                  class="absolute bottom-4 right-4 z-10 w-9 h-9 bg-off-white/80 backdrop-blur-sm flex items-center justify-center hover:bg-off-white transition-all border border-outline-variant/30"
-                  aria-label="Zoom"
-                >
-                  <span class="material-symbols-outlined text-lg">fullscreen</span>
-                </button>
-              </div>
-            </div>
-
-            <!-- Vertical Thumbnails -->
-            <div class="flex gallery-vertical-thumbs" id="thumbnailStrip"></div>
+  <main class="w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop pt-14 md:pt-20 pb-section-gap" id="productApp">
+    <div id="productSkeleton" class="grid grid-cols-1 md:grid-cols-12 gap-gutter animate-pulse">
+      <div class="md:col-span-7">
+        <div class="flex gap-2">
+          <div class="flex-1 min-w-0">
+            <div class="w-full bg-surface-container" style="height: min(65dvh, 550px);"></div>
+          </div>
+          <div class="flex flex-col gap-2 w-[72px] shrink-0">
+            <div class="w-full aspect-[4/5] bg-surface-container"></div>
+            <div class="w-full aspect-[4/5] bg-surface-container"></div>
+            <div class="w-full aspect-[4/5] bg-surface-container"></div>
           </div>
         </div>
       </div>
-
-      <!-- Product Info Column -->
-      <div class="md:col-span-4 md:col-start-9 relative">
-        <div class="sticky top-20 flex flex-col gap-6 md:gap-8 pt-8 md:pt-0" id="productInfo">
-          <!-- Breadcrumb -->
-          <AnimatedReveal>
-            <nav class="flex items-center gap-2 font-label-caps text-label-caps text-secondary">
-              <a href={`/${lang}/catalogo`} class="hover:text-monolith-black transition-colors"
-                >{t('product.collection', lang) || 'COLLECTION'}</a
-              >
-              <span class="text-outline">/</span>
-              <span class="text-monolith-black">{product.category}</span>
-            </nav>
-          </AnimatedReveal>
-
-          <!-- Title & Price -->
-          <AnimatedReveal delay={1}>
-            <div class="flex flex-col gap-2">
-              <h1
-                class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-monolith-black leading-tight"
-              >
-                {product.name}
-              </h1>
-              <p class="font-price-display text-price-display text-monolith-black mt-2">
-                {product.display_symbol || '$'}{formatPrice(product.display_price || product.price)}
-                {product.display_currency || 'USD'}
-              </p>
-            </div>
-          </AnimatedReveal>
-
-          <!-- Color Selector -->
-          <AnimatedReveal delay={2}>
-            <div class="flex flex-col gap-3">
-              <span class="font-label-caps text-label-caps text-secondary tracking-widest"
-                >{t('product.color', lang)}: <span
-                  class="text-monolith-black ml-1"
-                  id="selectedColorName">{product.colors[0]?.name}</span
-                ></span
-              >
-              <div class="flex gap-3" id="colorSelector">
-                {
-                  product.colors.map((c, i) => (
-                    <button
-                      data-color={c.name}
-                      data-color-images={JSON.stringify(colorGalleryMap[c.name] || product.images)}
-                      aria-label={c.name}
-                      class={`color-swatch w-7 h-7 rounded-full transition-all duration-300 hover:scale-110 ${
-                        i === 0
-                          ? 'ring-1 ring-offset-2 ring-monolith-black ring-offset-background scale-110'
-                          : 'border border-outline-variant hover:border-monolith-black'
-                      }`}
-                      style={`background-color: ${c.hex}`}
-                    />
-                  ))
-                }
-              </div>
-            </div>
-          </AnimatedReveal>
-
-          <!-- Size Selector -->
-          <AnimatedReveal delay={3}>
-            <div class="flex flex-col gap-3">
-              <div class="flex justify-between items-end">
-                <span class="font-label-caps text-label-caps text-secondary tracking-widest"
-                  >{t('product.size', lang)} {product.size_prefix || 'EU'}</span
-                >
-                <button
-                  id="sizeGuideBtn"
-                  class="font-body-md text-body-md text-secondary underline hover:text-monolith-black transition-colors text-sm"
-                  >{t('product.sizeGuide', lang)}</button
-                >
-              </div>
-              <div class="grid grid-cols-4 gap-2" id="sizeSelector">
-                {
-                  product.sizes.map((size) =>
-                    size.inStock ? (
-                      <button
-                        data-size={size.value}
-                        class="size-btn py-3 px-1 border border-outline-variant text-center font-label-caps text-label-caps text-monolith-black hover:border-monolith-black hover:bg-monolith-black hover:text-off-white transition-all duration-300"
-                      >
-                        {size.label}
-                      </button>
-                    ) : (
-                      <button
-                        data-size={size.value}
-                        class="size-btn py-3 px-1 border border-outline-variant text-center font-label-caps text-label-caps text-outline opacity-50 cursor-not-allowed line-through"
-                        disabled
-                      >
-                        {size.label}
-                      </button>
-                    )
-                  )
-                }
-              </div>
-            </div>
-          </AnimatedReveal>
-
-          <!-- Stock Display -->
-          <AnimatedReveal delay={4}>
-            <div id="stockInfo" class="hidden mt-2">
-              <span class="inline-flex items-center gap-2 px-3 py-1.5 border border-outline-variant bg-off-white/80 rounded-sm font-label-caps text-label-caps text-xs" id="stockBadge">
-                <span class="w-2 h-2 rounded-full inline-flex flex-shrink-0" id="stockDot"></span>
-                <span id="stockText"></span>
-              </span>
-            </div>
-          </AnimatedReveal>
-
-          <!-- Add to Cart -->
-          <AnimatedReveal delay={5}>
-            <div class="flex gap-3 mt-4">
-              <button
-                id="addToCartBtn"
-                class="flex-1 min-h-[56px] bg-monolith-black text-on-primary font-label-caps text-label-caps tracking-widest hover:bg-on-surface hover:tracking-[0.15em] transition-all duration-300 flex items-center justify-center gap-2"
-              >
-                <span id="addToCartText">{t('product.addToCart', lang)}</span>
-                <span
-                  id="addToCartSpinner"
-                  class="material-symbols-outlined text-sm animate-spin"
-                  style="display: none; font-variation-settings: 'FILL' 0">refresh</span
-                >
-              </button>
-              <button
-                data-toggle-wishlist
-                data-product={JSON.stringify({
-                  id: product.id,
-                  name: product.name,
-                  slug: product.slug,
-                  price: product.price,
-                  currency: product.currency,
-                  display_price: product.display_price,
-                  display_currency: product.display_currency,
-                  display_symbol: product.display_symbol,
-                  images: [product.images[0]],
-                  category: product.category
-                })}
-                class="w-[56px] min-h-[56px] border border-outline-variant flex items-center justify-center hover:border-monolith-black hover:bg-monolith-black/5 transition-all duration-300 group"
-                aria-label="Add to wishlist"
-              >
-                <span
-                  class="material-symbols-outlined wishlist-icon text-2xl text-monolith-black group-hover:scale-110 transition-transform duration-300"
-                  style="font-variation-settings: 'FILL' 0">favorite_border</span
-                >
-              </button>
-            </div>
-          </AnimatedReveal>
-
-          <!-- Accordion Details -->
-          <AnimatedReveal delay={6}>
-            <div class="flex flex-col mt-8 border-t border-outline-variant">
-              <details class="border-b border-outline-variant group open:pb-5">
-                <summary
-                  class="w-full py-5 flex justify-between items-center text-left cursor-pointer list-none"
-                >
-                  <span class="font-label-caps text-label-caps text-monolith-black tracking-widest"
-                    >{t('product.description', lang)}</span
-                  >
-                  <span
-                    class="material-symbols-outlined text-secondary transition-transform duration-300 group-open:rotate-45"
-                    data-icon="add">add</span
-                  >
-                </summary>
-                <div
-                  class="pb-5 font-body-md text-body-md text-secondary leading-relaxed"
-                  data-product-description
-                >
-                  {product.description}
-                </div>
-              </details>
-              <details class="border-b border-outline-variant group open:pb-5">
-                <summary
-                  class="w-full py-5 flex justify-between items-center text-left cursor-pointer list-none"
-                >
-                  <span class="font-label-caps text-label-caps text-monolith-black tracking-widest"
-                    >{t('product.care', lang)}</span
-                  >
-                  <span
-                    class="material-symbols-outlined text-secondary transition-transform duration-300 group-open:rotate-45"
-                    data-icon="add">add</span
-                  >
-                </summary>
-                <div class="pb-5 font-body-md text-body-md text-secondary leading-relaxed">
-                  <ul class="list-disc pl-4 space-y-1" data-product-details>
-                    {product.details?.map((d) => <li>{d}</li>)}
-                  </ul>
-                </div>
-              </details>
-              <details class="border-b border-outline-variant group open:pb-5">
-                <summary
-                  class="w-full py-5 flex justify-between items-center text-left cursor-pointer list-none"
-                >
-                  <span class="font-label-caps text-label-caps text-monolith-black tracking-widest"
-                    >{t('product.shipping', lang)}</span
-                  >
-                  <span
-                    class="material-symbols-outlined text-secondary transition-transform duration-300 group-open:rotate-45"
-                    data-icon="add">add</span
-                  >
-                </summary>
-                <div class="pb-5 font-body-md text-body-md text-secondary leading-relaxed">
-                  <p data-policy-shipping>{t('product.shippingText', lang)}</p>
-                  <p data-policy-returns class="mt-2"></p>
-                </div>
-              </details>
-            </div>
-          </AnimatedReveal>
+      <div class="md:col-span-4 md:col-start-9 pt-8 md:pt-0">
+        <div class="flex flex-col gap-6">
+          <div class="h-4 bg-surface-container w-1/3 rounded"></div>
+          <div class="h-8 bg-surface-container w-3/4 rounded"></div>
+          <div class="h-6 bg-surface-container w-1/4 rounded mt-2"></div>
+          <div class="flex gap-3 mt-4">
+            <div class="w-7 h-7 rounded-full bg-surface-container"></div>
+            <div class="w-7 h-7 rounded-full bg-surface-container"></div>
+            <div class="w-7 h-7 rounded-full bg-surface-container"></div>
+          </div>
+          <div class="grid grid-cols-4 gap-2 mt-4">
+            <div class="h-12 bg-surface-container rounded"></div>
+            <div class="h-12 bg-surface-container rounded"></div>
+            <div class="h-12 bg-surface-container rounded"></div>
+            <div class="h-12 bg-surface-container rounded"></div>
+          </div>
+          <div class="h-14 bg-surface-container mt-4 rounded"></div>
         </div>
-      </div>
-    </section>
-
-    <!-- Lightbox -->
-    <div id="lightbox" class="hidden fixed inset-0 z-[200] bg-black/95 items-center justify-center">
-      <button
-        id="lightboxClose"
-        class="absolute top-6 right-6 z-10 w-10 h-10 flex items-center justify-center text-off-white/70 hover:text-off-white transition-colors"
-        aria-label="Close"
-      >
-        <span class="material-symbols-outlined text-3xl">close</span>
-      </button>
-      <button
-        id="lightboxPrev"
-        class="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-10 w-10 h-10 flex items-center justify-center text-off-white/50 hover:text-off-white transition-colors"
-      >
-        <span class="material-symbols-outlined text-3xl">chevron_left</span>
-      </button>
-      <button
-        id="lightboxNext"
-        class="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-10 w-10 h-10 flex items-center justify-center text-off-white/50 hover:text-off-white transition-colors"
-      >
-        <span class="material-symbols-outlined text-3xl">chevron_right</span>
-      </button>
-      <div class="w-full h-full flex items-center justify-center p-8 md:p-16">
-              <img
-                id="lightboxImg"
-                src=""
-                alt=""
-                width="600"
-                height="600"
-                class="max-w-full max-h-full object-contain select-none"
-              />
-      </div>
-      <div
-        class="absolute bottom-6 left-1/2 -translate-x-1/2 font-label-caps text-label-caps text-off-white/50"
-        id="lightboxCounter"
-      >
       </div>
     </div>
-
-    <!-- Reviews Section -->
-    <section class="mt-section-gap w-full border-t border-outline-variant pt-12">
-      <div class="max-w-4xl">
-        <AnimatedReveal>
-          <h2 class="font-headline-md text-headline-md text-monolith-black mb-2">
-            {i18n.reviewsTitle}
-          </h2>
-        </AnimatedReveal>
-        <AnimatedReveal delay={1}>
-          <div id="reviewStats" class="flex items-center gap-4 mb-8">
-            <div class="flex items-center gap-1" id="reviewStars"></div>
-            <span class="font-body-md text-body-md text-secondary" id="reviewCount"></span>
-          </div>
-        </AnimatedReveal>
-
-        <AnimatedReveal delay={2}>
-          <div id="reviewsList" class="grid grid-cols-1 md:grid-cols-2 gap-gutter mb-12"></div>
-        </AnimatedReveal>
-
-        <AnimatedReveal delay={3}>
-          <div class="bg-surface-container-low p-6 md:p-8 max-w-lg">
-            <h3 class="font-label-caps text-label-caps text-monolith-black mb-4 tracking-widest">
-              {i18n.reviewsLeave}
-            </h3>
-            <form id="reviewForm" class="flex flex-col gap-4">
-              <div class="grid grid-cols-2 gap-4">
-                <input
-                  type="text"
-                  id="reviewName"
-                  placeholder={i18n.reviewsName}
-                  required
-                  class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none font-body-md text-body-md transition-colors"
-                />
-                <input
-                  type="email"
-                  id="reviewEmail"
-                  placeholder={i18n.reviewsEmail}
-                  class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none font-body-md text-body-md transition-colors"
-                />
-              </div>
-              <div>
-                <div class="flex items-center gap-1 mb-2">
-                  <span class="font-body-md text-body-md text-secondary mr-2"
-                    >{i18n.reviewsRating}</span
-                  >
-                  {
-                    [1, 2, 3, 4, 5].map((star) => (
-                      <button
-                        type="button"
-                        data-review-star={star}
-                        class="review-star text-2xl text-outline hover:text-clay-accent transition-colors cursor-pointer"
-                        aria-label={`${star} star`}
-                      >
-                        <span
-                          class="material-symbols-outlined"
-                          style="font-variation-settings: 'FILL' 0"
-                        >
-                          star
-                        </span>
-                      </button>
-                    ))
-                  }
-                </div>
-                <input type="hidden" id="reviewRating" value="0" />
-              </div>
-              <input
-                type="text"
-                id="reviewTitle"
-                placeholder={i18n.reviewsTitlePlaceholder}
-                class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none font-body-md text-body-md transition-colors"
-              />
-              <textarea
-                id="reviewComment"
-                placeholder={i18n.reviewsComment}
-                rows="4"
-                class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-monolith-black focus:outline-none font-body-md text-body-md resize-none transition-colors"
-              ></textarea>
-              <div id="reviewMsg" class="hidden font-body-md text-body-md text-sm"></div>
-              <button
-                type="submit"
-                id="reviewSubmitBtn"
-                class="bg-monolith-black text-on-primary font-label-caps text-label-caps h-12 px-8 hover:bg-on-surface hover:tracking-[0.15em] transition-all duration-300 self-start tracking-widest"
-              >
-                {i18n.reviewsSubmit}
-              </button>
-            </form>
-          </div>
-        </AnimatedReveal>
-      </div>
-    </section>
-
-    <!-- Related Products -->
-    <section class="mt-section-gap w-full">
-      <div class="flex justify-between items-end mb-8 border-b border-outline-variant pb-4">
-        <AnimatedReveal>
-          <h2 class="font-headline-md text-headline-md text-monolith-black">
-            {t('product.related', lang)}
-          </h2>
-        </AnimatedReveal>
-        <AnimatedReveal delay={1}>
-          <a
-            href={`/${lang}/catalogo`}
-            class="font-label-caps text-label-caps text-secondary hover:text-monolith-black transition-colors hidden md:block"
-            >{t('product.related.viewAll', lang)}</a
-          >
-        </AnimatedReveal>
-      </div>
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-x-gutter gap-y-12">
-        {
-          relatedProducts.map((p, i) => (
-            <a
-              href={`/${lang}/producto/${p.slug}`}
-              class={`group flex flex-col gap-4 product-card reveal ${i === 3 ? 'hidden md:flex' : ''}`}
-              style={`transition-delay: ${0.1 * i}s`}
-            >
-              <div class="w-full bg-surface-container aspect-[3/4] overflow-hidden relative">
-                <img
-                  src={imgTransform(p.images[0] || '', 400, 500)}
-                  alt={p.name}
-                  width="400"
-                  height="500"
-                  class="w-full h-full object-cover img-lift"
-                  loading="lazy"
-                />
-              </div>
-              <div class="flex flex-col gap-1">
-                <h3 class="font-body-md text-body-md text-monolith-black group-hover:text-clay-accent transition-colors duration-300">
-                  {p.name}
-                </h3>
-                <p class="font-price-display text-price-display text-secondary">
-                  {p.display_symbol || '$'}
-                  {formatPrice(p.display_price || p.price)} {p.display_currency || 'USD'}
-                </p>
-              </div>
-            </a>
-          ))
-        }
-      </div>
-    </section>
+    <div id="productError" class="hidden text-center py-20">
+      <p class="font-headline-md text-headline-md text-secondary mb-4">Producto no encontrado</p>
+      <a href={`/${lang}/catalogo`} class="inline-block bg-monolith-black text-on-primary font-label-caps text-label-caps tracking-widest h-12 px-8 leading-[48px] hover:bg-on-surface transition-all duration-300">
+        {lang === 'es' ? 'VER CATÁLOGO' : 'VIEW CATALOG'}
+      </a>
+    </div>
   </main>
 
   <Footer lang={lang} />
 
-  <script
-    id="productData"
-    type="application/json"
-    is:inline
-    set:html={JSON.stringify({
-      id: product.id,
-      name: product.name,
-      slug: product.slug,
-      price: product.price,
-      currency: product.currency,
-      display_price: product.display_price,
-      display_currency: product.display_currency,
-      display_symbol: product.display_symbol,
-      size_prefix: product.size_prefix,
-      images: product.images,
-      category: product.category,
-      colors: product.colors,
-      sizes: product.sizes,
-      variants: product.variants,
-      totalStock: product.totalStock,
-      colorGalleryMap: colorGalleryMap
-    })}
-  />
-
   <script is:inline define:vars={{ i18n }}>
     // @ts-nocheck
     ;(function () {
-      var data = JSON.parse(document.getElementById('productData').textContent)
-      var images = data.images || []
-      var colors = data.colors || []
-      var sizes = data.sizes || []
-      var variants = data.variants || []
-      var totalStock = data.totalStock || 0
-      var colorGalleryMap = data.colorGalleryMap || {}
-      var currentImages = images.slice()
-      var currentImageIndex = 0
-      var selectedColor = colors.length > 0 ? colors[0].name : ''
-      var selectedSize = ''
-      var addToCartTimer = null
+      var lang = document.documentElement.lang || 'es'
+      var pathParts = window.location.pathname.split('/producto/')
+      var slug = pathParts[1] ? pathParts[1].replace(/\/$/, '').split('?')[0] : ''
 
-      // =============================================================
-      //                      GALLERY — THUMBNAIL NAV
-      // =============================================================
-
-      function updateGallery(imgArray, index) {
-        currentImages = imgArray
-        currentImageIndex = Math.min(index, imgArray.length - 1)
-        renderMainImage()
-        renderThumbnails()
-        renderCounter()
-        updateMagnifier()
+      if (!slug) {
+        showError()
+        return
       }
 
-      function renderMainImage() {
-        var img = document.getElementById('mainImage')
-        if (img && currentImages[currentImageIndex]) {
-          img.src = window.imgTransform(currentImages[currentImageIndex], 800, 1000)
-          img.classList.remove('opacity-100')
-          img.classList.add('opacity-0')
-          requestAnimationFrame(function () {
-            img.classList.remove('opacity-0')
-            img.classList.add('opacity-100')
-          })
-        }
+      var container = document.getElementById('productApp')
+      var skeleton = document.getElementById('productSkeleton')
+      var errorEl = document.getElementById('productError')
+
+      function showError() {
+        if (skeleton) skeleton.classList.add('hidden')
+        if (errorEl) errorEl.classList.remove('hidden')
       }
 
-      function renderThumbnails() {
-        var strip = document.getElementById('thumbnailStrip')
-        if (!strip) return
-        strip.innerHTML = currentImages
-          .map(function (src, i) {
-            var active = i === currentImageIndex ? 'active' : ''
-            return (
-              '<button data-thumb="' +
-              i +
-              '" class="' +
-              active +
-              '">' +
-              '<img src="' +
-              window.imgTransform(src, 80, 100) +
-              '" alt="" width="80" height="100" class="w-full h-full object-cover" loading="lazy" />' +
-              '</button>'
-            )
-          })
-          .join('')
+      function showContent() {
+        if (skeleton) skeleton.classList.add('hidden')
+      }
 
-        strip.querySelectorAll('[data-thumb]').forEach(function (btn) {
-          btn.addEventListener('click', function () {
-            var idx = parseInt(this.dataset.thumb)
-            if (!isNaN(idx) && idx >= 0 && idx < currentImages.length) {
-              currentImageIndex = idx
-              renderMainImage()
-              renderThumbnails()
-              renderCounter()
-            }
-          })
+      fetch(
+        '/api/productos/get.php?slug=' +
+          encodeURIComponent(slug) +
+          '&lang=' +
+          lang
+      )
+        .then(function (r) {
+          return r.ok ? r.json() : null
         })
-      }
-
-      function renderCounter() {
-        var el = document.getElementById('imageCounter')
-        if (el) {
-          el.innerHTML =
-            '<span class="bg-off-white/90 backdrop-blur-sm px-3 py-1.5 font-label-caps text-label-caps text-monolith-black text-xs">' +
-            String(currentImageIndex + 1).padStart(2, '0') +
-            ' / ' +
-            String(currentImages.length).padStart(2, '0') +
-            '</span>'
-        }
-      }
-
-      // =============================================================
-      //                      MAGNIFIER LENS
-      // =============================================================
-
-      var magnifierLens = document.getElementById('magnifierLens')
-      var mainImageWrap = document.getElementById('mainImageWrap')
-      var zoomFactor = 2.5
-      var lensSize = 160
-
-      function updateMagnifier() {
-        if (!magnifierLens || !currentImages[currentImageIndex]) return
-        magnifierLens.style.backgroundImage =
-          'url(' + window.imgTransform(currentImages[currentImageIndex], 1200, 1500) + ')'
-        magnifierLens.style.backgroundSize =
-          lensSize * zoomFactor + 'px ' + lensSize * zoomFactor + 'px'
-      }
-
-      if (magnifierLens && mainImageWrap) {
-        updateMagnifier()
-
-        mainImageWrap.addEventListener('mousemove', function (e) {
-          var rect = this.getBoundingClientRect()
-          var x = e.clientX - rect.left
-          var y = e.clientY - rect.top
-          var half = lensSize / 2
-
-          var left = Math.max(0, Math.min(x - half, rect.width - lensSize))
-          var top = Math.max(0, Math.min(y - half, rect.height - lensSize))
-
-          var pctX = (left / (rect.width - lensSize)) * 100
-          var pctY = (top / (rect.height - lensSize)) * 100
-
-          magnifierLens.style.left = left + 'px'
-          magnifierLens.style.top = top + 'px'
-          magnifierLens.style.backgroundPosition = pctX + '% ' + pctY + '%'
+        .then(function (product) {
+          if (!product) {
+            showError()
+            return
+          }
+          showContent()
+          renderProduct(product, lang)
+        })
+        .catch(function () {
+          showError()
         })
 
-        mainImageWrap.addEventListener('mouseleave', function () {
-          magnifierLens.style.opacity = '0'
-        })
-
-        mainImageWrap.addEventListener('mouseenter', function () {
-          magnifierLens.style.opacity = '1'
-        })
-      }
-
       // =============================================================
-      //                   COLOR → IMAGE SWAP (delegated)
+      //                      RENDER PRODUCT
       // =============================================================
 
-      document.getElementById('colorSelector').addEventListener('click', function (e) {
-        var btn = e.target.closest('.color-swatch')
-        if (!btn) return
-        document.querySelectorAll('.color-swatch').forEach(function (b) {
-          b.className =
-            'color-swatch w-7 h-7 rounded-full transition-all duration-300 border border-outline-variant hover:border-monolith-black hover:scale-110'
-          b.classList.remove(
-            'ring-1',
-            'ring-offset-2',
-            'ring-monolith-black',
-            'ring-offset-background',
-            'scale-110'
-          )
-        })
-        btn.className =
-          'color-swatch w-7 h-7 rounded-full transition-all duration-300 ring-1 ring-offset-2 ring-monolith-black ring-offset-background scale-110'
-        selectedColor = btn.dataset.color
-        document.getElementById('selectedColorName').textContent = selectedColor
+      function renderProduct(product, lang) {
+        var images = product.images || []
+        var colors = product.colors || []
+        var sizes = product.sizes || []
+        var variants = product.variants || []
+        var totalStock = product.totalStock || 0
+        var colorGalleryMap = product.imagesByColor || {}
 
-        var colorImages = colorGalleryMap[selectedColor] || images
-        updateGallery(colorImages, 0)
-        updateStockDisplay()
-      })
-
-      // =============================================================
-      //                      SIZE SELECTOR (delegated)
-      // =============================================================
-
-      document.getElementById('sizeSelector').addEventListener('click', function (e) {
-        var btn = e.target.closest('.size-btn')
-        if (!btn || btn.disabled) return
-        document.querySelectorAll('.size-btn').forEach(function (b) {
-          if (b.disabled) return
-          b.classList.remove('bg-monolith-black', 'text-off-white', 'border-monolith-black')
-          b.classList.add(
-            'border-outline-variant',
-            'text-monolith-black',
-            'hover:border-monolith-black',
-            'hover:bg-monolith-black',
-            'hover:text-off-white'
-          )
-        })
-        btn.classList.add('bg-monolith-black', 'text-off-white', 'border-monolith-black')
-        btn.classList.remove(
-          'border-outline-variant',
-          'hover:border-monolith-black',
-          'hover:bg-monolith-black',
-          'hover:text-off-white'
-        )
-        selectedSize = btn.dataset.size
-        updateStockDisplay()
-      })
-
-      // =============================================================
-      //                      ADD TO CART
-      // =============================================================
-
-      document.getElementById('addToCartBtn').addEventListener('click', function (e) {
-        e.preventDefault()
-        e.stopPropagation()
-        if (this.dataset.processing === '1' || this.disabled) return
-        if (!selectedSize) {
-          window.VunoModal.alert({ type: 'warning', title: i18n.selectSize })
-          return
+        // Build color gallery map
+        var galleryMap = {}
+        for (var ci = 0; ci < colors.length; ci++) {
+          var cName = colors[ci].name
+          var perColor = colorGalleryMap[cName] || []
+          galleryMap[cName] = perColor.length ? perColor.slice() : images.slice()
         }
 
-        // Find variant stock
-        var stock = 0
-        for (var si = 0; si < variants.length; si++) {
-          var v = variants[si]
-          if (v.color_name === selectedColor && v.size_value === selectedSize) {
-            stock = v.stock
-            break
+        var currentImages = images.slice()
+        var currentImageIndex = 0
+        var selectedColor = colors.length > 0 ? (colors[0].name || '') : ''
+        var selectedSize = ''
+        var addToCartTimer = null
+
+        // =============================================================
+        //                      BUILD HTML
+        // =============================================================
+
+        var galleryHTML = buildGalleryHTML(images)
+        var infoHTML = buildInfoHTML(product, colors, sizes, lang)
+        var lightboxHTML = buildLightboxHTML()
+        var reviewsSectionHTML = buildReviewsSectionHTML()
+
+        container.innerHTML =
+          galleryHTML +
+          lightboxHTML +
+          reviewsSectionHTML +
+          buildRelatedHTML(product)
+
+        var infoInner = document.getElementById('productInfoInner')
+        if (infoInner) infoInner.innerHTML = infoHTML
+
+        initRelatedProducts(lang)
+
+        // Re-bind variables to DOM elements
+        var mainImage = document.getElementById('mainImage')
+        var thumbnailStrip = document.getElementById('thumbnailStrip')
+        var imageCounter = document.getElementById('imageCounter')
+        var magnifierLens = document.getElementById('magnifierLens')
+        var mainImageWrap = document.getElementById('mainImageWrap')
+        var colorSelector = document.getElementById('colorSelector')
+        var sizeSelector = document.getElementById('sizeSelector')
+        var selectedColorName = document.getElementById('selectedColorName')
+        var stockInfo = document.getElementById('stockInfo')
+        var stockDot = document.getElementById('stockDot')
+        var stockText = document.getElementById('stockText')
+        var addToCartBtn = document.getElementById('addToCartBtn')
+        var addToCartText = document.getElementById('addToCartText')
+        var addToCartSpinner = document.getElementById('addToCartSpinner')
+        var lightboxEl = document.getElementById('lightbox')
+        var lightboxImg = document.getElementById('lightboxImg')
+        var lightboxCounterEl = document.getElementById('lightboxCounter')
+        var zoomBtn = document.getElementById('zoomBtn')
+
+        // =============================================================
+        //                      GALLERY — THUMBNAIL NAV
+        // =============================================================
+
+        function updateGallery(imgArray, index) {
+          currentImages = imgArray
+          currentImageIndex = Math.min(index, imgArray.length - 1)
+          renderMainImage()
+          renderThumbnails()
+          renderCounter()
+          updateMagnifier()
+        }
+
+        function renderMainImage() {
+          if (mainImage && currentImages[currentImageIndex]) {
+            mainImage.src = window.imgTransform(currentImages[currentImageIndex], 800, 1000)
+            mainImage.classList.remove('opacity-100')
+            mainImage.classList.add('opacity-0')
+            requestAnimationFrame(function () {
+              mainImage.classList.remove('opacity-0')
+              mainImage.classList.add('opacity-100')
+            })
           }
         }
 
-        if (stock <= 0) {
-          window.VunoModal.alert({ type: 'warning', title: 'Producto agotado' })
-          return
-        }
-
-        // Check current cart quantity for this variant
-        var cartItems = window.VunoCart.getItems()
-        var cartQty = 0
-        for (var ci = 0; ci < cartItems.length; ci++) {
-          if (cartItems[ci].product.id === data.id && cartItems[ci].selectedColor === selectedColor && cartItems[ci].selectedSize === selectedSize) {
-            cartQty += cartItems[ci].quantity
-          }
-        }
-
-        if (cartQty + 1 > stock) {
-          window.VunoModal.alert({ type: 'warning', title: stock === 1 ? 'Solo queda 1 unidad' : 'Solo quedan ' + stock + ' unidades' })
-          this.disabled = true
-          var txt = document.getElementById('addToCartText')
-          txt.textContent = 'Agotado'
-          return
-        }
-
-        this.dataset.processing = '1'
-        this.disabled = true
-        var text = document.getElementById('addToCartText')
-        var spinner = document.getElementById('addToCartSpinner')
-        text.textContent = ''
-        spinner.style.display = 'inline-block'
-
-        // Clear any pending revert timer
-        if (addToCartTimer) {
-          clearTimeout(addToCartTimer)
-          addToCartTimer = null
-        }
-
-        var productData = {
-          id: data.id,
-          name: data.name,
-          slug: data.slug,
-          price: data.price,
-          currency: data.currency,
-          display_price: data.display_price,
-          display_currency: data.display_currency,
-          display_symbol: data.display_symbol,
-          images: data.images,
-          category: data.category
-        }
-
-        var self = this
-        setTimeout(function () {
-          try {
-            window.VunoCart.addItem(productData, 1, selectedColor, selectedSize)
-          } catch (err) {
-            console.error('Add to cart error:', err)
-          }
-          spinner.style.display = 'none'
-          text.textContent = i18n.addedToCart
-          addToCartTimer = setTimeout(function () {
-            text.textContent = i18n.addToCart
-            addToCartTimer = null
-          }, 1500)
-          self.disabled = false
-          delete self.dataset.processing
-        }, 1000)
-      })
-
-      // =============================================================
-      //                      LIGHTBOX
-      // =============================================================
-
-      var lightboxEl = document.getElementById('lightbox')
-      var lightboxImg = document.getElementById('lightboxImg')
-      var lightboxCounter = document.getElementById('lightboxCounter')
-
-      function openLightbox(index) {
-        currentImageIndex = Math.min(index, currentImages.length - 1)
-        lightboxImg.src = currentImages[currentImageIndex]
-        lightboxCounter.textContent = String(currentImageIndex + 1) + ' / ' + currentImages.length
-        lightboxEl.classList.remove('hidden')
-        lightboxEl.classList.add('flex')
-        document.body.style.overflow = 'hidden'
-      }
-
-      function closeLightbox() {
-        lightboxEl.classList.add('hidden')
-        lightboxEl.classList.remove('flex')
-        document.body.style.overflow = ''
-      }
-
-      function navigateLightbox(dir) {
-        currentImageIndex = (currentImageIndex + dir + currentImages.length) % currentImages.length
-        lightboxImg.src = currentImages[currentImageIndex]
-        lightboxCounter.textContent = String(currentImageIndex + 1) + ' / ' + currentImages.length
-      }
-
-      document.getElementById('mainImageWrap').addEventListener('click', function () {
-        openLightbox(currentImageIndex)
-      })
-      document.getElementById('zoomBtn').addEventListener('click', function (e) {
-        e.stopPropagation()
-        openLightbox(currentImageIndex)
-      })
-      document.getElementById('lightboxClose').addEventListener('click', closeLightbox)
-      document.getElementById('lightboxPrev').addEventListener('click', function () {
-        navigateLightbox(-1)
-      })
-      document.getElementById('lightboxNext').addEventListener('click', function () {
-        navigateLightbox(1)
-      })
-
-      lightboxEl.addEventListener('click', function (e) {
-        if (e.target === lightboxEl) closeLightbox()
-      })
-
-      document.addEventListener('keydown', function (e) {
-        if (!lightboxEl.classList.contains('hidden')) {
-          if (e.key === 'Escape') {
-            closeLightbox()
-            e.preventDefault()
-          }
-          if (e.key === 'ArrowLeft') {
-            navigateLightbox(-1)
-            e.preventDefault()
-          }
-          if (e.key === 'ArrowRight') {
-            navigateLightbox(1)
-            e.preventDefault()
-          }
-        }
-      })
-
-      // =============================================================
-      //                      WISHLIST TOGGLE
-      // =============================================================
-      ;(function () {
-        var btn = document.querySelector('[data-toggle-wishlist]')
-        if (!btn) return
-        var product = JSON.parse(btn.dataset.product || '{}')
-        if (window.VunoWishlist.isInWishlist(product.id)) {
-          var icon = btn.querySelector('.wishlist-icon')
-          if (icon) {
-            icon.textContent = 'favorite'
-            icon.style.fontVariationSettings = "'FILL' 1"
-          }
-          btn.classList.add('in-wishlist')
-        }
-      })()
-
-      // =============================================================
-      //                 RUNTIME SYNC — REFRESH PRODUCT DATA
-      // =============================================================
-      ;(function () {
-        fetch(
-          '/api/productos/get.php?id=' +
-            encodeURIComponent(data.id) +
-            '&lang=' +
-            (document.documentElement.lang || 'es')
-        )
-          .then(function (r) {
-            return r.ok ? r.json() : null
-          })
-          .then(function (fresh) {
-            if (!fresh) return
-            var prevColor = selectedColor
-            var prevSize = selectedSize
-
-            // Sync colors unconditionally
-            if (fresh.colors && fresh.colors.length) {
-              colors = fresh.colors
-              colorGalleryMap = fresh.imagesByColor || {}
-              renderColors(prevColor)
-            }
-
-            // Sync sizes unconditionally
-            if (fresh.sizes && fresh.sizes.length) {
-              sizes = fresh.sizes
-              renderSizes(prevSize)
-            }
-
-            // Sync variants (color x size stock matrix)
-            if (fresh.variants) {
-              variants = fresh.variants
-            }
-            if (fresh.totalStock !== undefined) {
-              totalStock = fresh.totalStock
-            }
-
-            // Sync images
-            if (fresh.images && fresh.images.length && fresh.imagesByColor) {
-              images = fresh.images
-              colorGalleryMap = fresh.imagesByColor
-              currentImages = colorGalleryMap[selectedColor] || images
-              renderMainImage()
-              renderThumbnails()
-              renderCounter()
-            }
-
-            // Sync description/details
-            if (fresh.description) {
-              var descEl = document.querySelector('[data-product-description]')
-              if (descEl) descEl.textContent = fresh.description
-            }
-            if (fresh.details && fresh.details.length) {
-              var detailsEl = document.querySelector('[data-product-details]')
-              if (detailsEl) {
-                detailsEl.innerHTML = fresh.details
-                  .map(function (d) {
-                    return '<li>' + d + '</li>'
-                  })
-                  .join('')
-              }
-            }
-
-            updateStockDisplay()
-          })
-          .catch(function () {})
-      })()
-
-      function renderColors(prevColor) {
-        var container = document.getElementById('colorSelector')
-        var nameEl = document.getElementById('selectedColorName')
-        if (!container) return
-
-        var foundIdx = -1
-        if (prevColor) {
-          for (var ci = 0; ci < colors.length; ci++) {
-            if (colors[ci].name === prevColor) {
-              foundIdx = ci
-              break
-            }
-          }
-        }
-        var activeIdx = foundIdx >= 0 ? foundIdx : 0
-
-        container.innerHTML = colors
-          .map(function (c, i) {
-            var active =
-              i === activeIdx
-                ? 'ring-1 ring-offset-2 ring-monolith-black ring-offset-background scale-110'
-                : 'border border-outline-variant hover:border-monolith-black'
-            return (
-              '<button data-color="' +
-              c.name +
-              '" data-color-images=\'' +
-              JSON.stringify(colorGalleryMap[c.name] || images) +
-              '\' aria-label="' +
-              c.name +
-              '" class="color-swatch w-7 h-7 rounded-full transition-all duration-300 hover:scale-110 ' +
-              active +
-              '" style="background-color: ' +
-              c.hex +
-              '"></button>'
-            )
-          })
-          .join('')
-
-        selectedColor = colors[activeIdx]
-          ? colors[activeIdx].name
-          : colors.length
-            ? colors[0].name
-            : ''
-        if (nameEl) nameEl.textContent = selectedColor
-      }
-
-      function renderSizes(prevSize) {
-        var container = document.getElementById('sizeSelector')
-        if (!container) return
-
-        container.innerHTML = sizes
-          .map(function (s) {
-            if (s.inStock) {
+        function renderThumbnails() {
+          if (!thumbnailStrip) return
+          thumbnailStrip.innerHTML = currentImages
+            .map(function (src, i) {
+              var active = i === currentImageIndex ? 'active' : ''
               return (
-                '<button data-size="' +
-                s.value +
-                '" class="size-btn py-3 px-1 border border-outline-variant text-center font-label-caps text-label-caps text-monolith-black hover:border-monolith-black hover:bg-monolith-black hover:text-off-white transition-all duration-300">' +
-                s.label +
+                '<button data-thumb="' +
+                i +
+                '" class="' +
+                active +
+                '">' +
+                '<img src="' +
+                window.imgTransform(src, 80, 100) +
+                '" alt="" width="80" height="100" class="w-full h-full object-cover" loading="lazy" />' +
                 '</button>'
               )
-            }
-            return (
-              '<button data-size="' +
-              s.value +
-              '" class="size-btn py-3 px-1 border border-outline-variant text-center font-label-caps text-label-caps text-outline opacity-50 cursor-not-allowed line-through" disabled>' +
-              s.label +
-              '</button>'
-            )
-          })
-          .join('')
+            })
+            .join('')
 
-        if (prevSize) {
-          var sizeBtn = container.querySelector(
-            '.size-btn[data-size="' + prevSize + '"]:not([disabled])'
+          thumbnailStrip.querySelectorAll('[data-thumb]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+              var idx = parseInt(this.dataset.thumb)
+              if (!isNaN(idx) && idx >= 0 && idx < currentImages.length) {
+                currentImageIndex = idx
+                renderMainImage()
+                renderThumbnails()
+                renderCounter()
+              }
+            })
+          })
+        }
+
+        function renderCounter() {
+          if (imageCounter) {
+            imageCounter.innerHTML =
+              '<span class="bg-off-white/90 backdrop-blur-sm px-3 py-1.5 font-label-caps text-label-caps text-monolith-black text-xs">' +
+              String(currentImageIndex + 1).padStart(2, '0') +
+              ' / ' +
+              String(currentImages.length).padStart(2, '0') +
+              '</span>'
+          }
+        }
+
+        // =============================================================
+        //                      MAGNIFIER LENS
+        // =============================================================
+
+        var zoomFactor = 2.5
+        var lensSize = 160
+
+        function updateMagnifier() {
+          if (!magnifierLens || !currentImages[currentImageIndex]) return
+          magnifierLens.style.backgroundImage =
+            'url(' + window.imgTransform(currentImages[currentImageIndex], 1200, 1500) + ')'
+          magnifierLens.style.backgroundSize =
+            lensSize * zoomFactor + 'px ' + lensSize * zoomFactor + 'px'
+        }
+
+        if (magnifierLens && mainImageWrap) {
+          updateMagnifier()
+
+          mainImageWrap.addEventListener('mousemove', function (e) {
+            var rect = this.getBoundingClientRect()
+            var x = e.clientX - rect.left
+            var y = e.clientY - rect.top
+            var half = lensSize / 2
+            var left = Math.max(0, Math.min(x - half, rect.width - lensSize))
+            var top = Math.max(0, Math.min(y - half, rect.height - lensSize))
+            var pctX = (left / (rect.width - lensSize)) * 100
+            var pctY = (top / (rect.height - lensSize)) * 100
+            magnifierLens.style.left = left + 'px'
+            magnifierLens.style.top = top + 'px'
+            magnifierLens.style.backgroundPosition = pctX + '% ' + pctY + '%'
+          })
+
+          mainImageWrap.addEventListener('mouseleave', function () {
+            magnifierLens.style.opacity = '0'
+          })
+
+          mainImageWrap.addEventListener('mouseenter', function () {
+            magnifierLens.style.opacity = '1'
+          })
+        }
+
+        // =============================================================
+        //                   COLOR SELECTOR
+        // =============================================================
+
+        if (colorSelector) {
+          colorSelector.addEventListener('click', function (e) {
+            var btn = e.target.closest('.color-swatch')
+            if (!btn) return
+            colorSelector.querySelectorAll('.color-swatch').forEach(function (b) {
+              b.className =
+                'color-swatch w-7 h-7 rounded-full transition-all duration-300 border border-outline-variant hover:border-monolith-black hover:scale-110'
+              b.classList.remove('ring-1', 'ring-offset-2', 'ring-monolith-black', 'ring-offset-background', 'scale-110')
+            })
+            btn.classList.add('ring-1', 'ring-offset-2', 'ring-monolith-black', 'ring-offset-background', 'scale-110')
+            selectedColor = btn.dataset.color
+            if (selectedColorName) selectedColorName.textContent = selectedColor
+
+            var colorImages = galleryMap[selectedColor] || images
+            updateGallery(colorImages, 0)
+            updateStockDisplay()
+          })
+        }
+
+        // =============================================================
+        //                      SIZE SELECTOR
+        // =============================================================
+
+        if (sizeSelector) {
+          sizeSelector.addEventListener('click', function (e) {
+            var btn = e.target.closest('.size-btn')
+            if (!btn || btn.disabled) return
+            sizeSelector.querySelectorAll('.size-btn').forEach(function (b) {
+              if (b.disabled) return
+              b.classList.remove('bg-monolith-black', 'text-off-white', 'border-monolith-black')
+              b.classList.add('border-outline-variant', 'text-monolith-black', 'hover:border-monolith-black', 'hover:bg-monolith-black', 'hover:text-off-white')
+            })
+            btn.classList.add('bg-monolith-black', 'text-off-white', 'border-monolith-black')
+            btn.classList.remove('border-outline-variant', 'hover:border-monolith-black', 'hover:bg-monolith-black', 'hover:text-off-white')
+            selectedSize = btn.dataset.size
+            updateStockDisplay()
+          })
+        }
+
+        // =============================================================
+        //                      STOCK DISPLAY
+        // =============================================================
+
+        function updateStockDisplay() {
+          if (!stockInfo || !stockDot || !stockText) return
+          var qty = 0
+
+          if (selectedColor && selectedSize) {
+            for (var i = 0; i < variants.length; i++) {
+              var v = variants[i]
+              if (v.color_name === selectedColor && v.size_value === selectedSize) {
+                qty = v.stock
+                break
+              }
+            }
+          } else if (selectedColor) {
+            for (var i = 0; i < variants.length; i++) {
+              if (variants[i].color_name === selectedColor) qty += variants[i].stock
+            }
+          } else if (selectedSize) {
+            for (var i = 0; i < sizes.length; i++) {
+              if (sizes[i].value === selectedSize) {
+                qty = sizes[i].stock
+                break
+              }
+            }
+          } else {
+            qty = totalStock
+          }
+
+          stockInfo.classList.remove('hidden')
+
+          if (qty > 5) {
+            stockDot.className = 'w-2 h-2 rounded-full inline-flex flex-shrink-0 bg-green-500'
+            stockText.textContent = 'En stock \u00b7 ' + qty
+            stockText.className = 'text-green-700'
+          } else if (qty > 0) {
+            stockDot.className = 'w-2 h-2 rounded-full inline-flex flex-shrink-0 bg-amber-500'
+            stockText.textContent = qty === 1 ? 'Solo queda 1' : 'Solo quedan ' + qty
+            stockText.className = 'text-amber-700'
+          } else {
+            stockDot.className = 'w-2 h-2 rounded-full inline-flex flex-shrink-0 bg-red-500'
+            stockText.textContent = 'Agotado'
+            stockText.className = 'text-error'
+          }
+
+          if (!addToCartBtn || !addToCartText) return
+          if (addToCartTimer) {
+            clearTimeout(addToCartTimer)
+            addToCartTimer = null
+          }
+          if (addToCartBtn.dataset.processing === '1') return
+          if (addToCartSpinner) addToCartSpinner.style.display = 'none'
+          var outOfStock = selectedSize && qty <= 0
+          addToCartBtn.disabled = outOfStock
+          addToCartText.textContent = outOfStock ? 'Agotado' : i18n.addToCart
+        }
+
+        // =============================================================
+        //                      ADD TO CART
+        // =============================================================
+
+        if (addToCartBtn) {
+          addToCartBtn.addEventListener('click', function (e) {
+            e.preventDefault()
+            e.stopPropagation()
+            if (this.dataset.processing === '1' || this.disabled) return
+            if (!selectedSize) {
+              window.VunoModal.alert({ type: 'warning', title: i18n.selectSize })
+              return
+            }
+
+            var stock = 0
+            for (var si = 0; si < variants.length; si++) {
+              var sv = variants[si]
+              if (sv.color_name === selectedColor && sv.size_value === selectedSize) {
+                stock = sv.stock
+                break
+              }
+            }
+
+            if (stock <= 0) {
+              window.VunoModal.alert({ type: 'warning', title: 'Producto agotado' })
+              return
+            }
+
+            var cartItems = window.VunoCart.getItems()
+            var cartQty = 0
+            for (var cii = 0; cii < cartItems.length; cii++) {
+              if (cartItems[cii].product.id === product.id && cartItems[cii].selectedColor === selectedColor && cartItems[cii].selectedSize === selectedSize) {
+                cartQty += cartItems[cii].quantity
+              }
+            }
+
+            if (cartQty + 1 > stock) {
+              window.VunoModal.alert({ type: 'warning', title: stock === 1 ? 'Solo queda 1 unidad' : 'Solo quedan ' + stock + ' unidades' })
+              this.disabled = true
+              if (addToCartText) addToCartText.textContent = 'Agotado'
+              return
+            }
+
+            this.dataset.processing = '1'
+            this.disabled = true
+            if (addToCartText) addToCartText.textContent = ''
+            if (addToCartSpinner) addToCartSpinner.style.display = 'inline-block'
+
+            if (addToCartTimer) {
+              clearTimeout(addToCartTimer)
+              addToCartTimer = null
+            }
+
+            var cartProduct = {
+              id: product.id,
+              name: product.name,
+              slug: product.slug,
+              price: product.price,
+              currency: product.currency,
+              display_price: product.display_price,
+              display_currency: product.display_currency,
+              display_symbol: product.display_symbol,
+              images: [images[0]],
+              category: product.category
+            }
+
+            var self = this
+            setTimeout(function () {
+              try {
+                window.VunoCart.addItem(cartProduct, 1, selectedColor, selectedSize)
+              } catch (err) {
+                console.error('Add to cart error:', err)
+              }
+              if (addToCartSpinner) addToCartSpinner.style.display = 'none'
+              if (addToCartText) addToCartText.textContent = i18n.addedToCart
+              addToCartTimer = setTimeout(function () {
+                if (addToCartText) addToCartText.textContent = i18n.addToCart
+                addToCartTimer = null
+              }, 1500)
+              self.disabled = false
+              delete self.dataset.processing
+            }, 1000)
+          })
+        }
+
+        // =============================================================
+        //                      LIGHTBOX
+        // =============================================================
+
+        function openLightbox(index) {
+          if (!lightboxEl || !lightboxImg || !lightboxCounterEl) return
+          currentImageIndex = Math.min(index, currentImages.length - 1)
+          lightboxImg.src = currentImages[currentImageIndex]
+          lightboxCounterEl.textContent = String(currentImageIndex + 1) + ' / ' + currentImages.length
+          lightboxEl.classList.remove('hidden')
+          lightboxEl.classList.add('flex')
+          document.body.style.overflow = 'hidden'
+        }
+
+        function closeLightbox() {
+          if (!lightboxEl) return
+          lightboxEl.classList.add('hidden')
+          lightboxEl.classList.remove('flex')
+          document.body.style.overflow = ''
+        }
+
+        function navigateLightbox(dir) {
+          if (!lightboxImg || !lightboxCounterEl) return
+          currentImageIndex = (currentImageIndex + dir + currentImages.length) % currentImages.length
+          lightboxImg.src = currentImages[currentImageIndex]
+          lightboxCounterEl.textContent = String(currentImageIndex + 1) + ' / ' + currentImages.length
+        }
+
+        if (mainImageWrap) {
+          mainImageWrap.addEventListener('click', function () {
+            openLightbox(currentImageIndex)
+          })
+        }
+        if (zoomBtn) {
+          zoomBtn.addEventListener('click', function (e) {
+            e.stopPropagation()
+            openLightbox(currentImageIndex)
+          })
+        }
+        var lightboxClose = document.getElementById('lightboxClose')
+        var lightboxPrev = document.getElementById('lightboxPrev')
+        var lightboxNext = document.getElementById('lightboxNext')
+
+        if (lightboxClose) lightboxClose.addEventListener('click', closeLightbox)
+        if (lightboxPrev) lightboxPrev.addEventListener('click', function () { navigateLightbox(-1) })
+        if (lightboxNext) lightboxNext.addEventListener('click', function () { navigateLightbox(1) })
+
+        if (lightboxEl) {
+          lightboxEl.addEventListener('click', function (e) {
+            if (e.target === lightboxEl) closeLightbox()
+          })
+        }
+
+        document.addEventListener('keydown', function (e) {
+          if (lightboxEl && !lightboxEl.classList.contains('hidden')) {
+            if (e.key === 'Escape') { closeLightbox(); e.preventDefault() }
+            if (e.key === 'ArrowLeft') { navigateLightbox(-1); e.preventDefault() }
+            if (e.key === 'ArrowRight') { navigateLightbox(1); e.preventDefault() }
+          }
+        })
+
+        // =============================================================
+        //                      WISHLIST TOGGLE
+        // =============================================================
+
+        ;(function () {
+          var btn = document.querySelector('[data-toggle-wishlist]')
+          if (!btn) return
+          var wp = JSON.parse(btn.dataset.product || '{}')
+          if (window.VunoWishlist && window.VunoWishlist.isInWishlist(wp.id)) {
+            var icon = btn.querySelector('.wishlist-icon')
+            if (icon) {
+              icon.textContent = 'favorite'
+              icon.style.fontVariationSettings = "'FILL' 1"
+            }
+            btn.classList.add('in-wishlist')
+          }
+        })()
+
+        // =============================================================
+        //                SHIPPING & RETURNS — FETCH
+        // =============================================================
+
+        ;(function () {
+          fetch('/api/configuracion/public.php')
+            .then(function (r) { return r.ok ? r.json() : null })
+            .then(function (config) {
+              if (!config || !config.policies) return
+              var shippingEl = document.querySelector('[data-policy-shipping]')
+              var returnsEl = document.querySelector('[data-policy-returns]')
+              var shippingKey = 'shipping_' + lang
+              var returnsKey = 'returns_' + lang
+              if (shippingEl && config.policies[shippingKey]) {
+                shippingEl.textContent = config.policies[shippingKey]
+              }
+              if (returnsEl && config.policies[returnsKey]) {
+                returnsEl.textContent = config.policies[returnsKey]
+              }
+            })
+            .catch(function () {})
+        })()
+
+        // =============================================================
+        //                    SIZE GUIDE
+        // =============================================================
+
+        var sizeGuideBtn = document.getElementById('sizeGuideBtn')
+        if (sizeGuideBtn) {
+          sizeGuideBtn.addEventListener('click', function () {
+            var btn = this
+            btn.disabled = true
+
+            function buildTable(data) {
+              if (!data || !data.rows || !data.rows.length) return null
+              var title = lang === 'es' ? (data.title_es || data.title_en || 'Size Guide') : (data.title_en || data.title_es || 'Size Guide')
+              var footer = lang === 'es' ? data.footer_es : data.footer_en
+              var html = '<h3 class="font-headline text-headline-md mb-4">' + title + '</h3>'
+              html += '<table class="w-full text-left border-collapse"><thead><tr class="border-b border-outline-variant">'
+              html += '<th class="font-label-caps text-label-caps text-secondary pb-2 pr-4">US</th>'
+              html += '<th class="font-label-caps text-label-caps text-secondary pb-2 pr-4">EU</th>'
+              html += '<th class="font-label-caps text-label-caps text-secondary pb-2 pr-4">UK</th>'
+              html += '<th class="font-label-caps text-label-caps text-secondary pb-2">CM</th>'
+              html += '</tr></thead><tbody>'
+              for (var i = 0; i < data.rows.length; i++) {
+                var r = data.rows[i]
+                var cls = i < data.rows.length - 1 ? ' class="border-b border-outline-variant/50"' : ''
+                html += '<tr' + cls + '>'
+                html += '<td class="py-2 pr-4 font-medium">' + r.us + '</td>'
+                html += '<td class="py-2 pr-4 text-secondary">' + r.eu + '</td>'
+                html += '<td class="py-2 pr-4 text-secondary">' + r.uk + '</td>'
+                html += '<td class="py-2 text-secondary">' + r.cm + '</td>'
+                html += '</tr>'
+              }
+              html += '</tbody></table>'
+              if (footer) {
+                html += '<p class="font-body text-body-md text-secondary mt-4 text-sm">' + footer + '</p>'
+              }
+              return html
+            }
+
+            fetch('/api/size-guide/public.php')
+              .then(function (r) { return r.ok ? r.json() : null })
+              .then(function (data) {
+                var html = buildTable(data)
+                if (html && window.VunoModal && window.VunoModal.show) {
+                  window.VunoModal.show({
+                    type: 'info',
+                    title: lang === 'es' ? 'Gu\u00eda de Talles' : 'Size Guide',
+                    body: html
+                  })
+                }
+              })
+              .catch(function () {})
+              .finally(function () { btn.disabled = false })
+          })
+        }
+
+        // =============================================================
+        //                      INIT GALLERY
+        // =============================================================
+
+        if (images.length > 0) {
+          currentImages = images.slice()
+          currentImageIndex = 0
+          renderMainImage()
+          renderThumbnails()
+          renderCounter()
+          updateStockDisplay()
+        }
+
+        // =============================================================
+        //                      INTERSECTION OBSERVER
+        // =============================================================
+
+        ;(function () {
+          var observer = new IntersectionObserver(
+            function (entries) {
+              entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                  entry.target.classList.add('revealed')
+                  observer.unobserve(entry.target)
+                }
+              })
+            },
+            { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
           )
-          if (sizeBtn) {
-            selectedSize = prevSize
-            sizeBtn.classList.add('bg-monolith-black', 'text-off-white', 'border-monolith-black')
-            sizeBtn.classList.remove(
-              'border-outline-variant',
-              'hover:border-monolith-black',
-              'hover:bg-monolith-black',
-              'hover:text-off-white'
-            )
-            return
+          document.querySelectorAll('.reveal').forEach(function (el) {
+            observer.observe(el)
+          })
+        })()
+
+        // =============================================================
+        //                      REVIEWS SYSTEM
+        // =============================================================
+
+        ;(function () {
+          function starsHtml(rating, filled) {
+            if (filled === undefined) filled = true
+            var color = filled ? 'text-clay-accent' : 'text-outline'
+            return Array(5)
+              .fill(0)
+              .map(function (_, i) {
+                return (
+                  '<span class="material-symbols-outlined text-sm ' +
+                  (i < rating ? color : 'text-outline') +
+                  '" style="font-variation-settings: \'FILL\' ' +
+                  (i < rating ? 1 : 0) +
+                  '">star</span>'
+                )
+              })
+              .join('')
           }
-        }
-        selectedSize = ''
+
+          function renderStats(stats) {
+            var countLabel = stats.total === 1 ? i18n.reviewsReview : i18n.reviewsReviews
+            var reviewStarsEl = document.getElementById('reviewStars')
+            var reviewCountEl = document.getElementById('reviewCount')
+            if (reviewStarsEl) {
+              reviewStarsEl.innerHTML = stats.total > 0 ? starsHtml(Math.round(stats.average)) : starsHtml(0)
+            }
+            if (reviewCountEl) {
+              reviewCountEl.textContent = stats.total > 0
+                ? stats.average + ' ' + i18n.reviewsAverage + ' \u00b7 ' + stats.total + ' ' + countLabel
+                : '0 ' + countLabel
+            }
+          }
+
+          function renderReviews(reviews) {
+            var container = document.getElementById('reviewsList')
+            if (!container) return
+            if (reviews.length === 0) {
+              container.innerHTML =
+                '<div class="col-span-full text-center py-8"><p class="font-body-md text-body-md text-secondary">' +
+                i18n.reviewsEmpty +
+                '</p></div>'
+              return
+            }
+            container.innerHTML = reviews
+              .map(function (r) {
+                return (
+                  '<div class="border border-outline-variant p-4 hover:border-monolith-black transition-colors duration-300">' +
+                  '<div class="flex items-center gap-2 mb-2">' +
+                  '<div class="flex items-center gap-0.5">' +
+                  starsHtml(r.rating) +
+                  '</div>' +
+                  '<span class="font-label-caps text-label-caps text-secondary text-xs">' +
+                  (r.reviewerName || i18n.reviewsAnonymous) +
+                  '</span>' +
+                  '</div>' +
+                  (r.title
+                    ? '<p class="font-body-md text-body-md text-monolith-black font-medium mb-1">' + r.title + '</p>'
+                    : '') +
+                  (r.comment
+                    ? '<p class="font-body-md text-body-md text-secondary">' + r.comment + '</p>'
+                    : '') +
+                  '</div>'
+                )
+              })
+              .join('')
+          }
+
+          async function loadReviews() {
+            try {
+              var res = await fetch('/api/resenas/list.php?product_id=' + encodeURIComponent(product.id))
+              var result = await res.json()
+              renderStats(result.stats)
+              renderReviews(result.reviews)
+            } catch (err) {
+              var container = document.getElementById('reviewsList')
+              if (container) {
+                container.innerHTML =
+                  '<div class="col-span-full text-center py-8"><p class="font-body-md text-body-md text-error">' +
+                  i18n.reviewsError +
+                  '</p></div>'
+              }
+            }
+          }
+
+          var selectedRating = 0
+          document.querySelectorAll('.review-star').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+              selectedRating = parseInt(btn.dataset.reviewStar)
+              var ratingInput = document.getElementById('reviewRating')
+              if (ratingInput) ratingInput.value = selectedRating
+              document.querySelectorAll('.review-star').forEach(function (s, i) {
+                var icon = s.querySelector('.material-symbols-outlined')
+                if (icon) {
+                  if (i < selectedRating) {
+                    icon.style.fontVariationSettings = "'FILL' 1"
+                    s.classList.remove('text-outline')
+                    s.classList.add('text-clay-accent')
+                  } else {
+                    icon.style.fontVariationSettings = "'FILL' 0"
+                    s.classList.remove('text-clay-accent')
+                    s.classList.add('text-outline')
+                  }
+                }
+              })
+            })
+          })
+
+          var reviewForm = document.getElementById('reviewForm')
+          if (reviewForm) {
+            reviewForm.addEventListener('submit', async function (e) {
+              e.preventDefault()
+              var msg = document.getElementById('reviewMsg')
+              var nameEl = document.getElementById('reviewName')
+              var ratingVal = selectedRating
+              if (!nameEl || !nameEl.value.trim()) {
+                if (msg) { msg.textContent = i18n.reviewsNameRequired; msg.className = 'font-body-md text-body-md text-sm text-error block' }
+                return
+              }
+              if (ratingVal < 1) {
+                if (msg) { msg.textContent = i18n.reviewsRatingRequired; msg.className = 'font-body-md text-body-md text-sm text-error block' }
+                return
+              }
+              var submitBtn = document.getElementById('reviewSubmitBtn')
+              if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = i18n.reviewsSending }
+              try {
+                var res = await fetch('/api/resenas/create.php', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    product_id: product.id,
+                    reviewer_name: nameEl.value.trim(),
+                    reviewer_email: (document.getElementById('reviewEmail') || {}).value || '',
+                    rating: ratingVal,
+                    title: (document.getElementById('reviewTitle') || {}).value || '',
+                    comment: (document.getElementById('reviewComment') || {}).value || ''
+                  })
+                })
+                var result = await res.json()
+                if (!res.ok) throw new Error(result.error)
+                if (msg) { msg.textContent = i18n.reviewsSuccess; msg.className = 'font-body-md text-body-md text-sm text-monolith-black block' }
+                var form = document.getElementById('reviewForm')
+                if (form) form.reset()
+                selectedRating = 0
+                var ratingInput = document.getElementById('reviewRating')
+                if (ratingInput) ratingInput.value = 0
+                document.querySelectorAll('.review-star .material-symbols-outlined').forEach(function (icon) {
+                  icon.style.fontVariationSettings = "'FILL' 0"
+                })
+                document.querySelectorAll('.review-star').forEach(function (s) {
+                  s.classList.remove('text-clay-accent')
+                  s.classList.add('text-outline')
+                })
+                loadReviews()
+              } catch (err) {
+                if (msg) { msg.textContent = err.message; msg.className = 'font-body-md text-body-md text-sm text-error block' }
+              } finally {
+                if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = i18n.reviewsSubmit }
+              }
+            })
+          }
+
+          loadReviews()
+        })()
       }
 
       // =============================================================
-      //                      STOCK DISPLAY
+      //                HTML BUILDERS
       // =============================================================
 
-      function updateStockDisplay() {
-        var el = document.getElementById('stockInfo')
-        var dot = document.getElementById('stockDot')
-        var text = document.getElementById('stockText')
-        if (!el || !dot || !text) return
+      function buildGalleryHTML(images) {
+        return (
+          '<section class="grid grid-cols-1 md:grid-cols-12 gap-gutter relative">' +
+          '<div class="md:col-span-7 relative" id="galleryColumn">' +
+          '<div class="md:sticky md:top-20 md:pb-section-gap">' +
+          '<div class="flex gap-2">' +
+          '<div class="flex-1 min-w-0">' +
+          '<div class="w-full bg-surface-container overflow-hidden relative cursor-zoom-in group flex items-center justify-center" id="mainImageWrap" style="max-height: min(65dvh, 550px); height: min(65dvh, 550px);">' +
+          '<img id="mainImage" src="' + window.imgTransform(images[0] || '', 600, 600) + '" alt="" width="600" height="600" class="max-w-full max-h-full object-contain transition-all duration-500" style="view-transition-name: product-main" />' +
+          '<div class="absolute inset-0 bg-monolith-black/0 group-hover:bg-monolith-black/5 transition-colors duration-300"></div>' +
+          '<div class="product-magnifier" id="magnifierLens"></div>' +
+          '<div id="imageCounter" class="absolute top-4 left-4 z-10"><span class="bg-off-white/90 backdrop-blur-sm px-3 py-1.5 font-label-caps text-label-caps text-monolith-black text-xs">01 / ' + String(images.length).padStart(2, '0') + '</span></div>' +
+          '<button id="zoomBtn" class="absolute bottom-4 right-4 z-10 w-9 h-9 bg-off-white/80 backdrop-blur-sm flex items-center justify-center hover:bg-off-white transition-all border border-outline-variant/30" aria-label="Zoom"><span class="material-symbols-outlined text-lg">fullscreen</span></button>' +
+          '</div>' +
+          '</div>' +
+          '<div class="flex gallery-vertical-thumbs" id="thumbnailStrip"></div>' +
+          '</div>' +
+          '</div>' +
+          '</div>' +
+          '<div class="md:col-span-4 md:col-start-9 relative" id="productInfo">' +
+          '<div class="sticky top-20" id="productInfoInner"></div>' +
+          '</div>' +
+          '</section>'
+        )
+      }
 
-        var qty = 0
+      function buildInfoHTML(product, colors, sizes, lang) {
+        var html = ''
 
-        if (selectedColor && selectedSize) {
-          // Exact variant
-          for (var i = 0; i < variants.length; i++) {
-            var v = variants[i]
-            if (v.color_name === selectedColor && v.size_value === selectedSize) {
-              qty = v.stock
-              break
-            }
-          }
-        } else if (selectedColor) {
-          // Color only — sum stock across all sizes for this color
-          for (var i = 0; i < variants.length; i++) {
-            if (variants[i].color_name === selectedColor) qty += variants[i].stock
-          }
-        } else if (selectedSize) {
-          // Size only — look up from sizes array (aggregated across colors)
-          for (var i = 0; i < sizes.length; i++) {
-            if (sizes[i].value === selectedSize) {
-              qty = sizes[i].stock
-              break
-            }
-          }
-        } else {
-          // Nothing selected — show total stock
-          qty = totalStock
+        // Breadcrumb
+        html += '<nav class="flex items-center gap-2 font-label-caps text-label-caps text-secondary">'
+        html += '<a href="/' + lang + '/catalogo" class="hover:text-monolith-black transition-colors">' + (i18n.collection || 'COLLECTION') + '</a>'
+        html += '<span class="text-outline">/</span>'
+        html += '<span class="text-monolith-black">' + escapeHtml(product.category || '') + '</span>'
+        html += '</nav>'
+
+        // Title & Price
+        html += '<div class="flex flex-col gap-2">'
+        html += '<h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-monolith-black leading-tight">' + escapeHtml(product.name || '') + '</h1>'
+        var displayPrice = product.display_symbol || '$'
+        displayPrice += (product.display_price || product.price || 0).toFixed(2)
+        var displayCurrency = product.display_currency || product.currency || 'USD'
+        html += '<p class="font-price-display text-price-display text-monolith-black mt-2">' + displayPrice + ' ' + displayCurrency + '</p>'
+        html += '</div>'
+
+        // Color selector
+        html += '<div class="flex flex-col gap-3">'
+        html += '<span class="font-label-caps text-label-caps text-secondary tracking-widest">' + i18n.colorLabel + ': <span class="text-monolith-black ml-1" id="selectedColorName">' + (colors.length > 0 ? escapeHtml(colors[0].name) : '') + '</span></span>'
+        html += '<div class="flex gap-3" id="colorSelector">'
+        for (var ci = 0; ci < colors.length; ci++) {
+          var activeClass = ci === 0 ? 'ring-1 ring-offset-2 ring-monolith-black ring-offset-background scale-110' : 'border border-outline-variant hover:border-monolith-black'
+          html += '<button data-color="' + escapeHtml(colors[ci].name) + '" aria-label="' + escapeHtml(colors[ci].name) + '" class="color-swatch w-7 h-7 rounded-full transition-all duration-300 hover:scale-110 ' + activeClass + '" style="background-color: ' + (colors[ci].hex || '#000') + '"></button>'
         }
+        html += '</div></div>'
 
-        el.classList.remove('hidden')
-
-        if (qty > 5) {
-          dot.className = 'w-2 h-2 rounded-full inline-flex flex-shrink-0 bg-green-500'
-          text.textContent = 'En stock · ' + qty
-          text.className = 'text-green-700'
-        } else if (qty > 0) {
-          dot.className = 'w-2 h-2 rounded-full inline-flex flex-shrink-0 bg-amber-500'
-          text.textContent = qty === 1 ? 'Solo queda 1' : 'Solo quedan ' + qty
-          text.className = 'text-amber-700'
-        } else {
-          dot.className = 'w-2 h-2 rounded-full inline-flex flex-shrink-0 bg-red-500'
-          text.textContent = 'Agotado'
-          text.className = 'text-error'
+        // Size selector
+        html += '<div class="flex flex-col gap-3">'
+        html += '<div class="flex justify-between items-end">'
+        html += '<span class="font-label-caps text-label-caps text-secondary tracking-widest">' + i18n.sizeLabel + ' ' + (product.size_prefix || 'EU') + '</span>'
+        html += '<button id="sizeGuideBtn" class="font-body-md text-body-md text-secondary underline hover:text-monolith-black transition-colors text-sm">' + i18n.sizeGuideLabel + '</button>'
+        html += '</div>'
+        html += '<div class="grid grid-cols-4 gap-2" id="sizeSelector">'
+        for (var si = 0; si < sizes.length; si++) {
+          if (sizes[si].inStock) {
+            html += '<button data-size="' + escapeHtml(sizes[si].value) + '" class="size-btn py-3 px-1 border border-outline-variant text-center font-label-caps text-label-caps text-monolith-black hover:border-monolith-black hover:bg-monolith-black hover:text-off-white transition-all duration-300">' + escapeHtml(sizes[si].label) + '</button>'
+          } else {
+            html += '<button data-size="' + escapeHtml(sizes[si].value) + '" class="size-btn py-3 px-1 border border-outline-variant text-center font-label-caps text-label-caps text-outline opacity-50 cursor-not-allowed line-through" disabled>' + escapeHtml(sizes[si].label) + '</button>'
+          }
         }
+        html += '</div></div>'
 
-        // Control add to cart button state
-        var btn = document.getElementById('addToCartBtn')
-        var btnText = document.getElementById('addToCartText')
-        var spin = document.getElementById('addToCartSpinner')
-        if (!btn || !btnText) return
+        // Stock info
+        html += '<div id="stockInfo" class="hidden mt-2">'
+        html += '<span class="inline-flex items-center gap-2 px-3 py-1.5 border border-outline-variant bg-off-white/80 rounded-sm font-label-caps text-label-caps text-xs" id="stockBadge">'
+        html += '<span class="w-2 h-2 rounded-full inline-flex flex-shrink-0" id="stockDot"></span>'
+        html += '<span id="stockText"></span>'
+        html += '</span></div>'
 
-        // Clear pending revert timer
-        if (addToCartTimer) {
-          clearTimeout(addToCartTimer)
-          addToCartTimer = null
+        // Add to cart
+        html += '<div class="flex gap-3 mt-4">'
+        html += '<button id="addToCartBtn" class="flex-1 min-h-[56px] bg-monolith-black text-on-primary font-label-caps text-label-caps tracking-widest hover:bg-on-surface hover:tracking-[0.15em] transition-all duration-300 flex items-center justify-center gap-2">'
+        html += '<span id="addToCartText">' + i18n.addToCart + '</span>'
+        html += '<span id="addToCartSpinner" class="material-symbols-outlined text-sm animate-spin" style="display: none; font-variation-settings: \'FILL\' 0">refresh</span>'
+        html += '</button>'
+        html += '<button data-toggle-wishlist data-product=\'' + JSON.stringify({
+          id: product.id,
+          name: product.name,
+          slug: product.slug,
+          price: product.price,
+          currency: product.currency,
+          display_price: product.display_price,
+          display_currency: product.display_currency,
+          display_symbol: product.display_symbol,
+          images: [(product.images || [])[0] || ''],
+          category: product.category
+        }) + '\' class="w-[56px] min-h-[56px] border border-outline-variant flex items-center justify-center hover:border-monolith-black hover:bg-monolith-black/5 transition-all duration-300 group" aria-label="Add to wishlist">'
+        html += '<span class="material-symbols-outlined wishlist-icon text-2xl text-monolith-black group-hover:scale-110 transition-transform duration-300" style="font-variation-settings: \'FILL\' 0">favorite_border</span>'
+        html += '</button></div>'
+
+        // Accordion: Description
+        html += '<div class="flex flex-col mt-8 border-t border-outline-variant">'
+        html += '<details class="border-b border-outline-variant group open:pb-5">'
+        html += '<summary class="w-full py-5 flex justify-between items-center text-left cursor-pointer list-none">'
+        html += '<span class="font-label-caps text-label-caps text-monolith-black tracking-widest">' + i18n.descriptionLabel + '</span>'
+        html += '<span class="material-symbols-outlined text-secondary transition-transform duration-300 group-open:rotate-45" data-icon="add">add</span>'
+        html += '</summary>'
+        html += '<div class="pb-5 font-body-md text-body-md text-secondary leading-relaxed" data-product-description>' + escapeHtml(product.description || '') + '</div>'
+        html += '</details>'
+
+        // Accordion: Care
+        html += '<details class="border-b border-outline-variant group open:pb-5">'
+        html += '<summary class="w-full py-5 flex justify-between items-center text-left cursor-pointer list-none">'
+        html += '<span class="font-label-caps text-label-caps text-monolith-black tracking-widest">' + i18n.careLabel + '</span>'
+        html += '<span class="material-symbols-outlined text-secondary transition-transform duration-300 group-open:rotate-45" data-icon="add">add</span>'
+        html += '</summary>'
+        html += '<div class="pb-5 font-body-md text-body-md text-secondary leading-relaxed">'
+        html += '<ul class="list-disc pl-4 space-y-1" data-product-details>'
+        if (product.details && product.details.length) {
+          for (var di = 0; di < product.details.length; di++) {
+            html += '<li>' + escapeHtml(product.details[di]) + '</li>'
+          }
         }
+        html += '</ul></div></details>'
 
-        // Don't override if currently processing
-        if (btn.dataset.processing === '1') return
+        // Accordion: Shipping
+        html += '<details class="border-b border-outline-variant group open:pb-5">'
+        html += '<summary class="w-full py-5 flex justify-between items-center text-left cursor-pointer list-none">'
+        html += '<span class="font-label-caps text-label-caps text-monolith-black tracking-widest">' + i18n.shippingLabel + '</span>'
+        html += '<span class="material-symbols-outlined text-secondary transition-transform duration-300 group-open:rotate-45" data-icon="add">add</span>'
+        html += '</summary>'
+        html += '<div class="pb-5 font-body-md text-body-md text-secondary leading-relaxed">'
+        html += '<p data-policy-shipping>' + i18n.shippingText + '</p>'
+        html += '<p data-policy-returns class="mt-2"></p>'
+        html += '</div></details></div>'
 
-        spin.style.display = 'none'
-        var outOfStock = selectedSize && qty <= 0
-        btn.disabled = outOfStock
-        btnText.textContent = outOfStock ? 'Agotado' : i18n.addToCart
+        return html
+      }
+
+      function buildLightboxHTML() {
+        return (
+          '<div id="lightbox" class="hidden fixed inset-0 z-[200] bg-black/95 items-center justify-center">' +
+          '<button id="lightboxClose" class="absolute top-6 right-6 z-10 w-10 h-10 flex items-center justify-center text-off-white/70 hover:text-off-white transition-colors" aria-label="Close"><span class="material-symbols-outlined text-3xl">close</span></button>' +
+          '<button id="lightboxPrev" class="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-10 w-10 h-10 flex items-center justify-center text-off-white/50 hover:text-off-white transition-colors"><span class="material-symbols-outlined text-3xl">chevron_left</span></button>' +
+          '<button id="lightboxNext" class="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-10 w-10 h-10 flex items-center justify-center text-off-white/50 hover:text-off-white transition-colors"><span class="material-symbols-outlined text-3xl">chevron_right</span></button>' +
+          '<div class="w-full h-full flex items-center justify-center p-8 md:p-16">' +
+          '<img id="lightboxImg" src="" alt="" width="600" height="600" class="max-w-full max-h-full object-contain select-none" />' +
+          '</div>' +
+          '<div class="absolute bottom-6 left-1/2 -translate-x-1/2 font-label-caps text-label-caps text-off-white/50" id="lightboxCounter"></div>' +
+          '</div>'
+        )
+      }
+
+      function buildReviewsSectionHTML() {
+        return (
+          '<section class="mt-section-gap w-full border-t border-outline-variant pt-12">' +
+          '<div class="max-w-4xl">' +
+          '<h2 class="font-headline-md text-headline-md text-monolith-black mb-2">' + i18n.reviewsTitle + '</h2>' +
+          '<div id="reviewStats" class="flex items-center gap-4 mb-8">' +
+          '<div class="flex items-center gap-1" id="reviewStars"></div>' +
+          '<span class="font-body-md text-body-md text-secondary" id="reviewCount"></span>' +
+          '</div>' +
+          '<div id="reviewsList" class="grid grid-cols-1 md:grid-cols-2 gap-gutter mb-12"></div>' +
+          '<div class="bg-surface-container-low p-6 md:p-8 max-w-lg">' +
+          '<h3 class="font-label-caps text-label-caps text-monolith-black mb-4 tracking-widest">' + i18n.reviewsLeave + '</h3>' +
+          '<form id="reviewForm" class="flex flex-col gap-4">' +
+          '<div class="grid grid-cols-2 gap-4">' +
+          '<input type="text" id="reviewName" placeholder="' + i18n.reviewsName + '" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none font-body-md text-body-md transition-colors" />' +
+          '<input type="email" id="reviewEmail" placeholder="' + i18n.reviewsEmail + '" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none font-body-md text-body-md transition-colors" />' +
+          '</div>' +
+          '<div><div class="flex items-center gap-1 mb-2"><span class="font-body-md text-body-md text-secondary mr-2">' + i18n.reviewsRating + '</span>' +
+          [1, 2, 3, 4, 5].map(function (s) {
+            return '<button type="button" data-review-star="' + s + '" class="review-star text-2xl text-outline hover:text-clay-accent transition-colors cursor-pointer" aria-label="' + s + ' star"><span class="material-symbols-outlined" style="font-variation-settings: \'FILL\' 0">star</span></button>'
+          }).join('') +
+          '</div><input type="hidden" id="reviewRating" value="0" /></div>' +
+          '<input type="text" id="reviewTitle" placeholder="' + i18n.reviewsTitlePlaceholder + '" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none font-body-md text-body-md transition-colors" />' +
+          '<textarea id="reviewComment" placeholder="' + i18n.reviewsComment + '" rows="4" class="w-full bg-transparent border border-outline p-3 text-monolith-black focus:border-monolith-black focus:outline-none font-body-md text-body-md resize-none transition-colors"></textarea>' +
+          '<div id="reviewMsg" class="hidden font-body-md text-body-md text-sm"></div>' +
+          '<button type="submit" id="reviewSubmitBtn" class="bg-monolith-black text-on-primary font-label-caps text-label-caps h-12 px-8 hover:bg-on-surface hover:tracking-[0.15em] transition-all duration-300 self-start tracking-widest">' + i18n.reviewsSubmit + '</button>' +
+          '</form></div></div></section>'
+        )
+      }
+
+      function buildRelatedHTML(product) {
+        return (
+          '<section class="mt-section-gap w-full">' +
+          '<div class="flex justify-between items-end mb-8 border-b border-outline-variant pb-4">' +
+          '<h2 class="font-headline-md text-headline-md text-monolith-black">' + i18n.relatedTitle + '</h2>' +
+          '<a href="/' + lang + '/catalogo" class="font-label-caps text-label-caps text-secondary hover:text-monolith-black transition-colors hidden md:block">' + i18n.relatedViewAll + '</a>' +
+          '</div>' +
+          '<div class="grid grid-cols-2 gap-x-gutter gap-y-12" id="relatedProductsGrid">' +
+          '<p class="font-body-md text-body-md text-secondary col-span-full text-center py-8">' +
+          (lang === 'es' ? 'Cargando productos relacionados...' : 'Loading related products...') +
+          '</p>' +
+          '</div>' +
+          '</section>'
+        )
       }
 
       // =============================================================
-      //          SHIPPING & RETURNS — FETCH FROM SETTINGS
+      //                      RELATED PRODUCTS FETCH
       // =============================================================
 
-      ;(function () {
-        var lang = document.documentElement.lang || 'es'
-        fetch('/api/configuracion/public.php')
-          .then(function (r) {
-            return r.ok ? r.json() : null
-          })
-          .then(function (config) {
-            if (!config || !config.policies) return
-            var shippingEl = document.querySelector('[data-policy-shipping]')
-            var returnsEl = document.querySelector('[data-policy-returns]')
-            var shippingKey = 'shipping_' + lang
-            var returnsKey = 'returns_' + lang
-            if (shippingEl && config.policies[shippingKey]) {
-              shippingEl.textContent = config.policies[shippingKey]
-            }
-            if (returnsEl && config.policies[returnsKey]) {
-              returnsEl.textContent = config.policies[returnsKey]
-            }
-          })
-          .catch(function () {})
-      })()
-
-      // =============================================================
-      //                    SIZE GUIDE — MODAL
-      // =============================================================
-
-      document.getElementById('sizeGuideBtn').addEventListener('click', function () {
-        var lang = document.documentElement.lang || 'es'
-        var btn = this
-        btn.disabled = true
-
-        function buildTable(data) {
-          if (!data || !data.rows || !data.rows.length) return null
-          var title = lang === 'es' ? data.title_es : data.title_en
-          var footer = lang === 'es' ? data.footer_es : data.footer_en
-          if (!title) title = data.title_es || 'Size Guide'
-
-          var html = '<h3 class="font-headline text-headline-md mb-4">' + title + '</h3>'
-          html += '<table class="w-full text-left border-collapse"><thead><tr class="border-b border-outline-variant">'
-          html += '<th class="font-label-caps text-label-caps text-secondary pb-2 pr-4">US</th>'
-          html += '<th class="font-label-caps text-label-caps text-secondary pb-2 pr-4">EU</th>'
-          html += '<th class="font-label-caps text-label-caps text-secondary pb-2 pr-4">UK</th>'
-          html += '<th class="font-label-caps text-label-caps text-secondary pb-2">CM</th>'
-          html += '</tr></thead><tbody>'
-          for (var i = 0; i < data.rows.length; i++) {
-            var r = data.rows[i]
-            var cls = i < data.rows.length - 1 ? ' class="border-b border-outline-variant/50"' : ''
-            html += '<tr' + cls + '>'
-            html += '<td class="py-2 pr-4 font-medium">' + r.us + '</td>'
-            html += '<td class="py-2 pr-4 text-secondary">' + r.eu + '</td>'
-            html += '<td class="py-2 pr-4 text-secondary">' + r.uk + '</td>'
-            html += '<td class="py-2 text-secondary">' + r.cm + '</td>'
-            html += '</tr>'
-          }
-          html += '</tbody></table>'
-          if (footer) {
-            html += '<p class="font-body text-body-md text-secondary mt-4 text-sm">' + footer + '</p>'
-          }
-          return html
-        }
-
-        fetch('/api/size-guide/public.php')
+      function initRelatedProducts(productLang) {
+        fetch(
+          '/api/productos/list.php?lang=' + productLang + '&limit=4'
+        )
           .then(function (r) { return r.ok ? r.json() : null })
           .then(function (data) {
-            var html = buildTable(data)
-            if (html && window.VunoModal && window.VunoModal.show) {
-              window.VunoModal.show({
-                type: 'info',
-                title: lang === 'es' ? 'Guía de Talles' : 'Size Guide',
-                body: html
-              })
+            if (!data || !data.items) return
+            var grid = document.getElementById('relatedProductsGrid')
+            if (!grid) return
+            var filtered = data.items.filter(function (p) { return p.slug !== slug }).slice(0, 4)
+            if (!filtered.length) {
+              grid.innerHTML = ''
+              return
             }
+            grid.innerHTML = filtered
+              .map(function (p, i) {
+                var hiddenClass = i === 3 ? 'hidden md:flex' : ''
+                var price = (p.display_symbol || '$') + (p.display_price || p.price || 0).toFixed(2) + ' ' + (p.display_currency || p.currency || 'USD')
+                return (
+                  '<a href="/' + productLang + '/producto/' + p.slug + '" class="group flex flex-col gap-4 product-card reveal ' + hiddenClass + '">' +
+                  '<div class="w-full bg-surface-container aspect-[3/4] overflow-hidden relative">' +
+                  '<img src="' + window.imgTransform(p.images[0] || '', 400, 500) + '" alt="' + escapeHtml(p.name || '') + '" width="400" height="500" class="w-full h-full object-cover img-lift" loading="lazy" />' +
+                  '</div>' +
+                  '<div class="flex flex-col gap-1">' +
+                  '<h3 class="font-body-md text-body-md text-monolith-black group-hover:text-clay-accent transition-colors duration-300">' + escapeHtml(p.name || '') + '</h3>' +
+                  '<p class="font-price-display text-price-display text-secondary">' + price + '</p>' +
+                  '</div>' +
+                  '</a>'
+                )
+              })
+              .join('')
+            // Re-run observer for new related products
+            var observer = new IntersectionObserver(
+              function (entries) {
+                entries.forEach(function (entry) {
+                  if (entry.isIntersecting) {
+                    entry.target.classList.add('revealed')
+                    observer.unobserve(entry.target)
+                  }
+                })
+              },
+              { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
+            )
+            grid.querySelectorAll('.reveal').forEach(function (el) { observer.observe(el) })
           })
           .catch(function () {})
-          .finally(function () { btn.disabled = false })
-      })
-      // =============================================================
-      ;(function () {
-        var observer = new IntersectionObserver(
-          function (entries) {
-            entries.forEach(function (entry) {
-              if (entry.isIntersecting) {
-                entry.target.classList.add('revealed')
-                observer.unobserve(entry.target)
-              }
-            })
-          },
-          { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
-        )
-        document.querySelectorAll('.reveal').forEach(function (el) {
-          observer.observe(el)
-        })
-      })()
+      }
 
       // =============================================================
-      //                      GALLERY INIT
+      //                      UTILITY
       // =============================================================
 
-      renderMainImage()
-      renderThumbnails()
-      renderCounter()
-      updateStockDisplay()
-
-      // =============================================================
-      //                      REVIEWS SYSTEM
-      // =============================================================
-      ;(function () {
-        function starsHtml(rating, filled) {
-          if (filled === undefined) filled = true
-          var color = filled ? 'text-clay-accent' : 'text-outline'
-          return Array(5)
-            .fill(0)
-            .map(function (_, i) {
-              return (
-                '<span class="material-symbols-outlined text-sm ' +
-                (i < rating ? color : 'text-outline') +
-                '" style="font-variation-settings: \'FILL\' ' +
-                (i < rating ? 1 : 0) +
-                '">star</span>'
-              )
-            })
-            .join('')
-        }
-
-        function renderStats(stats) {
-          var countLabel = stats.total === 1 ? i18n.reviewsReview : i18n.reviewsReviews
-          document.getElementById('reviewStars').innerHTML =
-            stats.total > 0 ? starsHtml(Math.round(stats.average)) : starsHtml(0)
-          document.getElementById('reviewCount').textContent =
-            stats.total > 0
-              ? stats.average +
-                ' ' +
-                i18n.reviewsAverage +
-                ' \u00b7 ' +
-                stats.total +
-                ' ' +
-                countLabel
-              : '0 ' + countLabel
-        }
-
-        function renderReviews(reviews) {
-          var container = document.getElementById('reviewsList')
-          if (reviews.length === 0) {
-            container.innerHTML =
-              '<div class="col-span-full text-center py-8"><p class="font-body-md text-body-md text-secondary">' +
-              i18n.reviewsEmpty +
-              '</p></div>'
-            return
-          }
-          container.innerHTML = reviews
-            .map(function (r) {
-              return (
-                '<div class="border border-outline-variant p-4 hover:border-monolith-black transition-colors duration-300">' +
-                '<div class="flex items-center gap-2 mb-2">' +
-                '<div class="flex items-center gap-0.5">' +
-                starsHtml(r.rating) +
-                '</div>' +
-                '<span class="font-label-caps text-label-caps text-secondary text-xs">' +
-                (r.reviewerName || i18n.reviewsAnonymous) +
-                '</span>' +
-                '</div>' +
-                (r.title
-                  ? '<p class="font-body-md text-body-md text-monolith-black font-medium mb-1">' +
-                    r.title +
-                    '</p>'
-                  : '') +
-                (r.comment
-                  ? '<p class="font-body-md text-body-md text-secondary">' + r.comment + '</p>'
-                  : '') +
-                '</div>'
-              )
-            })
-            .join('')
-        }
-
-        async function loadReviews() {
-          try {
-            var res = await fetch('/api/resenas/list.php?product_id=' + encodeURIComponent(data.id))
-            var result = await res.json()
-            renderStats(result.stats)
-            renderReviews(result.reviews)
-          } catch (err) {
-            document.getElementById('reviewsList').innerHTML =
-              '<div class="col-span-full text-center py-8"><p class="font-body-md text-body-md text-error">' +
-              i18n.reviewsError +
-              '</p></div>'
-          }
-        }
-
-        var selectedRating = 0
-        document.querySelectorAll('.review-star').forEach(function (btn) {
-          btn.addEventListener('click', function () {
-            selectedRating = parseInt(btn.dataset.reviewStar)
-            document.getElementById('reviewRating').value = selectedRating
-            document.querySelectorAll('.review-star').forEach(function (s, i) {
-              var icon = s.querySelector('.material-symbols-outlined')
-              if (i < selectedRating) {
-                icon.style.fontVariationSettings = "'FILL' 1"
-                s.classList.remove('text-outline')
-                s.classList.add('text-clay-accent')
-              } else {
-                icon.style.fontVariationSettings = "'FILL' 0"
-                s.classList.remove('text-clay-accent')
-                s.classList.add('text-outline')
-              }
-            })
-          })
-        })
-
-        document.getElementById('reviewForm').addEventListener('submit', async function (e) {
-          e.preventDefault()
-          var msg = document.getElementById('reviewMsg')
-          var name = document.getElementById('reviewName').value.trim()
-          var rating = selectedRating
-          if (!name) {
-            msg.textContent = i18n.reviewsNameRequired
-            msg.className = 'font-body-md text-body-md text-sm text-error block'
-            return
-          }
-          if (rating < 1) {
-            msg.textContent = i18n.reviewsRatingRequired
-            msg.className = 'font-body-md text-body-md text-sm text-error block'
-            return
-          }
-          var submitBtn = document.getElementById('reviewSubmitBtn')
-          submitBtn.disabled = true
-          submitBtn.textContent = i18n.reviewsSending
-          try {
-            var res = await fetch('/api/resenas/create.php', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                product_id: data.id,
-                reviewer_name: name,
-                reviewer_email: document.getElementById('reviewEmail').value.trim(),
-                rating: rating,
-                title: document.getElementById('reviewTitle').value.trim(),
-                comment: document.getElementById('reviewComment').value.trim()
-              })
-            })
-            var result = await res.json()
-            if (!res.ok) throw new Error(result.error)
-            msg.textContent = i18n.reviewsSuccess
-            msg.className = 'font-body-md text-body-md text-sm text-monolith-black block'
-            document.getElementById('reviewForm').reset()
-            selectedRating = 0
-            document.getElementById('reviewRating').value = 0
-            document
-              .querySelectorAll('.review-star .material-symbols-outlined')
-              .forEach(function (icon) {
-                icon.style.fontVariationSettings = "'FILL' 0"
-              })
-            document.querySelectorAll('.review-star').forEach(function (s) {
-              s.classList.remove('text-clay-accent')
-              s.classList.add('text-outline')
-            })
-            loadReviews()
-          } catch (err) {
-            msg.textContent = err.message
-            msg.className = 'font-body-md text-body-md text-sm text-error block'
-          } finally {
-            submitBtn.disabled = false
-            submitBtn.textContent = i18n.reviewsSubmit
-          }
-        })
-
-        loadReviews()
-      })()
+      function escapeHtml(str) {
+        if (!str) return ''
+        var div = document.createElement('div')
+        div.appendChild(document.createTextNode(str))
+        return div.innerHTML
+      }
     })()
   </script>
 </BaseLayout>
