@@ -117,8 +117,8 @@ vendor/
 skills-lock.json
 
 # Encryption key (auto-generated, do not version)
-php/encryption.key
+backend/encryption.key
 
 # Database config & installer lock (per-environment)
-php/database/config.php
-php/.installer-lock
+backend/database/config.php
+backend/.installer-lock

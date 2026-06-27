@@ -1,0 +1,13 @@
+parameters:
+    level: 5
+    paths:
+        - Controllers/
+        - Models/
+        - Services/
+        - Traits/
+        - Config/
+        - Utils/
+        - api/
+    scanFiles:
+        - config.php
+    reportUnmatchedIgnoredErrors: false

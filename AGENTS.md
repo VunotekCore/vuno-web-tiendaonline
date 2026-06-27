@@ -22,6 +22,8 @@
 11. [Comandos y Verificación](#11-comandos-y-verificación)
 12. [Guía para Desarrolladores](#12-guía-para-desarrolladores)
 13. [Base de Datos MySQL](#13-base-de-datos-mysql)
+14. [Plan de Pruebas](#14-plan-de-pruebas--panel-administrador)
+15. [Backend Architecture (SOA)](#15-backend-architecture-soa)
 
 ---
 
@@ -98,7 +100,7 @@ Astro genera páginas estáticas ultrarrápidas para el catálogo público, mant
 │  └──────────────┘  └──────┬───────┘  └─────────────────────────┘  │
 │                           │                                        │
 │  ┌────────────────────────▼────────────────────────────────────┐  │
-│  │              Capa de Servicios (php/includes/)                │  │
+│  │              Capa de Servicios (backend/Services/)             │  │
 │  │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────────────┐  │  │
 │  │  │ Stripe   │ │ ImageKit │ │ PHPMailer│ │ Database (PDO) │  │  │
 │  │  └──────────┘ └──────────┘ └──────────┘ └────────────────┘  │  │
@@ -153,7 +155,7 @@ Astro genera páginas estáticas ultrarrápidas para el catálogo público, mant
 
 #### Categorías (`/admin/categorias`)
 - Tabla para gestionar categorías (nombre, slug)
-- CRUD completo via `php/api/categorias/*.php`
+- CRUD completo via `backend/api/categorias/*.php`
 
 #### Pedidos (`/admin/pedidos`)
 - Lista con: ID, cliente, fecha, total, estado, método de pago
@@ -220,7 +222,7 @@ El panel usa un layout común `_layout.astro` con:
 | `getImages($options?)` | Listar imágenes con paginación |
 | `deleteImage($fileId)` | Eliminar imagen |
 
-**Estado actual**: Servicio implementado en `php/includes/imagekit.php` vía cURL a REST API de ImageKit. El formulario admin de productos (nuevo/editar) ya sube imágenes a ImageKit via `POST /api/imagekit/upload.php`. El checkout también sube comprobantes de transferencia a la carpeta `receipts`. Requiere `IMAGEKIT_PRIVATE_KEY`, `IMAGEKIT_PUBLIC_KEY`, `IMAGEKIT_URL_ENDPOINT` en `.env`.
+**Estado actual**: Servicio implementado en `backend/Services/ImageKitService.php` vía cURL a REST API de ImageKit. El formulario admin de productos (nuevo/editar) ya sube imágenes a ImageKit via `POST /api/imagekit/upload.php`. El checkout también sube comprobantes de transferencia a la carpeta `receipts`. Requiere `IMAGEKIT_PRIVATE_KEY`, `IMAGEKIT_PUBLIC_KEY`, `IMAGEKIT_URL_ENDPOINT` en `.env`.
 
 ### 6.3 PHPMailer — Notificaciones Email
 
@@ -229,7 +231,7 @@ El panel usa un layout común `_layout.astro` con:
 | `POST /api/email/send.php` | Enviar email genérico |
 | Server-side | `sendOrderConfirmation()` / `sendNewOrderNotification()` se llaman desde `confirm-payment.php`, `webhook.php` y `create.php` |
 
-**Estado actual**: Implementado con PHPMailer y transporte SMTP configurable. Se activa al recibir un pedido (Stripe o transferencia). Los emails usan **templates HTML** con `{{variable}}` placeholders desde archivos en `php/email-templates/`, renderizados por `renderTemplate()`. Las variables (items, totales, datos bancarios, etc.) se reemplazan en servidor — no más envío desde JS cliente.
+**Estado actual**: Implementado con PHPMailer y transporte SMTP configurable. Se activa al recibir un pedido (Stripe o transferencia). Los emails usan **templates HTML** con `{{variable}}` placeholders desde archivos en `backend/email-templates/`, renderizados por `renderTemplate()`. Las variables (items, totales, datos bancarios, etc.) se reemplazan en servidor — no más envío desde JS cliente.
 
 ---
 
@@ -422,65 +424,55 @@ hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 p-5
 │   ├── styles/
 │   │   └── global.css              # Tailwind @theme + design tokens
 │   └── env.d.ts                    # Tipo global Window.RamLopCart
-├── php/                            # 🆕 PHP Backend
-│   ├── config.php                  # .env loader, CORS, session config, DB, helpers
+├── backend/                        # 🏛️ PHP Backend (SOA)
+│   ├── Controllers/                # 21 controllers — lógica de negocio
+│   ├── Models/                     # 17 models — solo SQL prepared statements
+│   ├── Services/                   # 4 services — Stripe, Email, ImageKit, Auth
+│   ├── Traits/                     # ApiResponse trait
+│   ├── Config/
+│   │   └── Database.php            # PDO singleton
+│   ├── api/                        # 99 entry points HTTP (≤15 líneas c/u)
+│   │   ├── admin/                  # login, logout, verify, users, 2fa
+│   │   ├── productos/              # list, get, create, update, delete
+│   │   ├── pedidos/                # list, get, create, update-status, ...
+│   │   ├── categorias/             # list, create, update, delete
+│   │   ├── clientes/               # list, get, delete
+│   │   ├── customer/               # register, login, addresses, orders, ...
+│   │   ├── cupones/                # list, validate, create, update, delete
+│   │   ├── resenas/                # list, create, approve, delete
+│   │   ├── blog/                   # list, get, create, update, delete
+│   │   ├── blog/categories/        # create, update, delete
+│   │   ├── cart/                   # sync, add, remove, clear
+│   │   ├── wishlist/               # list, add, remove, check
+│   │   ├── stripe/                 # create-payment-intent, webhook
+│   │   ├── imagekit/               # upload, delete
+│   │   ├── email/                  # newsletter, unsubscribe
+│   │   ├── email-templates/        # CRUD + preview + restore + seed
+│   │   ├── suscriptores/           # list, export, unsubscribe
+│   │   ├── newsletter/             # send-campaign
+│   │   ├── configuracion/          # get, update, public
+│   │   ├── dashboard/              # stats
+│   │   ├── contact/                # send (honeypot + rate limit)
+│   │   ├── shipping/               # calculate
+│   │   ├── monedas/                # list, create, delete, update-rate
+│   │   ├── size-guide/             # public, save-all
+│   │   └── pos/                    # stats
+│   ├── bootstrap.php               # Entry point: autoload + DB + config
+│   ├── autoload.php                # PSR-4 autoloader (App\ → backend/)
+│   ├── config.php                  # Helpers globales (env, CORS, sesión, JSON, auth)
 │   ├── composer.json               # Dependencias PHP (stripe, phpmailer)
-│   ├── email-templates/            # Plantillas HTML con {{variable}} placeholders
-│   │   ├── order_confirmation.html
-│   │   ├── new_order_notification.html
-│   │   ├── contact_notification.html
-│   │   ├── welcome.html
-│   │   ├── newsletter_welcome.html
-│   │   ├── newsletter_campaign.html
-│   │   └── password_reset.html
+│   ├── dev-router.php              # Router 3-capas para servidor built-in
+│   ├── install.php                 # Instalador web one-time
+│   ├── email-templates/            # 7 plantillas HTML con {{variable}} placeholders
 │   ├── database/
-│   │   └── schema.sql              # Esquema MySQL (40 tablas normalizadas)
-│   ├── includes/
-│   │   ├── auth.php                # Sesiones admin (login, logout, verify)
-│   │   ├── storage.php             # CRUD MySQL (products, orders, categories)
-│   │   ├── stripe.php              # Stripe SDK wrapper
-│   │   ├── email.php               # PHPMailer wrapper + template renderer
-│   │   ├── imagekit.php            # ImageKit REST API via cURL
-│   │   └── helpers.php             # Utilidades (slug, validación)
-│   ├── src/pages/[lang]/blog.astro  # Blog público (Astro static, client-side ?slug=)
-│   ├── dev-router.php               # Router para desarrollo (blog URLs limpias)
-│   └── api/
-│       ├── admin/
-│       │   ├── login.php           # POST — autenticar
-│       │   ├── verify.php          # GET — verificar sesión
-│       │   └── logout.php          # GET — cerrar sesión
-│       ├── productos/
-│       │   ├── list.php            # GET — listar
-│       │   ├── get.php             # GET — obtener por ID
-│       │   ├── create.php          # POST — crear
-│       │   ├── update.php          # POST — actualizar
-│       │   └── delete.php          # POST — eliminar
-│       ├── categorias/
-│       │   ├── list.php            # GET — listar
-│       │   ├── create.php          # POST — crear
-│       │   ├── update.php          # POST — actualizar
-│       │   └── delete.php          # POST — eliminar
-│       ├── pedidos/
-│       │   ├── list.php            # GET — listar
-│       │   ├── get.php             # GET — obtener por ID
-│       │   └── update-status.php   # POST — cambiar estado
-│       ├── dashboard/
-│       │   └── stats.php           # GET — estadísticas del dashboard
-│       ├── stripe/
-│       │   ├── create-payment-intent.php
-│       │   └── webhook.php
-│       ├── email/                    # 🔴 Eliminado (open relay, auditoría 06/06)
-│       ├── contact/
-│       │   └── send.php              # POST — enviar mensaje (honeypot + rate limit)
-│       ├── imagekit/
-│       │   └── upload.php
-│       └── blog/
-│           ├── list.php            # GET — listar posts
-│           ├── get.php             # GET — obtener post
-│           ├── create.php          # POST — crear post
-│           ├── update.php          # POST — actualizar post
-│           ├── delete.php          # POST — eliminar post
-│           └── categories.php      # GET — listar categorías
+│   │   ├── schema.sql              # Esquema MySQL (40 tablas normalizadas)
+│   │   ├── seed.sql                # Datos de semilla
+│   │   ├── migrate.php             # Migración vía CLI
+│   │   ├── seed-templates.php      # Seed templates email
+│   │   └── seed-blog.php           # Seed posts blog
+│   ├── encryption.key              # Clave de cifrado (no versionada)
+│   ├── .htaccess                   # Protección directorios
+│   └── vendor/                     # Dependencias Composer
 ├── dist/                           # Build output (generado por deploy.sh)
 │   ├── index.html
 │   ├── admin/...                   # Páginas admin estáticas
@@ -526,10 +518,10 @@ pnpm dev                # Astro dev en :4321 (HMR, solo páginas estáticas)
 pnpm astro check        # TypeScript check (0 errors = saludable)
 pnpm build              # Build frontend estático
 bash deploy.sh          # Build + copia PHP + composer install → dist/
-php -l php/config.php   # Syntax check PHP
-php -l php/api/*/*.php  # Syntax check endpoints
-mysql -u dail -p vuno_ramlop_ecommerce < php/database/schema.sql  # Migrate DB
-php -r "require 'php/config.php'; getDb(); echo 'DB OK';"  # Verify DB connection
+php -l backend/config.php   # Syntax check PHP
+php -l backend/api/*/*.php  # Syntax check endpoints
+mysql -u dail -p vuno_ramlop_ecommerce < backend/database/schema.sql  # Migrate DB
+php -r "require 'backend/config.php'; getDb(); echo 'DB OK';"  # Verify DB connection
 ```
 
 ### Producción
@@ -582,7 +574,7 @@ ADMIN_PASSWORD=           # Solo para creación inicial de admin user
 - Salud: `pnpm astro check`
 
 **MODO B — Lógica de Negocio (PHP Backend)**
-- Contexto: API endpoints en `php/api/`, servicios en `php/includes/`
+- Contexto: API endpoints en `backend/api/`, servicios en `backend/Services/`
 - Foco: Validación, seguridad, integración con servicios externos
 - Lenguaje: PHP 8+ con tipado estricto
 - Prueba: `./dev.sh api` y curl contra `localhost:8000/api/*.php`
@@ -608,24 +600,29 @@ ADMIN_PASSWORD=           # Solo para creación inicial de admin user
 
 1. Las páginas admin (`/admin/*.astro`) son **estáticas** (generadas en build)
 2. El JS cliente hace `fetch()` a endpoints PHP (`/api/*.php`)
-3. Los endpoints usan `getDb()` (PDO) para consultar MySQL — `php/includes/storage.php` maneja la lógica de negocio
+3. Los endpoints usan `App\Config\Database::getConnection()` (PDO singleton) para consultar MySQL — `backend/Models/` manejan toda la lógica de datos
 4. `auth.php` maneja sesiones con cookies `HttpOnly`
 5. El auth guard se ejecuta en el navegador: `fetch(/api/admin/verify.php)`
 
 ### Arquitectura de API PHP
 
-Cada endpoint en `php/api/` sigue el patrón:
+Cada endpoint en `backend/api/` sigue el patrón SOA (≤15 líneas):
 ```php
 <?php
-require_once __DIR__ . '/../../config.php';
-require_once __DIR__ . '/../../includes/auth.php';
+declare(strict_types=1);
+
+require_once __DIR__ . '/../../bootstrap.php';
+
+use App\Config\Database;
+use App\Controllers\ProductController;
+use App\Models\ProductModel;
 
 setCorsHeaders();
 startAdminSession();
 if (!isAdminLoggedIn()) jsonError('Unauthorized', 401);
 
-// ... lógica del endpoint
-jsonResponse($data);
+$controller = new ProductController(new ProductModel(Database::getConnection()));
+$controller->list();
 ```
 
 ---
@@ -637,7 +634,7 @@ jsonResponse($data);
 ### 13.1 Esquema — `vuno_ramlop_ecommerce`
 
 40 tablas normalizadas con InnoDB, utf8mb4, cero columnas JSON.  
-Archivo de migración: `php/database/schema.sql`
+Archivo de migración: `backend/database/schema.sql`
 
 #### Admin y Seguridad
 
@@ -749,16 +746,17 @@ $stmt->execute([$id]);
 $product = $stmt->fetch();
 ```
 
-Todas las consultas usan **prepared statements** (PDO). No hay concatenación de SQL.
+Todas las consultas usan **prepared statements** (PDO). No hay concatenación de SQL.  
+En la nueva arquitectura SOA se accede a DB via `App\Config\Database::getConnection()` desde Models.
 
 ### 13.4 Migración
 
 ```bash
 # Crear/actualizar base de datos desde schema.sql
-mysql -u dail -p vuno_ramlop_ecommerce < php/database/schema.sql
+mysql -u dail -p vuno_ramlop_ecommerce < backend/database/schema.sql
 
 # Verificar conexión
-php -r "require 'php/config.php'; \$db = getDb(); echo 'DB OK';"
+php -r "require 'backend/config.php'; \$db = getDb(); echo 'DB OK';"
 ```
 
 El archivo `schema.sql` es **idempotente** — incluye `CREATE DATABASE IF NOT EXISTS` y puede ejecutarse múltiples veces.
@@ -894,18 +892,209 @@ El archivo `schema.sql` es **idempotente** — incluye `CREATE DATABASE IF NOT E
 
 | # | Issue | Archivo | Riesgo | Estado |
 |---|-------|---------|--------|--------|
-| 1 | ImageKit upload sin auth | `php/api/imagekit/upload.php` | ⚠️ Alto | ✅ Ya tenía `isAdminLoggedIn()` + `requireRole()` |
-| 2 | Pedidos API sin auth (`list`, `get`) | `php/api/pedidos/list.php`, `get.php` | ⚠️ Alto | ✅ Ya tenían `isAdminLoggedIn()` + `requireRole()` |
-| 3 | Rate-limit sin try/catch en DB connection | `php/includes/auth.php` | 🟡 Medio | ✅ Ya tenía try/catch en `checkLoginRateLimit()` y `recordLoginAttempt()` |
-| 4 | Dashboard sin fallback si DB vacía | `php/api/dashboard/stats.php` | 🟢 Bajo | ✅ `getDashboardStats()` tenía try/catch con return de valores por defecto |
+| 1 | ImageKit upload sin auth | `backend/api/imagekit/upload.php` | ⚠️ Alto | ✅ Ya tenía `isAdminLoggedIn()` + `requireRole()` |
+| 2 | Pedidos API sin auth (`list`, `get`) | `backend/api/pedidos/list.php`, `get.php` | ⚠️ Alto | ✅ Ya tenían `isAdminLoggedIn()` + `requireRole()` |
+| 3 | Rate-limit sin try/catch en DB connection | `backend/Services/AuthService.php` | 🟡 Medio | ✅ Ya tenía try/catch en `checkLoginRateLimit()` y `recordLoginAttempt()` |
+| 4 | Dashboard sin fallback si DB vacía | `backend/api/dashboard/stats.php` | 🟢 Bajo | ✅ `getDashboardStats()` tenía try/catch con return de valores por defecto |
 
 ### 14.13 Seguridad — Issues Descubiertos en Auditoría (06/06/2026)
 
 | # | Issue | Archivo | Riesgo | Estado |
 |---|-------|---------|--------|--------|
-| 1 | Open SMTP relay — endpoint sin uso ni auth, acepta `to`/`subject`/`html` arbitrarios | `php/api/email/send.php` | 🔴 Alto | ✅ Eliminado |
-| 2 | Blog list expone drafts — `?status=` permite ver posts no publicados | `php/api/blog/list.php` | 🟡 Medio | ✅ Forzado a `status='published'` |
-| 3 | Blog get no filtra `status` — drafts accesibles por slug/ID | `php/api/blog/get.php` | 🟡 Medio | ✅ Validación `$post['status'] === 'published'` |
+| 1 | Open SMTP relay — endpoint sin uso ni auth, acepta `to`/`subject`/`html` arbitrarios | `backend/api/email/send.php` | 🔴 Alto | ✅ Eliminado |
+| 2 | Blog list expone drafts — `?status=` permite ver posts no publicados | `backend/api/blog/list.php` | 🟡 Medio | ✅ Forzado a `status='published'` |
+| 3 | Blog get no filtra `status` — drafts accesibles por slug/ID | `backend/api/blog/get.php` | 🟡 Medio | ✅ Validación `$post['status'] === 'published'` |
 
-> **Documentación generada:** 02/06/2026
-> **Última actualización:** 12/06/2026 — Módulo SEO completo (export script, blog [slug].astro, noindex, CLS fix, preload hints)
+---
+
+## 15. Backend Architecture (SOA)
+
+> **Estado:** Completado — refactorización SOA finalizada el 27/06/2026
+> **Patrón:** Service-Oriented Architecture con enfoque Controlador-Modelo
+> **Stack:** PHP 8+ · PDO MySQL · stri
+
+### 15.1 Arquitectura General
+
+```
+┌──────────────┐     ┌──────────────────────────────────────┐
+│  Astro SSG   │     │           backend/ (PHP 8+)           │
+│  (estático)  │────▶│                                      │
+│              │     │  api/ → Controllers → Models/Services │
+└──────────────┘     │                    │                  │
+       │             │              ┌─────▼──────┐          │
+       │ fetch()     │              │   MySQL    │          │
+       │ /api/*.php  │              │  (PDO)     │          │
+       │             │              └────────────┘          │
+       └─────────────┴──────────────────────────────────────┘
+```
+
+### 15.2 Capas del Backend
+
+| Capa | Ubicación | Responsabilidad | Regla |
+|------|-----------|----------------|-------|
+| **Entry Point** | `backend/api/` | Recibe HTTP, llama al Controller. ≤15 líneas. | `require bootstrap.php`, 1 `use`, 1 llamada a Controller |
+| **Controller** | `backend/Controllers/` | Lógica de negocio. Valida input, coordina Modelos/Servicios, responde JSON. | `use ApiResponse` trait, constructor DI, 1 método público por acción |
+| **Model** | `backend/Models/` | Solo SQL con Prepared Statements. Sin lógica de negocio. | `final class`, `\PDO` via constructor, retorna `array` o `int` |
+| **Service** | `backend/Services/` | Wrapper de servicios externos (Stripe, ImageKit, Email, Auth). | Inyectable vía DI, sin estado global |
+| **Trait** | `backend/Traits/` | `ApiResponse` — jsonResponse(), jsonError(). | Reutilizable en todos los Controllers |
+| **Infra** | `backend/Config/` | `Database` — PDO singleton. | Solo conexión DB, sin lógica de negocio |
+
+### 15.3 Estructura de Directorios
+
+```
+backend/
+├── Controllers/                 # 21 controllers — lógica de negocio
+│   ├── ProductController.php        CRUD productos + variantes + imágenes
+│   ├── OrderController.php          Órdenes, stock, dashboard stats
+│   ├── CategoryController.php       CRUD categorías
+│   ├── AuthController.php           Login admin, logout, verify, 2FA, users CRUD
+│   ├── CustomerController.php       Clientes frontend (registro, login, perfil, direcciones)
+│   ├── CouponController.php         Cupones CRUD + validación
+│   ├── ReviewController.php         Reseñas CRUD + aprobación
+│   ├── BlogController.php           Blog posts CRUD + categorías + i18n
+│   ├── CartController.php           Carrito sync/add/remove/clear
+│   ├── WishlistController.php       Wishlist CRUD
+│   ├── ImageKitController.php       Upload imágenes
+│   ├── EmailController.php          Newsletter subscribe/unsubscribe
+│   ├── EmailTemplateController.php  Plantillas email CRUD + preview + restore
+│   ├── SettingController.php        Configuración admin (store, smtp, imagekit, etc.)
+│   ├── DashboardController.php      Estadísticas del panel
+│   ├── ContactController.php        Formulario de contacto
+│   ├── NewsletterController.php     Envío campañas newsletter
+│   ├── SubscriberController.php     Lista/export suscriptores
+│   ├── CurrencyController.php       Monedas CRUD
+│   ├── ShippingController.php       Cálculo de envío
+│   ├── PaymentController.php        Pagos POS
+│   └── SizeGuideController.php      Guía de talles
+│
+├── Models/                       # 17 models — solo SQL con prepared statements
+│   ├── ProductModel.php              Productos, variantes, colores, talles, imágenes
+│   ├── OrderModel.php                Órdenes, items, estados, stock movements
+│   ├── CategoryModel.php             Categorías
+│   ├── CustomerModel.php             Clientes, sesiones, tokens
+│   ├── CouponModel.php               Cupones, usos, validación
+│   ├── ReviewModel.php               Reseñas, stats
+│   ├── BlogPostModel.php             Posts + traducciones i18n
+│   ├── BlogCategoryModel.php         Categorías blog + traducciones i18n
+│   ├── WishlistModel.php             Items guardados
+│   ├── CartModel.php                 Carrito (persistente para clientes logueados)
+│   ├── AddressModel.php              Direcciones de clientes
+│   ├── EmailTemplateModel.php        Plantillas email + carga desde archivo
+│   ├── SettingModel.php              Configuración clave-valor + cuentas banco
+│   ├── SubscriberModel.php           Suscriptores newsletter
+│   ├── CurrencyModel.php             Tasas de cambio
+│   ├── UserModel.php                 Usuarios admin, roles, actividad, TOTP
+│   └── SizeGuideModel.php            Guía de talles
+│
+├── Services/                     # 4 services — wrappers de servicios externos
+│   ├── AuthService.php               Sesiones admin, login flow, TOTP, rate limiting
+│   ├── EmailService.php              PHPMailer, templates, notificaciones
+│   ├── ImageKitService.php           ImageKit REST API (upload, delete)
+│   └── StripeService.php             Stripe PaymentIntents, webhooks
+│
+├── Traits/
+│   └── ApiResponse.php               jsonResponse(), jsonError()
+│
+├── Config/
+│   └── Database.php                  PDO singleton con fallback env→constant→default
+│
+├── api/                           # 99 entry points — ≤15 líneas c/u
+│   ├── admin/                         login, logout, verify, users, 2fa/*
+│   ├── productos/                     list, get, create, update, delete
+│   ├── pedidos/                       list, get, create, create-pos, update-status, confirm-payment, update-receipt
+│   ├── categorias/                    list, create, update, delete
+│   ├── clientes/                      list, get, delete
+│   ├── customer/                      register, login, logout, verify, update, addresses, orders, get-order, forgot-password, reset-password
+│   ├── cupones/                       list, list-active, get, create, update, delete, validate
+│   ├── resenas/                       list, admin-list, create, approve, delete
+│   ├── blog/                          list, get, create, update, delete
+│   │   └── categories/                create, update, delete
+│   ├── cart/                          sync, add, remove, clear
+│   ├── wishlist/                      list, add, remove, check
+│   ├── stripe/                        create-payment-intent, webhook
+│   ├── imagekit/                      upload, delete, delete-image
+│   ├── email/                         newsletter, unsubscribe
+│   ├── email-templates/               list, get, create, update, delete, preview, restore, seed
+│   ├── suscriptores/                  list, export, unsubscribe
+│   ├── newsletter/                    send-campaign
+│   ├── configuracion/                 get, update, public
+│   ├── dashboard/                     stats
+│   ├── contact/                       send
+│   ├── shipping/                      calculate
+│   ├── monedas/                       list, create, delete, update-rate
+│   ├── size-guide/                    public, save-all
+│   └── pos/                           stats
+│
+├── bootstrap.php                  # Entry point: carga autoload + DB + config
+├── autoload.php                    # PSR-4 autoloader (App\ → backend/)
+├── config.php                      # Helpers globales: env(), CORS, sesión, JSON response, auth wrappers
+├── composer.json                   # Dependencias (stripe, phpmailer) + autoload PSR-4
+├── dev-router.php                  # Router 3-capas para servidor built-in
+├── install.php                     # Instalador web one-time
+├── database/
+│   ├── schema.sql                  # Esquema MySQL (40 tablas normalizadas)
+│   ├── seed.sql                    # Datos de semilla
+│   ├── migrate.php                 # Migración vía CLI
+│   ├── seed-templates.php          # Seed templates email desde archivos
+│   └── seed-blog.php               # Seed posts blog
+├── email-templates/                # 7 plantillas HTML con {{variable}} placeholders
+└── vendor/                         # Dependencias Composer
+```
+
+### 15.4 Convenciones SOA
+
+| Aspecto | Regla |
+|---------|-------|
+| **Tipado** | `declare(strict_types=1)` en todo archivo PHP |
+| **Controllers** | `use ApiResponse` trait, constructor con DI, 1 método público por acción |
+| **Models** | `final class`, `\PDO` via constructor, solo prepared statements |
+| **Services** | Sin estado global, inyectables, wrappers de APIs externas |
+| **Entry points** | ≤15 líneas: `require bootstrap`, `new Controller()`, `$controller->metodo()` |
+| **Rutas de archivo** | `__DIR__` basado, sin hardcodeo de paths absolutos |
+| **Namespace** | `App\Controllers\*`, `App\Models\*`, `App\Services\*`, `App\Traits\*`, `App\Config\*` |
+| **Autoload** | PSR-4 via Composer (`"App\\": ""`) + fallback manual en autoload.php |
+| **Conexión DB** | `App\Config\Database::getConnection()` — singleton PDO |
+
+### 15.5 Flujo de una Petición
+
+```
+Cliente (fetch /api/productos/list.php)
+        │
+        ▼
+backend/api/productos/list.php     ◄── Entry point (8 líneas)
+        │  require bootstrap.php
+        │  new ProductController(new ProductModel(Database::getConnection()))
+        │  $controller->list()
+        ▼
+Controllers/ProductController.php  ◄── Valida query params, llama Modelo
+        │  $this->model->getAll($filters)
+        ▼
+Models/ProductModel.php            ◄── SQL con prepared statements
+        │  SELECT * FROM products WHERE ...
+        ▼
+array → JSON ← Controller         ◄── jsonResponse($data)
+        │
+        ▼
+Cliente recibe JSON
+```
+
+### 15.6 Resolución de Credenciales DB
+
+```
+Database::getConnection()
+  1. getenv('DB_HOST')           ← .env en desarrollo
+  2. defined('DB_HOST')          ← database/config.php en producción
+  3. 'localhost' (hardcoded)     ← fallback si no hay instalación
+```
+
+### 15.7 Resolución de Autenticación
+
+```
+config.php: startAdminSession() / isAdminLoggedIn() / requireRole()
+  └─► AuthService (singleton via function auth())
+       └─► UserModel (auto-creado si no se inyecta)
+            └─► MySQL: admin_users + admin_activity_log + login_attempts
+```
+
+> **Documentación generada:** 02/06/2026  
+> **Última actualización:** 27/06/2026 — Refactorización SOA completada. `php/` renombrado a `backend/`.

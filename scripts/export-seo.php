@@ -7,7 +7,7 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/../php/config.php';
+require_once __DIR__ . '/../backend/config.php';
 
 function exportJson(string $path, mixed $data): void {
     $dir = dirname($path);

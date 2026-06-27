@@ -14,7 +14,7 @@ CMD=${1:-start}
 case "$CMD" in
   start)
     echo "=== Starting temporary PHP API on :8000 for build ==="
-    php -S localhost:8000 php/build-router.php > /tmp/php-build.log 2>&1 &
+    php -S localhost:8000 backend/dev-router.php > /tmp/php-build.log 2>&1 &
     PHP_PID=$!
 
     echo "=== Building static frontend to dist/ ==="
@@ -24,59 +24,20 @@ case "$CMD" in
     kill $PHP_PID 2>/dev/null || true
     wait $PHP_PID 2>/dev/null || true
 
-    echo "=== Copying PHP backend to dist/ ==="
-    rm -rf dist/api dist/includes dist/email-templates dist/database dist/config.php dist/composer.json dist/vendor dist/encryption.key dist/.htaccess
-    cp -r php/api dist/api
-    cp -r php/includes dist/includes
-    cp -r php/email-templates dist/email-templates
-    cp -r php/database dist/database
-    cp php/config.php dist/config.php
-    cp php/composer.json dist/composer.json
-    cp php/encryption.key dist/encryption.key
-    cp php/.htaccess dist/.htaccess
-    if [ -f .env ]; then
-        cp .env dist/.env
-    fi
-    echo "=== Composer install ==="
-    cd "$CWD/dist"
-    if [ -f composer.json ]; then
-      composer install --no-dev --no-interaction --prefer-dist 2>&1 || true
-    fi
-    cd "$CWD"
-
     echo ""
     echo "🚀 http://localhost:4321"
-    php -S localhost:4321 php/dev-router.php
+    echo "   Static assets from dist/ (built frontend)"
+    echo "   PHP APIs from backend/ source (live, no copy needed)"
+    echo ""
+    php -S localhost:4321 backend/dev-router.php
     ;;
 
   api)
-    if [ ! -f dist/index.html ]; then
-      echo "=== Starting temporary PHP API on :8000 for build ==="
-      php -S localhost:8000 php/build-router.php > /tmp/php-build.log 2>&1 &
-      PHP_PID=$!
-
-      echo "=== Building frontend ==="
-      PUBLIC_API_URL=http://127.0.0.1:8000/api pnpm build
-
-      kill $PHP_PID 2>/dev/null || true
-      wait $PHP_PID 2>/dev/null || true
-
-      rm -rf dist/api dist/includes dist/email-templates dist/database dist/config.php dist/composer.json dist/vendor dist/encryption.key dist/.htaccess
-      cp -r php/api dist/api
-      cp -r php/includes dist/includes
-      cp -r php/email-templates dist/email-templates
-      cp -r php/database dist/database
-      cp php/config.php dist/config.php
-      cp php/composer.json dist/composer.json
-      cp php/encryption.key dist/encryption.key
-      cp php/.htaccess dist/.htaccess
-      if [ -f .env ]; then
-        cp .env dist/.env
-      fi
-    fi
-    cd "$CWD/dist" && composer install --no-dev --no-interaction --prefer-dist 2>&1 || true && cd "$CWD"
-    echo "=== PHP API server on :8000 (run './dev.sh hmr' in another terminal) ==="
-    php -S localhost:8000 php/dev-router.php
+    echo "=== PHP API server on :8000 ==="
+    echo "   API served from backend/ source (no dist/ dependency)"
+    echo "   Run './dev.sh hmr' in another terminal for Astro HMR"
+    echo ""
+    php -S localhost:8000 backend/dev-router.php
     ;;
 
   hmr)

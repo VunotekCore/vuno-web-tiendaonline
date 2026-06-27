@@ -27,7 +27,7 @@ for arg in "$@"; do
 done
 
 echo "==> 1/5 Starting temporary PHP API on :8000 for build..."
-php -S localhost:8000 php/build-router.php > /tmp/php-build.log 2>&1 &
+php -S localhost:8000 backend/dev-router.php > /tmp/php-build.log 2>&1 &
 PHP_PID=$!
 
 echo "==> 2/5 Building Astro static site..."
@@ -39,25 +39,33 @@ wait $PHP_PID 2>/dev/null || true
 
 echo "==> 4/5 Copying PHP backend to dist/..."
 # Clean previous PHP artifacts
-rm -rf dist/api dist/includes dist/email-templates dist/database dist/config.php dist/composer.json dist/vendor dist/encryption.key dist/.htaccess dist/install.php
+rm -rf dist/api dist/email-templates dist/database dist/config.php dist/composer.json dist/vendor dist/encryption.key dist/.htaccess dist/install.php
+rm -rf dist/bootstrap.php dist/autoload.php dist/Controllers dist/Models dist/Services dist/Traits dist/Config dist/Utils
 
-# Copy PHP API endpoints
-cp -r php/api dist/api
-cp -r php/includes dist/includes
-cp -r php/email-templates dist/email-templates
-cp -r php/database dist/database
-cp php/config.php dist/config.php
-cp php/composer.json dist/composer.json
-cp php/encryption.key dist/encryption.key
+# Copy full SOA backend structure
+cp -r backend/api                    dist/api
+cp -r backend/Controllers            dist/Controllers
+cp -r backend/Models                 dist/Models
+cp -r backend/Services               dist/Services
+cp -r backend/Traits                 dist/Traits
+cp -r backend/Config                 dist/Config
+cp -r backend/Utils                  dist/Utils
+cp -r backend/email-templates        dist/email-templates
+cp -r backend/database               dist/database
+cp    backend/config.php             dist/config.php
+cp    backend/bootstrap.php          dist/bootstrap.php
+cp    backend/autoload.php           dist/autoload.php
+cp    backend/composer.json          dist/composer.json
+cp    backend/encryption.key         dist/encryption.key
 
 # Copy production .htaccess (rename from htaccess-production)
-if [ -f php/htaccess-production ]; then
-  cp php/htaccess-production dist/.htaccess
+if [ -f backend/htaccess-production ]; then
+  cp backend/htaccess-production dist/.htaccess
 fi
 
 # Copy installer (removed after first use)
-if [ -f php/install.php ]; then
-  cp php/install.php dist/install.php
+if [ -f backend/install.php ]; then
+  cp backend/install.php dist/install.php
 fi
 
 # Remove local database config — install.php creates it
@@ -67,21 +75,21 @@ rm -f dist/database/config.php
 echo "==> Copying .env to dist/..."
 if [ -f .env ]; then
   cp .env dist/.env
-elif [ -f php/.env ]; then
-  cp php/.env dist/.env
+elif [ -f backend/.env ]; then
+  cp backend/.env dist/.env
 fi
 
 # Generate composer.lock if missing
 if [ ! -f dist/composer.lock ]; then
-  if [ -f php/composer.lock ]; then
-    cp php/composer.lock dist/composer.lock
+  if [ -f backend/composer.lock ]; then
+    cp backend/composer.lock dist/composer.lock
   fi
 fi
 
 # Copy existing vendor/ if present (avoids server-side composer)
-if [ -d php/vendor ]; then
-  echo "==> Copying existing vendor/ from php/vendor..."
-  cp -r php/vendor dist/vendor
+if [ -d backend/vendor ]; then
+  echo "==> Copying existing vendor/ from backend/vendor..."
+  cp -r backend/vendor dist/vendor
 fi
 
 if [ "$SKIP_COMPOSER" = false ]; then
@@ -93,7 +101,7 @@ if [ "$SKIP_COMPOSER" = false ]; then
     if [ ! -d vendor ]; then
       echo ""
       echo "⚠️  Composer not found on this system."
-      echo "   Install it, or run 'composer install --no-dev' locally in php/"
+      echo "   Install it, or run 'composer install --no-dev' locally in backend/"
       echo "   and re-run deploy.sh"
       echo ""
     fi
