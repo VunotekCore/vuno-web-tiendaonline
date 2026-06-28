@@ -33,7 +33,7 @@ const tabGroups: TabGroup[] = [
 const leafTabs = tabGroups.flatMap(g => g.children ?? [g])
 
 const activeTab = ref('store')
-const expandedGroups = reactive(new Set<string>())
+
 const loading = ref(true)
 
 // Store settings
@@ -486,15 +486,6 @@ const landingFieldLabels: Record<string, string> = {
   view_all_es: 'VER TODOS (ES)', view_all_en: 'VIEW ALL (EN)',
 }
 
-function toggleGroup(id: string) {
-  if (expandedGroups.has(id)) expandedGroups.delete(id)
-  else expandedGroups.add(id)
-}
-
-function selectChild(groupId: string, childId: string) {
-  activeTab.value = childId
-  expandedGroups.add(groupId)
-}
 </script>
 
 <template>
@@ -507,45 +498,35 @@ function selectChild(groupId: string, childId: string) {
     </select>
 
     <!-- Desktop tab bar -->
-    <div class="hidden lg:block border-b border-[#1e293b] mb-8">
-      <div class="grid grid-cols-6" role="tablist">
+    <div class="hidden lg:block border-b border-[#1e293b] mb-8 overflow-x-auto">
+      <div class="flex flex-wrap items-stretch min-w-0" role="tablist">
         <template v-for="g in tabGroups" :key="g.id">
-          <!-- Parent group -->
-          <div v-if="g.children" class="relative">
-            <button role="tab"
-                    :class="g.children.some(c => c.id === activeTab)
-                      ? 'bg-[#42b883] text-white'
-                      : 'text-[#94a3b8] hover:bg-white/5 hover:text-[#dae2fd]'"
-                    class="tab-btn w-full px-2 py-2.5 md:py-3 text-xs font-semibold tracking-widest rounded-t-sm transition-all flex items-center justify-center gap-1.5 overflow-hidden"
-                    @click="toggleGroup(g.id)">
-              <span class="material-symbols-outlined text-lg shrink-0">{{ g.icon }}</span>
-              <span class="truncate">{{ g.label }}</span>
-              <span class="material-symbols-outlined text-base transition-transform" :class="expandedGroups.has(g.id) ? 'rotate-180' : ''">expand_more</span>
-            </button>
-            <!-- Sub-tabs dropdown -->
-            <div v-if="expandedGroups.has(g.id)" class="absolute top-full left-0 right-0 z-10 bg-[#0b1326] border border-[#1e293b] rounded-b-sm shadow-xl overflow-hidden">
+          <!-- Parent group header + children -->
+          <template v-if="g.children">
+            <div class="flex items-center gap-0.5 px-1 py-1">
+              <span class="text-[10px] font-bold tracking-[0.15em] text-[#6B8FA3] uppercase whitespace-nowrap px-2 select-none">{{ g.label }}</span>
               <button v-for="c in g.children" :key="c.id" role="tab"
                       :aria-selected="activeTab === c.id"
                       :class="activeTab === c.id
-                        ? 'bg-[#42b883]/20 text-[#42b883] border-l-2 border-[#42b883]'
+                        ? 'bg-[#42b883] text-white'
                         : 'text-[#94a3b8] hover:bg-white/5 hover:text-[#dae2fd]'"
-                      class="w-full px-4 py-2.5 text-xs font-semibold tracking-widest transition-all flex items-center gap-2 text-left"
-                      @click="selectChild(g.id, c.id)">
-                <span class="material-symbols-outlined text-lg shrink-0">{{ c.icon }}</span>
+                      class="tab-btn px-2.5 py-2 text-xs font-semibold tracking-widest rounded-t-sm transition-all flex items-center gap-1.5 whitespace-nowrap"
+                      @click="activeTab = c.id">
+                <span class="material-symbols-outlined text-base shrink-0">{{ c.icon }}</span>
                 <span>{{ c.label }}</span>
               </button>
             </div>
-          </div>
+          </template>
           <!-- Leaf tab -->
           <button v-else role="tab"
                   :aria-selected="activeTab === g.id"
                   :class="activeTab === g.id
                     ? 'bg-[#42b883] text-white'
                     : 'text-[#94a3b8] hover:bg-white/5 hover:text-[#dae2fd]'"
-                  class="tab-btn px-2 py-2.5 md:py-3 text-xs font-semibold tracking-widest rounded-t-sm transition-all flex items-center justify-center gap-1.5 overflow-hidden"
+                  class="tab-btn px-2.5 py-2 text-xs font-semibold tracking-widest rounded-t-sm transition-all flex items-center gap-1.5 whitespace-nowrap"
                   @click="activeTab = g.id">
-            <span class="material-symbols-outlined text-lg shrink-0">{{ g.icon }}</span>
-            <span class="truncate">{{ g.label }}</span>
+            <span class="material-symbols-outlined text-base shrink-0">{{ g.icon }}</span>
+            <span>{{ g.label }}</span>
           </button>
         </template>
       </div>
