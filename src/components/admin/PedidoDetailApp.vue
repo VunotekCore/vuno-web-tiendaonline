@@ -131,15 +131,17 @@ async function updateStatus() {
     {{ error }}
   </div>
 
-  <div v-else-if="order" class="space-y-8 admin-enter">
+  <div v-else-if="order" class="space-y-6 admin-enter">
     <!-- Order Info + Customer -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div class="admin-card p-6">
-        <h2 class="text-lg font-semibold text-[#dae2fd] mb-4 flex items-center gap-2">
-          <span class="material-symbols-outlined text-xl">receipt</span>
-          Order <span class="text-[#dae2fd]">{{ order.id }}</span>
-        </h2>
-        <div class="space-y-3 text-sm">
+      <div class="glass-card overflow-hidden rounded-xl">
+        <div class="px-6 pt-5 pb-4 border-b border-[#dae2fd]/5">
+          <h2 class="text-lg font-semibold text-[#dae2fd] flex items-center gap-2">
+            <span class="material-symbols-outlined text-xl">receipt</span>
+            Order <span class="text-[#dae2fd]">{{ order.id }}</span>
+          </h2>
+        </div>
+        <div class="px-6 py-4 space-y-3 text-sm">
           <div class="flex items-center gap-2">
             <span class="material-symbols-outlined text-base text-[#94a3b8]">calendar_today</span>
             <span class="text-[#94a3b8]">Date:</span>
@@ -173,52 +175,56 @@ async function updateStatus() {
         </div>
       </div>
 
-      <div class="admin-card p-6">
-        <h2 class="text-lg font-semibold text-[#dae2fd] mb-4 flex items-center gap-2">
-          <span class="material-symbols-outlined text-xl">person</span>
-          Customer
-        </h2>
-        <div v-if="order.customer" class="space-y-3 text-sm">
-          <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-base text-[#94a3b8]">badge</span>
-            <span class="text-[#94a3b8]">Name:</span>
-            <span class="text-[#dae2fd]">{{ order.customer.name }}</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-base text-[#94a3b8]">mail</span>
-            <span class="text-[#94a3b8]">Email:</span>
-            <span class="text-[#dae2fd]">{{ order.customer.email }}</span>
-          </div>
-          <div class="flex items-start gap-2">
-            <span class="material-symbols-outlined text-base text-[#94a3b8] mt-0.5">home</span>
-            <span class="text-[#94a3b8]">Address:</span>
-            <span class="text-[#dae2fd]">{{ order.customer.address }}</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-base text-[#94a3b8]">location_city</span>
-            <span class="text-[#94a3b8]">City:</span>
-            <span class="text-[#dae2fd]">{{ order.customer.city }}</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-base text-[#94a3b8]">pin_drop</span>
-            <span class="text-[#94a3b8]">Zip:</span>
-            <span class="text-[#dae2fd]">{{ order.customer.zip }}</span>
-          </div>
+      <div class="glass-card overflow-hidden rounded-xl">
+        <div class="px-6 pt-5 pb-4 border-b border-[#dae2fd]/5">
+          <h2 class="text-lg font-semibold text-[#dae2fd] flex items-center gap-2">
+            <span class="material-symbols-outlined text-xl">person</span>
+            Customer
+          </h2>
         </div>
-        <p v-else class="text-sm text-[#94a3b8]">No customer data.</p>
+        <div class="px-6 py-4">
+          <div v-if="order.customer" class="space-y-3 text-sm">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-base text-[#94a3b8]">badge</span>
+              <span class="text-[#94a3b8]">Name:</span>
+              <span class="text-[#dae2fd]">{{ order.customer.name }}</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-base text-[#94a3b8]">mail</span>
+              <span class="text-[#94a3b8]">Email:</span>
+              <span class="text-[#dae2fd]">{{ order.customer.email }}</span>
+            </div>
+            <div class="flex items-start gap-2">
+              <span class="material-symbols-outlined text-base text-[#94a3b8] mt-0.5">home</span>
+              <span class="text-[#94a3b8]">Address:</span>
+              <span class="text-[#dae2fd]">{{ order.customer.address }}</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-base text-[#94a3b8]">location_city</span>
+              <span class="text-[#94a3b8]">City:</span>
+              <span class="text-[#dae2fd]">{{ order.customer.city }}</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-base text-[#94a3b8]">pin_drop</span>
+              <span class="text-[#94a3b8]">Zip:</span>
+              <span class="text-[#dae2fd]">{{ order.customer.zip }}</span>
+            </div>
+          </div>
+          <p v-else class="text-sm text-[#94a3b8]">No customer data.</p>
+        </div>
       </div>
     </div>
 
     <!-- Order Items -->
-    <div class="admin-card">
-      <div class="admin-card-header">
+    <div class="glass-card overflow-hidden rounded-xl">
+      <div class="px-6 pt-5 pb-4 border-b border-[#dae2fd]/5">
         <h2 class="text-lg font-semibold text-[#dae2fd] flex items-center gap-2">
           <span class="material-symbols-outlined text-xl">shopping_bag</span>
           Order Items
         </h2>
       </div>
       <template v-if="order.items?.length">
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto px-6">
           <table class="admin-table">
             <thead>
               <tr>
@@ -241,19 +247,19 @@ async function updateStatus() {
               </tr>
             </tbody>
             <tfoot>
-              <tr v-if="order.display_discountTotal > 0" class="border-t border-[#1e293b]">
+              <tr v-if="order.display_discountTotal > 0" class="border-t border-[#dae2fd]/5">
                 <td colspan="5" class="p-4 text-right text-sm text-[#B8956A]">Discount</td>
                 <td class="p-4 font-medium text-[#B8956A]">-{{ formatPrice(order.display_discountTotal, order.display_symbol) }}</td>
               </tr>
-              <tr class="border-t border-[#1e293b]">
+              <tr class="border-t border-[#dae2fd]/5">
                 <td colspan="5" class="p-4 text-right text-sm text-[#94a3b8]">Shipping</td>
                 <td class="p-4 font-medium">{{ formatPrice(order.display_shipping ?? order.shipping, order.display_symbol) }}</td>
               </tr>
-              <tr class="border-t border-[#1e293b]">
+              <tr class="border-t border-[#dae2fd]/5">
                 <td colspan="5" class="p-4 text-right text-sm text-[#94a3b8]">IVA</td>
                 <td class="p-4 font-medium">{{ formatPrice(order.display_tax ?? order.tax, order.display_symbol) }}</td>
               </tr>
-              <tr class="border-t-2 border-[#1e293b]">
+              <tr class="border-t-2 border-[#dae2fd]/10">
                 <td colspan="5" class="p-4 text-right text-lg font-semibold text-[#dae2fd]">Total</td>
                 <td class="p-4 text-lg font-bold text-[#dae2fd]">{{ formatPrice(order.display_total ?? order.total, order.display_symbol) }}</td>
               </tr>
@@ -261,33 +267,37 @@ async function updateStatus() {
           </table>
         </div>
       </template>
-      <div v-else class="admin-card-body text-sm text-[#94a3b8]">No items.</div>
+      <div v-else class="px-6 py-4 text-sm text-[#94a3b8]">No items.</div>
     </div>
 
     <!-- Update Status -->
-    <div class="admin-card p-6">
-      <h2 class="text-lg font-semibold text-[#dae2fd] mb-4 flex items-center gap-2">
-        <span class="material-symbols-outlined text-xl">update</span>
-        Update Status
-      </h2>
-      <form class="flex items-end gap-4" @submit.prevent="updateStatus">
-        <div class="flex-grow">
-          <select v-model="selectedStatus" class="admin-input">
-            <option v-for="s in validStatuses" :key="s" :value="s">{{ s.charAt(0).toUpperCase() + s.slice(1) }}</option>
-          </select>
-        </div>
-        <button
-          type="submit"
-          class="admin-btn admin-btn-primary"
-          :disabled="statusUpdating || selectedStatus === order.status"
-        >
-          <span class="material-symbols-outlined text-lg" :class="{ 'animate-spin': statusUpdating }">{{ statusUpdating ? 'progress_activity' : 'save' }}</span>
-          {{ statusUpdating ? 'UPDATING...' : 'UPDATE' }}
-        </button>
-      </form>
+    <div class="glass-card overflow-hidden rounded-xl">
+      <div class="px-6 pt-5 pb-4 border-b border-[#dae2fd]/5">
+        <h2 class="text-lg font-semibold text-[#dae2fd] flex items-center gap-2">
+          <span class="material-symbols-outlined text-xl">update</span>
+          Update Status
+        </h2>
+      </div>
+      <div class="px-6 py-4">
+        <form class="flex flex-col sm:flex-row items-stretch sm:items-end gap-4" @submit.prevent="updateStatus">
+          <div class="flex-grow">
+            <select v-model="selectedStatus" class="admin-input w-full">
+              <option v-for="s in validStatuses" :key="s" :value="s">{{ s.charAt(0).toUpperCase() + s.slice(1) }}</option>
+            </select>
+          </div>
+          <button
+            type="submit"
+            class="admin-btn admin-btn-primary w-full sm:w-auto justify-center"
+            :disabled="statusUpdating || selectedStatus === order.status"
+          >
+            <span class="material-symbols-outlined text-lg" :class="{ 'animate-spin': statusUpdating }">{{ statusUpdating ? 'progress_activity' : 'save' }}</span>
+            {{ statusUpdating ? 'UPDATING...' : 'UPDATE' }}
+          </button>
+        </form>
+      </div>
     </div>
 
-    <div class="mt-6">
+    <div class="mt-4">
       <a href="/admin/pedidos" class="inline-flex items-center gap-1.5 text-sm text-[#94a3b8] hover:text-[#dae2fd] transition-colors">
         <span class="material-symbols-outlined text-lg">arrow_back</span>
         Back to Orders
