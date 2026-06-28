@@ -46,6 +46,7 @@ const search = ref('')
 const currentPage = ref(1)
 const total = ref(0)
 const perPage = 15
+const searchTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 const modalVisible = ref(false)
 const editingItem = ref<any>(null)
 const formValues = ref<Record<string, any>>({})
@@ -161,7 +162,8 @@ async function remove(item: any) {
 
 watch(search, () => {
   currentPage.value = 1
-  loadData()
+  if (searchTimer.value) clearTimeout(searchTimer.value)
+  searchTimer.value = setTimeout(() => { loadData() }, 300)
 })
 
 loadData()

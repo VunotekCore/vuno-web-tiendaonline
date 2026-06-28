@@ -66,6 +66,7 @@ final class CategoryController
             $this->queryInt('limit'),
             $this->queryInt('offset'),
             $this->queryString('lang') ?: null,
+            $this->queryString('search') ?: null,
         );
         $this->jsonResponse($result);
     }
