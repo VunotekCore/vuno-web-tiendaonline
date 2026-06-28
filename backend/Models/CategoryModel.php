@@ -10,27 +10,21 @@ final class CategoryModel
     /**
      * @return array{items: array<int, array{id: int, name: string, slug: string}>, total: int}
      */
-    public function getAll(?int $limit, ?int $offset, ?string $lang, ?string $search = null): array
+    public function getAll(?int $limit, ?int $offset, ?string $search = null): array
     {
-        $countSql = 'SELECT COUNT(*) FROM categories WHERE is_active = 1';
-        $sql = 'SELECT * FROM categories WHERE is_active = 1';
+        $where = 'is_active = 1';
         $params = [];
-        $searchParam = null;
-
         if ($search !== null && $search !== '') {
-            $like = '%' . $search . '%';
-            $countSql .= ' AND name LIKE ?';
-            $sql .= ' AND name LIKE ?';
-            $searchParam = $like;
-            $params[] = $like;
+            $where .= ' AND name LIKE ?';
+            $params[] = '%' . $search . '%';
         }
 
-        $countStmt = $this->db->prepare($countSql);
-        $countStmt->execute($searchParam !== null ? [$searchParam] : []);
+        $countStmt = $this->db->prepare('SELECT COUNT(*) FROM categories WHERE ' . $where);
+        $countStmt->execute($params);
         /** @var int $total */
-        $total = (int) $countStmt->fetchColumn();
+        $total = ($countStmt !== false) ? (int) $countStmt->fetchColumn() : 0;
 
-        $sql .= ' ORDER BY sort_order, name';
+        $sql = 'SELECT * FROM categories WHERE ' . $where . ' ORDER BY sort_order, name';
         if ($limit !== null) {
             $sql .= ' LIMIT ?';
             $params[] = $limit;
@@ -45,18 +39,6 @@ final class CategoryModel
 
         /** @var array<int, string> $transMap */
         $transMap = [];
-        if ($lang !== null && $lang !== 'es') {
-            try {
-                $tStmt = $this->db->prepare('SELECT category_id, name FROM category_translations WHERE lang = ?');
-                $tStmt->execute([$lang]);
-                /** @var array<array{category_id: int, name: string}> $transRows */
-                $transRows = $tStmt->fetchAll();
-                foreach ($transRows as $t) {
-                    $transMap[$t['category_id']] = $t['name'];
-                }
-            } catch (\PDOException) {
-            }
-        }
 
         $items = array_map(function (array $r) use ($transMap): array {
             /** @var int $id */

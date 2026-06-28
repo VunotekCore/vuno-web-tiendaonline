@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 import { useApi } from './useApi'
 import { useToast } from './useToast'
 
@@ -43,10 +43,19 @@ const items = ref<any[]>([])
 const loading = ref(false)
 const saving = ref(false)
 const search = ref('')
+const searchTimer = ref<ReturnType<typeof setTimeout> | null>(null)
+
+function onSearchInput(val: string) {
+  search.value = val
+  if (searchTimer.value) clearTimeout(searchTimer.value)
+  searchTimer.value = setTimeout(() => {
+    currentPage.value = 1
+    loadData()
+  }, 300)
+}
 const currentPage = ref(1)
 const total = ref(0)
 const perPage = 15
-const searchTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 const modalVisible = ref(false)
 const editingItem = ref<any>(null)
 const formValues = ref<Record<string, any>>({})
@@ -160,12 +169,6 @@ async function remove(item: any) {
   }
 }
 
-watch(search, () => {
-  currentPage.value = 1
-  if (searchTimer.value) clearTimeout(searchTimer.value)
-  searchTimer.value = setTimeout(() => { loadData() }, 300)
-})
-
 loadData()
 </script>
 
@@ -191,10 +194,11 @@ loadData()
 
     <div class="px-6 pb-4">
       <input
-        v-model="search"
+        :value="search"
         type="text"
         :placeholder="`Buscar ${config.entityLabelPlural.toLowerCase()}...`"
         class="admin-input w-full md:max-w-xs"
+        @input="onSearchInput(($event.target as HTMLInputElement).value)"
       />
     </div>
 

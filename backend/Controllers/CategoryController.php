@@ -65,7 +65,6 @@ final class CategoryController
         $result = $this->model->getAll(
             $this->queryInt('limit'),
             $this->queryInt('offset'),
-            $this->queryString('lang') ?: null,
             $this->queryString('search') ?: null,
         );
         $this->jsonResponse($result);
