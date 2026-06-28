@@ -3,8 +3,11 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Models\CategoryModel;
+use App\Models\CouponModel;
 use App\Models\CurrencyModel;
 use App\Models\SettingModel;
+use App\Models\SizeGuideModel;
 use App\Traits\ApiResponse;
 
 final class SettingController
@@ -12,6 +15,9 @@ final class SettingController
     use ApiResponse;
 
     private ?CurrencyModel $currencyModel = null;
+    private ?CategoryModel $categoryModel = null;
+    private ?CouponModel $couponModel = null;
+    private ?SizeGuideModel $sizeGuideModel = null;
 
     public function __construct(
         private SettingModel $model
@@ -25,6 +31,30 @@ final class SettingController
         return $this->currencyModel;
     }
 
+    private function getCategoryModel(): CategoryModel
+    {
+        if ($this->categoryModel === null) {
+            $this->categoryModel = new CategoryModel(\App\Config\Database::getConnection());
+        }
+        return $this->categoryModel;
+    }
+
+    private function getCouponModel(): CouponModel
+    {
+        if ($this->couponModel === null) {
+            $this->couponModel = new CouponModel(\App\Config\Database::getConnection());
+        }
+        return $this->couponModel;
+    }
+
+    private function getSizeGuideModel(): SizeGuideModel
+    {
+        if ($this->sizeGuideModel === null) {
+            $this->sizeGuideModel = new SizeGuideModel(\App\Config\Database::getConnection());
+        }
+        return $this->sizeGuideModel;
+    }
+
     /** @return array<string, mixed> */
     private function input(): array
     {
@@ -34,11 +64,17 @@ final class SettingController
 
     // ── GET ──────────────────────────────────────────────────────────────────
 
-    /** GET: returns all settings (admin full view) */
+    /** GET: returns all settings plus extra data (admin full view) */
     public function get(): void
     {
         try {
             $settings = $this->model->getAll();
+            $storeCurrency = $this->getCurrencyModel()->getStoreCurrency();
+            $settings['categories'] = $this->getCategoryModel()->getAll(null, null, null);
+            $settings['currencies'] = $this->getCurrencyModel()->getAll();
+            $settings['storeCurrency'] = $storeCurrency['code'] ?? 'NIO';
+            $settings['size_guide_rows'] = $this->getSizeGuideModel()->getAll();
+            $settings['active_coupons'] = $this->getCouponModel()->getActiveCoupons();
             $this->jsonResponse($settings);
         } catch (\Throwable $e) {
             $this->jsonError('Error al obtener configuración: ' . $e->getMessage(), 500);

@@ -1560,3 +1560,58 @@ Los siguientes items se identificaron durante la migración y deberían aplicars
 | `useToast` composable | Reemplazar uso directo de `window.VunoToast` por composable Vue en todos los componentes |
 | `VariantsMatrix` migration | Migrar el `VariantsMatrix.astro` del hotelero a Vue con el mismo patrón que en e-commerce |
 | Admin components | Revisar que todos los page components usen `useApi()` en vez de `fetch()` directo |
+
+### 16.14 Glass Card — Estándar UI
+
+> **Archivo:** `src/styles/admin.css` — clase `.glass-card`
+> **Stack:** backdrop-filter + rgba sidebar-bg + border translúcido + sombra profunda
+
+Todas las cards del panel admin deben usar `.glass-card` como contenedor base para mantener coherencia visual.
+
+```css
+.glass-card {
+  background: rgba(11, 19, 38, 0.55);     /* sidebar-bg al 55% */
+  backdrop-filter: blur(10px);              /* efecto vidrio templado */
+  border: 1px solid rgba(218, 226, 253, 0.08);  /* text-main al 8% */
+  border-radius: 0.75rem;                   /* rounded-xl */
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+}
+.glass-card:hover {
+  border-color: rgba(66, 184, 131, 0.35);   /* green-accent al 35% */
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45), 0 0 30px rgba(66, 184, 131, 0.06);
+  transform: translateY(-4px);
+}
+```
+
+#### Estructura HTML estándar
+
+Cada glass card se compone de **3 secciones** con separadores translúcidos:
+
+```
+.glass-card.overflow-hidden.rounded-xl
+├── HEADER: flex justify-between, px-6 pt-5 pb-4, border-b border-[#dae2fd]/5
+│   ├── Izquierda: título/etiquetas
+│   └── Derecha: icono de acento (green-accent) si aplica
+├── BODY: px-6 py-4
+│   └── Contenido en text-[#94a3b8] para cuerpo, text-[#dae2fd] para valores
+└── FOOTER: flex justify-between, px-6 pb-5 pt-4, border-t border-[#dae2fd]/5
+    ├── Acciones principales (izquierda)
+    └── Acciones secundarias/danger (derecha, ej. delete)
+```
+
+#### Reglas
+- NO usar `admin-card`, `admin-card-header`, `admin-card-body`, `admin-card-footer` dentro de glass cards — esos tienen bg sólido `#111d2e`. Usar padding inline con borders translúcidos (`border-[#dae2fd]/5`).
+- Inputs dentro de glass cards usar `bg-[#1e293b]/60 border border-[#dae2fd]/10` para mantener coherencia translúcida.
+- Estado activo: agregar `ring-1 ring-[#42b883]/30` en vez de border-left coloreado.
+- Para cards apiladas, el noise overlay en el content area (`_layout.astro`) revela textura granulada detrás del blur.
+
+#### Paleta asociada
+
+| Token | Hex | Uso en glass card |
+|---|---|---|
+| `--sidebar-bg` | `#0b1326` al 55% | Fondo translúcido `rgba(11, 19, 38, 0.55)` |
+| `--text-main` | `#dae2fd` al 5/8% | Separadores y bordes |
+| `--text-muted` | `#94a3b8` | Texto de cuerpo |
+| `--green-accent` | `#42b883` | Acento hover / activo |
+| `--input-bg` | `#1e293b` al 60% | Inputs dentro del card |

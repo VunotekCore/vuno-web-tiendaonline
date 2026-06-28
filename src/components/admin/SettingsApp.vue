@@ -14,8 +14,16 @@ interface TabItem {
 }
 
 const tabs: TabItem[] = [
-  { id: 'store', label: 'Tienda', icon: 'store' },
-  { id: 'receipt', label: 'Recibo', icon: 'receipt' },
+  {
+    id: 'group-tienda', label: 'Tienda', icon: 'store',
+    children: [
+      { id: 'store-info', label: 'Info Tienda', icon: 'store' },
+      { id: 'store-currency', label: 'Moneda', icon: 'payments' },
+      { id: 'store-tax', label: 'Impuestos', icon: 'receipt_long' },
+      { id: 'store-receipt', label: 'Recibo', icon: 'receipt' },
+      { id: 'store-sizeguide', label: 'Talles', icon: 'straighten' },
+    ],
+  },
   {
     id: 'group-pagos', label: 'Pagos', icon: 'credit_card',
     children: [
@@ -31,19 +39,30 @@ const tabs: TabItem[] = [
     ],
   },
   { id: 'shipping', label: 'Envío', icon: 'local_shipping' },
-  { id: 'landing', label: 'Landing', icon: 'dashboard_customize' },
-  { id: 'sizeguide', label: 'Guía de Talles', icon: 'straighten' },
   { id: 'whatsapp', label: 'WhatsApp', icon: 'chat' },
+  {
+    id: 'group-landing', label: 'Landing', icon: 'dashboard_customize',
+    children: [
+      { id: 'hero', label: 'Hero', icon: 'movie' },
+      { id: 'new_arrivals', label: 'New Arrivals', icon: 'new_releases' },
+      { id: 'categories', label: 'Categorías', icon: 'category' },
+      { id: 'brand_values', label: 'Brand Values', icon: 'handshake' },
+      { id: 'closing_cta', label: 'Closing CTA', icon: 'call_to_action' },
+      { id: 'social', label: 'Social', icon: 'alternate_email' },
+      { id: 'testimonials', label: 'Testimonios', icon: 'star' },
+      { id: 'blog', label: 'Blog', icon: 'article' },
+    ],
+  },
   { id: 'policies', label: 'Políticas', icon: 'policy' },
   { id: 'seo', label: 'SEO', icon: 'travel_explore' },
 ]
 
-const activeTab = ref('store')
-const activeChildTab = ref('stripe')
+const activeTab = ref('group-tienda')
+const activeChildTab = ref('store-info')
 const loading = ref(true)
 
 const effectiveTab = computed(() => {
-  if (activeTab.value === 'group-pagos' || activeTab.value === 'group-servicios') {
+  if (activeTab.value === 'group-tienda' || activeTab.value === 'group-pagos' || activeTab.value === 'group-servicios' || activeTab.value === 'group-landing') {
     return activeChildTab.value
   }
   return activeTab.value
@@ -139,7 +158,7 @@ const logoProgress = ref(-1)
 const logoError = ref('')
 
 // Landing
-const activeLandingSection = ref('hero')
+// Landing (section key derived from activeChildTab)
 const categories = ref<Array<{ slug: string; name: string }>>([])
 const coupons = ref<Array<{ code: string; discount_type: string; discount_value: number; description?: string }>>([])
 
@@ -150,6 +169,14 @@ const currencyModalLoading = ref(false)
 const currencyModalError = ref('')
 
 const dirtySections = reactive(new Set<string>())
+const editMode = reactive(new Set<string>())
+
+function isEditing(section: string) { return editMode.has(section) }
+function enableEdit(section: string) { editMode.add(section) }
+function disableEdit(section?: string) {
+  if (section) editMode.delete(section)
+  else editMode.clear()
+}
 
 function markDirty(section: string) {
   dirtySections.add(section)
@@ -181,7 +208,7 @@ function setLs(section: string, field: string, val: any) {
 
 onMounted(async () => {
   try {
-    await Promise.all([loadSettings(), loadCoupons(), loadCategories(), loadCurrencies()])
+    await loadSettings()
     loading.value = false
   } catch (err: any) {
     loading.value = false
@@ -206,6 +233,12 @@ async function loadSettings() {
   transfer.banks = data.transfer?.banks || [{ bankName: '', accountHolder: '', accountNumber: '', accountType: '', routingNumber: '', instructions: '' }]
   Object.assign(landing, data.landing || {})
   logoUrl.value = data.store?.logo || ''
+  coupons.value = data.active_coupons || []
+  const catItems = data.categories?.items || data.categories || []
+  categories.value = Array.isArray(catItems) ? catItems : []
+  currencies.value = data.currencies || []
+  storeCurrency.value = data.storeCurrency || ''
+  sizeGuideRows.value = data.size_guide_rows?.length ? data.size_guide_rows : [{ us: '', eu: '', uk: '', cm: '' }]
 
   for (const key of Object.keys(data.stripe || {})) {
     if (SENSITIVE_FIELDS.includes(key) && (stripe as any)[key]) (stripe as any)[key] = '••••••••'
@@ -216,36 +249,6 @@ async function loadSettings() {
   for (const key of Object.keys(data.smtp || {})) {
     if (SENSITIVE_FIELDS.includes(key) && (smtp as any)[key]) (smtp as any)[key] = '••••••••'
   }
-}
-
-async function loadCoupons() {
-  try {
-    const data = await api.get<any[]>('/api/cupones/list-active.php')
-    coupons.value = Array.isArray(data) ? data : []
-  } catch { coupons.value = [] }
-}
-
-async function loadCategories() {
-  try {
-    const data = await api.get<any>('/api/categorias/list.php')
-    const items = data.items || data || []
-    categories.value = Array.isArray(items) ? items : []
-  } catch { categories.value = [] }
-}
-
-async function loadCurrencies() {
-  try {
-    const data = await api.get<{ currencies?: Currency[]; storeCurrency?: string }>('/api/monedas/list.php?all=1')
-    currencies.value = data.currencies || []
-    storeCurrency.value = data.storeCurrency || ''
-  } catch { toast.error('Error loading currencies') }
-}
-
-async function loadSizeGuide() {
-  try {
-    const data = await api.get<{ rows?: SizeGuideRow[] }>('/api/size-guide/public.php')
-    sizeGuideRows.value = data.rows?.length ? data.rows : [{ us: '', eu: '', uk: '', cm: '' }]
-  } catch { sizeGuideRows.value = [{ us: '', eu: '', uk: '', cm: '' }] }
 }
 
 function isSensitive(section: string, field: string): boolean {
@@ -437,7 +440,16 @@ async function save() {
       settings.landing = JSON.parse(JSON.stringify(landing))
       continue
     }
-    if (section === 'size_guide') continue // handled separately
+    if (section === 'size_guide') {
+      settings.size_guide = {
+        title_es: sizeGuide.title_es ?? '',
+        title_en: sizeGuide.title_en ?? '',
+        footer_es: sizeGuide.footer_es ?? '',
+        footer_en: sizeGuide.footer_en ?? '',
+        rows: sizeGuideRows.value.filter(r => r.us || r.eu || r.uk || r.cm),
+      }
+      continue
+    }
 
     const def = sectionDefs[section]
     if (!def) continue
@@ -464,13 +476,8 @@ async function save() {
     const res = await api.post<{ success: boolean; error?: string }>('/api/configuracion/update.php', settings)
     if (!res.success) throw new Error(res.error || 'Error saving')
 
-    if (dirtySections.has('size_guide')) {
-      const rows = sizeGuideRows.value.filter(r => r.us || r.eu || r.uk || r.cm)
-      const rowsRes = await api.post<{ success: boolean; error?: string }>('/api/size-guide/save-all.php', { rows })
-      if (!rowsRes.success) throw new Error(rowsRes.error || 'Error saving rows')
-    }
-
     clearDirty()
+    disableEdit()
     toast.success('Configuración guardada correctamente')
   } catch (err: any) {
     toast.error(err.message)
@@ -520,34 +527,34 @@ const landingFieldLabels: Record<string, string> = {
 
   <div v-else class="admin-enter">
     <!-- Mobile tab select -->
-    <select v-model="activeTab" class="lg:hidden w-full admin-select mb-8 text-center">
+    <select v-model="activeTab" class="md:hidden w-full admin-select mb-8 text-center">
       <option v-for="t in flatTabsList" :key="t.id" :value="t.id">{{ t.label }}</option>
     </select>
 
-    <!-- Desktop tab bar -->
-    <div class="hidden lg:block border-b border-[#1e293b] mb-8">
-      <div class="flex flex-wrap gap-1" role="tablist">
+    <!-- Desktop/tablet tab bar -->
+    <div class="hidden md:block border-b border-[#1e293b] mb-8">
+      <div class="grid grid-cols-3 md:grid-cols-5 xl:grid-cols-10 gap-2" role="tablist">
         <button v-for="t in tabs" :key="t.id" role="tab"
                 :aria-selected="activeTab === t.id"
                 :class="activeTab === t.id
                   ? 'bg-[#42b883] text-white'
                   : 'text-[#94a3b8] hover:bg-white/5 hover:text-[#dae2fd]'"
-                class="tab-btn px-2 py-2.5 md:py-3 text-xs font-semibold tracking-widest rounded-t-sm transition-all flex items-center gap-1.5"
+                class="px-3 py-3 text-xs font-semibold tracking-widest rounded-sm transition-all flex items-center justify-center gap-1.5"
                 @click="activeTab = t.id; if (t.children?.length) activeChildTab = t.children[0].id">
-          <span class="material-symbols-outlined text-lg shrink-0">{{ t.icon }}</span>
-          <span class="truncate">{{ t.label }}</span>
+          <span class="material-symbols-outlined text-base shrink-0">{{ t.icon }}</span>
+          <span class="truncate leading-tight text-center">{{ t.label }}</span>
         </button>
       </div>
     </div>
 
     <!-- Pagos group sub-tabs -->
     <div v-if="activeTab === 'group-pagos'" class="mb-6 -mt-4">
-      <div class="flex items-center gap-1 border-b border-[#1e293b] pb-3">
+      <div class="grid grid-cols-3 gap-2 border-b border-[#1e293b] pb-3">
         <button v-for="child in (tabs.find(t => t.id === 'group-pagos')?.children || [])" :key="child.id"
                 :class="activeChildTab === child.id
                   ? 'bg-[#42b883] text-white'
                   : 'text-[#94a3b8] hover:bg-white/10 hover:text-[#dae2fd] border border-[#1e293b]'"
-                class="px-3 py-1.5 text-xs font-semibold tracking-widest rounded-sm transition-all flex items-center gap-1.5"
+                class="xs:px-2 sm:px-3 xs:text-[11px] py-2 text-xs font-semibold tracking-widest rounded-sm transition-all flex items-center justify-center gap-1.5"
                 @click="activeChildTab = child.id">
           <span class="material-symbols-outlined text-base">{{ child.icon }}</span>
           {{ child.label }}
@@ -557,12 +564,12 @@ const landingFieldLabels: Record<string, string> = {
 
     <!-- Servicios group sub-tabs -->
     <div v-if="activeTab === 'group-servicios'" class="mb-6 -mt-4">
-      <div class="flex items-center gap-1 border-b border-[#1e293b] pb-3">
+      <div class="grid grid-cols-3 gap-2 border-b border-[#1e293b] pb-3">
         <button v-for="child in (tabs.find(t => t.id === 'group-servicios')?.children || [])" :key="child.id"
                 :class="activeChildTab === child.id
                   ? 'bg-[#42b883] text-white'
                   : 'text-[#94a3b8] hover:bg-white/10 hover:text-[#dae2fd] border border-[#1e293b]'"
-                class="px-3 py-1.5 text-xs font-semibold tracking-widest rounded-sm transition-all flex items-center gap-1.5"
+                class="xs:px-2 sm:px-3 xs:text-[11px] py-2 text-xs font-semibold tracking-widest rounded-sm transition-all flex items-center justify-center gap-1.5"
                 @click="activeChildTab = child.id">
           <span class="material-symbols-outlined text-base">{{ child.icon }}</span>
           {{ child.label }}
@@ -570,235 +577,448 @@ const landingFieldLabels: Record<string, string> = {
       </div>
     </div>
 
-    <!-- Store Tab -->
-    <div v-if="effectiveTab === 'store'" class="admin-card p-4 md:p-6">
-      <!-- SECTION: Información de la Tienda -->
-      <div>
-        <h2 class="text-lg font-semibold text-[#dae2fd] mb-2 flex items-center gap-2">
-          <span class="material-symbols-outlined text-xl">store</span>
-          Información de la Tienda
-        </h2>
-        <div class="mb-6 p-3 bg-[#1e293b] border-l-2 border-[#42b883] rounded-sm">
-          <p class="text-xs text-[#94a3b8]"><span class="material-symbols-outlined text-sm align-text-bottom mr-1">info</span>
-            Datos básicos que identifican tu tienda. Cupón de bienvenida se envía al suscribirse al newsletter.</p>
+    <!-- Landing group sub-tabs -->
+    <div v-if="activeTab === 'group-landing'" class="mb-6 -mt-4">
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 border-b border-[#1e293b] pb-3">
+        <button v-for="child in (tabs.find(t => t.id === 'group-landing')?.children || [])" :key="child.id"
+                :class="activeChildTab === child.id
+                  ? 'bg-[#42b883] text-white shadow-sm shadow-[#42b883]/20'
+                  : 'text-[#94a3b8] hover:bg-white/10 hover:text-[#dae2fd] border border-[#1e293b]'"
+                class="xs:px-2 sm:px-3 xs:text-[11px] py-2 text-xs font-semibold tracking-widest rounded-sm transition-all flex items-center justify-center gap-1.5"
+                @click="activeChildTab = child.id">
+          <span class="material-symbols-outlined text-base">{{ child.icon }}</span>
+          {{ child.label }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Tienda group sub-tabs -->
+    <div v-if="activeTab === 'group-tienda'" class="mb-6 -mt-4">
+      <div class="grid grid-cols-3 sm:grid-cols-5 gap-2 border-b border-[#1e293b] pb-3">
+        <button v-for="child in (tabs.find(t => t.id === 'group-tienda')?.children || [])" :key="child.id"
+                :class="activeChildTab === child.id
+                  ? 'bg-[#42b883] text-white shadow-sm shadow-[#42b883]/20'
+                  : 'text-[#94a3b8] hover:bg-white/10 hover:text-[#dae2fd] border border-[#1e293b]'"
+                class="xs:px-2 sm:px-3 xs:text-[11px] py-2 text-xs font-semibold tracking-widest rounded-sm transition-all flex items-center justify-center gap-1.5"
+                @click="activeChildTab = child.id">
+          <span class="material-symbols-outlined text-base">{{ child.icon }}</span>
+          {{ child.label }}
+        </button>
+      </div>
+    </div>
+
+    <!-- ================================================================== -->
+    <!-- TAB: Información de la Tienda                                       -->
+    <!-- ================================================================== -->
+    <div v-if="effectiveTab === 'store-info'" :key="'store-info'" class="admin-card p-4 md:p-6 admin-enter">
+      <div class="flex items-start gap-4 mb-6">
+        <div class="w-10 h-10 rounded-sm bg-[#42b883]/10 flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-[#42b883]">store</span>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div class="md:col-span-2">
-            <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">NOMBRE DE LA TIENDA</label>
-            <input v-model="store.name" class="admin-input" maxlength="200" @input="markDirty('store')" />
-          </div>
-          <div class="md:col-span-2">
-            <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">LEMA / SLOGAN</label>
-            <input v-model="store.slogan" class="admin-input" maxlength="255" @input="markDirty('store')" />
-          </div>
-          <div class="md:col-span-2">
-            <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">EMAIL DE CONTACTO</label>
-            <input v-model="store.email" type="email" class="admin-input" maxlength="255" @input="markDirty('store')" />
-          </div>
-          <div class="md:col-span-2">
-            <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">DESCRIPCIÓN</label>
-            <textarea v-model="store.description" class="admin-textarea h-24" maxlength="1000" @input="markDirty('store')"></textarea>
-          </div>
-          <div class="md:col-span-2">
-            <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">LOGOTIPO</label>
-            <div v-if="!logoUrl" class="border-2 border-dashed border-[#1e293b] hover:border-[#42b883] rounded-sm p-4 md:p-8 text-center cursor-pointer transition-colors"
-                 @click="$refs.logoInput?.click()" @dragover.prevent="($event.target as HTMLElement).classList.add('border-[#42b883]', 'bg-white/5')"
-                 @dragleave.prevent="($event.target as HTMLElement).classList.remove('border-[#42b883]', 'bg-white/5')"
-                 @drop.prevent="handleLogoUpload(($event.dataTransfer?.files[0])!)">
-              <input ref="logoInput" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" class="hidden" @change="($event.target as HTMLInputElement).files?.[0] && handleLogoUpload(($event.target as HTMLInputElement).files![0])" />
-              <span class="material-symbols-outlined text-3xl text-[#94a3b8] block mb-2">upload</span>
-              <p class="text-sm text-[#94a3b8] mb-1">Arrastrá el logotipo o <span class="text-[#42b883] underline">seleccioná un archivo</span></p>
-              <p class="text-xs text-[#94a3b8]">PNG, JPG, WEBP o SVG — Máx 1 MB — 800×400 px máx</p>
-            </div>
-            <div v-else class="border border-[#1e293b] rounded-sm p-4 flex flex-col sm:flex-row items-center gap-6">
-              <div class="w-48 h-16 flex items-center justify-center bg-[#1e293b] rounded-sm overflow-hidden">
-                <img :src="logoUrl" class="max-w-full max-h-full object-contain" alt="Logotipo" />
-              </div>
-              <div class="flex flex-col gap-2">
-                <button class="text-xs font-semibold tracking-widest text-[#42b883] hover:text-[#dae2fd] transition-colors inline-flex items-center gap-1.5" @click="$refs.logoInput?.click()">
-                  <span class="material-symbols-outlined text-lg">refresh</span> REEMPLAZAR
-                </button>
-                <button class="text-xs font-semibold tracking-widest text-[#DC2626] hover:text-red-700 transition-colors inline-flex items-center gap-1.5" @click="removeLogo">
-                  <span class="material-symbols-outlined text-lg">delete</span> ELIMINAR
-                </button>
-              </div>
-            </div>
-            <div v-if="logoUploading" class="mt-2">
-              <div class="w-full bg-[#1e293b] rounded-full h-1.5"><div class="bg-[#42b883] h-1.5 rounded-full transition-all duration-300" :style="{ width: Math.max(0, Math.min(100, logoProgress)) + '%' }"></div></div>
-              <p class="text-xs text-[#94a3b8] mt-1">Subiendo...</p>
-            </div>
-            <p v-if="logoError" class="text-xs text-[#DC2626] mt-1">{{ logoError }}</p>
-          </div>
-          <div class="md:col-span-2">
-            <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">CUPÓN DE BIENVENIDA NEWSLETTER</label>
-            <select v-model="store.newsletter_discount_code" class="admin-select" @change="markDirty('store')">
-              <option value="">— Sin descuento —</option>
-              <option v-for="c in coupons" :key="c.code" :value="c.code">
-                {{ c.code }} ({{ c.discount_type === 'percentage' ? c.discount_value + '%' : '$' + c.discount_value.toFixed(2) }}){{ c.description ? ' — ' + c.description : '' }}
-              </option>
-            </select>
-          </div>
+        <div class="flex-1">
+          <h2 class="text-lg font-semibold text-[#dae2fd]">Información de la Tienda</h2>
+          <p class="text-sm text-[#94a3b8] mt-1">Datos básicos que identifican tu marca en la tienda pública.</p>
+        </div>
+        <button v-if="!isEditing('store')" class="admin-btn admin-btn-edit h-11 px-4 shrink-0" @click="enableEdit('store')">
+          <span class="material-symbols-outlined text-base">edit</span>
+          EDITAR
+        </button>
+        <span v-else class="badge badge-paid shrink-0 h-fit mt-2">EDITANDO</span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="md:col-span-2">
+          <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">NOMBRE DE LA TIENDA</label>
+          <input v-model="store.name" class="admin-input" maxlength="200" placeholder="Ram;Lop" @input="markDirty('store')" :disabled="!isEditing('store')" />
+        </div>
+        <div class="md:col-span-2">
+          <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">LEMA / SLOGAN</label>
+          <input v-model="store.slogan" class="admin-input" maxlength="255" placeholder="Architectural Minimalism in Footwear" @input="markDirty('store')" :disabled="!isEditing('store')" />
+        </div>
+        <div class="md:col-span-2">
+          <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">EMAIL DE CONTACTO</label>
+          <input v-model="store.email" type="email" class="admin-input" maxlength="255" placeholder="hola@ramlop.com" @input="markDirty('store')" :disabled="!isEditing('store')" />
+        </div>
+        <div class="md:col-span-2">
+          <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">DESCRIPCIÓN</label>
+          <textarea v-model="store.description" class="admin-textarea h-24" maxlength="1000" placeholder="Descripción breve de tu tienda..." @input="markDirty('store')" :disabled="!isEditing('store')"></textarea>
+          <p class="text-xs text-[#94a3b8]/60 mt-1 text-right">{{ (store.description || '').length }}/1000</p>
         </div>
       </div>
 
       <div class="h-px bg-gradient-to-r from-transparent via-[#1e293b] to-transparent my-8"></div>
 
-      <!-- SECTION: Moneda -->
+      <!-- Logo upload -->
       <div>
-        <h2 class="text-lg font-semibold text-[#dae2fd] mb-2 flex items-center gap-2">
-          <span class="material-symbols-outlined text-xl">payments</span>
-          Moneda — Divisas
-        </h2>
-        <div class="mb-6 p-3 bg-[#1e293b] border-l-2 border-[#42b883] rounded-sm">
-          <p class="text-xs text-[#94a3b8]">Seleccioná la moneda principal y configurá tasas de cambio.</p>
+        <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-3">LOGOTIPO</label>
+        <div v-if="!logoUrl" class="border-2 border-dashed border-[#1e293b] hover:border-[#42b883] rounded-sm p-8 text-center cursor-pointer transition-all duration-300 group"
+             :class="{ 'opacity-50 pointer-events-none': !isEditing('store') }"
+             @click="isEditing('store') && $refs.logoInput?.click()"
+             @dragover.prevent="isEditing('store') && ($event.target as HTMLElement).classList.add('!border-[#42b883]', '!bg-[#42b883]/5')"
+             @dragleave.prevent="isEditing('store') && ($event.target as HTMLElement).classList.remove('!border-[#42b883]', '!bg-[#42b883]/5')"
+             @drop.prevent="isEditing('store') && handleLogoUpload(($event.dataTransfer?.files[0])!)">
+          <input ref="logoInput" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" class="hidden" @change="($event.target as HTMLInputElement).files?.[0] && handleLogoUpload(($event.target as HTMLInputElement).files![0])" />
+          <div class="w-16 h-16 rounded-full bg-[#1e293b] flex items-center justify-center mx-auto mb-4 group-hover:bg-[#42b883]/10 transition-colors">
+            <span class="material-symbols-outlined text-3xl text-[#94a3b8] group-hover:text-[#42b883] transition-colors">image</span>
+          </div>
+          <p class="text-sm text-[#94a3b8] mb-1">Arrastrá el logotipo o <span class="text-[#42b883] underline font-medium">seleccioná un archivo</span></p>
+          <p class="text-xs text-[#94a3b8]/60">PNG, JPG, WEBP o SVG — Máx 1 MB — 800×400 px máx</p>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div class="md:col-span-2">
-            <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">MONEDA PRINCIPAL</label>
-            <p class="text-sm text-[#94a3b8] mb-3">Los precios se convierten de USD usando la tasa de cambio</p>
-            <select v-model="storeCurrency" class="admin-select max-w-xs" @change="changeStoreCurrency(storeCurrency)">
-              <option value="">Seleccionar moneda...</option>
-              <option v-for="c in currencies" :key="c.code" :value="c.code">{{ c.code }} — {{ c.name }} ({{ c.symbol }})</option>
-            </select>
+        <div v-else class="border border-[#1e293b] rounded-sm p-4 flex flex-col sm:flex-row items-center gap-6" :class="{ 'opacity-50': !isEditing('store') }">
+          <div class="w-48 h-20 flex items-center justify-center bg-[#1e293b] rounded-sm overflow-hidden">
+            <img :src="logoUrl" class="max-w-full max-h-full object-contain" alt="Logotipo" />
           </div>
-          <div class="md:col-span-2">
-            <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">TASAS DE CAMBIO (vs USD)</label>
-            <p class="text-sm text-[#94a3b8] mb-3">Exchange rate = 1 USD en la moneda destino</p>
-            <div class="overflow-x-auto">
-              <table class="w-full text-left text-sm">
-                <thead>
-                  <tr class="border-b border-[#1e293b]">
-                    <th class="text-xs font-semibold tracking-widest text-[#94a3b8] pb-2 pr-4">Código</th>
-                    <th class="text-xs font-semibold tracking-widest text-[#94a3b8] pb-2 pr-4">Nombre</th>
-                    <th class="text-xs font-semibold tracking-widest text-[#94a3b8] pb-2 pr-4">Símbolo</th>
-                    <th class="text-xs font-semibold tracking-widest text-[#94a3b8] pb-2 pr-4">Tasa</th>
-                    <th class="text-xs font-semibold tracking-widest text-[#94a3b8] pb-2 pr-4">Decimales</th>
-                    <th class="text-xs font-semibold tracking-widest text-[#94a3b8] pb-2 pr-4">Activa</th>
-                    <th class="text-xs font-semibold tracking-widest text-[#94a3b8] pb-2">Acción</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="c in currencies" :key="c.code" class="border-b border-[#1e293b]/50 hover:bg-white/[0.02] transition-colors">
-                    <td class="py-3 pr-4 font-mono text-sm font-semibold text-[#dae2fd]">{{ c.code }}</td>
-                    <td class="py-3 pr-4 text-[#dae2fd]">{{ c.name }}</td>
-                    <td class="py-3 pr-4 font-mono text-[#dae2fd]">{{ c.symbol }}</td>
-                    <td class="py-3 pr-4">
-                      <input type="number" step="0.000001" min="0.000001" v-model="c.exchange_rate"
-                             class="w-28 bg-transparent border-b border-[#1e293b] pb-1 text-[#dae2fd] focus:border-[#42b883] focus:outline-none text-sm font-mono"
-                             @input="saveCurrencyRates; markDirty('moneda')" />
-                    </td>
-                    <td class="py-3 pr-4 text-[#94a3b8]">{{ c.decimal_places }}</td>
-                    <td class="py-3 pr-4">
-                      <input type="checkbox" v-model="c.is_active"
-                             class="w-4 h-4 accent-[#42b883] cursor-pointer"
-                             @change="saveCurrencyRates; markDirty('moneda')" />
-                    </td>
-                    <td class="py-3">
-                      <span v-if="c.code === 'USD'" class="text-xs text-[#94a3b8]">Base</span>
-                      <button v-else class="w-10 h-10 flex items-center justify-center text-[#94a3b8] hover:text-[#DC2626] transition-colors" @click="deleteCurrency(c.code)">
-                        <span class="material-symbols-outlined text-lg">delete</span>
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-          <div class="md:col-span-2">
-            <button class="text-xs font-semibold tracking-widest text-[#94a3b8] hover:text-[#dae2fd] inline-flex items-center gap-1.5 transition-colors" @click="showCurrencyModal = true">
-              <span class="material-symbols-outlined text-lg">add_circle</span> AGREGAR MONEDA
+          <div class="flex items-center gap-3">
+            <button class="text-xs font-semibold tracking-widest text-[#42b883] hover:text-[#dae2fd] transition-colors inline-flex items-center gap-1.5 px-3 py-2 border border-[#1e293b] rounded-sm hover:border-[#42b883]/30" :disabled="!isEditing('store')" @click="$refs.logoInput?.click()">
+              <span class="material-symbols-outlined text-lg">refresh</span> REEMPLAZAR
+            </button>
+            <button class="text-xs font-semibold tracking-widest text-[#DC2626] hover:text-[#ff4444] transition-colors inline-flex items-center gap-1.5 px-3 py-2 border border-[#1e293b] rounded-sm hover:border-[#DC2626]/30" :disabled="!isEditing('store')" @click="removeLogo">
+              <span class="material-symbols-outlined text-lg">delete</span> ELIMINAR
             </button>
           </div>
         </div>
+        <div v-if="logoUploading" class="mt-3">
+          <div class="w-full bg-[#1e293b] rounded-full h-1.5 overflow-hidden">
+            <div class="bg-[#42b883] h-1.5 rounded-full transition-all duration-500 ease-out" :style="{ width: Math.max(0, Math.min(100, logoProgress)) + '%' }"></div>
+          </div>
+          <p class="text-xs text-[#94a3b8] mt-1.5 flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-sm animate-spin">progress_activity</span>
+            Subiendo...
+          </p>
+        </div>
+        <p v-if="logoError" class="text-xs text-[#DC2626] mt-2 flex items-center gap-1">
+          <span class="material-symbols-outlined text-sm">error</span>
+          {{ logoError }}
+        </p>
       </div>
 
       <div class="h-px bg-gradient-to-r from-transparent via-[#1e293b] to-transparent my-8"></div>
 
-      <!-- SECTION: Impuestos -->
+      <!-- Newsletter coupon -->
       <div>
-        <h2 class="text-lg font-semibold text-[#dae2fd] mb-2 flex items-center gap-2">
-          <span class="material-symbols-outlined text-xl">receipt_long</span>
-          Impuestos — IVA / Tax Rate
-        </h2>
-        <div class="mb-6 p-3 bg-[#1e293b] border-l-2 border-[#42b883] rounded-sm">
-          <p class="text-xs text-[#94a3b8]">Porcentaje de impuesto aplicado al subtotal después de descuentos.</p>
+        <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2 flex items-center gap-2">
+          <span class="material-symbols-outlined text-lg">confirmation_number</span>
+          CUPÓN DE BIENVENIDA NEWSLETTER
+        </label>
+        <p class="text-sm text-[#94a3b8]/70 mb-3">Cupón que se asigna automáticamente al suscribirse al newsletter.</p>
+        <select v-model="store.newsletter_discount_code" class="admin-select max-w-md" @change="markDirty('store')" :disabled="!isEditing('store')">
+          <option value="">— Sin descuento —</option>
+          <option v-for="c in coupons" :key="c.code" :value="c.code">
+            {{ c.code }} ({{ c.discount_type === 'percentage' ? c.discount_value + '%' : '$' + c.discount_value.toFixed(2) }}){{ c.description ? ' — ' + c.description : '' }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <!-- ================================================================== -->
+    <!-- TAB: Moneda — Divisas                                               -->
+    <!-- ================================================================== -->
+    <div v-if="effectiveTab === 'store-currency'" :key="'store-currency'" class="admin-card p-4 md:p-6 admin-enter">
+      <div class="flex items-start gap-4 mb-6">
+        <div class="w-10 h-10 rounded-sm bg-[#42b883]/10 flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-[#42b883]">payments</span>
         </div>
-        <div class="max-w-xs">
-          <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">TASA DE IMPUESTO (%)</label>
-          <div class="flex items-center gap-2">
-            <input v-model.number="tax.rate" type="number" step="0.01" min="0" max="100" class="admin-input" placeholder="15" @input="markDirty('tax')" />
-            <span class="text-[#94a3b8] shrink-0">%</span>
+        <div class="flex-1">
+          <h2 class="text-lg font-semibold text-[#dae2fd]">Moneda — Divisas</h2>
+          <p class="text-sm text-[#94a3b8] mt-1">Seleccioná la moneda principal y configurá las tasas de cambio.</p>
+        </div>
+        <button v-if="!isEditing('moneda')" class="admin-btn admin-btn-edit h-11 px-4 shrink-0" @click="enableEdit('moneda')">
+          <span class="material-symbols-outlined text-base">edit</span>
+          EDITAR
+        </button>
+        <span v-else class="badge badge-paid shrink-0 h-fit mt-2">EDITANDO</span>
+      </div>
+
+      <div class="bg-[#1e293b]/40 border border-[#1e293b] rounded-sm p-4 mb-6 flex items-start gap-3">
+        <span class="material-symbols-outlined text-[#42b883] text-lg shrink-0 mt-px">info</span>
+        <p class="text-xs text-[#94a3b8] leading-relaxed">
+          Los precios se almacenan en USD y se convierten a la moneda seleccionada usando la tasa de cambio.
+          La moneda base de referencia es USD con tasa fija 1.0.
+        </p>
+      </div>
+
+      <div class="mb-8">
+        <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">MONEDA PRINCIPAL DE LA TIENDA</label>
+        <div class="relative w-full md:w-auto md:inline-block">
+          <select v-model="storeCurrency" class="admin-select w-full md:w-auto md:min-w-[280px]" @change="changeStoreCurrency(storeCurrency)" :disabled="!isEditing('moneda')">
+            <option value="">— Seleccionar moneda —</option>
+            <option v-for="c in currencies" :key="c.code" :value="c.code">{{ c.code }} — {{ c.name }} ({{ c.symbol }})</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-3">TASAS DE CAMBIO (vs USD)</label>
+
+        <!-- Mobile: cards -->
+        <div class="md:hidden space-y-5">
+          <div v-for="c in currencies" :key="c.code"
+               class="glass-card overflow-hidden rounded-xl"
+               :class="c.code === storeCurrency ? 'ring-1 ring-[#42b883]/30' : ''">
+
+            <!-- Header -->
+            <div class="flex items-center justify-between px-6 pt-5 pb-4 border-b border-[#dae2fd]/5">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="font-mono text-sm font-semibold text-[#dae2fd]">{{ c.code }}</span>
+                <span v-if="c.code === storeCurrency" class="badge badge-paid">ACTIVA</span>
+                <span v-if="c.code === 'USD'" class="text-[10px] text-[#94a3b8] bg-[#1e293b]/60 px-2 py-0.5 rounded-sm font-semibold">BASE</span>
+              </div>
+              <span v-if="c.code === storeCurrency" class="text-[#42b883] material-symbols-outlined text-xl">check_circle</span>
+            </div>
+
+            <!-- Body -->
+            <div class="px-6 py-4 space-y-4">
+              <div>
+                <p class="text-sm text-[#94a3b8]">{{ c.name }}</p>
+                <p class="font-mono text-[#dae2fd] text-2xl mt-1">{{ c.symbol }}</p>
+              </div>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="text-[10px] font-semibold tracking-widest text-[#94a3b8] uppercase block mb-1.5">TASA (1 USD =)</label>
+                   <input type="number" step="0.000001" min="0.000001" v-model="c.exchange_rate"
+                          class="w-full bg-[#1e293b]/60 border border-[#dae2fd]/10 rounded-sm px-3 py-2 text-[#dae2fd] focus:border-[#42b883] focus:outline-none text-sm font-mono transition-colors"
+                          @input="saveCurrencyRates; markDirty('moneda')"
+                          :disabled="c.code === 'USD' || !isEditing('moneda')" />
+                </div>
+                <div>
+                  <label class="text-[10px] font-semibold tracking-widest text-[#94a3b8] uppercase block mb-1.5">DECIMALES</label>
+                  <p class="text-sm text-[#94a3b8] pt-2">{{ c.decimal_places }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="flex items-center justify-between px-6 pb-5 pt-4 border-t border-[#dae2fd]/5">
+              <label class="admin-toggle-label">
+                <label class="admin-toggle">
+                   <input type="checkbox" v-model="c.is_active"
+                          class="accent-[#42b883]"
+                          :disabled="c.code === storeCurrency || !isEditing('moneda')"
+                          @change="saveCurrencyRates; markDirty('moneda')" />
+                  <div></div>
+                </label>
+                <span class="text-[11px] font-semibold tracking-widest uppercase whitespace-nowrap" :class="c.is_active ? 'text-[#42b883]' : 'text-[#94a3b8]'">{{ c.is_active ? 'ACTIVA' : 'INACTIVA' }}</span>
+              </label>
+              <button v-if="c.code !== 'USD'"
+                      class="w-11 h-11 flex items-center justify-center shrink-0 text-[#94a3b8] hover:text-[#DC2626] hover:bg-[#DC2626]/10 rounded-sm transition-all touch-target"
+                      :disabled="!isEditing('moneda')"
+                      @click="deleteCurrency(c.code)" title="Desactivar moneda">
+                <span class="material-symbols-outlined text-xl">delete</span>
+              </button>
+            </div>
           </div>
+        </div>
+
+        <!-- Desktop/tablet: table -->
+        <div class="hidden md:block overflow-x-auto rounded-sm border border-[#1e293b]">
+          <table class="w-full text-left text-sm">
+            <thead>
+              <tr class="bg-[#0f1929] border-b border-[#1e293b]">
+                <th class="text-xs font-semibold tracking-widest text-[#94a3b8] py-3 px-4">Código</th>
+                <th class="text-xs font-semibold tracking-widest text-[#94a3b8] py-3 px-4">Nombre</th>
+                <th class="text-xs font-semibold tracking-widest text-[#94a3b8] py-3 px-4">Símbolo</th>
+                <th class="text-xs font-semibold tracking-widest text-[#94a3b8] py-3 px-4">Tasa (1 USD =)</th>
+                <th class="text-xs font-semibold tracking-widest text-[#94a3b8] py-3 px-4 text-center">Decimales</th>
+                <th class="text-xs font-semibold tracking-widest text-[#94a3b8] py-3 px-4 text-center">Activa</th>
+                <th class="text-xs font-semibold tracking-widest text-[#94a3b8] py-3 px-4 text-center">Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="c in currencies" :key="c.code"
+                  class="border-b border-[#1e293b]/50 hover:bg-white/[0.015] transition-colors"
+                  :class="{ 'bg-[#42b883]/[0.03]': c.code === storeCurrency }">
+                <td class="py-3 px-4">
+                  <div class="flex items-center gap-2">
+                    <span class="font-mono text-sm font-semibold text-[#dae2fd]">{{ c.code }}</span>
+                    <span v-if="c.code === storeCurrency" class="badge badge-paid text-[10px]">ACTIVA</span>
+                    <span v-if="c.code === 'USD'" class="text-[10px] text-[#94a3b8] bg-[#1e293b] px-1.5 py-0.5 rounded-sm font-semibold">BASE</span>
+                  </div>
+                </td>
+                <td class="py-3 px-4 text-[#dae2fd]">{{ c.name }}</td>
+                <td class="py-3 px-4 font-mono text-[#dae2fd] text-lg">{{ c.symbol }}</td>
+                <td class="py-3 px-4">
+                   <input type="number" step="0.000001" min="0.000001" v-model="c.exchange_rate"
+                          class="w-28 bg-transparent border-b-2 border-[#1e293b] pb-1 text-[#dae2fd] focus:border-[#42b883] focus:outline-none text-sm font-mono transition-colors"
+                          @input="saveCurrencyRates; markDirty('moneda')"
+                          :disabled="c.code === 'USD' || !isEditing('moneda')" />
+                </td>
+                <td class="py-3 px-4 text-center text-[#94a3b8]">{{ c.decimal_places }}</td>
+                <td class="py-3 px-4 text-center">
+                  <label class="inline-flex items-center cursor-pointer">
+                    <input type="checkbox" v-model="c.is_active"
+                           class="w-4 h-4 accent-[#42b883] cursor-pointer"
+                           :disabled="c.code === storeCurrency || !isEditing('moneda')"
+                           @change="saveCurrencyRates; markDirty('moneda')" />
+                  </label>
+                </td>
+                <td class="py-3 px-4 text-center">
+                  <button v-if="c.code !== 'USD'"
+                          class="w-8 h-8 flex items-center justify-center text-[#94a3b8] hover:text-[#DC2626] hover:bg-[#DC2626]/10 rounded-sm transition-all"
+                          :disabled="!isEditing('moneda')"
+                          @click="deleteCurrency(c.code)" title="Desactivar moneda">
+                    <span class="material-symbols-outlined text-lg">delete</span>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <button class="mt-4 text-xs font-semibold tracking-widest text-[#94a3b8] hover:text-[#42b883] inline-flex items-center gap-1.5 transition-all px-3 py-2 border border-[#1e293b] rounded-sm hover:border-[#42b883]/30" :disabled="!isEditing('moneda')" @click="showCurrencyModal = true">
+          <span class="material-symbols-outlined text-lg">add_circle</span> AGREGAR MONEDA
+        </button>
+      </div>
+    </div>
+
+    <!-- ================================================================== -->
+    <!-- TAB: Impuestos — IVA                                                -->
+    <!-- ================================================================== -->
+    <div v-if="effectiveTab === 'store-tax'" :key="'store-tax'" class="admin-card p-4 md:p-6 admin-enter">
+      <div class="flex items-start gap-4 mb-6">
+        <div class="w-10 h-10 rounded-sm bg-[#42b883]/10 flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-[#42b883]">receipt_long</span>
+        </div>
+        <div class="flex-1">
+          <h2 class="text-lg font-semibold text-[#dae2fd]">Impuestos — IVA / Tax Rate</h2>
+          <p class="text-sm text-[#94a3b8] mt-1">Configuración del impuesto aplicado a los pedidos.</p>
+        </div>
+        <button v-if="!isEditing('tax')" class="admin-btn admin-btn-edit h-11 px-4 shrink-0" @click="enableEdit('tax')">
+          <span class="material-symbols-outlined text-base">edit</span>
+          EDITAR
+        </button>
+        <span v-else class="badge badge-paid shrink-0 h-fit mt-2">EDITANDO</span>
+      </div>
+
+      <div class="bg-[#1e293b]/40 border border-[#1e293b] rounded-sm p-4 mb-8 flex items-start gap-3">
+        <span class="material-symbols-outlined text-[#42b883] text-lg shrink-0 mt-px">info</span>
+        <div class="text-xs text-[#94a3b8] leading-relaxed">
+          <p>El impuesto se calcula sobre el <strong class="text-[#dae2fd]">subtotal después de descuentos</strong> y se suma al total del pedido.</p>
+          <p v-if="tax.rate && tax.rate > 0" class="mt-2">
+            Ejemplo: Subtotal $100.00 + IVA ({{ tax.rate }}%) = <strong class="text-[#42b883]">${{ (100 * (1 + tax.rate / 100)).toFixed(2) }}</strong>
+          </p>
+          <p v-else class="mt-2 text-[#ffa500]/70">⚠ Impuesto desactivado — no se aplicará recargo en los pedidos.</p>
+        </div>
+      </div>
+
+      <div class="max-w-xs">
+        <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">TASA DE IMPUESTO (%)</label>
+        <div class="flex items-center gap-3">
+          <div class="relative flex-1">
+            <input v-model.number="tax.rate" type="number" step="0.01" min="0" max="100" class="admin-input pr-10" placeholder="15" @input="markDirty('tax')" :disabled="!isEditing('tax')" />
+            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[#94a3b8] font-semibold text-sm pointer-events-none">%</span>
+          </div>
+          <span v-if="tax.rate && tax.rate > 0" class="text-xs text-[#94a3b8] bg-[#1e293b] px-3 py-2 rounded-sm whitespace-nowrap">
+            IVA: {{ tax.rate }}%
+          </span>
+          <span v-else class="text-xs text-[#94a3b8]/50 bg-[#1e293b] px-3 py-2 rounded-sm whitespace-nowrap">
+            Sin impuesto
+          </span>
         </div>
       </div>
     </div>
 
-    <!-- Receipt Tab -->
-    <div v-if="effectiveTab === 'receipt'" class="admin-card p-4 md:p-6">
-      <h2 class="text-lg font-semibold text-[#dae2fd] mb-2 flex items-center gap-2">
-        <span class="material-symbols-outlined text-xl">receipt</span>
-        Datos de Facturación / Recibo
-      </h2>
-      <div class="mb-6 p-3 bg-[#1e293b] border-l-2 border-[#42b883] rounded-sm">
-        <p class="text-xs text-[#94a3b8]">Datos fiscales que aparecen en los recibos de compra.</p>
+    <!-- ================================================================== -->
+    <!-- TAB: Recibo — Datos Fiscales                                       -->
+    <!-- ================================================================== -->
+    <div v-if="effectiveTab === 'store-receipt'" :key="'store-receipt'" class="admin-card p-4 md:p-6 admin-enter">
+      <div class="flex items-start gap-4 mb-6">
+        <div class="w-10 h-10 rounded-sm bg-[#42b883]/10 flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-[#42b883]">receipt</span>
+        </div>
+        <div class="flex-1">
+          <h2 class="text-lg font-semibold text-[#dae2fd]">Recibo — Datos de Facturación</h2>
+          <p class="text-sm text-[#94a3b8] mt-1">Datos fiscales que aparecen en los recibos de compra.</p>
+        </div>
+        <button v-if="!isEditing('receipt')" class="admin-btn admin-btn-edit h-11 px-4 shrink-0" @click="enableEdit('receipt')">
+          <span class="material-symbols-outlined text-base">edit</span>
+          EDITAR
+        </button>
+        <span v-else class="badge badge-paid shrink-0 h-fit mt-2">EDITANDO</span>
       </div>
+
+      <div class="bg-[#1e293b]/40 border border-[#1e293b] rounded-sm p-4 mb-6 flex items-start gap-3">
+        <span class="material-symbols-outlined text-[#42b883] text-lg shrink-0 mt-px">info</span>
+        <p class="text-xs text-[#94a3b8] leading-relaxed">
+          Estos datos se muestran en los comprobantes de pago y facturas. Completalos según la información fiscal de tu negocio.
+        </p>
+      </div>
+
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="md:col-span-2">
           <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">RAZÓN SOCIAL</label>
-          <input v-model="receipt.businessName" class="admin-input" maxlength="255" @input="markDirty('receipt')" />
+          <input v-model="receipt.businessName" class="admin-input" maxlength="255" @input="markDirty('receipt')" :disabled="!isEditing('receipt')" />
         </div>
         <div class="md:col-span-2">
           <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">RUC / NIT / TAX ID</label>
-          <input v-model="receipt.taxId" class="admin-input" maxlength="50" @input="markDirty('receipt')" />
+          <input v-model="receipt.taxId" class="admin-input" maxlength="50" @input="markDirty('receipt')" :disabled="!isEditing('receipt')" />
         </div>
         <div class="md:col-span-2">
           <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">DIRECCIÓN</label>
-          <input v-model="receipt.address" class="admin-input" maxlength="500" @input="markDirty('receipt')" />
+          <input v-model="receipt.address" class="admin-input" maxlength="500" @input="markDirty('receipt')" :disabled="!isEditing('receipt')" />
         </div>
         <div>
           <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">CIUDAD</label>
-          <input v-model="receipt.city" class="admin-input" maxlength="100" @input="markDirty('receipt')" />
+          <input v-model="receipt.city" class="admin-input" maxlength="100" @input="markDirty('receipt')" :disabled="!isEditing('receipt')" />
         </div>
         <div>
           <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">ESTADO / PROVINCIA</label>
-          <input v-model="receipt.state" class="admin-input" maxlength="100" @input="markDirty('receipt')" />
+          <input v-model="receipt.state" class="admin-input" maxlength="100" @input="markDirty('receipt')" :disabled="!isEditing('receipt')" />
         </div>
         <div>
           <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">CÓDIGO POSTAL</label>
-          <input v-model="receipt.zip" class="admin-input" maxlength="20" @input="markDirty('receipt')" />
+          <input v-model="receipt.zip" class="admin-input" maxlength="20" @input="markDirty('receipt')" :disabled="!isEditing('receipt')" />
         </div>
         <div>
           <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">TELÉFONO</label>
-          <input v-model="receipt.phone" class="admin-input" maxlength="50" @input="markDirty('receipt')" />
+          <input v-model="receipt.phone" class="admin-input" maxlength="50" @input="markDirty('receipt')" :disabled="!isEditing('receipt')" />
         </div>
       </div>
     </div>
 
     <!-- ImageKit Tab -->
     <div v-if="effectiveTab === 'imagekit'" class="admin-card p-4 md:p-6">
-      <h2 class="text-lg font-semibold text-[#dae2fd] mb-2 flex items-center gap-2">
-        <span class="material-symbols-outlined text-xl">photo_library</span>
-        ImageKit — Gestión de Imágenes
-      </h2>
+      <div class="flex items-start justify-between mb-4">
+        <div>
+          <h2 class="text-lg font-semibold text-[#dae2fd] flex items-center gap-2">
+            <span class="material-symbols-outlined text-xl">photo_library</span>
+            ImageKit — Gestión de Imágenes
+          </h2>
+          <p class="text-sm text-[#94a3b8] mt-1">Configuración del servicio de gestión de imágenes.</p>
+        </div>
+        <button v-if="!isEditing('imagekit')" class="admin-btn admin-btn-edit h-11 px-4 shrink-0" @click="enableEdit('imagekit')">
+          <span class="material-symbols-outlined text-base">edit</span>
+          EDITAR
+        </button>
+        <span v-else class="badge badge-paid shrink-0 h-fit mt-2">EDITANDO</span>
+      </div>
       <div class="mb-6 p-3 bg-[#1e293b] border-l-2 border-[#42b883] rounded-sm">
         <p class="text-xs text-[#94a3b8]">ImageKit para subir y optimizar imágenes. Creá cuenta gratis en <a href="https://imagekit.io" class="text-[#42b883] underline" target="_blank">imagekit.io</a>.</p>
       </div>
       <div class="space-y-6">
         <div><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">PUBLIC KEY</label>
-          <input v-model="imagekit.publicKey" class="admin-input font-mono text-sm" maxlength="255" @input="markDirty('imagekit')" /></div>
+          <input v-model="imagekit.publicKey" class="admin-input font-mono text-sm" maxlength="255" @input="markDirty('imagekit')" :disabled="!isEditing('imagekit')" /></div>
         <div><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">PRIVATE KEY</label>
-          <input v-model="imagekit.privateKey" type="password" autocomplete="new-password" class="admin-input font-mono text-sm" maxlength="255" @input="markDirty('imagekit')" /></div>
+          <input v-model="imagekit.privateKey" type="password" autocomplete="new-password" class="admin-input font-mono text-sm" maxlength="255" @input="markDirty('imagekit')" :disabled="!isEditing('imagekit')" /></div>
         <div><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">URL ENDPOINT</label>
-          <input v-model="imagekit.urlEndpoint" class="admin-input font-mono text-sm" maxlength="500" placeholder="https://ik.imagekit.io/your_id" @input="markDirty('imagekit')" /></div>
+          <input v-model="imagekit.urlEndpoint" class="admin-input font-mono text-sm" maxlength="500" placeholder="https://ik.imagekit.io/your_id" @input="markDirty('imagekit')" :disabled="!isEditing('imagekit')" /></div>
       </div>
     </div>
 
     <!-- Stripe Tab -->
     <div v-if="effectiveTab === 'stripe'" class="admin-card p-4 md:p-6">
-      <h2 class="text-lg font-semibold text-[#dae2fd] mb-2 flex items-center gap-2">
-        <span class="material-symbols-outlined text-xl">credit_card</span>
-        Stripe — Pasarela de Pago
-      </h2>
+      <div class="flex items-start justify-between mb-2">
+        <div>
+          <h2 class="text-lg font-semibold text-[#dae2fd] flex items-center gap-2">
+            <span class="material-symbols-outlined text-xl">credit_card</span>
+            Stripe — Pasarela de Pago
+          </h2>
+          <p class="text-sm text-[#94a3b8] mt-1">Configuración de la pasarela de pagos con tarjeta.</p>
+        </div>
+        <button v-if="!isEditing('stripe')" class="admin-btn admin-btn-edit h-11 px-4 shrink-0" @click="enableEdit('stripe')">
+          <span class="material-symbols-outlined text-base">edit</span>
+          EDITAR
+        </button>
+        <span v-else class="badge badge-paid shrink-0 h-fit mt-2">EDITANDO</span>
+      </div>
       <div class="mb-6 p-3 bg-[#1e293b] border-l-2 border-[#42b883] rounded-sm">
         <p class="text-xs text-[#94a3b8]">Stripe permite pagos con tarjeta. Activá el toggle para habilitarlo.</p>
       </div>
@@ -807,24 +1027,37 @@ const landingFieldLabels: Record<string, string> = {
           <p class="font-medium text-[#dae2fd]">Habilitar Stripe</p>
           <p class="text-xs text-[#94a3b8]">Permite pagos con tarjeta vía Stripe</p>
         </div>
-        <label class="admin-toggle"><input v-model="stripe.enabled" type="checkbox" @change="markDirty('stripe')" /><div></div></label>
+        <div class="flex items-center gap-3">
+          <label class="admin-toggle"><input v-model="stripe.enabled" type="checkbox" @change="markDirty('stripe')" :disabled="!isEditing('stripe')" /><div></div></label>
+          <span class="text-[11px] font-semibold tracking-widest uppercase whitespace-nowrap" :class="stripe.enabled ? 'text-[#42b883]' : 'text-[#94a3b8]'">{{ stripe.enabled ? 'ACTIVO' : 'INACTIVO' }}</span>
+        </div>
       </div>
       <div class="space-y-6">
         <div><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">PUBLISHABLE KEY</label>
-          <input v-model="stripe.publishableKey" class="admin-input font-mono text-sm" maxlength="255" placeholder="pk_live_..." @input="markDirty('stripe')" /></div>
+          <input v-model="stripe.publishableKey" class="admin-input font-mono text-sm" maxlength="255" placeholder="pk_live_..." @input="markDirty('stripe')" :disabled="!isEditing('stripe')" /></div>
         <div><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">SECRET KEY</label>
-          <input v-model="stripe.secretKey" type="password" class="admin-input font-mono text-sm" maxlength="255" placeholder="sk_live_..." @input="markDirty('stripe')" /></div>
+          <input v-model="stripe.secretKey" type="password" class="admin-input font-mono text-sm" maxlength="255" placeholder="sk_live_..." @input="markDirty('stripe')" :disabled="!isEditing('stripe')" /></div>
         <div><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">WEBHOOK SECRET</label>
-          <input v-model="stripe.webhookSecret" type="password" class="admin-input font-mono text-sm" maxlength="255" placeholder="whsec_..." @input="markDirty('stripe')" /></div>
+          <input v-model="stripe.webhookSecret" type="password" class="admin-input font-mono text-sm" maxlength="255" placeholder="whsec_..." @input="markDirty('stripe')" :disabled="!isEditing('stripe')" /></div>
       </div>
     </div>
 
     <!-- Transfer Tab -->
     <div v-if="effectiveTab === 'transfer'" class="admin-card p-4 md:p-6">
-      <h2 class="text-lg font-semibold text-[#dae2fd] mb-2 flex items-center gap-2">
-        <span class="material-symbols-outlined text-xl">account_balance</span>
-        Transferencia Bancaria
-      </h2>
+      <div class="flex items-start justify-between mb-4">
+        <div>
+          <h2 class="text-lg font-semibold text-[#dae2fd] flex items-center gap-2">
+            <span class="material-symbols-outlined text-xl">account_balance</span>
+            Transferencia Bancaria
+          </h2>
+          <p class="text-sm text-[#94a3b8] mt-1">Método offline: el cliente recibe datos bancarios al finalizar la compra.</p>
+        </div>
+        <button v-if="!isEditing('transfer')" class="admin-btn admin-btn-edit h-11 px-4 shrink-0" @click="enableEdit('transfer')">
+          <span class="material-symbols-outlined text-base">edit</span>
+          EDITAR
+        </button>
+        <span v-else class="badge badge-paid shrink-0 h-fit mt-2">EDITANDO</span>
+      </div>
       <div class="mb-6 p-3 bg-[#1e293b] border-l-2 border-[#42b883] rounded-sm">
         <p class="text-xs text-[#94a3b8]">Método offline: el cliente recibe datos bancarios al finalizar la compra.</p>
       </div>
@@ -833,59 +1066,72 @@ const landingFieldLabels: Record<string, string> = {
           <p class="font-medium text-[#dae2fd]">Habilitar Transferencia</p>
           <p class="text-xs text-[#94a3b8]">Permite pagos mediante transferencia bancaria</p>
         </div>
-        <label class="admin-toggle"><input v-model="transfer.enabled" type="checkbox" @change="markDirty('transfer')" /><div></div></label>
+        <div class="flex items-center gap-3">
+          <label class="admin-toggle"><input v-model="transfer.enabled" type="checkbox" @change="markDirty('transfer')" :disabled="!isEditing('transfer')" /><div></div></label>
+          <span class="text-[11px] font-semibold tracking-widest uppercase whitespace-nowrap" :class="transfer.enabled ? 'text-[#42b883]' : 'text-[#94a3b8]'">{{ transfer.enabled ? 'ACTIVO' : 'INACTIVO' }}</span>
+        </div>
       </div>
       <div class="space-y-6">
         <div v-for="(bank, i) in transfer.banks" :key="i" class="border border-[#1e293b] rounded-sm p-4 relative">
-          <button class="absolute top-2 right-2 w-10 h-10 flex items-center justify-center text-[#94a3b8] hover:text-[#DC2626] transition-colors" @click="removeBank(i)"><span class="material-symbols-outlined text-lg">close</span></button>
+          <button class="absolute top-2 right-2 w-10 h-10 flex items-center justify-center text-[#94a3b8] hover:text-[#DC2626] transition-colors" :disabled="!isEditing('transfer')" @click="removeBank(i)"><span class="material-symbols-outlined text-lg">close</span></button>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-1">NOMBRE DEL BANCO</label>
-              <input v-model="bank.bankName" class="admin-input-sm" maxlength="200" @input="markDirty('transfer')" /></div>
+              <input v-model="bank.bankName" class="admin-input-sm" maxlength="200" @input="markDirty('transfer')" :disabled="!isEditing('transfer')" /></div>
             <div><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-1">TITULAR</label>
-              <input v-model="bank.accountHolder" class="admin-input-sm" maxlength="200" @input="markDirty('transfer')" /></div>
+              <input v-model="bank.accountHolder" class="admin-input-sm" maxlength="200" @input="markDirty('transfer')" :disabled="!isEditing('transfer')" /></div>
             <div><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-1">NÚMERO DE CUENTA</label>
-              <input v-model="bank.accountNumber" class="admin-input-sm font-mono" maxlength="50" @input="markDirty('transfer')" /></div>
+              <input v-model="bank.accountNumber" class="admin-input-sm font-mono" maxlength="50" @input="markDirty('transfer')" :disabled="!isEditing('transfer')" /></div>
             <div><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-1">TIPO DE CUENTA</label>
-              <select v-model="bank.accountType" class="admin-select-sm" @change="markDirty('transfer')">
+              <select v-model="bank.accountType" class="admin-select-sm" @change="markDirty('transfer')" :disabled="!isEditing('transfer')">
                 <option value="">Seleccionar...</option><option value="Corriente">Corriente</option>
                 <option value="Ahorro">Ahorro</option><option value="Vista">Vista</option>
               </select></div>
             <div><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-1">RUT / CÓDIGO</label>
-              <input v-model="bank.routingNumber" class="admin-input-sm font-mono" maxlength="50" @input="markDirty('transfer')" /></div>
+              <input v-model="bank.routingNumber" class="admin-input-sm font-mono" maxlength="50" @input="markDirty('transfer')" :disabled="!isEditing('transfer')" /></div>
             <div class="md:col-span-2"><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-1">INSTRUCCIONES</label>
-              <textarea v-model="bank.instructions" class="admin-textarea-sm h-16" maxlength="500" @input="markDirty('transfer')"></textarea></div>
+              <textarea v-model="bank.instructions" class="admin-textarea-sm h-16" maxlength="500" @input="markDirty('transfer')" :disabled="!isEditing('transfer')"></textarea></div>
           </div>
         </div>
       </div>
-      <button class="mt-4 text-xs font-semibold tracking-widest text-[#94a3b8] hover:text-[#dae2fd] inline-flex items-center gap-1.5 transition-colors" @click="addBank">
+      <button class="mt-4 text-xs font-semibold tracking-widest text-[#94a3b8] hover:text-[#dae2fd] inline-flex items-center gap-1.5 transition-colors" :disabled="!isEditing('transfer')" @click="addBank">
         <span class="material-symbols-outlined text-lg">add_circle</span> AGREGAR BANCO
       </button>
     </div>
 
     <!-- SMTP Tab -->
     <div v-if="effectiveTab === 'smtp'" class="admin-card p-4 md:p-6">
-      <h2 class="text-lg font-semibold text-[#dae2fd] mb-2 flex items-center gap-2">
-        <span class="material-symbols-outlined text-xl">mail</span>
-        Email / SMTP — Notificaciones
-      </h2>
+      <div class="flex items-start justify-between mb-4">
+        <div>
+          <h2 class="text-lg font-semibold text-[#dae2fd] flex items-center gap-2">
+            <span class="material-symbols-outlined text-xl">mail</span>
+            Email / SMTP — Notificaciones
+          </h2>
+          <p class="text-sm text-[#94a3b8] mt-1">Configuración SMTP para emails transaccionales.</p>
+        </div>
+        <button v-if="!isEditing('smtp')" class="admin-btn admin-btn-edit h-11 px-4 shrink-0" @click="enableEdit('smtp')">
+          <span class="material-symbols-outlined text-base">edit</span>
+          EDITAR
+        </button>
+        <span v-else class="badge badge-paid shrink-0 h-fit mt-2">EDITANDO</span>
+      </div>
       <div class="mb-6 p-3 bg-[#1e293b] border-l-2 border-[#42b883] rounded-sm">
         <p class="text-xs text-[#94a3b8]">Configuración SMTP para emails transaccionales.</p>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="md:col-span-2"><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">SMTP HOST</label>
-          <input v-model="smtp.host" class="admin-input font-mono text-sm" maxlength="255" placeholder="smtp.gmail.com" @input="markDirty('smtp')" /></div>
+          <input v-model="smtp.host" class="admin-input font-mono text-sm" maxlength="255" placeholder="smtp.gmail.com" @input="markDirty('smtp')" :disabled="!isEditing('smtp')" /></div>
         <div><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">SMTP PORT</label>
-          <input v-model="smtp.port" class="admin-input font-mono text-sm" maxlength="10" placeholder="587" @input="markDirty('smtp')" /></div>
+          <input v-model="smtp.port" class="admin-input font-mono text-sm" maxlength="10" placeholder="587" @input="markDirty('smtp')" :disabled="!isEditing('smtp')" /></div>
         <div><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">SMTP USER</label>
-          <input v-model="smtp.user" class="admin-input font-mono text-sm" maxlength="255" @input="markDirty('smtp')" /></div>
+          <input v-model="smtp.user" class="admin-input font-mono text-sm" maxlength="255" @input="markDirty('smtp')" :disabled="!isEditing('smtp')" /></div>
         <div><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">SMTP PASSWORD</label>
-          <input v-model="smtp.pass" type="password" class="admin-input font-mono text-sm" maxlength="255" @input="markDirty('smtp')" /></div>
+          <input v-model="smtp.pass" type="password" class="admin-input font-mono text-sm" maxlength="255" @input="markDirty('smtp')" :disabled="!isEditing('smtp')" /></div>
         <div><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">FROM EMAIL</label>
-          <input v-model="smtp.fromEmail" type="email" class="admin-input" maxlength="255" placeholder="tienda@vuno.com" @input="markDirty('smtp')" /></div>
+          <input v-model="smtp.fromEmail" type="email" class="admin-input" maxlength="255" placeholder="tienda@vuno.com" @input="markDirty('smtp')" :disabled="!isEditing('smtp')" /></div>
         <div><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">FROM NAME</label>
-          <input v-model="smtp.fromName" class="admin-input" maxlength="100" placeholder="Ram;Lop" @input="markDirty('smtp')" /></div>
+          <input v-model="smtp.fromName" class="admin-input" maxlength="100" placeholder="Ram;Lop" @input="markDirty('smtp')" :disabled="!isEditing('smtp')" /></div>
         <div class="md:col-span-2"><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">EMAIL DE NOTIFICACIONES</label>
-          <input v-model="smtp.adminEmail" type="email" class="admin-input" maxlength="255" placeholder="admin@ramlop.com" @input="markDirty('smtp')" />
+          <input v-model="smtp.adminEmail" type="email" class="admin-input" maxlength="255" placeholder="admin@ramlop.com" @input="markDirty('smtp')" :disabled="!isEditing('smtp')" />
           <p class="text-xs text-[#94a3b8]/60 mt-1">Destino de notificaciones de nuevos pedidos y formulario de contacto.</p></div>
       </div>
     </div>
@@ -894,48 +1140,74 @@ const landingFieldLabels: Record<string, string> = {
 
     <!-- Shipping Tab -->
     <div v-if="effectiveTab === 'shipping'" class="admin-card p-4 md:p-6">
-      <h2 class="text-lg font-semibold text-[#dae2fd] mb-2 flex items-center gap-2">
-        <span class="material-symbols-outlined text-xl">local_shipping</span>
-        Envío — Tarifa Plana
-      </h2>
+      <div class="flex items-start justify-between mb-4">
+        <div>
+          <h2 class="text-lg font-semibold text-[#dae2fd] flex items-center gap-2">
+            <span class="material-symbols-outlined text-xl">local_shipping</span>
+            Envío — Tarifa Plana
+          </h2>
+          <p class="text-sm text-[#94a3b8] mt-1">Configurá el costo de envío para los pedidos.</p>
+        </div>
+        <button v-if="!isEditing('shipping')" class="admin-btn admin-btn-edit h-11 px-4 shrink-0" @click="enableEdit('shipping')">
+          <span class="material-symbols-outlined text-base">edit</span>
+          EDITAR
+        </button>
+        <span v-else class="badge badge-paid shrink-0 h-fit mt-2">EDITANDO</span>
+      </div>
       <div class="mb-6 p-3 bg-[#1e293b] border-l-2 border-[#42b883] rounded-sm">
         <p class="text-xs text-[#94a3b8]">Configurá el costo de envío. Desactivá para envío siempre gratuito.</p>
       </div>
       <div class="flex items-center justify-between pb-6 mb-6 border-b border-[#1e293b]">
         <div><p class="font-medium text-[#dae2fd]">Cobrar envío</p><p class="text-xs text-[#94a3b8]">Activar tarifa de envío en el checkout</p></div>
-        <label class="admin-toggle"><input v-model="shipping.enabled" type="checkbox" @change="markDirty('shipping')" /><div></div></label>
+        <div class="flex items-center gap-3">
+          <label class="admin-toggle"><input v-model="shipping.enabled" type="checkbox" @change="markDirty('shipping')" :disabled="!isEditing('shipping')" /><div></div></label>
+          <span class="text-[11px] font-semibold tracking-widest uppercase whitespace-nowrap" :class="shipping.enabled ? 'text-[#42b883]' : 'text-[#94a3b8]'">{{ shipping.enabled ? 'ACTIVO' : 'INACTIVO' }}</span>
+        </div>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">TARIFA PLANA ($)</label>
-          <input v-model.number="shipping.base_rate" type="number" step="0.01" min="0" class="admin-input" placeholder="15.00" @input="markDirty('shipping')" />
+          <input v-model.number="shipping.base_rate" type="number" step="0.01" min="0" class="admin-input" placeholder="15.00" @input="markDirty('shipping')" :disabled="!isEditing('shipping')" />
           <p class="text-xs text-[#94a3b8] mt-1">Monto fijo de envío para todos los pedidos.</p></div>
         <div><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">GRATIS DESDE ($)</label>
-          <input v-model.number="shipping.free_above" type="number" step="0.01" min="0" class="admin-input" placeholder="200.00" @input="markDirty('shipping')" />
+          <input v-model.number="shipping.free_above" type="number" step="0.01" min="0" class="admin-input" placeholder="200.00" @input="markDirty('shipping')" :disabled="!isEditing('shipping')" />
           <p class="text-xs text-[#94a3b8] mt-1">Si el subtotal supera este monto, el envío es gratis.</p></div>
         <div class="md:col-span-2"><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">TIEMPO ESTIMADO DE ENTREGA</label>
-          <input v-model="shipping.estimated_days" class="admin-input" maxlength="100" placeholder="5-7 días hábiles" @input="markDirty('shipping')" /></div>
+          <input v-model="shipping.estimated_days" class="admin-input" maxlength="100" placeholder="5-7 días hábiles" @input="markDirty('shipping')" :disabled="!isEditing('shipping')" /></div>
       </div>
     </div>
 
     <!-- WhatsApp Tab -->
     <div v-if="effectiveTab === 'whatsapp'" class="admin-card p-4 md:p-6">
-      <h2 class="text-lg font-semibold text-[#dae2fd] mb-2 flex items-center gap-2">
-        <span class="material-symbols-outlined text-xl">chat</span>
-        WhatsApp — Chat Flotante
-      </h2>
+      <div class="flex items-start justify-between mb-4">
+        <div>
+          <h2 class="text-lg font-semibold text-[#dae2fd] flex items-center gap-2">
+            <span class="material-symbols-outlined text-xl">chat</span>
+            WhatsApp — Chat Flotante
+          </h2>
+          <p class="text-sm text-[#94a3b8] mt-1">Botón flotante en la esquina inferior derecha de la tienda.</p>
+        </div>
+        <button v-if="!isEditing('whatsapp')" class="admin-btn admin-btn-edit h-11 px-4 shrink-0" @click="enableEdit('whatsapp')">
+          <span class="material-symbols-outlined text-base">edit</span>
+          EDITAR
+        </button>
+        <span v-else class="badge badge-paid shrink-0 h-fit mt-2">EDITANDO</span>
+      </div>
       <div class="mb-6 p-3 bg-[#1e293b] border-l-2 border-[#42b883] rounded-sm">
         <p class="text-xs text-[#94a3b8]">Botón flotante en la esquina inferior derecha de la tienda.</p>
       </div>
       <div class="flex items-center justify-between pb-6 mb-6 border-b border-[#1e293b]">
         <div><p class="font-medium text-[#dae2fd]">Habilitar WhatsApp</p><p class="text-xs text-[#94a3b8]">Muestra el botón flotante</p></div>
-        <label class="admin-toggle"><input v-model="whatsapp.enabled" type="checkbox" @change="markDirty('whatsapp')" /><div></div></label>
+        <div class="flex items-center gap-3">
+          <label class="admin-toggle"><input v-model="whatsapp.enabled" type="checkbox" @change="markDirty('whatsapp')" :disabled="!isEditing('whatsapp')" /><div></div></label>
+          <span class="text-[11px] font-semibold tracking-widest uppercase whitespace-nowrap" :class="whatsapp.enabled ? 'text-[#42b883]' : 'text-[#94a3b8]'">{{ whatsapp.enabled ? 'ACTIVO' : 'INACTIVO' }}</span>
+        </div>
       </div>
       <div class="space-y-6">
         <div><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">NÚMERO DE WHATSAPP</label>
-          <input v-model="whatsapp.number" class="admin-input font-mono text-sm" maxlength="20" placeholder="50588888888" @input="markDirty('whatsapp')" />
+          <input v-model="whatsapp.number" class="admin-input font-mono text-sm" maxlength="20" placeholder="50588888888" @input="markDirty('whatsapp')" :disabled="!isEditing('whatsapp')" />
           <p class="text-xs text-[#94a3b8] mt-1">Formato internacional sin +. Ej: 50588888888</p></div>
         <div><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">MENSAJE PREDEFINIDO</label>
-          <textarea v-model="whatsapp.message" class="admin-textarea h-20" maxlength="500" placeholder="Hola, quiero consultar sobre..." @input="markDirty('whatsapp')"></textarea></div>
+          <textarea v-model="whatsapp.message" class="admin-textarea h-20" maxlength="500" placeholder="Hola, quiero consultar sobre..." @input="markDirty('whatsapp')" :disabled="!isEditing('whatsapp')"></textarea></div>
       </div>
     </div>
 
@@ -943,12 +1215,19 @@ const landingFieldLabels: Record<string, string> = {
 
     <!-- Policies Tab -->
     <div v-if="effectiveTab === 'policies'" class="admin-card p-4 md:p-6">
-      <h2 class="text-lg font-semibold text-[#dae2fd] mb-2 flex items-center gap-2">
-        <span class="material-symbols-outlined text-xl">policy</span>
-        Políticas
-      </h2>
-      <div class="mb-6 p-3 bg-[#1e293b] border-l-2 border-[#42b883] rounded-sm">
-        <p class="text-xs text-[#94a3b8]">Textos legales que se muestran en los modales del footer.</p>
+      <div class="flex items-start justify-between mb-2">
+        <div>
+          <h2 class="text-lg font-semibold text-[#dae2fd] flex items-center gap-2">
+            <span class="material-symbols-outlined text-xl">policy</span>
+            Políticas
+          </h2>
+          <p class="text-sm text-[#94a3b8] mt-1">Textos legales que se muestran en los modales del footer.</p>
+        </div>
+        <button v-if="!isEditing('policies')" class="admin-btn admin-btn-edit h-11 px-4 shrink-0" @click="enableEdit('policies')">
+          <span class="material-symbols-outlined text-base">edit</span>
+          EDITAR
+        </button>
+        <span v-else class="badge badge-paid shrink-0 h-fit mt-2">EDITANDO</span>
       </div>
       <div class="space-y-6">
         <div v-for="section in [{key:'shipping',label:'ENVÍOS / SHIPPING'},{key:'returns',label:'DEVOLUCIONES / RETURNS'},{key:'privacy',label:'PRIVACIDAD / PRIVACY'}]" :key="section.key">
@@ -956,10 +1235,10 @@ const landingFieldLabels: Record<string, string> = {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">ES</label>
               <textarea :value="(policies as any)[`${section.key}_es`]" @input="(policies as any)[`${section.key}_es`] = ($event.target as HTMLTextAreaElement).value; markDirty('policies')"
-                        class="admin-textarea h-28" maxlength="2000"></textarea></div>
+                        class="admin-textarea h-28" maxlength="2000" :disabled="!isEditing('policies')"></textarea></div>
             <div><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">EN</label>
               <textarea :value="(policies as any)[`${section.key}_en`]" @input="(policies as any)[`${section.key}_en`] = ($event.target as HTMLTextAreaElement).value; markDirty('policies')"
-                        class="admin-textarea h-28" maxlength="2000"></textarea></div>
+                        class="admin-textarea h-28" maxlength="2000" :disabled="!isEditing('policies')"></textarea></div>
           </div>
         </div>
       </div>
@@ -967,201 +1246,247 @@ const landingFieldLabels: Record<string, string> = {
 
     <!-- SEO Tab -->
     <div v-if="effectiveTab === 'seo'" class="admin-card p-4 md:p-6">
-      <h2 class="text-lg font-semibold text-[#dae2fd] mb-2 flex items-center gap-2">
-        <span class="material-symbols-outlined text-xl">travel_explore</span>
-        SEO — Optimización para Motores de Búsqueda
-      </h2>
-      <div class="mb-6 p-3 bg-[#1e293b] border-l-2 border-[#42b883] rounded-sm">
-        <p class="text-xs text-[#94a3b8]">Configuración global de SEO. Fallback si una página no define los suyos.</p>
+      <div class="flex items-start justify-between mb-2">
+        <div>
+          <h2 class="text-lg font-semibold text-[#dae2fd] flex items-center gap-2">
+            <span class="material-symbols-outlined text-xl">travel_explore</span>
+            SEO — Optimización para Motores de Búsqueda
+          </h2>
+          <p class="text-sm text-[#94a3b8] mt-1">Configuración global de SEO. Fallback si una página no define los suyos.</p>
+        </div>
+        <button v-if="!isEditing('seo')" class="admin-btn admin-btn-edit h-11 px-4 shrink-0" @click="enableEdit('seo')">
+          <span class="material-symbols-outlined text-base">edit</span>
+          EDITAR
+        </button>
+        <span v-else class="badge badge-paid shrink-0 h-fit mt-2">EDITANDO</span>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="md:col-span-2"><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">TÍTULO GLOBAL (fallback)</label>
-          <input v-model="seo.global_title" class="admin-input" maxlength="200" placeholder="Vunotek | Calzado Artesanal" @input="markDirty('seo')" /></div>
+          <input v-model="seo.global_title" class="admin-input" maxlength="200" placeholder="Vunotek | Calzado Artesanal" @input="markDirty('seo')" :disabled="!isEditing('seo')" /></div>
         <div class="md:col-span-2"><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">DESCRIPCIÓN GLOBAL (fallback)</label>
-          <textarea v-model="seo.global_description" class="admin-textarea h-24" maxlength="500" placeholder="Calzado artesanal para damas con diseño minimalista." @input="markDirty('seo')"></textarea></div>
+          <textarea v-model="seo.global_description" class="admin-textarea h-24" maxlength="500" placeholder="Calzado artesanal para damas con diseño minimalista." @input="markDirty('seo')" :disabled="!isEditing('seo')"></textarea></div>
         <div class="md:col-span-2"><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">IMAGEN OG POR DEFECTO</label>
-          <input v-model="seo.og_default_image" class="admin-input font-mono text-sm" maxlength="500" placeholder="https://ik.imagekit.io/vunotek/og-default.jpg" @input="markDirty('seo')" /></div>
+          <input v-model="seo.og_default_image" class="admin-input font-mono text-sm" maxlength="500" placeholder="https://ik.imagekit.io/vunotek/og-default.jpg" @input="markDirty('seo')" :disabled="!isEditing('seo')" /></div>
         <div><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">TWITTER / X (@handle)</label>
-          <input v-model="seo.twitter_site" class="admin-input" maxlength="100" placeholder="@vunotek" @input="markDirty('seo')" /></div>
+          <input v-model="seo.twitter_site" class="admin-input" maxlength="100" placeholder="@vunotek" @input="markDirty('seo')" :disabled="!isEditing('seo')" /></div>
         <div><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">FACEBOOK PAGE ID</label>
-          <input v-model="seo.facebook_page_id" class="admin-input" maxlength="100" @input="markDirty('seo')" /></div>
+          <input v-model="seo.facebook_page_id" class="admin-input" maxlength="100" @input="markDirty('seo')" :disabled="!isEditing('seo')" /></div>
         <div><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">GOOGLE SITE VERIFICATION</label>
-          <input v-model="seo.google_site_verification" class="admin-input font-mono text-sm" maxlength="200" @input="markDirty('seo')" /></div>
+          <input v-model="seo.google_site_verification" class="admin-input font-mono text-sm" maxlength="200" @input="markDirty('seo')" :disabled="!isEditing('seo')" /></div>
         <div><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">BING SITE VERIFICATION</label>
-          <input v-model="seo.bing_site_verification" class="admin-input font-mono text-sm" maxlength="200" @input="markDirty('seo')" /></div>
+          <input v-model="seo.bing_site_verification" class="admin-input font-mono text-sm" maxlength="200" @input="markDirty('seo')" :disabled="!isEditing('seo')" /></div>
         <div><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">GOOGLE ANALYTICS ID</label>
-          <input v-model="seo.ga_id" class="admin-input font-mono text-sm" maxlength="50" placeholder="G-XXXXXXXX" @input="markDirty('seo')" /></div>
+          <input v-model="seo.ga_id" class="admin-input font-mono text-sm" maxlength="50" placeholder="G-XXXXXXXX" @input="markDirty('seo')" :disabled="!isEditing('seo')" /></div>
         <div><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">META ROBOTS GLOBAL</label>
-          <select v-model="seo.robots_default" class="admin-select" @change="markDirty('seo')">
+          <select v-model="seo.robots_default" class="admin-select" @change="markDirty('seo')" :disabled="!isEditing('seo')">
             <option value="index,follow">index, follow</option>
             <option value="noindex,nofollow">noindex, nofollow</option>
           </select></div>
         <div><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">THEME COLOR</label>
-          <input v-model="seo.theme_color" class="admin-input font-mono text-sm" maxlength="20" placeholder="#1A1A1A" @input="markDirty('seo')" /></div>
+          <input v-model="seo.theme_color" class="admin-input font-mono text-sm" maxlength="20" placeholder="#1A1A1A" @input="markDirty('seo')" :disabled="!isEditing('seo')" /></div>
       </div>
     </div>
 
-    <!-- Landing Tab -->
-    <div v-if="effectiveTab === 'landing'" class="admin-card p-4 md:p-6">
-      <h2 class="text-lg font-semibold text-[#dae2fd] mb-2 flex items-center gap-2">
-        <span class="material-symbols-outlined text-xl">dashboard_customize</span>
-        Landing — Página Principal
-      </h2>
-      <div class="mb-6 p-3 bg-[#1e293b] border-l-2 border-[#42b883] rounded-sm">
-        <p class="text-xs text-[#94a3b8]">Personalizá cada sección de la home. Campos vacíos usan valores por defecto.</p>
+    <!-- ================================================================== -->
+    <!-- TAB: Landing — Página Principal                                    -->
+    <!-- ================================================================== -->
+    <div v-if="activeTab === 'group-landing'" :key="'group-landing'" class="admin-card p-4 md:p-6 admin-enter">
+      <div class="flex items-start gap-4 mb-6">
+        <div class="w-10 h-10 rounded-sm bg-[#42b883]/10 flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-[#42b883]">dashboard_customize</span>
+        </div>
+        <div class="flex-1">
+          <h2 class="text-lg font-semibold text-[#dae2fd]">Landing — Página Principal</h2>
+          <p class="text-sm text-[#94a3b8] mt-1">Personalizá cada sección de la home. Campos vacíos usan valores por defecto.</p>
+        </div>
+        <button v-if="!isEditing('landing')" class="admin-btn admin-btn-edit h-11 px-4 shrink-0" @click="enableEdit('landing')">
+          <span class="material-symbols-outlined text-base">edit</span>
+          EDITAR
+        </button>
+        <span v-else class="badge badge-paid shrink-0 h-fit mt-2">EDITANDO</span>
       </div>
-      <div class="mb-6">
-        <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">SECCIÓN</label>
-        <select v-model="activeLandingSection" class="admin-select" @change="markDirty('landing')">
-          <option v-for="(s, k) in landingSections" :key="k" :value="k">{{ s.label }}</option>
-        </select>
+
+      <div class="bg-[#1e293b]/40 border border-[#1e293b] rounded-sm p-4 mb-6 flex items-start gap-3">
+        <span class="material-symbols-outlined text-[#42b883] text-lg shrink-0 mt-px">info</span>
+        <p class="text-xs text-[#94a3b8] leading-relaxed">
+          Seleccioná una sección en los sub-tabs de arriba para editar su contenido. Cada sección tiene campos en español e inglés, más opciones adicionales como imágenes, enlaces y configurción de visibilidad.
+        </p>
       </div>
+
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="md:col-span-2"><div class="border-b border-[#1e293b] pb-4 mb-4"><span class="text-xs font-semibold tracking-[0.15em] text-[#42b883]">ESPAÑOL</span></div></div>
-        <div v-for="f in landingSections[activeLandingSection]?.fields" :key="f+'_es'" class="md:col-span-2">
+        <div v-for="f in landingSections[activeChildTab]?.fields" :key="f+'_es'" class="md:col-span-2">
           <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">{{ landingFieldLabels[f+'_es'] }}</label>
           <textarea v-if="f.startsWith('paragraph') || f.startsWith('desc')"
-                    :value="lsVal(activeLandingSection, f+'_es')"
-                    @input="setLs(activeLandingSection, f+'_es', ($event.target as HTMLTextAreaElement).value)"
-                    class="admin-textarea h-20" maxlength="500"></textarea>
-          <input v-else :value="lsVal(activeLandingSection, f+'_es')"
-                 @input="setLs(activeLandingSection, f+'_es', ($event.target as HTMLInputElement).value)"
-                 class="admin-input" :maxlength="f.includes('title') ? '200' : '100'" />
+                    :value="lsVal(activeChildTab, f+'_es')"
+                    @input="setLs(activeChildTab, f+'_es', ($event.target as HTMLTextAreaElement).value)"
+                    class="admin-textarea h-20" maxlength="500" :disabled="!isEditing('landing')"></textarea>
+          <input v-else :value="lsVal(activeChildTab, f+'_es')"
+                 @input="setLs(activeChildTab, f+'_es', ($event.target as HTMLInputElement).value)"
+                 class="admin-input" :maxlength="f.includes('title') ? '200' : '100'" :disabled="!isEditing('landing')" />
         </div>
         <div class="md:col-span-2"><div class="border-b border-[#1e293b] pb-4 mb-4"><span class="text-xs font-semibold tracking-[0.15em] text-[#42b883]">ENGLISH</span></div></div>
-        <div v-for="f in landingSections[activeLandingSection]?.fields" :key="f+'_en'" class="md:col-span-2">
+        <div v-for="f in landingSections[activeChildTab]?.fields" :key="f+'_en'" class="md:col-span-2">
           <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">{{ landingFieldLabels[f+'_en'] }}</label>
           <textarea v-if="f.startsWith('paragraph') || f.startsWith('desc')"
-                    :value="lsVal(activeLandingSection, f+'_en')"
-                    @input="setLs(activeLandingSection, f+'_en', ($event.target as HTMLTextAreaElement).value)"
-                    class="admin-textarea h-20" maxlength="500"></textarea>
-          <input v-else :value="lsVal(activeLandingSection, f+'_en')"
-                 @input="setLs(activeLandingSection, f+'_en', ($event.target as HTMLInputElement).value)"
-                 class="admin-input" :maxlength="f.includes('title') ? '200' : '100'" />
+                    :value="lsVal(activeChildTab, f+'_en')"
+                    @input="setLs(activeChildTab, f+'_en', ($event.target as HTMLTextAreaElement).value)"
+                    class="admin-textarea h-20" maxlength="500" :disabled="!isEditing('landing')"></textarea>
+          <input v-else :value="lsVal(activeChildTab, f+'_en')"
+                 @input="setLs(activeChildTab, f+'_en', ($event.target as HTMLInputElement).value)"
+                 class="admin-input" :maxlength="f.includes('title') ? '200' : '100'" :disabled="!isEditing('landing')" />
         </div>
         <!-- Extra fields -->
-        <div v-for="ext in landingSections[activeLandingSection]?.extras" :key="ext" class="md:col-span-2">
+        <div v-for="ext in landingSections[activeChildTab]?.extras" :key="ext" class="md:col-span-2">
           <template v-if="ext === 'enabled'">
             <label class="admin-toggle-label">
-              <label class="admin-toggle"><input :checked="lsBool(activeLandingSection, 'enabled')" type="checkbox" @change="setLs(activeLandingSection, 'enabled', ($event.target as HTMLInputElement).checked)" /><div></div></label>
-              <span class="text-sm text-[#dae2fd]">HABILITAR SECCIÓN</span>
+              <label class="admin-toggle"><input :checked="lsBool(activeChildTab, 'enabled')" type="checkbox" @change="setLs(activeChildTab, 'enabled', ($event.target as HTMLInputElement).checked)" :disabled="!isEditing('landing')" /><div></div></label>
+              <span class="text-[11px] font-semibold tracking-widest uppercase whitespace-nowrap" :class="lsBool(activeChildTab, 'enabled') ? 'text-[#42b883]' : 'text-[#94a3b8]'">{{ lsBool(activeChildTab, 'enabled') ? 'ACTIVO' : 'INACTIVO' }}</span>
             </label>
           </template>
           <template v-else-if="ext === 'cta_category_slug'">
             <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">CTA LINK — CATEGORÍA</label>
-            <select :value="lsVal(activeLandingSection, 'cta_category_slug')"
-                    @change="setLs(activeLandingSection, 'cta_category_slug', ($event.target as HTMLSelectElement).value)"
-                    class="admin-select">
+            <select :value="lsVal(activeChildTab, 'cta_category_slug')"
+                    @change="setLs(activeChildTab, 'cta_category_slug', ($event.target as HTMLSelectElement).value)"
+                    class="admin-select" :disabled="!isEditing('landing')">
               <option value="">Catálogo general</option>
               <option v-for="c in categories" :key="c.slug" :value="c.slug">{{ c.name }}</option>
             </select>
-            <p class="text-xs text-[#94a3b8] mt-1">Link: {{ lsVal(activeLandingSection, 'cta_category_slug') ? '/es/catalogo?categoria=' + lsVal(activeLandingSection, 'cta_category_slug') : '/es/catalogo' }}</p>
+            <p class="text-xs text-[#94a3b8] mt-1">Link: {{ lsVal(activeChildTab, 'cta_category_slug') ? '/es/catalogo?categoria=' + lsVal(activeChildTab, 'cta_category_slug') : '/es/catalogo' }}</p>
           </template>
           <template v-else-if="ext === 'testimonial_items'">
             <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">TESTIMONIOS</label>
             <div class="space-y-4">
-              <div v-for="(item, i) in (landing[activeLandingSection]?.items || [])" :key="i" class="border border-[#1e293b] rounded-sm p-4 relative">
-                <button class="absolute top-2 right-2 w-10 h-10 flex items-center justify-center text-[#94a3b8] hover:text-[#DC2626] transition-colors" @click="removeTestimonial(activeLandingSection, i)"><span class="material-symbols-outlined text-lg">close</span></button>
+              <div v-for="(item, i) in (landing[activeChildTab]?.items || [])" :key="i" class="border border-[#1e293b] rounded-sm p-4 relative">
+                <button class="absolute top-2 right-2 w-10 h-10 flex items-center justify-center text-[#94a3b8] hover:text-[#DC2626] transition-colors" :disabled="!isEditing('landing')" @click="removeTestimonial(activeChildTab, i)"><span class="material-symbols-outlined text-lg">close</span></button>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-1">NOMBRE</label>
-                    <input :value="item.name" @input="item.name = ($event.target as HTMLInputElement).value; markDirty('landing')" class="admin-input-sm" maxlength="100" /></div>
+                    <input :value="item.name" @input="item.name = ($event.target as HTMLInputElement).value; markDirty('landing')" class="admin-input-sm" maxlength="100" :disabled="!isEditing('landing')" /></div>
                   <div><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-1">PUNTUACIÓN (1-5)</label>
-                    <input :value="item.rating" @input="item.rating = parseInt(($event.target as HTMLInputElement).value) || 5; markDirty('landing')" type="number" min="1" max="5" class="admin-input-sm" /></div>
+                    <input :value="item.rating" @input="item.rating = parseInt(($event.target as HTMLInputElement).value) || 5; markDirty('landing')" type="number" min="1" max="5" class="admin-input-sm" :disabled="!isEditing('landing')" /></div>
                   <div class="md:col-span-3"><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-1">TEXTO</label>
-                    <textarea :value="item.text" @input="item.text = ($event.target as HTMLTextAreaElement).value; markDirty('landing')" class="admin-textarea-sm h-16" maxlength="500"></textarea></div>
+                    <textarea :value="item.text" @input="item.text = ($event.target as HTMLTextAreaElement).value; markDirty('landing')" class="admin-textarea-sm h-16" maxlength="500" :disabled="!isEditing('landing')"></textarea></div>
                 </div>
               </div>
             </div>
-            <button class="mt-2 text-xs font-semibold tracking-widest text-[#94a3b8] hover:text-[#dae2fd] inline-flex items-center gap-1.5" @click="addTestimonial(activeLandingSection)"><span class="material-symbols-outlined text-lg">add_circle</span> AGREGAR TESTIMONIO</button>
+            <button class="mt-2 text-xs font-semibold tracking-widest text-[#94a3b8] hover:text-[#dae2fd] inline-flex items-center gap-1.5" :disabled="!isEditing('landing')" @click="addTestimonial(activeChildTab)"><span class="material-symbols-outlined text-lg">add_circle</span> AGREGAR TESTIMONIO</button>
           </template>
           <template v-else-if="ext === 'platforms'">
             <div class="border-b border-[#1e293b] pb-4 mb-4"><span class="text-xs font-semibold tracking-[0.15em] text-[#42b883]">PLATAFORMAS</span></div>
             <div v-for="pName in ['facebook','instagram','tiktok','linkedin','youtube']" :key="pName" class="flex items-start gap-4 py-3 border-b border-[#1e293b]/40">
               <div class="flex items-center gap-3 pt-2 min-w-[140px]">
-                <label class="admin-toggle"><input :checked="landing[activeLandingSection]?.platforms?.[pName]?.enabled" type="checkbox"
-                  @change="setLs(activeLandingSection, 'platforms', { ...(landing[activeLandingSection]?.platforms || {}), [pName]: { enabled: ($event.target as HTMLInputElement).checked, url: landing[activeLandingSection]?.platforms?.[pName]?.url || '' } })" /><div></div></label>
+                <label class="admin-toggle"><input :checked="landing[activeChildTab]?.platforms?.[pName]?.enabled" type="checkbox"
+                  @change="setLs(activeChildTab, 'platforms', { ...(landing[activeChildTab]?.platforms || {}), [pName]: { enabled: ($event.target as HTMLInputElement).checked, url: landing[activeChildTab]?.platforms?.[pName]?.url || '' } })" :disabled="!isEditing('landing')" /><div></div></label>
                 <span class="text-sm capitalize text-[#dae2fd]">{{ pName }}</span>
+                <span class="text-[10px] font-semibold tracking-widest uppercase" :class="landing[activeChildTab]?.platforms?.[pName]?.enabled ? 'text-[#42b883]' : 'text-[#94a3b8]'">{{ landing[activeChildTab]?.platforms?.[pName]?.enabled ? 'ON' : 'OFF' }}</span>
               </div>
               <div class="flex-1">
-                <input :value="landing[activeLandingSection]?.platforms?.[pName]?.url || ''"
-                       @input="setLs(activeLandingSection, 'platforms', { ...(landing[activeLandingSection]?.platforms || {}), [pName]: { enabled: landing[activeLandingSection]?.platforms?.[pName]?.enabled || false, url: ($event.target as HTMLInputElement).value } })"
-                       class="admin-input text-sm" maxlength="500" :placeholder="'https://' + pName + '.com/...'" />
+                <input :value="landing[activeChildTab]?.platforms?.[pName]?.url || ''"
+                       @input="setLs(activeChildTab, 'platforms', { ...(landing[activeChildTab]?.platforms || {}), [pName]: { enabled: landing[activeChildTab]?.platforms?.[pName]?.enabled || false, url: ($event.target as HTMLInputElement).value } })"
+                       class="admin-input text-sm" maxlength="500" :placeholder="'https://' + pName + '.com/...'" :disabled="!isEditing('landing')" />
               </div>
             </div>
           </template>
           <template v-else-if="ext === 'image_url'">
             <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">IMAGEN (URL)</label>
-            <div v-if="!lsVal(activeLandingSection, 'image_url')" class="border-2 border-dashed border-[#1e293b] hover:border-[#42b883] rounded-sm p-6 text-center cursor-pointer transition-colors"
-                 @click="($refs as any)['landingImg' + activeLandingSection]?.click()"
-                 @dragover.prevent="($event.target as HTMLElement).classList.add('border-[#42b883]')"
-                 @dragleave.prevent="($event.target as HTMLElement).classList.remove('border-[#42b883]')"
-                 @drop.prevent="handleLandingImageUpload(activeLandingSection, ($event.dataTransfer?.files[0])!)">
-              <input :ref="'landingImg' + activeLandingSection" type="file" accept="image/png,image/jpeg,image/webp" class="hidden"
-                     @change="($event.target as HTMLInputElement).files?.[0] && handleLandingImageUpload(activeLandingSection, ($event.target as HTMLInputElement).files![0])" />
+            <div v-if="!lsVal(activeChildTab, 'image_url')" class="border-2 border-dashed border-[#1e293b] hover:border-[#42b883] rounded-sm p-6 text-center cursor-pointer transition-colors"
+                 :class="{ 'opacity-50 pointer-events-none': !isEditing('landing') }"
+                 @click="isEditing('landing') && ($refs as any)['landingImg' + activeChildTab]?.click()"
+                 @dragover.prevent="isEditing('landing') && ($event.target as HTMLElement).classList.add('border-[#42b883]')"
+                 @dragleave.prevent="isEditing('landing') && ($event.target as HTMLElement).classList.remove('border-[#42b883]')"
+                 @drop.prevent="isEditing('landing') && handleLandingImageUpload(activeChildTab, ($event.dataTransfer?.files[0])!)">
+              <input :ref="'landingImg' + activeChildTab" type="file" accept="image/png,image/jpeg,image/webp" class="hidden"
+                     :disabled="!isEditing('landing')"
+                     @change="($event.target as HTMLInputElement).files?.[0] && handleLandingImageUpload(activeChildTab, ($event.target as HTMLInputElement).files![0])" />
               <span class="material-symbols-outlined text-2xl text-[#94a3b8] block mb-1">upload</span>
               <p class="text-sm text-[#94a3b8]">Arrastrá la imagen o <span class="text-[#42b883] underline">seleccioná un archivo</span></p>
             </div>
             <div v-else class="border border-[#1e293b] rounded-sm p-3 flex items-center gap-4">
               <div class="w-24 h-24 flex items-center justify-center bg-[#1e293b] rounded-sm overflow-hidden">
-                <img :src="lsVal(activeLandingSection, 'image_url')" class="max-w-full max-h-full object-contain" alt="Imagen" />
+                <img :src="lsVal(activeChildTab, 'image_url')" class="max-w-full max-h-full object-contain" alt="Imagen" />
               </div>
               <div class="flex flex-col gap-1.5">
-                <button class="text-xs font-semibold tracking-widest text-[#42b883] hover:text-[#dae2fd] transition-colors inline-flex items-center gap-1"
-                        @click="($refs as any)['landingImg' + activeLandingSection]?.click()"><span class="material-symbols-outlined text-lg">refresh</span> REEMPLAZAR</button>
-                <button class="text-xs font-semibold tracking-widest text-[#DC2626] hover:text-red-700 transition-colors inline-flex items-center gap-1" @click="removeLandingImage(activeLandingSection)"><span class="material-symbols-outlined text-lg">delete</span> ELIMINAR</button>
+                <button class="text-xs font-semibold tracking-widest text-[#42b883] hover:text-[#dae2fd] transition-colors inline-flex items-center gap-1" :disabled="!isEditing('landing')"
+                        @click="($refs as any)['landingImg' + activeChildTab]?.click()"><span class="material-symbols-outlined text-lg">refresh</span> REEMPLAZAR</button>
+                <button class="text-xs font-semibold tracking-widest text-[#DC2626] hover:text-red-700 transition-colors inline-flex items-center gap-1" :disabled="!isEditing('landing')" @click="removeLandingImage(activeChildTab)"><span class="material-symbols-outlined text-lg">delete</span> ELIMINAR</button>
               </div>
             </div>
             <p class="text-xs text-[#94a3b8] mt-1">URL pública de la imagen. Relación 4:5 recomendada.</p>
           </template>
           <template v-else>
             <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">{{ ext === 'image_url' ? 'IMAGEN (URL)' : ext === 'cta_link' ? 'CTA LINK (URL)' : ext }}</label>
-            <input :value="lsVal(activeLandingSection, ext)" @input="setLs(activeLandingSection, ext, ($event.target as HTMLInputElement).value)"
-                   class="admin-input" maxlength="500" />
+            <input :value="lsVal(activeChildTab, ext)" @input="setLs(activeChildTab, ext, ($event.target as HTMLInputElement).value)"
+                   class="admin-input" maxlength="500" :disabled="!isEditing('landing')" />
           </template>
         </div>
       </div>
     </div>
 
-    <!-- Size Guide Tab -->
-    <div v-if="effectiveTab === 'sizeguide'" class="admin-card p-4 md:p-6">
-      <h2 class="text-lg font-semibold text-[#dae2fd] mb-2 flex items-center gap-2">
-        <span class="material-symbols-outlined text-xl">straighten</span>
-        Guía de Talles
-      </h2>
-      <div class="mb-6 p-3 bg-[#1e293b] border-l-2 border-[#42b883] rounded-sm">
-        <p class="text-xs text-[#94a3b8]">Tabla de conversión de talles que se muestra en cada producto.</p>
+    <!-- ================================================================== -->
+    <!-- TAB: Guía de Talles                                                 -->
+    <!-- ================================================================== -->
+    <div v-if="effectiveTab === 'store-sizeguide'" :key="'store-sizeguide'" class="admin-card p-4 md:p-6 admin-enter">
+      <div class="flex items-start gap-4 mb-6">
+        <div class="w-10 h-10 rounded-sm bg-[#42b883]/10 flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-[#42b883]">straighten</span>
+        </div>
+        <div class="flex-1">
+          <h2 class="text-lg font-semibold text-[#dae2fd]">Guía de Talles</h2>
+          <p class="text-sm text-[#94a3b8] mt-1">Tabla de conversión que se muestra en la página de cada producto.</p>
+        </div>
+        <button v-if="!isEditing('size_guide')" class="admin-btn admin-btn-edit h-11 px-4 shrink-0" @click="enableEdit('size_guide')">
+          <span class="material-symbols-outlined text-base">edit</span>
+          EDITAR
+        </button>
+        <span v-else class="badge badge-paid shrink-0 h-fit mt-2">EDITANDO</span>
       </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-full md:max-w-2xl">
-        <div><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">TÍTULO (ES)</label>
-          <input v-model="sizeGuide.title_es" class="admin-input" maxlength="100" @input="markDirty('size_guide')" /></div>
-        <div><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">TITLE (EN)</label>
-          <input v-model="sizeGuide.title_en" class="admin-input" maxlength="100" @input="markDirty('size_guide')" /></div>
-        <div class="md:col-span-2"><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">PIE / FOOTER (ES)</label>
-          <input v-model="sizeGuide.footer_es" class="admin-input" maxlength="300" @input="markDirty('size_guide')" /></div>
-        <div class="md:col-span-2"><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">PIE / FOOTER (EN)</label>
-          <input v-model="sizeGuide.footer_en" class="admin-input" maxlength="300" @input="markDirty('size_guide')" /></div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-full md:max-w-2xl mb-8">
+        <div>
+          <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">TÍTULO (ES)</label>
+          <input v-model="sizeGuide.title_es" class="admin-input" maxlength="100" placeholder="Guía de Talles" @input="markDirty('size_guide')" :disabled="!isEditing('size_guide')" />
+        </div>
+        <div>
+          <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">TITLE (EN)</label>
+          <input v-model="sizeGuide.title_en" class="admin-input" maxlength="100" placeholder="Size Guide" @input="markDirty('size_guide')" :disabled="!isEditing('size_guide')" />
+        </div>
+        <div class="md:col-span-2">
+          <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">PIE / FOOTER (ES)</label>
+          <input v-model="sizeGuide.footer_es" class="admin-input" maxlength="300" placeholder="Medí tu pie desde el talón..." @input="markDirty('size_guide')" :disabled="!isEditing('size_guide')" />
+        </div>
+        <div class="md:col-span-2">
+          <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">PIE / FOOTER (EN)</label>
+          <input v-model="sizeGuide.footer_en" class="admin-input" maxlength="300" placeholder="Measure your foot from heel..." @input="markDirty('size_guide')" :disabled="!isEditing('size_guide')" />
+        </div>
       </div>
-      <div class="mt-6 pt-6 border-t border-[#1e293b]">
-        <p class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase mb-3">FILAS DE CONVERSIÓN</p>
-        <div class="overflow-x-auto">
+
+      <div class="h-px bg-gradient-to-r from-transparent via-[#1e293b] to-transparent my-8"></div>
+
+      <div>
+        <p class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase mb-3 flex items-center gap-2">
+          <span class="material-symbols-outlined text-lg">table_rows</span>
+          FILAS DE CONVERSIÓN
+        </p>
+        <p class="text-sm text-[#94a3b8]/70 mb-4">Agregá las equivalencias de talles US / EU / UK / CM.</p>
+        <div class="overflow-x-auto rounded-sm border border-[#1e293b]">
           <table class="w-full text-left text-sm">
             <thead>
-              <tr class="border-b border-[#1e293b]">
-                <th class="text-xs font-semibold tracking-widest text-[#94a3b8] pb-2 pr-4 w-20">US</th>
-                <th class="text-xs font-semibold tracking-widest text-[#94a3b8] pb-2 pr-4 w-20">EU</th>
-                <th class="text-xs font-semibold tracking-widest text-[#94a3b8] pb-2 pr-4 w-20">UK</th>
-                <th class="text-xs font-semibold tracking-widest text-[#94a3b8] pb-2 pr-4 w-20">CM</th>
-                <th class="text-xs font-semibold tracking-widest text-[#94a3b8] pb-2 w-16"></th>
+              <tr class="bg-[#0f1929] border-b border-[#1e293b]">
+                <th class="text-xs font-semibold tracking-widest text-[#94a3b8] py-3 px-4 w-24">US</th>
+                <th class="text-xs font-semibold tracking-widest text-[#94a3b8] py-3 px-4 w-24">EU</th>
+                <th class="text-xs font-semibold tracking-widest text-[#94a3b8] py-3 px-4 w-24">UK</th>
+                <th class="text-xs font-semibold tracking-widest text-[#94a3b8] py-3 px-4 w-24">CM</th>
+                <th class="text-xs font-semibold tracking-widest text-[#94a3b8] py-3 px-4 w-16"></th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(row, i) in sizeGuideRows" :key="i" class="border-b border-[#1e293b]/50">
-                <td class="py-1.5 pr-4"><input v-model="row.us" class="admin-input-sm w-full" maxlength="6" @input="markDirty('size_guide')" /></td>
-                <td class="py-1.5 pr-4"><input v-model="row.eu" class="admin-input-sm w-full" maxlength="6" @input="markDirty('size_guide')" /></td>
-                <td class="py-1.5 pr-4"><input v-model="row.uk" class="admin-input-sm w-full" maxlength="6" @input="markDirty('size_guide')" /></td>
-                <td class="py-1.5 pr-4"><input v-model="row.cm" class="admin-input-sm w-full" maxlength="6" @input="markDirty('size_guide')" /></td>
-                <td class="py-1.5">
-                  <button class="w-7 h-7 flex items-center justify-center text-[#94a3b8] hover:text-[#DC2626] transition-colors" @click="removeSizeGuideRow(i)" title="Eliminar fila">
+              <tr v-for="(row, i) in sizeGuideRows" :key="i" class="border-b border-[#1e293b]/50 hover:bg-white/[0.015] transition-colors">
+                <td class="py-2 px-4"><input v-model="row.us" class="admin-input-sm w-full font-mono" maxlength="6" placeholder="7" @input="markDirty('size_guide')" :disabled="!isEditing('size_guide')" /></td>
+                <td class="py-2 px-4"><input v-model="row.eu" class="admin-input-sm w-full font-mono" maxlength="6" placeholder="37" @input="markDirty('size_guide')" :disabled="!isEditing('size_guide')" /></td>
+                <td class="py-2 px-4"><input v-model="row.uk" class="admin-input-sm w-full font-mono" maxlength="6" placeholder="4.5" @input="markDirty('size_guide')" :disabled="!isEditing('size_guide')" /></td>
+                <td class="py-2 px-4"><input v-model="row.cm" class="admin-input-sm w-full font-mono" maxlength="6" placeholder="23.5" @input="markDirty('size_guide')" :disabled="!isEditing('size_guide')" /></td>
+                <td class="py-2 px-4">
+                  <button class="w-7 h-7 flex items-center justify-center text-[#94a3b8] hover:text-[#DC2626] hover:bg-[#DC2626]/10 rounded-sm transition-all" :disabled="!isEditing('size_guide')" @click="removeSizeGuideRow(i)" title="Eliminar fila">
                     <span class="material-symbols-outlined text-lg">remove_circle</span>
                   </button>
                 </td>
@@ -1169,7 +1494,7 @@ const landingFieldLabels: Record<string, string> = {
             </tbody>
           </table>
         </div>
-        <button class="mt-3 text-xs font-semibold tracking-widest text-[#94a3b8] hover:text-[#dae2fd] inline-flex items-center gap-1.5 transition-colors" @click="addSizeGuideRow">
+        <button class="mt-3 text-xs font-semibold tracking-widest text-[#94a3b8] hover:text-[#42b883] inline-flex items-center gap-1.5 transition-all px-3 py-2 border border-[#1e293b] rounded-sm hover:border-[#42b883]/30" :disabled="!isEditing('size_guide')" @click="addSizeGuideRow">
           <span class="material-symbols-outlined text-lg">add_circle</span> AGREGAR FILA
         </button>
       </div>
@@ -1220,10 +1545,14 @@ const landingFieldLabels: Record<string, string> = {
 
     <!-- Save button -->
     <div class="mt-8 pt-6 border-t border-[#1e293b]">
-      <button class="admin-btn admin-btn-primary h-12 px-8" @click="save">
+      <button class="admin-btn admin-btn-primary w-full md:w-auto h-12 px-8 justify-center gap-2" :disabled="editMode.size === 0" @click="save">
         <span class="material-symbols-outlined text-lg">save</span>
         GUARDAR CONFIGURACIÓN
+        <span v-if="dirtySections.size" class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/20 text-[11px] font-bold">{{ dirtySections.size }}</span>
       </button>
+      <p v-if="dirtySections.size" class="text-xs text-[#94a3b8] mt-2 md:text-center">
+        {{ dirtySections.size }} seccion{{ dirtySections.size !== 1 ? 'es' : '' }} con cambios pendientes
+      </p>
     </div>
   </div>
 </template>
@@ -1232,11 +1561,15 @@ const landingFieldLabels: Record<string, string> = {
 @reference "tailwindcss";
 .admin-toggle input[type="checkbox"] { @apply sr-only; }
 .admin-toggle div {
-  @apply w-12 h-6 bg-[#1e293b] rounded-full relative cursor-pointer transition-colors peer-checked:bg-[#42b883];
+  @apply w-12 h-6 rounded-full relative cursor-pointer transition-colors;
+  background: #2a3038;
+}
+.admin-toggle input:checked + div {
+  background: #42b883;
 }
 .admin-toggle div::after {
   content: '';
-  @apply absolute top-[3px] left-[3px] bg-white border border-[#1e293b] rounded-full h-5 w-5 transition-all;
+  @apply absolute top-[3px] left-[3px] bg-white border border-[#2a3038] rounded-full h-5 w-5 transition-all;
 }
 .admin-toggle input:checked + div::after { @apply translate-x-6 border-white; }
 .admin-toggle-label { @apply flex items-center gap-3 cursor-pointer; }

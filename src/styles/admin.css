@@ -87,8 +87,16 @@
   border-color: #42b883;
   box-shadow: 0 0 0 2px rgba(66, 184, 131, 0.25);
 }
-.admin-input::placeholder {
-  color: #64748b;
+.admin-input:disabled,
+.admin-textarea:disabled,
+.admin-select:disabled,
+.admin-select-sm:disabled,
+.admin-input-sm:disabled,
+.admin-textarea-sm:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  border-color: #1e293b !important;
+  box-shadow: none !important;
 }
 .admin-input-error {
   border-color: #DC2626;
@@ -96,12 +104,36 @@
 .admin-input-error:focus {
   box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.25);
 }
+.admin-input::placeholder {
+  color: #64748b;
+}
 select.admin-input {
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.75rem center;
   padding-right: 2rem;
+}
+
+.admin-select {
+  width: 100%;
+  background: #1e293b;
+  border: 1.5px solid #404944;
+  color: #dae2fd;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  border-radius: 0.375rem;
+  outline: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  padding-right: 2rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.admin-select:focus {
+  border-color: #42b883;
+  box-shadow: 0 0 0 2px rgba(66, 184, 131, 0.25);
 }
 
 .admin-textarea {
@@ -142,6 +174,45 @@ select.admin-input {
   box-shadow: 0 0 0 2px rgba(66, 184, 131, 0.25);
 }
 
+.admin-input-sm {
+  width: 100%;
+  background: #1e293b;
+  border: 1.5px solid #404944;
+  color: #dae2fd;
+  padding: 0.375rem 0.5rem;
+  font-size: 0.8125rem;
+  border-radius: 0.25rem;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.admin-input-sm:focus {
+  border-color: #42b883;
+  box-shadow: 0 0 0 2px rgba(66, 184, 131, 0.25);
+}
+.admin-input-sm::placeholder {
+  color: #64748b;
+}
+
+.admin-select-sm {
+  background: #1e293b;
+  border: 1.5px solid #404944;
+  color: #dae2fd;
+  padding: 0.375rem 0.5rem;
+  font-size: 0.8125rem;
+  border-radius: 0.25rem;
+  outline: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  padding-right: 1.5rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.admin-select-sm:focus {
+  border-color: #42b883;
+  box-shadow: 0 0 0 2px rgba(66, 184, 131, 0.25);
+}
+
 /* ── Buttons ───────────────────────────────────────────────────────────── */
 
 .admin-btn {
@@ -178,6 +249,15 @@ select.admin-input {
 }
 .admin-btn-secondary:hover:not(:disabled) {
   background: #25324a;
+}
+.admin-btn-edit {
+  background: #3d2e26;
+  color: #dae2fd;
+  border-color: #5c4a3e;
+}
+.admin-btn-edit:hover:not(:disabled) {
+  background: #4d3c32;
+  border-color: #6b5a4e;
 }
 .admin-btn-danger {
   background: #DC2626;
@@ -337,6 +417,21 @@ select.admin-input {
   border-color: rgba(66, 184, 131, 0.5);
 }
 
+.glass-card {
+  background: rgba(11, 19, 38, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(218, 226, 253, 0.08);
+  border-radius: 0.75rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+}
+.glass-card:hover {
+  border-color: rgba(66, 184, 131, 0.35);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45), 0 0 30px rgba(66, 184, 131, 0.06);
+  transform: translateY(-4px);
+}
+
 /* ── Text gradient ─────────────────────────────────────────────────────── */
 
 .text-gradient-green {
@@ -348,4 +443,14 @@ select.admin-input {
 
 .metric-glow {
   text-shadow: 0 0 15px rgba(66, 184, 131, 0.4);
+}
+
+/* ── Touch targets (mobile/tablet min 44px) ─────────────────────────────── */
+
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }

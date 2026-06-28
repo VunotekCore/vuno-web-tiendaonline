@@ -5,7 +5,17 @@ namespace App\Models;
 
 final class SettingModel
 {
+    private ?SizeGuideModel $sizeGuideModel = null;
+
     public function __construct(private \PDO $db) {}
+
+    private function getSizeGuideModel(): SizeGuideModel
+    {
+        if ($this->sizeGuideModel === null) {
+            $this->sizeGuideModel = new SizeGuideModel($this->db);
+        }
+        return $this->sizeGuideModel;
+    }
 
     /**
      * Get all settings grouped by section, with decryption, boolean coercion,
@@ -59,6 +69,16 @@ final class SettingModel
                     $enabled = !empty($data['enabled']) ? '1' : '0';
                     $this->upsert('transfer', 'enabled', $enabled);
                     $this->saveBankAccounts($data['banks']);
+                    continue;
+                }
+
+                if ($section === 'size_guide' && isset($data['rows'])) {
+                    foreach (['title_es', 'title_en', 'footer_es', 'footer_en'] as $k) {
+                        if (isset($data[$k])) {
+                            $this->upsert('size_guide', $k, $data[$k]);
+                        }
+                    }
+                    $this->getSizeGuideModel()->replaceAll($data['rows']);
                     continue;
                 }
 
