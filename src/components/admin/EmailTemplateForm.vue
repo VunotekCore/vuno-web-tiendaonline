@@ -340,15 +340,18 @@ function countClass(len: number, max: number) {
         </div>
       </div>
 
-      <label class="flex items-center gap-3 cursor-pointer">
-        <input v-model="isActive" type="checkbox" class="w-5 h-5 accent-[#42b883] cursor-pointer" />
-        <span class="text-sm font-medium text-[#94a3b8]">PLANTILLA ACTIVA</span>
+      <label class="admin-toggle-label cursor-pointer py-2">
+        <label class="admin-toggle">
+          <input v-model="isActive" type="checkbox" />
+          <div></div>
+        </label>
+        <span class="text-xs font-semibold tracking-widest uppercase" :class="isActive ? 'text-[#42b883]' : 'text-[#94a3b8]'">{{ isActive ? 'ACTIVA' : 'INACTIVA' }}</span>
       </label>
     </div>
 
-    <div class="flex justify-end gap-3 mt-8">
-      <a href="/admin/email-templates" class="admin-btn admin-btn-secondary">CANCELAR</a>
-      <button type="submit" class="admin-btn admin-btn-primary" :disabled="saving">
+    <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 mt-8">
+      <a href="/admin/email-templates" class="admin-btn admin-btn-secondary w-full sm:w-auto justify-center">CANCELAR</a>
+      <button type="submit" class="admin-btn admin-btn-primary w-full sm:w-auto justify-center" :disabled="saving">
         <span class="material-symbols-outlined text-base">{{ saving ? 'progress_activity' : 'save' }}</span>
         {{ saving ? 'GUARDANDO...' : 'GUARDAR' }}
       </button>
