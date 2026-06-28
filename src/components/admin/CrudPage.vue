@@ -71,8 +71,8 @@ async function loadData() {
   loading.value = true
   try {
     const qs = new URLSearchParams()
-    qs.set('page', String(currentPage.value))
-    qs.set('per_page', String(perPage))
+    qs.set('limit', String(perPage))
+    qs.set('offset', String((currentPage.value - 1) * perPage))
     if (search.value.trim()) qs.set('search', search.value.trim())
     const data = await api.get<{ items?: any[]; total?: number }>(`/api/${props.config.apiEndpoint}/list.php?${qs}`)
     items.value = (data as any).items || (Array.isArray(data) ? data : [])
@@ -164,12 +164,12 @@ loadData()
 
 <template>
   <div class="admin-card">
-    <div class="admin-card-header">
+    <div class="admin-card-header flex-col items-start gap-3 md:flex-row md:items-center md:justify-between">
       <div>
         <h2 class="text-lg font-semibold text-[#dae2fd]">{{ config.title }}</h2>
         <p v-if="config.description" class="text-sm text-[#94a3b8] mt-1">{{ config.description }}</p>
       </div>
-      <button class="admin-btn admin-btn-primary" @click="openCreate">
+      <button class="admin-btn admin-btn-primary w-full md:w-auto justify-center" @click="openCreate">
         <span class="material-symbols-outlined text-base">add</span>
         Nuevo {{ config.entityLabel }}
       </button>
@@ -180,7 +180,7 @@ loadData()
         v-model="search"
         type="text"
         :placeholder="`Buscar ${config.entityLabelPlural.toLowerCase()}...`"
-        class="admin-input max-w-xs"
+        class="admin-input w-full md:max-w-xs"
       />
     </div>
 
@@ -189,7 +189,7 @@ loadData()
         <thead>
           <tr>
             <th v-for="col in config.columns" :key="col.key" :class="col.class">{{ col.label }}</th>
-            <th class="w-24 text-right">Acciones</th>
+            <th class="w-24 text-right whitespace-nowrap">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -206,13 +206,15 @@ loadData()
               <span v-if="col.render" v-html="col.render(item)"></span>
               <span v-else>{{ item[col.key] }}</span>
             </td>
-            <td class="text-right">
-              <button class="admin-btn admin-btn-ghost admin-btn-xs" @click="openEdit(item)" title="Editar">
-                <span class="material-symbols-outlined text-sm">edit</span>
-              </button>
-              <button class="admin-btn admin-btn-danger admin-btn-xs" @click="remove(item)" title="Eliminar">
-                <span class="material-symbols-outlined text-sm">delete</span>
-              </button>
+            <td class="text-right whitespace-nowrap">
+              <div class="flex gap-1 justify-end flex-nowrap">
+                <button class="admin-btn admin-btn-ghost admin-btn-xs" @click="openEdit(item)" title="Editar">
+                  <span class="material-symbols-outlined text-sm">edit</span>
+                </button>
+                <button class="admin-btn admin-btn-danger admin-btn-xs" @click="remove(item)" title="Eliminar">
+                  <span class="material-symbols-outlined text-sm">delete</span>
+                </button>
+              </div>
             </td>
           </tr>
         </tbody>
