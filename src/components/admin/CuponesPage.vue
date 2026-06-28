@@ -347,7 +347,7 @@ async function remove(item: Coupon) {
             <label class="block text-sm font-medium text-[#94a3b8] mb-1">Descripción</label>
             <input v-model="formDescription" type="text" class="admin-input" maxlength="255" placeholder="Descripción interna" />
           </div>
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-[#94a3b8] mb-1">Tipo *</label>
               <select v-model="formType" class="admin-input">
@@ -364,7 +364,7 @@ async function remove(item: Coupon) {
             <label class="block text-sm font-medium text-[#94a3b8] mb-1">Monto mínimo de pedido</label>
             <input v-model.number="formMinAmount" type="number" step="0.01" min="0" class="admin-input" placeholder="0 (sin mínimo)" />
           </div>
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-[#94a3b8] mb-1">Usos máximos (total)</label>
               <input v-model.number="formMaxUses" type="number" min="0" class="admin-input" placeholder="Ilimitado" />
@@ -374,7 +374,7 @@ async function remove(item: Coupon) {
               <input v-model.number="formMaxPerCustomer" type="number" min="0" class="admin-input" placeholder="Ilimitado" />
             </div>
           </div>
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-[#94a3b8] mb-1">Válido desde</label>
               <input v-model="formStartsAt" type="datetime-local" class="admin-input" />
@@ -393,9 +393,9 @@ async function remove(item: Coupon) {
           </label>
         </div>
 
-        <div class="flex justify-end gap-3 mt-6">
-          <button class="admin-btn admin-btn-secondary" @click="closeModal">Cancelar</button>
-          <button class="admin-btn admin-btn-primary" :disabled="saving" @click="save">
+        <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 mt-6">
+          <button class="admin-btn admin-btn-secondary w-full sm:w-auto justify-center" @click="closeModal">Cancelar</button>
+          <button class="admin-btn admin-btn-primary w-full sm:w-auto justify-center" :disabled="saving" @click="save">
             {{ saving ? 'Guardando...' : (editingItem ? 'Actualizar' : 'Crear') }}
           </button>
         </div>
