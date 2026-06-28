@@ -262,20 +262,20 @@ function countClass(len: number, max: number) {
 
       <!-- Visual editor -->
       <div>
-        <div class="flex items-center justify-between mb-2">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
           <label class="block text-sm font-medium text-[#94a3b8]">CUERPO DE LA PLANTILLA *</label>
-          <div class="flex items-center gap-2">
-            <button v-if="isEdit" type="button" class="text-xs font-medium text-[#B8956A] border border-[#B8956A]/30 rounded-sm px-3 h-8 inline-flex items-center gap-1 hover:bg-[#B8956A]/5 transition-all" @click="restoreOriginal">
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+            <button v-if="isEdit" type="button" class="text-xs font-medium text-[#B8956A] border border-[#B8956A]/30 rounded-sm px-3 h-8 inline-flex items-center gap-1 hover:bg-[#B8956A]/5 transition-all justify-center sm:justify-start" @click="restoreOriginal">
               <span class="material-symbols-outlined text-sm">restore</span>
               ORIGINAL
             </button>
-            <button type="button" class="text-xs font-medium text-[#dae2fd] border border-[#1e293b] rounded-sm px-3 h-8 inline-flex items-center gap-1 hover:bg-white/5 transition-all" @click="openPreview">
+            <button type="button" class="text-xs font-medium text-[#dae2fd] border border-[#1e293b] rounded-sm px-3 h-8 inline-flex items-center gap-1 hover:bg-white/5 transition-all justify-center flex-1 sm:flex-none" @click="openPreview">
               <span class="material-symbols-outlined text-sm">visibility</span>
               VISTA PREVIA
             </button>
-            <div class="flex items-center gap-0.5 border border-[#1e293b] rounded-sm overflow-hidden text-xs font-medium">
-              <button type="button" class="px-3 h-8 transition-colors" :class="isVisualMode ? 'bg-[#42b883] text-white' : 'text-[#94a3b8] hover:text-[#dae2fd]'" @click="setMode(true)">Visual</button>
-              <button type="button" class="px-3 h-8 transition-colors" :class="!isVisualMode ? 'bg-[#42b883] text-white' : 'text-[#94a3b8] hover:text-[#dae2fd]'" @click="setMode(false)">HTML</button>
+            <div class="flex items-stretch gap-0.5 border border-[#1e293b] rounded-sm overflow-hidden text-xs font-medium flex-1 sm:flex-none">
+              <button type="button" class="flex-1 px-3 h-8 transition-colors text-center" :class="isVisualMode ? 'bg-[#42b883] text-white' : 'text-[#94a3b8] hover:text-[#dae2fd]'" @click="setMode(true)">Visual</button>
+              <button type="button" class="flex-1 px-3 h-8 transition-colors text-center" :class="!isVisualMode ? 'bg-[#42b883] text-white' : 'text-[#94a3b8] hover:text-[#dae2fd]'" @click="setMode(false)">HTML</button>
             </div>
           </div>
         </div>
