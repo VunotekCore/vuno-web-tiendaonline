@@ -30,12 +30,10 @@ const tabs: TabItem[] = [
       { id: 'smtp', label: 'Email / SMTP', icon: 'mail' },
     ],
   },
-  { id: 'moneda', label: 'Moneda', icon: 'payments' },
   { id: 'shipping', label: 'Envío', icon: 'local_shipping' },
   { id: 'landing', label: 'Landing', icon: 'dashboard_customize' },
   { id: 'sizeguide', label: 'Guía de Talles', icon: 'straighten' },
   { id: 'whatsapp', label: 'WhatsApp', icon: 'chat' },
-  { id: 'tax', label: 'Impuestos', icon: 'receipt_long' },
   { id: 'policies', label: 'Políticas', icon: 'policy' },
   { id: 'seo', label: 'SEO', icon: 'travel_explore' },
 ]
@@ -183,7 +181,7 @@ function setLs(section: string, field: string, val: any) {
 
 onMounted(async () => {
   try {
-    await Promise.all([loadSettings(), loadCoupons(), loadCategories()])
+    await Promise.all([loadSettings(), loadCoupons(), loadCategories(), loadCurrencies()])
     loading.value = false
   } catch (err: any) {
     loading.value = false
@@ -574,71 +572,163 @@ const landingFieldLabels: Record<string, string> = {
 
     <!-- Store Tab -->
     <div v-if="effectiveTab === 'store'" class="admin-card p-4 md:p-6">
-      <h2 class="text-lg font-semibold text-[#dae2fd] mb-2 flex items-center gap-2">
-        <span class="material-symbols-outlined text-xl">store</span>
-        Información de la Tienda
-      </h2>
-      <div class="mb-6 p-3 bg-[#1e293b] border-l-2 border-[#42b883] rounded-sm">
-        <p class="text-xs text-[#94a3b8]"><span class="material-symbols-outlined text-sm align-text-bottom mr-1">info</span>
-          Datos básicos que identifican tu tienda. Cupón de bienvenida se envía al suscribirse al newsletter.</p>
+      <!-- SECTION: Información de la Tienda -->
+      <div>
+        <h2 class="text-lg font-semibold text-[#dae2fd] mb-2 flex items-center gap-2">
+          <span class="material-symbols-outlined text-xl">store</span>
+          Información de la Tienda
+        </h2>
+        <div class="mb-6 p-3 bg-[#1e293b] border-l-2 border-[#42b883] rounded-sm">
+          <p class="text-xs text-[#94a3b8]"><span class="material-symbols-outlined text-sm align-text-bottom mr-1">info</span>
+            Datos básicos que identifican tu tienda. Cupón de bienvenida se envía al suscribirse al newsletter.</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="md:col-span-2">
+            <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">NOMBRE DE LA TIENDA</label>
+            <input v-model="store.name" class="admin-input" maxlength="200" @input="markDirty('store')" />
+          </div>
+          <div class="md:col-span-2">
+            <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">LEMA / SLOGAN</label>
+            <input v-model="store.slogan" class="admin-input" maxlength="255" @input="markDirty('store')" />
+          </div>
+          <div class="md:col-span-2">
+            <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">EMAIL DE CONTACTO</label>
+            <input v-model="store.email" type="email" class="admin-input" maxlength="255" @input="markDirty('store')" />
+          </div>
+          <div class="md:col-span-2">
+            <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">DESCRIPCIÓN</label>
+            <textarea v-model="store.description" class="admin-textarea h-24" maxlength="1000" @input="markDirty('store')"></textarea>
+          </div>
+          <div class="md:col-span-2">
+            <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">LOGOTIPO</label>
+            <div v-if="!logoUrl" class="border-2 border-dashed border-[#1e293b] hover:border-[#42b883] rounded-sm p-4 md:p-8 text-center cursor-pointer transition-colors"
+                 @click="$refs.logoInput?.click()" @dragover.prevent="($event.target as HTMLElement).classList.add('border-[#42b883]', 'bg-white/5')"
+                 @dragleave.prevent="($event.target as HTMLElement).classList.remove('border-[#42b883]', 'bg-white/5')"
+                 @drop.prevent="handleLogoUpload(($event.dataTransfer?.files[0])!)">
+              <input ref="logoInput" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" class="hidden" @change="($event.target as HTMLInputElement).files?.[0] && handleLogoUpload(($event.target as HTMLInputElement).files![0])" />
+              <span class="material-symbols-outlined text-3xl text-[#94a3b8] block mb-2">upload</span>
+              <p class="text-sm text-[#94a3b8] mb-1">Arrastrá el logotipo o <span class="text-[#42b883] underline">seleccioná un archivo</span></p>
+              <p class="text-xs text-[#94a3b8]">PNG, JPG, WEBP o SVG — Máx 1 MB — 800×400 px máx</p>
+            </div>
+            <div v-else class="border border-[#1e293b] rounded-sm p-4 flex flex-col sm:flex-row items-center gap-6">
+              <div class="w-48 h-16 flex items-center justify-center bg-[#1e293b] rounded-sm overflow-hidden">
+                <img :src="logoUrl" class="max-w-full max-h-full object-contain" alt="Logotipo" />
+              </div>
+              <div class="flex flex-col gap-2">
+                <button class="text-xs font-semibold tracking-widest text-[#42b883] hover:text-[#dae2fd] transition-colors inline-flex items-center gap-1.5" @click="$refs.logoInput?.click()">
+                  <span class="material-symbols-outlined text-lg">refresh</span> REEMPLAZAR
+                </button>
+                <button class="text-xs font-semibold tracking-widest text-[#DC2626] hover:text-red-700 transition-colors inline-flex items-center gap-1.5" @click="removeLogo">
+                  <span class="material-symbols-outlined text-lg">delete</span> ELIMINAR
+                </button>
+              </div>
+            </div>
+            <div v-if="logoUploading" class="mt-2">
+              <div class="w-full bg-[#1e293b] rounded-full h-1.5"><div class="bg-[#42b883] h-1.5 rounded-full transition-all duration-300" :style="{ width: Math.max(0, Math.min(100, logoProgress)) + '%' }"></div></div>
+              <p class="text-xs text-[#94a3b8] mt-1">Subiendo...</p>
+            </div>
+            <p v-if="logoError" class="text-xs text-[#DC2626] mt-1">{{ logoError }}</p>
+          </div>
+          <div class="md:col-span-2">
+            <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">CUPÓN DE BIENVENIDA NEWSLETTER</label>
+            <select v-model="store.newsletter_discount_code" class="admin-select" @change="markDirty('store')">
+              <option value="">— Sin descuento —</option>
+              <option v-for="c in coupons" :key="c.code" :value="c.code">
+                {{ c.code }} ({{ c.discount_type === 'percentage' ? c.discount_value + '%' : '$' + c.discount_value.toFixed(2) }}){{ c.description ? ' — ' + c.description : '' }}
+              </option>
+            </select>
+          </div>
+        </div>
       </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="md:col-span-2">
-          <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">NOMBRE DE LA TIENDA</label>
-          <input v-model="store.name" class="admin-input" maxlength="200" @input="markDirty('store')" />
+
+      <div class="h-px bg-gradient-to-r from-transparent via-[#1e293b] to-transparent my-8"></div>
+
+      <!-- SECTION: Moneda -->
+      <div>
+        <h2 class="text-lg font-semibold text-[#dae2fd] mb-2 flex items-center gap-2">
+          <span class="material-symbols-outlined text-xl">payments</span>
+          Moneda — Divisas
+        </h2>
+        <div class="mb-6 p-3 bg-[#1e293b] border-l-2 border-[#42b883] rounded-sm">
+          <p class="text-xs text-[#94a3b8]">Seleccioná la moneda principal y configurá tasas de cambio.</p>
         </div>
-        <div class="md:col-span-2">
-          <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">LEMA / SLOGAN</label>
-          <input v-model="store.slogan" class="admin-input" maxlength="255" @input="markDirty('store')" />
-        </div>
-        <div class="md:col-span-2">
-          <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">EMAIL DE CONTACTO</label>
-          <input v-model="store.email" type="email" class="admin-input" maxlength="255" @input="markDirty('store')" />
-        </div>
-        <div class="md:col-span-2">
-          <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">DESCRIPCIÓN</label>
-          <textarea v-model="store.description" class="admin-textarea h-24" maxlength="1000" @input="markDirty('store')"></textarea>
-        </div>
-        <div class="md:col-span-2">
-          <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">LOGOTIPO</label>
-          <!-- Upload -->
-          <div v-if="!logoUrl" class="border-2 border-dashed border-[#1e293b] hover:border-[#42b883] rounded-sm p-4 md:p-8 text-center cursor-pointer transition-colors"
-               @click="$refs.logoInput?.click()" @dragover.prevent="($event.target as HTMLElement).classList.add('border-[#42b883]', 'bg-white/5')"
-               @dragleave.prevent="($event.target as HTMLElement).classList.remove('border-[#42b883]', 'bg-white/5')"
-               @drop.prevent="handleLogoUpload(($event.dataTransfer?.files[0])!)">
-            <input ref="logoInput" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" class="hidden" @change="($event.target as HTMLInputElement).files?.[0] && handleLogoUpload(($event.target as HTMLInputElement).files![0])" />
-            <span class="material-symbols-outlined text-3xl text-[#94a3b8] block mb-2">upload</span>
-            <p class="text-sm text-[#94a3b8] mb-1">Arrastrá el logotipo o <span class="text-[#42b883] underline">seleccioná un archivo</span></p>
-            <p class="text-xs text-[#94a3b8]">PNG, JPG, WEBP o SVG — Máx 1 MB — 800×400 px máx</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="md:col-span-2">
+            <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">MONEDA PRINCIPAL</label>
+            <p class="text-sm text-[#94a3b8] mb-3">Los precios se convierten de USD usando la tasa de cambio</p>
+            <select v-model="storeCurrency" class="admin-select max-w-xs" @change="changeStoreCurrency(storeCurrency)">
+              <option value="">Seleccionar moneda...</option>
+              <option v-for="c in currencies" :key="c.code" :value="c.code">{{ c.code }} — {{ c.name }} ({{ c.symbol }})</option>
+            </select>
           </div>
-          <!-- Preview -->
-          <div v-else class="border border-[#1e293b] rounded-sm p-4 flex flex-col sm:flex-row items-center gap-6">
-            <div class="w-48 h-16 flex items-center justify-center bg-[#1e293b] rounded-sm overflow-hidden">
-              <img :src="logoUrl" class="max-w-full max-h-full object-contain" alt="Logotipo" />
+          <div class="md:col-span-2">
+            <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">TASAS DE CAMBIO (vs USD)</label>
+            <p class="text-sm text-[#94a3b8] mb-3">Exchange rate = 1 USD en la moneda destino</p>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-sm">
+                <thead>
+                  <tr class="border-b border-[#1e293b]">
+                    <th class="text-xs font-semibold tracking-widest text-[#94a3b8] pb-2 pr-4">Código</th>
+                    <th class="text-xs font-semibold tracking-widest text-[#94a3b8] pb-2 pr-4">Nombre</th>
+                    <th class="text-xs font-semibold tracking-widest text-[#94a3b8] pb-2 pr-4">Símbolo</th>
+                    <th class="text-xs font-semibold tracking-widest text-[#94a3b8] pb-2 pr-4">Tasa</th>
+                    <th class="text-xs font-semibold tracking-widest text-[#94a3b8] pb-2 pr-4">Decimales</th>
+                    <th class="text-xs font-semibold tracking-widest text-[#94a3b8] pb-2 pr-4">Activa</th>
+                    <th class="text-xs font-semibold tracking-widest text-[#94a3b8] pb-2">Acción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="c in currencies" :key="c.code" class="border-b border-[#1e293b]/50 hover:bg-white/[0.02] transition-colors">
+                    <td class="py-3 pr-4 font-mono text-sm font-semibold text-[#dae2fd]">{{ c.code }}</td>
+                    <td class="py-3 pr-4 text-[#dae2fd]">{{ c.name }}</td>
+                    <td class="py-3 pr-4 font-mono text-[#dae2fd]">{{ c.symbol }}</td>
+                    <td class="py-3 pr-4">
+                      <input type="number" step="0.000001" min="0.000001" v-model="c.exchange_rate"
+                             class="w-28 bg-transparent border-b border-[#1e293b] pb-1 text-[#dae2fd] focus:border-[#42b883] focus:outline-none text-sm font-mono"
+                             @input="saveCurrencyRates; markDirty('moneda')" />
+                    </td>
+                    <td class="py-3 pr-4 text-[#94a3b8]">{{ c.decimal_places }}</td>
+                    <td class="py-3 pr-4">
+                      <input type="checkbox" v-model="c.is_active"
+                             class="w-4 h-4 accent-[#42b883] cursor-pointer"
+                             @change="saveCurrencyRates; markDirty('moneda')" />
+                    </td>
+                    <td class="py-3">
+                      <span v-if="c.code === 'USD'" class="text-xs text-[#94a3b8]">Base</span>
+                      <button v-else class="w-10 h-10 flex items-center justify-center text-[#94a3b8] hover:text-[#DC2626] transition-colors" @click="deleteCurrency(c.code)">
+                        <span class="material-symbols-outlined text-lg">delete</span>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
-            <div class="flex flex-col gap-2">
-              <button class="text-xs font-semibold tracking-widest text-[#42b883] hover:text-[#dae2fd] transition-colors inline-flex items-center gap-1.5" @click="$refs.logoInput?.click()">
-                <span class="material-symbols-outlined text-lg">refresh</span> REEMPLAZAR
-              </button>
-              <button class="text-xs font-semibold tracking-widest text-[#DC2626] hover:text-red-700 transition-colors inline-flex items-center gap-1.5" @click="removeLogo">
-                <span class="material-symbols-outlined text-lg">delete</span> ELIMINAR
-              </button>
-            </div>
           </div>
-          <div v-if="logoUploading" class="mt-2">
-            <div class="w-full bg-[#1e293b] rounded-full h-1.5"><div class="bg-[#42b883] h-1.5 rounded-full transition-all duration-300" :style="{ width: Math.max(0, Math.min(100, logoProgress)) + '%' }"></div></div>
-            <p class="text-xs text-[#94a3b8] mt-1">Subiendo...</p>
+          <div class="md:col-span-2">
+            <button class="text-xs font-semibold tracking-widest text-[#94a3b8] hover:text-[#dae2fd] inline-flex items-center gap-1.5 transition-colors" @click="showCurrencyModal = true">
+              <span class="material-symbols-outlined text-lg">add_circle</span> AGREGAR MONEDA
+            </button>
           </div>
-          <p v-if="logoError" class="text-xs text-[#DC2626] mt-1">{{ logoError }}</p>
         </div>
-        <div class="md:col-span-2">
-          <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">CUPÓN DE BIENVENIDA NEWSLETTER</label>
-          <select v-model="store.newsletter_discount_code" class="admin-select" @change="markDirty('store')">
-            <option value="">— Sin descuento —</option>
-            <option v-for="c in coupons" :key="c.code" :value="c.code">
-              {{ c.code }} ({{ c.discount_type === 'percentage' ? c.discount_value + '%' : '$' + c.discount_value.toFixed(2) }}){{ c.description ? ' — ' + c.description : '' }}
-            </option>
-          </select>
+      </div>
+
+      <div class="h-px bg-gradient-to-r from-transparent via-[#1e293b] to-transparent my-8"></div>
+
+      <!-- SECTION: Impuestos -->
+      <div>
+        <h2 class="text-lg font-semibold text-[#dae2fd] mb-2 flex items-center gap-2">
+          <span class="material-symbols-outlined text-xl">receipt_long</span>
+          Impuestos — IVA / Tax Rate
+        </h2>
+        <div class="mb-6 p-3 bg-[#1e293b] border-l-2 border-[#42b883] rounded-sm">
+          <p class="text-xs text-[#94a3b8]">Porcentaje de impuesto aplicado al subtotal después de descuentos.</p>
+        </div>
+        <div class="max-w-xs">
+          <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">TASA DE IMPUESTO (%)</label>
+          <div class="flex items-center gap-2">
+            <input v-model.number="tax.rate" type="number" step="0.01" min="0" max="100" class="admin-input" placeholder="15" @input="markDirty('tax')" />
+            <span class="text-[#94a3b8] shrink-0">%</span>
+          </div>
         </div>
       </div>
     </div>
@@ -800,70 +890,7 @@ const landingFieldLabels: Record<string, string> = {
       </div>
     </div>
 
-    <!-- Moneda Tab -->
-    <div v-if="effectiveTab === 'moneda'" class="admin-card p-4 md:p-6">
-      <h2 class="text-lg font-semibold text-[#dae2fd] mb-2 flex items-center gap-2">
-        <span class="material-symbols-outlined text-xl">payments</span>
-        Moneda — Configuración de divisas
-      </h2>
-      <div class="mb-6 p-3 bg-[#1e293b] border-l-2 border-[#42b883] rounded-sm">
-        <p class="text-xs text-[#94a3b8]">Seleccioná la moneda principal y configurá tasas de cambio.</p>
-      </div>
-      <div class="pb-6 mb-6 border-b border-[#1e293b]">
-        <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">MONEDA PRINCIPAL</label>
-        <p class="text-sm text-[#94a3b8] mb-3">Los precios se convierten de USD usando la tasa de cambio</p>
-        <select v-model="storeCurrency" class="admin-select max-w-xs" @change="changeStoreCurrency(storeCurrency)">
-          <option value="">Seleccionar moneda...</option>
-          <option v-for="c in currencies" :key="c.code" :value="c.code">{{ c.code }} — {{ c.name }} ({{ c.symbol }})</option>
-        </select>
-      </div>
-      <div>
-        <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">TASAS DE CAMBIO (vs USD)</label>
-        <p class="text-sm text-[#94a3b8] mb-3">Exchange rate = 1 USD en la moneda destino</p>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-sm">
-            <thead>
-              <tr class="border-b border-[#1e293b]">
-                <th class="text-xs font-semibold tracking-widest text-[#94a3b8] pb-2 pr-4">Código</th>
-                <th class="text-xs font-semibold tracking-widest text-[#94a3b8] pb-2 pr-4">Nombre</th>
-                <th class="text-xs font-semibold tracking-widest text-[#94a3b8] pb-2 pr-4">Símbolo</th>
-                <th class="text-xs font-semibold tracking-widest text-[#94a3b8] pb-2 pr-4">Tasa</th>
-                <th class="text-xs font-semibold tracking-widest text-[#94a3b8] pb-2 pr-4">Decimales</th>
-                <th class="text-xs font-semibold tracking-widest text-[#94a3b8] pb-2 pr-4">Activa</th>
-                <th class="text-xs font-semibold tracking-widest text-[#94a3b8] pb-2">Acción</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="c in currencies" :key="c.code" class="border-b border-[#1e293b]/50 hover:bg-white/[0.02] transition-colors">
-                <td class="py-3 pr-4 font-mono text-sm font-semibold text-[#dae2fd]">{{ c.code }}</td>
-                <td class="py-3 pr-4 text-[#dae2fd]">{{ c.name }}</td>
-                <td class="py-3 pr-4 font-mono text-[#dae2fd]">{{ c.symbol }}</td>
-                <td class="py-3 pr-4">
-                  <input type="number" step="0.000001" min="0.000001" v-model="c.exchange_rate"
-                         class="w-28 bg-transparent border-b border-[#1e293b] pb-1 text-[#dae2fd] focus:border-[#42b883] focus:outline-none text-sm font-mono"
-                         @input="saveCurrencyRates; markDirty('moneda')" />
-                </td>
-                <td class="py-3 pr-4 text-[#94a3b8]">{{ c.decimal_places }}</td>
-                <td class="py-3 pr-4">
-                  <input type="checkbox" v-model="c.is_active"
-                         class="w-4 h-4 accent-[#42b883] cursor-pointer"
-                         @change="saveCurrencyRates; markDirty('moneda')" />
-                </td>
-                <td class="py-3">
-                  <span v-if="c.code === 'USD'" class="text-xs text-[#94a3b8]">Base</span>
-                  <button v-else class="w-10 h-10 flex items-center justify-center text-[#94a3b8] hover:text-[#DC2626] transition-colors" @click="deleteCurrency(c.code)">
-                    <span class="material-symbols-outlined text-lg">delete</span>
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <button class="mt-4 text-xs font-semibold tracking-widest text-[#94a3b8] hover:text-[#dae2fd] inline-flex items-center gap-1.5 transition-colors" @click="loadCurrencies(); showCurrencyModal = true">
-        <span class="material-symbols-outlined text-lg">add_circle</span> AGREGAR MONEDA
-      </button>
-    </div>
+
 
     <!-- Shipping Tab -->
     <div v-if="effectiveTab === 'shipping'" class="admin-card p-4 md:p-6">
@@ -912,23 +939,7 @@ const landingFieldLabels: Record<string, string> = {
       </div>
     </div>
 
-    <!-- Tax Tab -->
-    <div v-if="effectiveTab === 'tax'" class="admin-card p-4 md:p-6">
-      <h2 class="text-lg font-semibold text-[#dae2fd] mb-2 flex items-center gap-2">
-        <span class="material-symbols-outlined text-xl">receipt_long</span>
-        Impuestos — IVA / Tax Rate
-      </h2>
-      <div class="mb-6 p-3 bg-[#1e293b] border-l-2 border-[#42b883] rounded-sm">
-        <p class="text-xs text-[#94a3b8]">Porcentaje de impuesto aplicado al subtotal después de descuentos.</p>
-      </div>
-      <div class="max-w-xs">
-        <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">TASA DE IMPUESTO (%)</label>
-        <div class="flex items-center gap-2">
-          <input v-model.number="tax.rate" type="number" step="0.01" min="0" max="100" class="admin-input" placeholder="15" @input="markDirty('tax')" />
-          <span class="text-[#94a3b8] shrink-0">%</span>
-        </div>
-      </div>
-    </div>
+
 
     <!-- Policies Tab -->
     <div v-if="effectiveTab === 'policies'" class="admin-card p-4 md:p-6">
