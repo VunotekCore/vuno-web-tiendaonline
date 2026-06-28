@@ -23,6 +23,7 @@ const perPage = 10
 const deleteId = ref<number | null>(null)
 const deleteName = ref('')
 const confirmVisible = ref(false)
+const editMode = ref(false)
 let searchTimeout: ReturnType<typeof setTimeout> | null = null
 
 const totalPages = computed(() => Math.max(1, Math.ceil(total.value / perPage)))
@@ -111,18 +112,23 @@ async function reseed() {
     <div class="admin-card-header">
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 w-full">
         <div class="flex flex-wrap items-center gap-4">
-          <div class="relative max-w-xs">
+          <div class="relative w-full md:max-w-xs">
             <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-[#94a3b8] pointer-events-none">search</span>
-            <input v-model="search" type="text" placeholder="Buscar plantillas..." class="admin-input pl-10" @input="onSearchInput" />
+            <input v-model="search" type="text" placeholder="Buscar plantillas..." class="admin-input pl-10 w-full" @input="onSearchInput" />
           </div>
           <span class="text-sm text-[#94a3b8] whitespace-nowrap">{{ total }} plantillas</span>
+          <span v-if="editMode" class="badge badge-paid text-xs tracking-widest font-semibold">EDITANDO</span>
         </div>
         <div class="flex gap-2">
+          <button class="admin-btn admin-btn-edit" @click="editMode = !editMode">
+            <span class="material-symbols-outlined text-base">{{ editMode ? 'edit_off' : 'edit' }}</span>
+            {{ editMode ? 'SALIR' : 'EDITAR' }}
+          </button>
           <button class="admin-btn admin-btn-secondary" @click="reseed">
             <span class="material-symbols-outlined text-base">refresh</span>
             RESEED
           </button>
-          <a href="/admin/email-templates/nuevo" class="admin-btn admin-btn-primary">
+          <a v-if="editMode" href="/admin/email-templates/nuevo" class="admin-btn admin-btn-primary">
             <span class="material-symbols-outlined text-base">add</span>
             NUEVA PLANTILLA
           </a>
@@ -130,7 +136,8 @@ async function reseed() {
       </div>
     </div>
 
-    <div class="overflow-x-auto">
+    <!-- Desktop table -->
+    <div class="overflow-x-auto hidden md:block">
       <table class="admin-table">
         <thead>
           <tr>
@@ -156,19 +163,51 @@ async function reseed() {
               <span class="badge" :class="item.is_active ? 'badge-paid' : 'badge-draft'">{{ item.is_active ? 'ACTIVA' : 'INACTIVA' }}</span>
             </td>
             <td class="text-right">
-              <a :href="'/admin/email-templates/editar?id=' + item.id" class="admin-btn admin-btn-ghost admin-btn-xs" title="Editar">
-                <span class="material-symbols-outlined text-sm">edit</span>
-              </a>
-              <button class="admin-btn admin-btn-danger admin-btn-xs" @click="openDelete(item)" title="Eliminar">
-                <span class="material-symbols-outlined text-sm">delete</span>
-              </button>
+              <div class="flex gap-1 flex-nowrap justify-end whitespace-nowrap">
+                <a v-if="editMode" :href="'/admin/email-templates/editar?id=' + item.id" class="admin-btn admin-btn-ghost admin-btn-xs" title="Editar">
+                  <span class="material-symbols-outlined text-sm">edit</span>
+                </a>
+                <button v-if="editMode" class="admin-btn admin-btn-danger admin-btn-xs" @click="openDelete(item)" title="Eliminar">
+                  <span class="material-symbols-outlined text-sm">delete</span>
+                </button>
+              </div>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <div v-if="totalPages > 1" class="admin-card-footer flex items-center justify-between">
+    <!-- Mobile cards -->
+    <div class="md:hidden space-y-3 px-6 pb-4">
+      <div v-if="loading" class="text-center py-8 text-[#94a3b8]">Cargando...</div>
+      <div v-else-if="items.length === 0" class="text-center py-8 text-[#94a3b8]">No hay plantillas</div>
+      <div v-for="item in items" :key="item.id" class="glass-card overflow-hidden rounded-xl">
+        <div class="px-5 pt-4 pb-3 border-b border-[#dae2fd]/5">
+          <div class="flex justify-between items-start gap-2">
+            <div class="min-w-0 flex-1">
+              <div class="font-medium text-[#dae2fd] truncate">{{ item.name || 'Untitled' }}</div>
+              <div class="text-xs text-[#B8956A] font-mono mt-0.5">{{ item.code || '—' }}</div>
+            </div>
+            <span class="badge shrink-0" :class="item.is_active ? 'badge-paid' : 'badge-draft'">{{ item.is_active ? 'ACTIVA' : 'INACTIVA' }}</span>
+          </div>
+        </div>
+        <div class="px-5 py-3">
+          <div class="text-xs text-[#94a3b8] truncate">{{ item.subject || '—' }}</div>
+        </div>
+        <div class="px-5 py-3 border-t border-[#dae2fd]/5 flex gap-2">
+          <a v-if="editMode" :href="'/admin/email-templates/editar?id=' + item.id" class="admin-btn admin-btn-ghost admin-btn-xs flex-1 justify-center">
+            <span class="material-symbols-outlined text-sm">edit</span>
+            Editar
+          </a>
+          <button v-if="editMode" class="admin-btn admin-btn-danger admin-btn-xs flex-1 justify-center" @click="openDelete(item)">
+            <span class="material-symbols-outlined text-sm">delete</span>
+            Eliminar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="totalPages > 1" class="admin-card-footer flex flex-col sm:flex-row items-center justify-between gap-3">
       <span class="text-sm text-[#94a3b8]">Página {{ currentPage }} de {{ totalPages }}</span>
       <div class="flex gap-1">
         <button class="admin-btn admin-btn-ghost admin-btn-xs" :disabled="currentPage === 1" @click="currentPage--; loadData()">Anterior</button>
@@ -192,9 +231,9 @@ async function reseed() {
           <span class="material-symbols-outlined text-sm">info</span>
           Esta acción no se puede deshacer.
         </p>
-        <div class="flex justify-end gap-3">
-          <button class="admin-btn admin-btn-secondary" @click="closeDelete">Cancelar</button>
-          <button class="admin-btn admin-btn-danger" @click="confirmDelete">Eliminar</button>
+        <div class="flex flex-col-reverse sm:flex-row justify-end gap-3">
+          <button class="admin-btn admin-btn-secondary w-full sm:w-auto justify-center" @click="closeDelete">Cancelar</button>
+          <button class="admin-btn admin-btn-danger w-full sm:w-auto justify-center" @click="confirmDelete">Eliminar</button>
         </div>
       </div>
     </div>
