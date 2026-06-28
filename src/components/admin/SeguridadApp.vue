@@ -173,11 +173,11 @@ async function confirmDisable() {
           <p class="text-sm text-[#94a3b8]">{{ enabled ? 'Se requiere código de autenticación al iniciar sesión.' : 'Protege tu cuenta con autenticación de dos factores.' }}</p>
         </div>
       </div>
-      <button v-if="!enabled" class="admin-btn admin-btn-primary" @click="startSetup">
+      <button v-if="!enabled" class="admin-btn admin-btn-primary w-full sm:w-auto justify-center" @click="startSetup">
         <span class="material-symbols-outlined text-lg">add</span>
         CONFIGURAR 2FA
       </button>
-      <button v-else class="admin-btn admin-btn-danger" @click="openDisable">
+      <button v-else class="admin-btn admin-btn-danger w-full sm:w-auto justify-center" @click="openDisable">
         <span class="material-symbols-outlined text-lg">lock_open</span>
         DESACTIVAR 2FA
       </button>
@@ -189,7 +189,7 @@ async function confirmDisable() {
       <p class="text-sm text-[#94a3b8] mb-4">Re-ingresa tu contraseña para configurar 2FA.</p>
       <input v-model="setupPassword" type="password" class="admin-input mb-4" placeholder="••••••••" @keydown.enter.prevent="confirmPassword" />
       <p v-if="setupPasswordMsg" class="text-sm mb-4" :class="setupPasswordError ? 'text-[#DC2626]' : 'text-[#42b883]'">{{ setupPasswordMsg }}</p>
-      <button class="admin-btn admin-btn-primary" :disabled="verifying" @click="confirmPassword">
+      <button class="admin-btn admin-btn-primary w-full sm:w-auto justify-center" :disabled="verifying" @click="confirmPassword">
         <span class="material-symbols-outlined text-lg" :class="{ 'animate-spin': verifying }">{{ verifying ? 'progress_activity' : 'arrow_forward' }}</span>
         {{ verifying ? 'VERIFICANDO...' : 'CONTINUAR' }}
       </button>
@@ -211,7 +211,7 @@ async function confirmDisable() {
         <label class="block text-xs font-semibold tracking-widest text-[#94a3b8] mb-2 uppercase">CÓDIGO DE VERIFICACIÓN</label>
         <input v-model="verifCode" type="text" inputmode="numeric" class="admin-input text-center text-2xl tracking-[0.25em] mb-4" placeholder="000000" maxlength="8" @keydown.enter.prevent="verifyAndEnable" />
         <p v-if="qrMsg" class="text-sm mb-4" :class="qrError ? 'text-[#DC2626]' : 'text-[#42b883]'">{{ qrMsg }}</p>
-        <button class="admin-btn admin-btn-primary" :disabled="verifying" @click="verifyAndEnable">
+        <button class="admin-btn admin-btn-primary w-full sm:w-auto justify-center" :disabled="verifying" @click="verifyAndEnable">
           <span class="material-symbols-outlined text-lg" :class="{ 'animate-spin': verifying }">{{ verifying ? 'progress_activity' : 'verified' }}</span>
           {{ verifying ? 'VERIFICANDO...' : 'VERIFICAR Y ACTIVAR' }}
         </button>
@@ -232,7 +232,7 @@ async function confirmDisable() {
         </div>
       </div>
       <p class="text-sm text-[#DC2626] mb-4">Estos códigos no se mostrarán nuevamente.</p>
-      <button class="admin-btn admin-btn-primary" @click="finishSetup">
+      <button class="admin-btn admin-btn-primary w-full sm:w-auto justify-center" @click="finishSetup">
         <span class="material-symbols-outlined text-lg">check</span>
         FINALIZAR
       </button>
@@ -248,8 +248,8 @@ async function confirmDisable() {
         <input v-model="disableCode" type="text" inputmode="numeric" class="admin-input text-center text-lg tracking-[0.25em] mb-4" placeholder="000000" maxlength="8" />
         <p v-if="disableMsg" class="text-sm mb-4" :class="disableError ? 'text-[#DC2626]' : 'text-[#42b883]'">{{ disableMsg }}</p>
         <div class="flex flex-col-reverse sm:flex-row justify-end gap-3">
-          <button class="admin-btn admin-btn-secondary" @click="closeDisable">Cancelar</button>
-          <button class="admin-btn admin-btn-danger" :disabled="verifying" @click="confirmDisable">
+          <button class="admin-btn admin-btn-secondary w-full sm:w-auto justify-center" @click="closeDisable">Cancelar</button>
+          <button class="admin-btn admin-btn-danger w-full sm:w-auto justify-center" :disabled="verifying" @click="confirmDisable">
             <span class="material-symbols-outlined text-lg" :class="{ 'animate-spin': verifying }">{{ verifying ? 'progress_activity' : 'lock_open' }}</span>
             {{ verifying ? 'DESACTIVANDO...' : 'DESACTIVAR' }}
           </button>
