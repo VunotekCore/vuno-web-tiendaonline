@@ -203,7 +203,7 @@ loadData()
     </div>
 
     <!-- Desktop: table -->
-    <div class="hidden md:block overflow-x-auto">
+    <div class="hidden md:block overflow-x-auto px-6">
       <table class="admin-table">
         <thead>
           <tr>
