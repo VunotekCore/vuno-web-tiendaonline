@@ -6,7 +6,7 @@ import vue from '@astrojs/vue'
 export default defineConfig({
   site: 'https://shop.anicasolucionesintegrales.com',
   output: 'static',
-  trailingSlash: 'always',
+  trailingSlash: 'ignore',
   compressHTML: true,
   integrations: [
     vue({ appEntrypoint: '/src/plugins/vue-entrypoint' }),
