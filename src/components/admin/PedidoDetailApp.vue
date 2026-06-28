@@ -224,7 +224,8 @@ async function updateStatus() {
         </h2>
       </div>
       <template v-if="order.items?.length">
-        <div class="overflow-x-auto px-6">
+        <!-- Desktop table -->
+        <div class="overflow-x-auto px-6 hidden md:block">
           <table class="admin-table">
             <thead>
               <tr>
@@ -265,6 +266,43 @@ async function updateStatus() {
               </tr>
             </tfoot>
           </table>
+        </div>
+
+        <!-- Mobile items -->
+        <div class="md:hidden divide-y divide-[#dae2fd]/5">
+          <div v-for="(item, i) in order.items" :key="i" class="px-6 py-4">
+            <div class="font-medium text-[#dae2fd] mb-2">{{ item.product?.name || '' }}</div>
+            <div class="flex items-center gap-3 text-sm text-[#94a3b8] mb-2">
+              <span v-if="item.selectedColor" class="inline-flex items-center gap-1">
+                <span class="material-symbols-outlined text-sm">palette</span>{{ item.selectedColor }}
+              </span>
+              <span v-if="item.selectedSize" class="inline-flex items-center gap-1">
+                <span class="material-symbols-outlined text-sm">straighten</span>{{ item.selectedSize }}
+              </span>
+            </div>
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-[#94a3b8]">{{ item.quantity || 1 }} × {{ formatPrice(item.product?.display_price ?? item.product?.price, order.display_symbol) }}</span>
+              <span class="font-medium text-[#dae2fd]">{{ formatPrice(calcSubtotal(item), order.display_symbol) }}</span>
+            </div>
+          </div>
+
+          <!-- Mobile totals -->
+          <div v-if="order.display_discountTotal > 0" class="flex items-center justify-between px-6 py-3 text-sm text-[#B8956A]">
+            <span>Discount</span>
+            <span class="font-medium">-{{ formatPrice(order.display_discountTotal, order.display_symbol) }}</span>
+          </div>
+          <div class="flex items-center justify-between px-6 py-3 text-sm text-[#94a3b8]">
+            <span>Shipping</span>
+            <span class="font-medium">{{ formatPrice(order.display_shipping ?? order.shipping, order.display_symbol) }}</span>
+          </div>
+          <div class="flex items-center justify-between px-6 py-3 text-sm text-[#94a3b8]">
+            <span>IVA</span>
+            <span class="font-medium">{{ formatPrice(order.display_tax ?? order.tax, order.display_symbol) }}</span>
+          </div>
+          <div class="flex items-center justify-between px-6 py-4 text-base font-bold text-[#dae2fd] border-t-2 border-[#dae2fd]/10">
+            <span>Total</span>
+            <span>{{ formatPrice(order.display_total ?? order.total, order.display_symbol) }}</span>
+          </div>
         </div>
       </template>
       <div v-else class="px-6 py-4 text-sm text-[#94a3b8]">No items.</div>
