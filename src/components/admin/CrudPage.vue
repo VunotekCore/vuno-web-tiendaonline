@@ -227,14 +227,26 @@ loadData()
       <div v-if="loading" class="text-center py-8 text-[#94a3b8]">Cargando...</div>
       <div v-else-if="items.length === 0" class="text-center py-8 text-[#94a3b8]">No hay {{ config.entityLabelPlural.toLowerCase() }}</div>
       <div v-else class="space-y-3">
-        <div v-for="item in items" :key="item[idKey]" class="bg-[#111d2e] border border-[#1e293b] rounded-lg p-4 space-y-3">
-          <div v-for="col in config.columns" :key="col.key" class="flex flex-col gap-0.5">
-            <span class="text-[10px] font-semibold tracking-widest text-[#94a3b8] uppercase">{{ col.label }}</span>
-            <span v-if="col.render" v-html="col.render(item)" class="text-[#dae2fd] text-sm"></span>
-            <span v-else class="text-[#dae2fd] text-sm">{{ item[col.key] }}</span>
+        <div v-for="item in items" :key="item[idKey]" class="glass-card overflow-hidden rounded-xl">
+          <!-- Header -->
+          <div class="flex items-center justify-between px-6 pt-5 pb-4 border-b border-[#dae2fd]/5">
+            <div class="flex flex-col gap-0.5 min-w-0">
+              <span class="text-sm font-semibold text-[#dae2fd] truncate">{{ item[config.columns[0]?.key] ?? item.name ?? item.id }}</span>
+              <span v-if="config.columns.length > 1 && item[config.columns[1]?.key]" class="text-xs text-[#94a3b8] truncate">{{ item[config.columns[1]?.key] }}</span>
+            </div>
+            <span class="text-[#42b883]/30 material-symbols-outlined text-2xl shrink-0 ml-2">inventory_2</span>
           </div>
-          <div class="flex gap-2 pt-1">
-            <button class="admin-btn admin-btn-ghost flex-1 justify-center gap-1.5 py-2.5" @click="openEdit(item)">
+          <!-- Body -->
+          <div class="px-6 py-4 space-y-2.5">
+            <div v-for="col in config.columns" :key="col.key" class="flex flex-col gap-0.5">
+              <span class="text-[10px] font-semibold tracking-widest text-[#94a3b8] uppercase">{{ col.label }}</span>
+              <span v-if="col.render" v-html="col.render(item)" class="text-[#dae2fd] text-sm"></span>
+              <span v-else class="text-[#dae2fd] text-sm">{{ item[col.key] ?? '—' }}</span>
+            </div>
+          </div>
+          <!-- Footer -->
+          <div class="flex items-center gap-2 px-6 pb-5 pt-4 border-t border-[#dae2fd]/5">
+            <button class="admin-btn admin-btn-edit flex-1 justify-center gap-1.5 py-2.5" @click="openEdit(item)">
               <span class="material-symbols-outlined text-base">edit</span>
               <span class="text-xs font-semibold">Editar</span>
             </button>
