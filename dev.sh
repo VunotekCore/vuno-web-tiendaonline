@@ -1,59 +1,49 @@
 #!/bin/bash
 # Ram;Lop Development Script
 #
-# Single-terminal (recommended, mimics production):
-#   ./dev.sh          → builds + PHP server on :4321
-#
-# Two-terminal (HMR for frontend, PHP for APIs on :8000):
-#   Terminal 1: ./dev.sh api   → PHP server on :8000
-#   Terminal 2: ./dev.sh hmr   → Astro dev on :4321 (no proxy)
+# ./dev.sh          → PHP API (:8000) + Astro HMR (:4321) en una terminal
+# ./dev.sh api      → Solo PHP API (:8000)
+# ./dev.sh hmr      → Solo Astro HMR (:4321, espera PHP en :8000)
 
 CWD=$(pwd)
 CMD=${1:-start}
 
 case "$CMD" in
   start)
-    echo "=== Starting temporary PHP API on :8000 for build ==="
-    php -S localhost:8000 backend/dev-router.php > /tmp/php-build.log 2>&1 &
+    echo "=== PHP API server on :8000 (background) ==="
+    php -S localhost:8000 "$CWD/backend/dev-router.php" > /tmp/php-api.log 2>&1 &
     PHP_PID=$!
+    echo "  PID $PHP_PID — log: /tmp/php-api.log"
 
-    echo "=== Building static frontend to dist/ ==="
-    PUBLIC_API_URL=http://127.0.0.1:8000/api pnpm build
-
-    echo "=== Stopping temporary PHP API ==="
-    kill $PHP_PID 2>/dev/null || true
-    wait $PHP_PID 2>/dev/null || true
-
+    echo "=== Astro HMR on :4321 (proxy /api → :8000) ==="
     echo ""
-    echo "🚀 http://localhost:4321"
-    echo "   Static assets from dist/ (built frontend)"
-    echo "   PHP APIs from backend/ source (live, no copy needed)"
+    echo "  http://localhost:4321"
+    echo "  Ctrl+C to stop both servers"
     echo ""
-    php -S localhost:4321 backend/dev-router.php
+
+    trap "kill $PHP_PID 2>/dev/null; exit" INT TERM
+    pnpm dev
+    kill $PHP_PID 2>/dev/null
+    wait $PHP_PID 2>/dev/null
     ;;
 
   api)
     echo "=== PHP API server on :8000 ==="
-    echo "   API served from backend/ source (no dist/ dependency)"
-    echo "   Run './dev.sh hmr' in another terminal for Astro HMR"
-    echo ""
-    php -S localhost:8000 backend/dev-router.php
+    php -S localhost:8000 "$CWD/backend/dev-router.php"
     ;;
 
   hmr)
     echo "=== Astro dev server on :4321 ==="
-    echo "   API calls go to http://localhost:8000 (CORS)"
-    echo "   Make sure PHP is running on :8000"
-    echo ""
+    echo "  API calls go to http://localhost:8000 (vite proxy)"
     pnpm dev
     ;;
 
   *)
     echo "Ram;Lop — Development"
     echo ""
-    echo "  ./dev.sh         Build + PHP server on :4321 (recommended)"
+    echo "  ./dev.sh         PHP :8000 + Astro HMR :4321 (recommended)"
     echo "  ./dev.sh api     PHP API server on :8000"
-    echo "  ./dev.sh hmr     Astro HMR on :4321 (calls APIs on :8000 via CORS)"
+    echo "  ./dev.sh hmr     Astro HMR on :4321"
     echo ""
     ;;
 esac
