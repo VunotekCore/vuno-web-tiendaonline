@@ -25,6 +25,7 @@ const items = ref<Coupon[]>([])
 const loading = ref(false)
 const saving = ref(false)
 const search = ref('')
+const searchTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 const currentPage = ref(1)
 const total = ref(0)
 const perPage = 10
@@ -42,6 +43,10 @@ const formStartsAt = ref('')
 const formExpiresAt = ref('')
 const formActive = ref(true)
 const formError = ref('')
+const editMode = ref(false)
+
+function enableEdit() { editMode.value = true }
+function disableEdit() { editMode.value = false }
 
 const totalPages = computed(() => Math.max(1, Math.ceil(total.value / perPage)))
 
@@ -68,6 +73,15 @@ async function loadData() {
     items.value = data.items || []
     total.value = data.total || items.value.length
   } catch { items.value = []; total.value = 0 } finally { loading.value = false }
+}
+
+function onSearchInput(val: string) {
+  search.value = val
+  if (searchTimer.value) clearTimeout(searchTimer.value)
+  searchTimer.value = setTimeout(() => {
+    currentPage.value = 1
+    loadData()
+  }, 300)
 }
 
 function formatCurrency(n: number | null | undefined) {
@@ -187,22 +201,30 @@ async function remove(item: Coupon) {
 
 <template>
   <div class="admin-card">
-    <div class="admin-card-header">
+    <div class="admin-card-header flex-col items-start gap-3 md:flex-row md:items-center md:justify-between">
       <div>
         <h2 class="text-lg font-semibold text-[#dae2fd]">Cupones</h2>
         <p class="text-sm text-[#94a3b8] mt-1">Gestiona códigos de descuento</p>
       </div>
-      <button class="admin-btn admin-btn-primary" @click="openCreate">
-        <span class="material-symbols-outlined text-base">add</span>
-        Nuevo Cupón
-      </button>
+      <div class="flex items-center gap-3 w-full md:w-auto">
+        <button v-if="!editMode" class="admin-btn admin-btn-edit h-11 px-5 w-full md:w-auto justify-center" @click="enableEdit">
+          <span class="material-symbols-outlined text-base">edit</span>
+          EDITAR
+        </button>
+        <span v-else class="badge badge-paid shrink-0">EDITANDO</span>
+        <button v-if="editMode" class="admin-btn admin-btn-primary w-full md:w-auto justify-center" @click="openCreate">
+          <span class="material-symbols-outlined text-base">add</span>
+          Nuevo Cupón
+        </button>
+      </div>
     </div>
 
     <div class="px-6 pb-4">
-      <input v-model="search" type="text" placeholder="Buscar cupones..." class="admin-input max-w-xs" @input="currentPage = 1; loadData()" />
+      <input :value="search" type="text" placeholder="Buscar cupones..." class="admin-input w-full md:max-w-xs" @input="onSearchInput(($event.target as HTMLInputElement).value)" />
     </div>
 
-    <div class="overflow-x-auto">
+    <!-- Desktop: table -->
+    <div class="hidden md:block overflow-x-auto px-6">
       <table class="admin-table">
         <thead>
           <tr>
@@ -211,7 +233,7 @@ async function remove(item: Coupon) {
             <th>Vigencia</th>
             <th>Usos</th>
             <th>Estado</th>
-            <th class="w-24 text-right">Acciones</th>
+            <th class="w-24 text-right whitespace-nowrap">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -233,25 +255,73 @@ async function remove(item: Coupon) {
             </td>
             <td class="text-sm">{{ item.use_count }}<template v-if="item.max_uses"> / {{ item.max_uses }}</template></td>
             <td><span class="badge" :class="statusBadge(item).cls">{{ statusBadge(item).text }}</span></td>
-            <td class="text-right">
-              <button class="admin-btn admin-btn-ghost admin-btn-xs" @click="openEdit(item)" title="Editar">
-                <span class="material-symbols-outlined text-sm">edit</span>
-              </button>
-              <button class="admin-btn admin-btn-danger admin-btn-xs" @click="remove(item)" title="Eliminar">
-                <span class="material-symbols-outlined text-sm">delete</span>
-              </button>
+            <td class="text-right whitespace-nowrap">
+              <div v-if="editMode" class="flex gap-1 justify-end flex-nowrap">
+                <button class="admin-btn admin-btn-ghost admin-btn-xs" @click="openEdit(item)" title="Editar">
+                  <span class="material-symbols-outlined text-sm">edit</span>
+                </button>
+                <button class="admin-btn admin-btn-danger admin-btn-xs" @click="remove(item)" title="Eliminar">
+                  <span class="material-symbols-outlined text-sm">delete</span>
+                </button>
+              </div>
+              <span v-else class="text-xs text-[#94a3b8]">—</span>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <div v-if="totalPages > 1" class="admin-card-footer flex items-center justify-between">
+    <!-- Mobile: cards -->
+    <div class="md:hidden px-6 pb-4">
+      <div v-if="loading" class="text-center py-8 text-[#94a3b8]">Cargando...</div>
+      <div v-else-if="items.length === 0" class="text-center py-8 text-[#94a3b8]">No hay cupones</div>
+      <div v-else class="space-y-3">
+        <div v-for="item in items" :key="item.id" class="glass-card overflow-hidden rounded-xl">
+          <!-- Header -->
+          <div class="flex items-center justify-between px-6 pt-5 pb-4 border-b border-[#dae2fd]/5">
+            <div class="flex flex-col gap-0.5 min-w-0">
+              <span class="text-sm font-semibold text-[#dae2fd] font-mono">{{ item.code }}</span>
+              <span v-if="item.description" class="text-xs text-[#94a3b8] truncate">{{ item.description }}</span>
+            </div>
+            <span class="badge shrink-0" :class="statusBadge(item).cls">{{ statusBadge(item).text }}</span>
+          </div>
+          <!-- Body -->
+          <div class="px-6 py-4 space-y-2.5">
+            <div class="flex justify-between items-center">
+              <span class="text-[10px] font-semibold tracking-widest text-[#94a3b8] uppercase">Descuento</span>
+              <span class="text-sm font-semibold text-[#dae2fd]">{{ discountLabel(item) }}</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-[10px] font-semibold tracking-widest text-[#94a3b8] uppercase">Vigencia</span>
+              <span class="text-xs text-[#94a3b8] text-right">{{ formatDate(item.starts_at) }} — {{ formatDate(item.expires_at) }}</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-[10px] font-semibold tracking-widest text-[#94a3b8] uppercase">Usos</span>
+              <span class="text-xs text-[#dae2fd]">{{ item.use_count }}<template v-if="item.max_uses"> / {{ item.max_uses }}</template></span>
+            </div>
+          </div>
+          <!-- Footer -->
+          <div class="flex items-center gap-2 px-6 pb-5 pt-4 border-t border-[#dae2fd]/5">
+            <button v-if="editMode" class="admin-btn admin-btn-edit flex-1 justify-center gap-1.5 py-2.5" @click="openEdit(item)">
+              <span class="material-symbols-outlined text-base">edit</span>
+              <span class="text-xs font-semibold">Editar</span>
+            </button>
+            <button v-if="editMode" class="admin-btn admin-btn-danger flex-1 justify-center gap-1.5 py-2.5" @click="remove(item)">
+              <span class="material-symbols-outlined text-base">delete</span>
+              <span class="text-xs font-semibold">Eliminar</span>
+            </button>
+            <span v-if="!editMode" class="text-xs text-[#94a3b8] w-full text-center py-2">Vista previa — Editar para modificar</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="totalPages > 1" class="admin-card-footer flex flex-col sm:flex-row items-center justify-between gap-3">
       <span class="text-sm text-[#94a3b8]">Página {{ currentPage }} de {{ totalPages }}</span>
-      <div class="flex gap-1">
-        <button class="admin-btn admin-btn-ghost admin-btn-xs" :disabled="currentPage === 1" @click="currentPage--; loadData()">Anterior</button>
-        <button v-for="p in pageWindow" :key="p" class="admin-btn admin-btn-xs" :class="p === currentPage ? 'admin-btn-primary' : 'admin-btn-ghost'" @click="currentPage = p; loadData()">{{ p }}</button>
-        <button class="admin-btn admin-btn-ghost admin-btn-xs" :disabled="currentPage === totalPages" @click="currentPage++; loadData()">Siguiente</button>
+      <div class="flex gap-1 flex-wrap justify-center">
+        <button class="admin-btn admin-btn-ghost admin-btn-xs px-3" :disabled="currentPage === 1" @click="currentPage--; loadData()">Anterior</button>
+        <button v-for="p in pageWindow" :key="p" class="admin-btn admin-btn-xs min-w-[32px]" :class="p === currentPage ? 'admin-btn-primary' : 'admin-btn-ghost'" @click="currentPage = p; loadData()">{{ p }}</button>
+        <button class="admin-btn admin-btn-ghost admin-btn-xs px-3" :disabled="currentPage === totalPages" @click="currentPage++; loadData()">Siguiente</button>
       </div>
     </div>
   </div>
