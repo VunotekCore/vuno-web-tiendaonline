@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted, computed, watch } from 'vue'
 import { useApi } from './useApi'
 import { useToast } from './useToast'
 
@@ -40,39 +40,31 @@ const tabs: TabItem[] = [
   { id: 'seo', label: 'SEO', icon: 'travel_explore' },
 ]
 
-const expandedGroups = ref<Set<string>>(new Set())
+const activeTab = ref('store')
+const activeChildTab = ref('stripe')
+const loading = ref(true)
 
-function toggleGroup(id: string) {
-  const next = new Set(expandedGroups.value)
-  if (next.has(id)) next.delete(id)
-  else next.add(id)
-  expandedGroups.value = next
-}
-
-function isGroupActive(t: TabItem) {
-  return t.children?.some(c => activeTab.value === c.id) ?? false
-}
-
-function isGroupExpanded(t: TabItem) {
-  return expandedGroups.value.has(t.id)
-}
+const effectiveTab = computed(() => {
+  if (activeTab.value === 'group-pagos' || activeTab.value === 'group-servicios') {
+    return activeChildTab.value
+  }
+  return activeTab.value
+})
 
 const flatTabsList = computed(() => {
   const list: { id: string; label: string }[] = []
   for (const t of tabs) {
-    if (t.children) {
-      for (const c of t.children) {
-        list.push({ id: c.id, label: `${t.label} → ${c.label}` })
-      }
-    } else {
-      list.push({ id: t.id, label: t.label })
-    }
+    list.push({ id: t.id, label: t.label })
   }
   return list
 })
 
-const activeTab = ref('store')
-const loading = ref(true)
+watch(activeTab, (id) => {
+  const group = tabs.find(t => t.id === id)
+  if (group?.children?.length) {
+    activeChildTab.value = group.children[0].id
+  }
+})
 
 // Store settings
 interface StoreSettings {
@@ -537,50 +529,51 @@ const landingFieldLabels: Record<string, string> = {
     <!-- Desktop tab bar -->
     <div class="hidden lg:block border-b border-[#1e293b] mb-8">
       <div class="flex flex-wrap gap-1" role="tablist">
-        <template v-for="t in tabs" :key="t.id">
-          <button v-if="!t.children" role="tab"
-                  :aria-selected="activeTab === t.id"
-                  :class="activeTab === t.id
-                    ? 'bg-[#42b883] text-white'
-                    : 'text-[#94a3b8] hover:bg-white/5 hover:text-[#dae2fd]'"
-                  class="tab-btn px-2 py-2.5 md:py-3 text-xs font-semibold tracking-widest rounded-t-sm transition-all flex items-center gap-1.5"
-                  @click="activeTab = t.id">
-            <span class="material-symbols-outlined text-lg shrink-0">{{ t.icon }}</span>
-            <span class="truncate">{{ t.label }}</span>
-          </button>
-          <div v-else class="relative">
-            <button role="tab"
-                    :aria-selected="isGroupActive(t)"
-                    :class="isGroupActive(t)
-                      ? 'bg-[#42b883]/20 text-[#42b883]'
-                      : 'text-[#94a3b8] hover:bg-white/5 hover:text-[#dae2fd]'"
-                    class="tab-btn px-2 py-2.5 md:py-3 text-xs font-semibold tracking-widest rounded-t-sm transition-all flex items-center gap-1.5"
-                    @click="toggleGroup(t.id)">
-              <span class="material-symbols-outlined text-lg shrink-0">{{ t.icon }}</span>
-              <span class="truncate">{{ t.label }}</span>
-              <span class="material-symbols-outlined text-base transition-transform shrink-0"
-                    :class="isGroupExpanded(t) ? 'rotate-180' : ''">expand_more</span>
-            </button>
-            <div v-show="isGroupExpanded(t)"
-                 class="absolute top-full left-0 z-20 mt-1 flex gap-1 p-2 bg-[#162240] border border-[#1e293b] rounded-sm shadow-xl">
-              <button v-for="child in t.children" :key="child.id" role="tab"
-                      :aria-selected="activeTab === child.id"
-                      :class="activeTab === child.id
-                        ? 'bg-[#42b883] text-white'
-                        : 'text-[#94a3b8] hover:bg-white/10 hover:text-[#dae2fd]'"
-                      class="px-3 py-1.5 text-xs font-semibold tracking-widest rounded-sm transition-all flex items-center gap-1.5 whitespace-nowrap"
-                      @click="activeTab = child.id">
-                <span class="material-symbols-outlined text-base">{{ child.icon }}</span>
-                <span>{{ child.label }}</span>
-              </button>
-            </div>
-          </div>
-        </template>
+        <button v-for="t in tabs" :key="t.id" role="tab"
+                :aria-selected="activeTab === t.id"
+                :class="activeTab === t.id
+                  ? 'bg-[#42b883] text-white'
+                  : 'text-[#94a3b8] hover:bg-white/5 hover:text-[#dae2fd]'"
+                class="tab-btn px-2 py-2.5 md:py-3 text-xs font-semibold tracking-widest rounded-t-sm transition-all flex items-center gap-1.5"
+                @click="activeTab = t.id; if (t.children?.length) activeChildTab = t.children[0].id">
+          <span class="material-symbols-outlined text-lg shrink-0">{{ t.icon }}</span>
+          <span class="truncate">{{ t.label }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Pagos group sub-tabs -->
+    <div v-if="activeTab === 'group-pagos'" class="mb-6 -mt-4">
+      <div class="flex items-center gap-1 border-b border-[#1e293b] pb-3">
+        <button v-for="child in (tabs.find(t => t.id === 'group-pagos')?.children || [])" :key="child.id"
+                :class="activeChildTab === child.id
+                  ? 'bg-[#42b883] text-white'
+                  : 'text-[#94a3b8] hover:bg-white/10 hover:text-[#dae2fd] border border-[#1e293b]'"
+                class="px-3 py-1.5 text-xs font-semibold tracking-widest rounded-sm transition-all flex items-center gap-1.5"
+                @click="activeChildTab = child.id">
+          <span class="material-symbols-outlined text-base">{{ child.icon }}</span>
+          {{ child.label }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Servicios group sub-tabs -->
+    <div v-if="activeTab === 'group-servicios'" class="mb-6 -mt-4">
+      <div class="flex items-center gap-1 border-b border-[#1e293b] pb-3">
+        <button v-for="child in (tabs.find(t => t.id === 'group-servicios')?.children || [])" :key="child.id"
+                :class="activeChildTab === child.id
+                  ? 'bg-[#42b883] text-white'
+                  : 'text-[#94a3b8] hover:bg-white/10 hover:text-[#dae2fd] border border-[#1e293b]'"
+                class="px-3 py-1.5 text-xs font-semibold tracking-widest rounded-sm transition-all flex items-center gap-1.5"
+                @click="activeChildTab = child.id">
+          <span class="material-symbols-outlined text-base">{{ child.icon }}</span>
+          {{ child.label }}
+        </button>
       </div>
     </div>
 
     <!-- Store Tab -->
-    <div v-if="activeTab === 'store'" class="admin-card p-4 md:p-6">
+    <div v-if="effectiveTab === 'store'" class="admin-card p-4 md:p-6">
       <h2 class="text-lg font-semibold text-[#dae2fd] mb-2 flex items-center gap-2">
         <span class="material-symbols-outlined text-xl">store</span>
         Información de la Tienda
@@ -651,7 +644,7 @@ const landingFieldLabels: Record<string, string> = {
     </div>
 
     <!-- Receipt Tab -->
-    <div v-if="activeTab === 'receipt'" class="admin-card p-4 md:p-6">
+    <div v-if="effectiveTab === 'receipt'" class="admin-card p-4 md:p-6">
       <h2 class="text-lg font-semibold text-[#dae2fd] mb-2 flex items-center gap-2">
         <span class="material-symbols-outlined text-xl">receipt</span>
         Datos de Facturación / Recibo
@@ -692,7 +685,7 @@ const landingFieldLabels: Record<string, string> = {
     </div>
 
     <!-- ImageKit Tab -->
-    <div v-if="activeTab === 'imagekit'" class="admin-card p-4 md:p-6">
+    <div v-if="effectiveTab === 'imagekit'" class="admin-card p-4 md:p-6">
       <h2 class="text-lg font-semibold text-[#dae2fd] mb-2 flex items-center gap-2">
         <span class="material-symbols-outlined text-xl">photo_library</span>
         ImageKit — Gestión de Imágenes
@@ -711,7 +704,7 @@ const landingFieldLabels: Record<string, string> = {
     </div>
 
     <!-- Stripe Tab -->
-    <div v-if="activeTab === 'stripe'" class="admin-card p-4 md:p-6">
+    <div v-if="effectiveTab === 'stripe'" class="admin-card p-4 md:p-6">
       <h2 class="text-lg font-semibold text-[#dae2fd] mb-2 flex items-center gap-2">
         <span class="material-symbols-outlined text-xl">credit_card</span>
         Stripe — Pasarela de Pago
@@ -737,7 +730,7 @@ const landingFieldLabels: Record<string, string> = {
     </div>
 
     <!-- Transfer Tab -->
-    <div v-if="activeTab === 'transfer'" class="admin-card p-4 md:p-6">
+    <div v-if="effectiveTab === 'transfer'" class="admin-card p-4 md:p-6">
       <h2 class="text-lg font-semibold text-[#dae2fd] mb-2 flex items-center gap-2">
         <span class="material-symbols-outlined text-xl">account_balance</span>
         Transferencia Bancaria
@@ -780,7 +773,7 @@ const landingFieldLabels: Record<string, string> = {
     </div>
 
     <!-- SMTP Tab -->
-    <div v-if="activeTab === 'smtp'" class="admin-card p-4 md:p-6">
+    <div v-if="effectiveTab === 'smtp'" class="admin-card p-4 md:p-6">
       <h2 class="text-lg font-semibold text-[#dae2fd] mb-2 flex items-center gap-2">
         <span class="material-symbols-outlined text-xl">mail</span>
         Email / SMTP — Notificaciones
@@ -808,7 +801,7 @@ const landingFieldLabels: Record<string, string> = {
     </div>
 
     <!-- Moneda Tab -->
-    <div v-if="activeTab === 'moneda'" class="admin-card p-4 md:p-6">
+    <div v-if="effectiveTab === 'moneda'" class="admin-card p-4 md:p-6">
       <h2 class="text-lg font-semibold text-[#dae2fd] mb-2 flex items-center gap-2">
         <span class="material-symbols-outlined text-xl">payments</span>
         Moneda — Configuración de divisas
@@ -873,7 +866,7 @@ const landingFieldLabels: Record<string, string> = {
     </div>
 
     <!-- Shipping Tab -->
-    <div v-if="activeTab === 'shipping'" class="admin-card p-4 md:p-6">
+    <div v-if="effectiveTab === 'shipping'" class="admin-card p-4 md:p-6">
       <h2 class="text-lg font-semibold text-[#dae2fd] mb-2 flex items-center gap-2">
         <span class="material-symbols-outlined text-xl">local_shipping</span>
         Envío — Tarifa Plana
@@ -898,7 +891,7 @@ const landingFieldLabels: Record<string, string> = {
     </div>
 
     <!-- WhatsApp Tab -->
-    <div v-if="activeTab === 'whatsapp'" class="admin-card p-4 md:p-6">
+    <div v-if="effectiveTab === 'whatsapp'" class="admin-card p-4 md:p-6">
       <h2 class="text-lg font-semibold text-[#dae2fd] mb-2 flex items-center gap-2">
         <span class="material-symbols-outlined text-xl">chat</span>
         WhatsApp — Chat Flotante
@@ -920,7 +913,7 @@ const landingFieldLabels: Record<string, string> = {
     </div>
 
     <!-- Tax Tab -->
-    <div v-if="activeTab === 'tax'" class="admin-card p-4 md:p-6">
+    <div v-if="effectiveTab === 'tax'" class="admin-card p-4 md:p-6">
       <h2 class="text-lg font-semibold text-[#dae2fd] mb-2 flex items-center gap-2">
         <span class="material-symbols-outlined text-xl">receipt_long</span>
         Impuestos — IVA / Tax Rate
@@ -938,7 +931,7 @@ const landingFieldLabels: Record<string, string> = {
     </div>
 
     <!-- Policies Tab -->
-    <div v-if="activeTab === 'policies'" class="admin-card p-4 md:p-6">
+    <div v-if="effectiveTab === 'policies'" class="admin-card p-4 md:p-6">
       <h2 class="text-lg font-semibold text-[#dae2fd] mb-2 flex items-center gap-2">
         <span class="material-symbols-outlined text-xl">policy</span>
         Políticas
@@ -962,7 +955,7 @@ const landingFieldLabels: Record<string, string> = {
     </div>
 
     <!-- SEO Tab -->
-    <div v-if="activeTab === 'seo'" class="admin-card p-4 md:p-6">
+    <div v-if="effectiveTab === 'seo'" class="admin-card p-4 md:p-6">
       <h2 class="text-lg font-semibold text-[#dae2fd] mb-2 flex items-center gap-2">
         <span class="material-symbols-outlined text-xl">travel_explore</span>
         SEO — Optimización para Motores de Búsqueda
@@ -998,7 +991,7 @@ const landingFieldLabels: Record<string, string> = {
     </div>
 
     <!-- Landing Tab -->
-    <div v-if="activeTab === 'landing'" class="admin-card p-4 md:p-6">
+    <div v-if="effectiveTab === 'landing'" class="admin-card p-4 md:p-6">
       <h2 class="text-lg font-semibold text-[#dae2fd] mb-2 flex items-center gap-2">
         <span class="material-symbols-outlined text-xl">dashboard_customize</span>
         Landing — Página Principal
@@ -1119,7 +1112,7 @@ const landingFieldLabels: Record<string, string> = {
     </div>
 
     <!-- Size Guide Tab -->
-    <div v-if="activeTab === 'sizeguide'" class="admin-card p-4 md:p-6">
+    <div v-if="effectiveTab === 'sizeguide'" class="admin-card p-4 md:p-6">
       <h2 class="text-lg font-semibold text-[#dae2fd] mb-2 flex items-center gap-2">
         <span class="material-symbols-outlined text-xl">straighten</span>
         Guía de Talles
