@@ -417,6 +417,39 @@ select.admin-input {
   border-color: rgba(66, 184, 131, 0.5);
 }
 
+/* ── Toggle Switch ──────────────────────────────────────────────────────── */
+
+.admin-toggle input[type="checkbox"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.admin-toggle div {
+  width: 3rem;
+  height: 1.5rem;
+  border-radius: 9999px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  background: #2a3038;
+}
+.admin-toggle input:checked + div {
+  background: #42b883;
+}
+.admin-toggle-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ── Glass card ─────────────────────────────────────────────────────────── */
+
 .glass-card {
   background: rgba(11, 19, 38, 0.55);
   backdrop-filter: blur(10px);

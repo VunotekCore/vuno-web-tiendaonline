@@ -384,9 +384,12 @@ async function remove(item: Coupon) {
               <input v-model="formExpiresAt" type="datetime-local" class="admin-input" />
             </div>
           </div>
-          <label class="flex items-center gap-3 cursor-pointer py-2">
-            <input v-model="formActive" type="checkbox" class="w-5 h-5 accent-[#42b883] cursor-pointer" />
-            <span class="text-sm text-[#94a3b8]">Activo</span>
+          <label class="admin-toggle-label cursor-pointer py-2">
+            <label class="admin-toggle">
+              <input v-model="formActive" type="checkbox" />
+              <div></div>
+            </label>
+            <span class="text-xs font-semibold tracking-widest uppercase" :class="formActive ? 'text-[#42b883]' : 'text-[#94a3b8]'">{{ formActive ? 'ACTIVO' : 'INACTIVO' }}</span>
           </label>
         </div>
 
