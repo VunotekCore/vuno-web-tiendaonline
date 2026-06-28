@@ -53,6 +53,11 @@ const originalValues = ref<Record<string, any>>({})
 
 const idKey = computed(() => props.config.idKey || 'id')
 
+const editMode = ref(false)
+
+function enableEdit() { editMode.value = true }
+function disableEdit() { editMode.value = false }
+
 const totalPages = computed(() => Math.max(1, Math.ceil(total.value / perPage)))
 
 const pageWindow = computed(() => {
@@ -169,10 +174,17 @@ loadData()
         <h2 class="text-lg font-semibold text-[#dae2fd]">{{ config.title }}</h2>
         <p v-if="config.description" class="text-sm text-[#94a3b8] mt-1">{{ config.description }}</p>
       </div>
-      <button class="admin-btn admin-btn-primary w-full md:w-auto justify-center" @click="openCreate">
-        <span class="material-symbols-outlined text-base">add</span>
-        Nuevo {{ config.entityLabel }}
-      </button>
+      <div class="flex items-center gap-3 w-full md:w-auto">
+        <button v-if="!editMode" class="admin-btn admin-btn-edit h-11 px-5 w-full md:w-auto justify-center" @click="enableEdit">
+          <span class="material-symbols-outlined text-base">edit</span>
+          EDITAR
+        </button>
+        <span v-else class="badge badge-paid shrink-0">EDITANDO</span>
+        <button v-if="editMode" class="admin-btn admin-btn-primary w-full md:w-auto justify-center" @click="openCreate">
+          <span class="material-symbols-outlined text-base">add</span>
+          Nuevo {{ config.entityLabel }}
+        </button>
+      </div>
     </div>
 
     <div class="px-6 pb-4">
@@ -208,7 +220,7 @@ loadData()
               <span v-else>{{ item[col.key] }}</span>
             </td>
             <td class="text-right whitespace-nowrap">
-              <div class="flex gap-1 justify-end flex-nowrap">
+              <div v-if="editMode" class="flex gap-1 justify-end flex-nowrap">
                 <button class="admin-btn admin-btn-ghost admin-btn-xs" @click="openEdit(item)" title="Editar">
                   <span class="material-symbols-outlined text-sm">edit</span>
                 </button>
@@ -216,6 +228,7 @@ loadData()
                   <span class="material-symbols-outlined text-sm">delete</span>
                 </button>
               </div>
+              <span v-else class="text-xs text-[#94a3b8]">—</span>
             </td>
           </tr>
         </tbody>
@@ -246,14 +259,15 @@ loadData()
           </div>
           <!-- Footer -->
           <div class="flex items-center gap-2 px-6 pb-5 pt-4 border-t border-[#dae2fd]/5">
-            <button class="admin-btn admin-btn-edit flex-1 justify-center gap-1.5 py-2.5" @click="openEdit(item)">
+            <button v-if="editMode" class="admin-btn admin-btn-edit flex-1 justify-center gap-1.5 py-2.5" @click="openEdit(item)">
               <span class="material-symbols-outlined text-base">edit</span>
               <span class="text-xs font-semibold">Editar</span>
             </button>
-            <button class="admin-btn admin-btn-danger flex-1 justify-center gap-1.5 py-2.5" @click="remove(item)">
+            <button v-if="editMode" class="admin-btn admin-btn-danger flex-1 justify-center gap-1.5 py-2.5" @click="remove(item)">
               <span class="material-symbols-outlined text-base">delete</span>
               <span class="text-xs font-semibold">Eliminar</span>
             </button>
+            <span v-if="!editMode" class="text-xs text-[#94a3b8] w-full text-center py-2">Vista previa — Editar para modificar</span>
           </div>
         </div>
       </div>
