@@ -1,25 +1,35 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { useApi } from './useApi'
 import { useToast } from './useToast'
 
 const api = useApi()
 const toast = useToast()
 
-type TabItem = { id: string; label: string; icon: string }
-type TabGroup = TabItem & { children?: TabItem[] }
+interface TabItem {
+  id: string
+  label: string
+  icon: string
+  children?: TabItem[]
+}
 
-const tabGroups: TabGroup[] = [
+const tabs: TabItem[] = [
   { id: 'store', label: 'Tienda', icon: 'store' },
   { id: 'receipt', label: 'Recibo', icon: 'receipt' },
-  { id: 'payments', label: 'Pagos', icon: 'payments', children: [
-    { id: 'stripe', label: 'Stripe', icon: 'credit_card' },
-    { id: 'transfer', label: 'Transferencia', icon: 'account_balance' },
-  ]},
-  { id: 'services', label: 'Servicios', icon: 'cloud', children: [
-    { id: 'smtp', label: 'Email / SMTP', icon: 'mail' },
-    { id: 'imagekit', label: 'ImageKit', icon: 'photo_library' },
-  ]},
+  {
+    id: 'group-pagos', label: 'Pagos', icon: 'credit_card',
+    children: [
+      { id: 'stripe', label: 'Stripe', icon: 'credit_card' },
+      { id: 'transfer', label: 'Transferencia', icon: 'account_balance' },
+    ],
+  },
+  {
+    id: 'group-servicios', label: 'Servicios', icon: 'settings_applications',
+    children: [
+      { id: 'imagekit', label: 'ImageKit', icon: 'photo_library' },
+      { id: 'smtp', label: 'Email / SMTP', icon: 'mail' },
+    ],
+  },
   { id: 'moneda', label: 'Moneda', icon: 'payments' },
   { id: 'shipping', label: 'Envío', icon: 'local_shipping' },
   { id: 'landing', label: 'Landing', icon: 'dashboard_customize' },
@@ -30,10 +40,38 @@ const tabGroups: TabGroup[] = [
   { id: 'seo', label: 'SEO', icon: 'travel_explore' },
 ]
 
-const leafTabs = tabGroups.flatMap(g => g.children ?? [g])
+const expandedGroups = ref<Set<string>>(new Set())
+
+function toggleGroup(id: string) {
+  const next = new Set(expandedGroups.value)
+  if (next.has(id)) next.delete(id)
+  else next.add(id)
+  expandedGroups.value = next
+}
+
+function isGroupActive(t: TabItem) {
+  return t.children?.some(c => activeTab.value === c.id) ?? false
+}
+
+function isGroupExpanded(t: TabItem) {
+  return expandedGroups.value.has(t.id)
+}
+
+const flatTabsList = computed(() => {
+  const list: { id: string; label: string }[] = []
+  for (const t of tabs) {
+    if (t.children) {
+      for (const c of t.children) {
+        list.push({ id: c.id, label: `${t.label} → ${c.label}` })
+      }
+    } else {
+      list.push({ id: t.id, label: t.label })
+    }
+  }
+  return list
+})
 
 const activeTab = ref('store')
-
 const loading = ref(true)
 
 // Store settings
@@ -485,7 +523,6 @@ const landingFieldLabels: Record<string, string> = {
   desc_es: 'DESCRIPCIÓN (ES)', desc_en: 'DESCRIPTION (EN)',
   view_all_es: 'VER TODOS (ES)', view_all_en: 'VIEW ALL (EN)',
 }
-
 </script>
 
 <template>
@@ -494,40 +531,50 @@ const landingFieldLabels: Record<string, string> = {
   <div v-else class="admin-enter">
     <!-- Mobile tab select -->
     <select v-model="activeTab" class="lg:hidden w-full admin-select mb-8 text-center">
-      <option v-for="t in leafTabs" :key="t.id" :value="t.id">{{ t.label }}</option>
+      <option v-for="t in flatTabsList" :key="t.id" :value="t.id">{{ t.label }}</option>
     </select>
 
     <!-- Desktop tab bar -->
-    <div class="hidden lg:block border-b border-[#1e293b] mb-8 overflow-x-auto">
-      <div class="flex flex-wrap items-stretch min-w-0" role="tablist">
-        <template v-for="g in tabGroups" :key="g.id">
-          <!-- Parent group header + children -->
-          <template v-if="g.children">
-            <div class="flex items-center gap-0.5 px-1 py-1">
-              <span class="text-[10px] font-bold tracking-[0.15em] text-[#6B8FA3] uppercase whitespace-nowrap px-2 select-none">{{ g.label }}</span>
-              <button v-for="c in g.children" :key="c.id" role="tab"
-                      :aria-selected="activeTab === c.id"
-                      :class="activeTab === c.id
-                        ? 'bg-[#42b883] text-white'
-                        : 'text-[#94a3b8] hover:bg-white/5 hover:text-[#dae2fd]'"
-                      class="tab-btn px-2.5 py-2 text-xs font-semibold tracking-widest rounded-t-sm transition-all flex items-center gap-1.5 whitespace-nowrap"
-                      @click="activeTab = c.id">
-                <span class="material-symbols-outlined text-base shrink-0">{{ c.icon }}</span>
-                <span>{{ c.label }}</span>
-              </button>
-            </div>
-          </template>
-          <!-- Leaf tab -->
-          <button v-else role="tab"
-                  :aria-selected="activeTab === g.id"
-                  :class="activeTab === g.id
+    <div class="hidden lg:block border-b border-[#1e293b] mb-8">
+      <div class="flex flex-wrap gap-1" role="tablist">
+        <template v-for="t in tabs" :key="t.id">
+          <button v-if="!t.children" role="tab"
+                  :aria-selected="activeTab === t.id"
+                  :class="activeTab === t.id
                     ? 'bg-[#42b883] text-white'
                     : 'text-[#94a3b8] hover:bg-white/5 hover:text-[#dae2fd]'"
-                  class="tab-btn px-2.5 py-2 text-xs font-semibold tracking-widest rounded-t-sm transition-all flex items-center gap-1.5 whitespace-nowrap"
-                  @click="activeTab = g.id">
-            <span class="material-symbols-outlined text-base shrink-0">{{ g.icon }}</span>
-            <span>{{ g.label }}</span>
+                  class="tab-btn px-2 py-2.5 md:py-3 text-xs font-semibold tracking-widest rounded-t-sm transition-all flex items-center gap-1.5"
+                  @click="activeTab = t.id">
+            <span class="material-symbols-outlined text-lg shrink-0">{{ t.icon }}</span>
+            <span class="truncate">{{ t.label }}</span>
           </button>
+          <div v-else class="relative">
+            <button role="tab"
+                    :aria-selected="isGroupActive(t)"
+                    :class="isGroupActive(t)
+                      ? 'bg-[#42b883]/20 text-[#42b883]'
+                      : 'text-[#94a3b8] hover:bg-white/5 hover:text-[#dae2fd]'"
+                    class="tab-btn px-2 py-2.5 md:py-3 text-xs font-semibold tracking-widest rounded-t-sm transition-all flex items-center gap-1.5"
+                    @click="toggleGroup(t.id)">
+              <span class="material-symbols-outlined text-lg shrink-0">{{ t.icon }}</span>
+              <span class="truncate">{{ t.label }}</span>
+              <span class="material-symbols-outlined text-base transition-transform shrink-0"
+                    :class="isGroupExpanded(t) ? 'rotate-180' : ''">expand_more</span>
+            </button>
+            <div v-show="isGroupExpanded(t)"
+                 class="absolute top-full left-0 z-20 mt-1 flex gap-1 p-2 bg-[#162240] border border-[#1e293b] rounded-sm shadow-xl">
+              <button v-for="child in t.children" :key="child.id" role="tab"
+                      :aria-selected="activeTab === child.id"
+                      :class="activeTab === child.id
+                        ? 'bg-[#42b883] text-white'
+                        : 'text-[#94a3b8] hover:bg-white/10 hover:text-[#dae2fd]'"
+                      class="px-3 py-1.5 text-xs font-semibold tracking-widest rounded-sm transition-all flex items-center gap-1.5 whitespace-nowrap"
+                      @click="activeTab = child.id">
+                <span class="material-symbols-outlined text-base">{{ child.icon }}</span>
+                <span>{{ child.label }}</span>
+              </button>
+            </div>
+          </div>
         </template>
       </div>
     </div>
