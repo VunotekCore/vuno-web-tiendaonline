@@ -26,6 +26,7 @@ const loading = ref(true)
 const currentUserEmail = ref('')
 const modalVisible = ref(false)
 const editingItem = ref<User | null>(null)
+const editMode = ref(false)
 
 const formEmail = ref('')
 const formName = ref('')
@@ -108,8 +109,7 @@ async function remove(item: User) {
   const confirmed = await (window as any).VunoModal.confirm(`¿Eliminar usuario "${item.email}"?`)
   if (!confirmed) return
   try {
-    const res = await fetch(`/api/admin/users.php?id=${item.id}`, { method: 'DELETE', credentials: 'include' })
-    if (!res.ok) throw new Error((await res.json()).error || 'Error al eliminar')
+    await api.del(`/api/admin/users.php?id=${item.id}`)
     toast.success('Usuario eliminado')
     await loadData()
   } catch (e: any) {
@@ -131,17 +131,29 @@ async function changeRole(userId: number, role: string) {
 <template>
   <div class="admin-card">
     <div class="admin-card-header">
-      <div>
-        <h2 class="text-lg font-semibold text-[#dae2fd]">Usuarios</h2>
-        <p class="text-sm text-[#94a3b8] mt-1">{{ items.length }} usuarios</p>
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 w-full">
+        <div class="flex items-center gap-3">
+          <div>
+            <h2 class="text-lg font-semibold text-[#dae2fd]">Usuarios</h2>
+            <p class="text-sm text-[#94a3b8] mt-1">{{ items.length }} usuarios</p>
+          </div>
+          <span v-if="editMode" class="badge badge-paid text-xs tracking-widest font-semibold">EDITANDO</span>
+        </div>
+        <div class="flex gap-2">
+          <button class="admin-btn admin-btn-edit" @click="editMode = !editMode">
+            <span class="material-symbols-outlined text-base">{{ editMode ? 'edit_off' : 'edit' }}</span>
+            {{ editMode ? 'SALIR' : 'EDITAR' }}
+          </button>
+          <button v-if="editMode" class="admin-btn admin-btn-primary" @click="openCreate">
+            <span class="material-symbols-outlined text-base">add</span>
+            Nuevo Usuario
+          </button>
+        </div>
       </div>
-      <button class="admin-btn admin-btn-primary" @click="openCreate">
-        <span class="material-symbols-outlined text-base">add</span>
-        Nuevo Usuario
-      </button>
     </div>
 
-    <div class="overflow-x-auto">
+    <!-- Desktop table -->
+    <div class="overflow-x-auto hidden md:block">
       <table class="admin-table">
         <thead>
           <tr>
@@ -173,21 +185,65 @@ async function changeRole(userId: number, role: string) {
             </td>
             <td class="text-sm text-[#94a3b8]">{{ new Date(item.createdAt).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' }) }}</td>
             <td class="text-right">
-              <button class="admin-btn admin-btn-ghost admin-btn-xs" @click="openEdit(item)" title="Editar">
-                <span class="material-symbols-outlined text-sm">edit</span>
-              </button>
-              <button
-                v-if="item.email !== currentUserEmail"
-                class="admin-btn admin-btn-danger admin-btn-xs"
-                @click="remove(item)"
-                title="Eliminar"
-              >
-                <span class="material-symbols-outlined text-sm">delete</span>
-              </button>
+              <div class="flex gap-1 flex-nowrap justify-end whitespace-nowrap">
+                <button v-if="editMode" class="admin-btn admin-btn-ghost admin-btn-xs" @click="openEdit(item)" title="Editar">
+                  <span class="material-symbols-outlined text-sm">edit</span>
+                </button>
+                <button
+                  v-if="editMode && item.email !== currentUserEmail"
+                  class="admin-btn admin-btn-danger admin-btn-xs"
+                  @click="remove(item)"
+                  title="Eliminar"
+                >
+                  <span class="material-symbols-outlined text-sm">delete</span>
+                </button>
+              </div>
             </td>
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- Mobile cards -->
+    <div class="md:hidden space-y-3 px-6 pb-4">
+      <div v-if="loading" class="text-center py-8 text-[#94a3b8]">Cargando...</div>
+      <div v-else-if="items.length === 0" class="text-center py-8 text-[#94a3b8]">No hay usuarios</div>
+      <div v-for="item in items" :key="item.id" class="glass-card overflow-hidden rounded-xl">
+        <div class="px-5 pt-4 pb-3 border-b border-[#dae2fd]/5">
+          <div class="flex justify-between items-start gap-2">
+            <div class="min-w-0 flex-1">
+              <div class="font-medium text-[#dae2fd] truncate">{{ item.email }}</div>
+              <div class="text-xs text-[#94a3b8] mt-0.5">{{ item.name || '—' }}</div>
+            </div>
+            <div v-if="item.email === currentUserEmail" class="text-xs text-[#42b883] font-semibold tracking-widest">TÚ</div>
+          </div>
+        </div>
+        <div class="px-5 py-3 flex items-center justify-between">
+          <span class="text-xs text-[#94a3b8] font-semibold tracking-widest uppercase">ROL</span>
+          <select
+            class="bg-[#162240] border border-[#1e293b] rounded-sm px-2 py-1 text-xs text-[#dae2fd] focus:border-[#42b883] focus:outline-none"
+            :value="item.role"
+            @change="(e: any) => changeRole(item.id, e.target.value)"
+          >
+            <option v-for="r in roles" :key="r.code" :value="r.code">{{ r.name }}</option>
+          </select>
+        </div>
+        <div class="px-5 py-3 flex items-center justify-between border-t border-[#dae2fd]/5">
+          <span class="text-xs text-[#94a3b8]">{{ new Date(item.createdAt).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' }) }}</span>
+          <div class="flex gap-2">
+            <button v-if="editMode" class="admin-btn admin-btn-ghost admin-btn-xs" @click="openEdit(item)">
+              <span class="material-symbols-outlined text-sm">edit</span>
+            </button>
+            <button
+              v-if="editMode && item.email !== currentUserEmail"
+              class="admin-btn admin-btn-danger admin-btn-xs"
+              @click="remove(item)"
+            >
+              <span class="material-symbols-outlined text-sm">delete</span>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -223,9 +279,9 @@ async function changeRole(userId: number, role: string) {
             </select>
           </div>
         </div>
-        <div class="flex justify-end gap-3 mt-6">
-          <button class="admin-btn admin-btn-secondary" @click="closeModal">Cancelar</button>
-          <button class="admin-btn admin-btn-primary" :disabled="saving || !formEmail.trim()" @click="save">
+        <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 mt-6">
+          <button class="admin-btn admin-btn-secondary w-full sm:w-auto justify-center" @click="closeModal">Cancelar</button>
+          <button class="admin-btn admin-btn-primary w-full sm:w-auto justify-center" :disabled="saving || !formEmail.trim()" @click="save">
             {{ saving ? 'Guardando...' : (editingItem ? 'Actualizar' : 'Crear') }}
           </button>
         </div>
