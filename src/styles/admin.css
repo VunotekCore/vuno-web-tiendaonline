@@ -439,8 +439,22 @@ select.admin-input {
   transition: background 0.15s ease;
   background: #2a3038;
 }
+.admin-toggle div::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: calc(1.5rem - 4px);
+  height: calc(1.5rem - 4px);
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.15s ease;
+}
 .admin-toggle input:checked + div {
   background: #42b883;
+}
+.admin-toggle input:checked + div::after {
+  transform: translateX(calc(3rem - 1.5rem));
 }
 .admin-toggle-label {
   display: inline-flex;
