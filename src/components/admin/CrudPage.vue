@@ -1,0 +1,338 @@
+<script setup lang="ts">
+import { ref, computed, watch } from 'vue'
+import { useApi } from './useApi'
+import { useToast } from './useToast'
+
+export interface Column {
+  key: string
+  label: string
+  render?: (item: any) => string
+  class?: string
+}
+
+export interface FormField {
+  key: string
+  label: string
+  type: 'text' | 'number' | 'select' | 'textarea' | 'hidden' | 'custom' | 'email' | 'datetime-local' | 'checkbox'
+  required?: boolean
+  maxlength?: number
+  placeholder?: string
+  options?: { value: string; label: string }[]
+  custom?: boolean
+}
+
+export interface CrudConfig {
+  title: string
+  description?: string
+  entityLabel: string
+  entityLabelPlural: string
+  apiEndpoint: string
+  columns: Column[]
+  formFields: FormField[]
+  idKey?: string
+  onFormOpen?: (item: any) => void
+  onBeforeSave?: (data: any) => any
+}
+
+const props = defineProps<{ config: CrudConfig }>()
+
+const api = useApi()
+const toast = useToast()
+
+const items = ref<any[]>([])
+const loading = ref(false)
+const saving = ref(false)
+const search = ref('')
+const currentPage = ref(1)
+const total = ref(0)
+const perPage = 15
+const modalVisible = ref(false)
+const editingItem = ref<any>(null)
+const formValues = ref<Record<string, any>>({})
+const originalValues = ref<Record<string, any>>({})
+
+const idKey = computed(() => props.config.idKey || 'id')
+
+const totalPages = computed(() => Math.max(1, Math.ceil(total.value / perPage)))
+
+const pageWindow = computed(() => {
+  const total = totalPages.value
+  const current = currentPage.value
+  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1)
+  let start = Math.max(1, current - 2)
+  let end = Math.min(total, start + 4)
+  if (end - start < 4) {
+    start = Math.max(1, end - 4)
+  }
+  return Array.from({ length: end - start + 1 }, (_, i) => start + i)
+})
+
+async function loadData() {
+  loading.value = true
+  try {
+    const qs = new URLSearchParams()
+    qs.set('page', String(currentPage.value))
+    qs.set('per_page', String(perPage))
+    if (search.value.trim()) qs.set('search', search.value.trim())
+    const data = await api.get<{ items?: any[]; total?: number }>(`/api/${props.config.apiEndpoint}/list.php?${qs}`)
+    items.value = (data as any).items || (Array.isArray(data) ? data : [])
+    total.value = (data as any).total || items.value.length
+  } finally {
+    loading.value = false
+  }
+}
+
+function openCreate() {
+  editingItem.value = null
+  formValues.value = {}
+  originalValues.value = {}
+  props.config.onFormOpen?.(null)
+  modalVisible.value = true
+}
+
+function openEdit(item: any) {
+  editingItem.value = item
+  const vals: Record<string, any> = {}
+  props.config.formFields.forEach((f) => {
+    vals[f.key] = item[f.key] ?? ''
+  })
+  formValues.value = vals
+  originalValues.value = JSON.parse(JSON.stringify(vals))
+  props.config.onFormOpen?.(item)
+  modalVisible.value = true
+}
+
+function isDirty() {
+  return JSON.stringify(formValues.value) !== JSON.stringify(originalValues.value)
+}
+
+function closeModal() {
+  modalVisible.value = false
+  editingItem.value = null
+  formValues.value = {}
+  originalValues.value = {}
+}
+
+async function save() {
+  if (!isDirty()) {
+    toast.info('Sin cambios para guardar')
+    return
+  }
+  saving.value = true
+  try {
+    const payload = props.config.onBeforeSave
+      ? props.config.onBeforeSave({ ...formValues.value })
+      : { ...formValues.value }
+    if (editingItem.value) {
+      await api.post(`/api/${props.config.apiEndpoint}/update.php`, { id: editingItem.value[idKey.value], ...payload })
+      toast.success(`${props.config.entityLabel} actualizado`)
+    } else {
+      await api.post(`/api/${props.config.apiEndpoint}/create.php`, payload)
+      toast.success(`${props.config.entityLabel} creado`)
+    }
+    closeModal()
+    await loadData()
+  } catch (e: any) {
+    toast.error(e.message || 'Error al guardar')
+  } finally {
+    saving.value = false
+  }
+}
+
+async function remove(item: any) {
+  if (!(window as any).VunoModal) return
+  const confirmed = await (window as any).VunoModal.confirm(
+    `¿Eliminar ${props.config.entityLabel.toLowerCase()} "${item.name || item.id}"?`
+  )
+  if (!confirmed) return
+  try {
+    await api.post(`/api/${props.config.apiEndpoint}/delete.php`, { id: item[idKey.value] })
+    toast.success(`${props.config.entityLabel} eliminado`)
+    await loadData()
+  } catch (e: any) {
+    toast.error(e.message || 'Error al eliminar')
+  }
+}
+
+watch(search, () => {
+  currentPage.value = 1
+  loadData()
+})
+
+loadData()
+</script>
+
+<template>
+  <div class="admin-card">
+    <div class="admin-card-header">
+      <div>
+        <h2 class="text-lg font-semibold text-[#dae2fd]">{{ config.title }}</h2>
+        <p v-if="config.description" class="text-sm text-[#94a3b8] mt-1">{{ config.description }}</p>
+      </div>
+      <button class="admin-btn admin-btn-primary" @click="openCreate">
+        <span class="material-symbols-outlined text-base">add</span>
+        Nuevo {{ config.entityLabel }}
+      </button>
+    </div>
+
+    <div class="px-6 pb-4">
+      <input
+        v-model="search"
+        type="text"
+        :placeholder="`Buscar ${config.entityLabelPlural.toLowerCase()}...`"
+        class="admin-input max-w-xs"
+      />
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th v-for="col in config.columns" :key="col.key" :class="col.class">{{ col.label }}</th>
+            <th class="w-24 text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-if="loading">
+            <td :colspan="config.columns.length + 1" class="text-center py-8 text-[#94a3b8]">Cargando...</td>
+          </tr>
+          <tr v-else-if="items.length === 0">
+            <td :colspan="config.columns.length + 1" class="text-center py-8 text-[#94a3b8]">
+              No hay {{ config.entityLabelPlural.toLowerCase() }}
+            </td>
+          </tr>
+          <tr v-for="item in items" :key="item[idKey]">
+            <td v-for="col in config.columns" :key="col.key" :class="col.class">
+              <span v-if="col.render" v-html="col.render(item)"></span>
+              <span v-else>{{ item[col.key] }}</span>
+            </td>
+            <td class="text-right">
+              <button class="admin-btn admin-btn-ghost admin-btn-xs" @click="openEdit(item)" title="Editar">
+                <span class="material-symbols-outlined text-sm">edit</span>
+              </button>
+              <button class="admin-btn admin-btn-danger admin-btn-xs" @click="remove(item)" title="Eliminar">
+                <span class="material-symbols-outlined text-sm">delete</span>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div v-if="totalPages > 1" class="admin-card-footer flex items-center justify-between">
+      <span class="text-sm text-[#94a3b8]">Página {{ currentPage }} de {{ totalPages }}</span>
+      <div class="flex gap-1">
+        <button
+          class="admin-btn admin-btn-ghost admin-btn-xs"
+          :disabled="currentPage === 1"
+          @click="currentPage--; loadData()"
+        >
+          Anterior
+        </button>
+        <button
+          v-for="p in pageWindow"
+          :key="p"
+          class="admin-btn admin-btn-xs"
+          :class="p === currentPage ? 'admin-btn-primary' : 'admin-btn-ghost'"
+          @click="currentPage = p; loadData()"
+        >
+          {{ p }}
+        </button>
+        <button
+          class="admin-btn admin-btn-ghost admin-btn-xs"
+          :disabled="currentPage === totalPages"
+          @click="currentPage++; loadData()"
+        >
+          Siguiente
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <Teleport to="body">
+    <div v-if="modalVisible" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md">
+      <div class="admin-card-lg w-full max-w-lg mx-4">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-lg font-semibold text-[#dae2fd]">
+            {{ editingItem ? 'Editar' : 'Nuevo' }} {{ config.entityLabel }}
+          </h3>
+          <button class="admin-btn admin-btn-ghost admin-btn-xs" @click="closeModal">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <div class="space-y-4">
+          <div v-for="field in config.formFields" :key="field.key">
+            <div v-if="field.type === 'custom'">
+              <slot :name="field.key" :item="editingItem" :values="formValues" />
+            </div>
+            <label v-else-if="field.type === 'checkbox'" class="flex items-center gap-3 cursor-pointer py-2">
+              <input v-model="formValues[field.key]" type="checkbox" class="w-5 h-5 accent-[#42b883] cursor-pointer" :true-value="1" :false-value="0" />
+              <span class="text-sm text-[#94a3b8]">{{ field.label }}</span>
+            </label>
+            <div v-else>
+              <label class="block text-sm font-medium text-[#94a3b8] mb-1">{{ field.label }}</label>
+              <input
+                v-if="field.type === 'text'"
+                v-model="formValues[field.key]"
+                type="text"
+                class="admin-input"
+                :required="field.required"
+                :maxlength="field.maxlength"
+                :placeholder="field.placeholder"
+              />
+              <input
+                v-else-if="field.type === 'number'"
+                v-model.number="formValues[field.key]"
+                type="number"
+                class="admin-input"
+                :required="field.required"
+                :placeholder="field.placeholder"
+              />
+              <select
+                v-else-if="field.type === 'select'"
+                v-model="formValues[field.key]"
+                class="admin-input"
+                :required="field.required"
+              >
+                <option value="" disabled>Seleccionar...</option>
+                <option v-for="opt in field.options" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+              </select>
+              <textarea
+                v-else-if="field.type === 'textarea'"
+                v-model="formValues[field.key]"
+                class="admin-input"
+                rows="3"
+                :required="field.required"
+                :placeholder="field.placeholder"
+              ></textarea>
+              <input
+                v-else-if="field.type === 'email'"
+                v-model="formValues[field.key]"
+                type="email"
+                class="admin-input"
+                :required="field.required"
+                :maxlength="field.maxlength"
+                :placeholder="field.placeholder"
+              />
+              <input
+                v-else-if="field.type === 'datetime-local'"
+                v-model="formValues[field.key]"
+                type="datetime-local"
+                class="admin-input"
+                :required="field.required"
+              />
+              <input v-else-if="field.type === 'hidden'" v-model="formValues[field.key]" type="hidden" />
+            </div>
+          </div>
+        </div>
+        <div class="flex justify-end gap-3 mt-6">
+          <button class="admin-btn admin-btn-secondary" @click="closeModal">Cancelar</button>
+          <button class="admin-btn admin-btn-primary" :disabled="saving" @click="save">
+            <span v-if="saving" class="material-symbols-outlined text-base animate-spin">progress_activity</span>
+            {{ saving ? 'Guardando...' : (editingItem ? 'Actualizar' : 'Crear') }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </Teleport>
+</template>

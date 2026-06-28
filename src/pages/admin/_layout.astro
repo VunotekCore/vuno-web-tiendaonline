@@ -1,5 +1,8 @@
 ---
-import BaseLayout from "../../layouts/BaseLayout.astro";
+import "../../styles/base.css";
+import "../../styles/admin.css";
+import Modal from "../../components/molecules/Modal.astro";
+
 
 interface Props {
   title: string;
@@ -57,20 +60,39 @@ function isExpanded(item: NavItem): boolean {
 }
 ---
 
-<BaseLayout title={`${title} | Admin | Ram;Lop`} seo={{ noindex: true }} hideWhatsapp={true}>
-  <a href="#admin-main" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[200] focus:px-4 focus:py-2 focus:bg-monolith-black focus:text-off-white focus:outline-none focus:ring-2 focus:ring-off-white" aria-label="Saltar al contenido principal">Saltar al contenido</a>
-  <div class="min-h-screen flex bg-background">
-    <!-- Sidebar -->
-    <aside class="hidden lg:flex lg:flex-col w-64 bg-monolith-black text-off-white shrink-0">
-      <div class="px-6 py-6 border-b border-white/10">
-        <a href="/admin" class="font-headline text-headline-md tracking-tighter block">
-          <img data-store-logo alt="" class="h-6 w-auto hidden object-contain brightness-0 invert mb-1" />
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title} | Admin | Ram;Lop</title>
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#0b1326" />
+    <link rel="icon" type="image/x-icon" href="/favicon/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@400;500;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="bg-[#0a1022] text-[#dae2fd] antialiased min-h-screen flex">
+    <a href="#admin-main" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[200] focus:px-4 focus:py-2 focus:bg-[#42b883] focus:text-white focus:outline-none focus:ring-2 focus:ring-white" aria-label="Saltar al contenido principal">Saltar al contenido</a>
+
+    <!-- Sidebar (desktop) -->
+    <aside class="hidden lg:flex lg:flex-col w-64 shrink-0 bg-[#0b1326] border-r border-[#1e293b]">
+      <div class="px-6 py-6 border-b border-[#1e293b]">
+        <a href="/admin" class="font-headline text-headline-md tracking-tighter block text-[#dae2fd]">
           <span data-store-name>Ram;Lop</span>
         </a>
-        <span class="font-label-caps text-label-caps text-stone-gray mt-1 block">ADMIN PANEL</span>
+        <span class="font-label-caps text-label-caps text-[#94a3b8] mt-1 block">ADMIN PANEL</span>
       </div>
 
-      <nav class="flex-1 px-4 py-6 space-y-1">
+      <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
         {navItems.map(item => (
           item.children ? (
             <div class={item.class || ''}>
@@ -78,15 +100,15 @@ function isExpanded(item: NavItem): boolean {
                 href={item.href}
                 class={`flex items-center gap-4 px-3 py-3 font-label-caps text-label-caps rounded-sm transition-colors ${
                   currentPath === item.href
-                    ? "bg-white/10 text-off-white"
-                    : "text-stone-gray hover:text-off-white hover:bg-white/5"
-                } ${item.class || ''}`}
+                    ? "bg-white/10 text-[#dae2fd]"
+                    : "text-[#94a3b8] hover:text-[#dae2fd] hover:bg-white/5"
+                }`}
                 data-nav-parent
               >
                 <span class="material-symbols-outlined text-xl">{item.icon}</span>
                 {item.label}
                 <button type="button" class="ml-auto cursor-pointer" data-nav-chevron aria-label="Toggle submenu">
-                  <span class="material-symbols-outlined transition-transform">expand_more</span>
+                  <span class="material-symbols-outlined transition-transform text-[#94a3b8]">expand_more</span>
                 </button>
               </a>
               <div class="ml-4 space-y-0.5 {isExpanded(item) ? '' : 'hidden'}" data-nav-children>
@@ -95,8 +117,8 @@ function isExpanded(item: NavItem): boolean {
                     href={child.href}
                     class={`flex items-center gap-4 px-3 py-2 font-label-caps text-label-caps rounded-sm transition-colors ${
                       currentPath === child.href
-                        ? "bg-white/10 text-off-white"
-                        : "text-stone-gray hover:text-off-white hover:bg-white/5"
+                        ? "bg-white/10 text-[#dae2fd]"
+                        : "text-[#94a3b8] hover:text-[#dae2fd] hover:bg-white/5"
                     }`}
                   >
                     <span class="material-symbols-outlined text-lg">{child.icon}</span>
@@ -110,8 +132,8 @@ function isExpanded(item: NavItem): boolean {
               href={item.href}
               class={`flex items-center gap-4 px-3 py-3 font-label-caps text-label-caps rounded-sm transition-colors ${
                 currentPath === item.href
-                  ? "bg-white/10 text-off-white"
-                  : "text-stone-gray hover:text-off-white hover:bg-white/5"
+                  ? "bg-white/10 text-[#dae2fd]"
+                  : "text-[#94a3b8] hover:text-[#dae2fd] hover:bg-white/5"
               } ${item.class || ''}`}
             >
               <span class="material-symbols-outlined text-xl">{item.icon}</span>
@@ -121,12 +143,12 @@ function isExpanded(item: NavItem): boolean {
         ))}
       </nav>
 
-      <div class="px-4 py-4 border-t border-white/10 space-y-1">
-        <a href="/" target="_blank" class="flex items-center gap-4 px-3 py-3 font-label-caps text-label-caps text-stone-gray hover:text-off-white hover:bg-white/5 rounded-sm transition-colors">
+      <div class="px-4 py-4 border-t border-[#1e293b] space-y-1">
+        <a href="/" target="_blank" class="flex items-center gap-4 px-3 py-3 font-label-caps text-label-caps text-[#94a3b8] hover:text-[#dae2fd] hover:bg-white/5 rounded-sm transition-colors">
           <span class="material-symbols-outlined text-xl">open_in_new</span>
           Sitio Público
         </a>
-        <button id="logoutBtn" class="w-full flex items-center gap-4 px-3 py-3 font-label-caps text-label-caps text-stone-gray hover:text-error hover:bg-white/5 rounded-sm transition-colors cursor-pointer">
+        <button id="logoutBtn" class="w-full flex items-center gap-4 px-3 py-3 font-label-caps text-label-caps text-[#94a3b8] hover:text-[#DC2626] hover:bg-white/5 rounded-sm transition-colors cursor-pointer">
           <span class="material-symbols-outlined text-xl">logout</span>
           Cerrar Sesión
         </button>
@@ -134,10 +156,10 @@ function isExpanded(item: NavItem): boolean {
     </aside>
 
     <!-- Mobile top nav -->
-    <nav class="lg:hidden fixed top-0 left-0 right-0 bg-monolith-black text-off-white z-50">
+    <nav class="lg:hidden fixed top-0 left-0 right-0 z-50 bg-[#0b1326] border-b border-[#1e293b]">
       <div class="flex items-center justify-between px-4 h-14">
-        <a href="/admin" class="font-headline text-headline-md tracking-tighter"><span data-store-name>Ram;Lop</span></a>
-        <button id="mobileMenuBtn" class="material-symbols-outlined text-2xl cursor-pointer">menu</button>
+        <a href="/admin" class="font-headline text-headline-md tracking-tighter text-[#dae2fd]"><span data-store-name>Ram;Lop</span></a>
+        <button id="mobileMenuBtn" class="material-symbols-outlined text-2xl cursor-pointer text-[#dae2fd]">menu</button>
       </div>
       <div id="mobileMenu" class="hidden px-4 pb-4 space-y-1">
         {navItems.map(item => (
@@ -147,15 +169,15 @@ function isExpanded(item: NavItem): boolean {
                 href={item.href}
                 class={`flex items-center gap-4 px-3 py-3 font-label-caps text-label-caps rounded-sm transition-colors ${
                   currentPath === item.href
-                    ? "bg-white/10 text-off-white"
-                    : "text-stone-gray hover:text-off-white hover:bg-white/5"
+                    ? "bg-white/10 text-[#dae2fd]"
+                    : "text-[#94a3b8] hover:text-[#dae2fd] hover:bg-white/5"
                 }`}
                 data-nav-parent
               >
                 <span class="material-symbols-outlined text-xl">{item.icon}</span>
                 {item.label}
                 <button type="button" class="ml-auto cursor-pointer" data-nav-chevron aria-label="Toggle submenu">
-                  <span class="material-symbols-outlined transition-transform">expand_more</span>
+                  <span class="material-symbols-outlined transition-transform text-[#94a3b8]">expand_more</span>
                 </button>
               </a>
               <div class="ml-4 space-y-0.5 {isExpanded(item) ? '' : 'hidden'}" data-nav-children>
@@ -164,8 +186,8 @@ function isExpanded(item: NavItem): boolean {
                     href={child.href}
                     class={`flex items-center gap-4 px-3 py-2 font-label-caps text-label-caps rounded-sm transition-colors ${
                       currentPath === child.href
-                        ? "bg-white/10 text-off-white"
-                        : "text-stone-gray hover:text-off-white hover:bg-white/5"
+                        ? "bg-white/10 text-[#dae2fd]"
+                        : "text-[#94a3b8] hover:text-[#dae2fd] hover:bg-white/5"
                     }`}
                   >
                     <span class="material-symbols-outlined text-lg">{child.icon}</span>
@@ -179,8 +201,8 @@ function isExpanded(item: NavItem): boolean {
               href={item.href}
               class={`flex items-center gap-4 px-3 py-3 font-label-caps text-label-caps rounded-sm transition-colors ${
                 currentPath === item.href
-                  ? "bg-white/10 text-off-white"
-                  : "text-stone-gray hover:text-off-white hover:bg-white/5"
+                  ? "bg-white/10 text-[#dae2fd]"
+                  : "text-[#94a3b8] hover:text-[#dae2fd] hover:bg-white/5"
               } ${item.class || ''}`}
             >
               <span class="material-symbols-outlined text-xl">{item.icon}</span>
@@ -188,11 +210,11 @@ function isExpanded(item: NavItem): boolean {
             </a>
           )
         ))}
-        <a href="/" target="_blank" class="flex items-center gap-4 px-3 py-3 font-label-caps text-label-caps text-stone-gray hover:text-off-white hover:bg-white/5 rounded-sm transition-colors">
+        <a href="/" target="_blank" class="flex items-center gap-4 px-3 py-3 font-label-caps text-label-caps text-[#94a3b8] hover:text-[#dae2fd] hover:bg-white/5 rounded-sm transition-colors">
           <span class="material-symbols-outlined text-xl">open_in_new</span>
           Sitio Público
         </a>
-        <button id="mobileLogoutBtn" class="w-full flex items-center gap-4 px-3 py-3 font-label-caps text-label-caps text-stone-gray hover:text-error hover:bg-white/5 rounded-sm transition-colors cursor-pointer">
+        <button id="mobileLogoutBtn" class="w-full flex items-center gap-4 px-3 py-3 font-label-caps text-label-caps text-[#94a3b8] hover:text-[#DC2626] hover:bg-white/5 rounded-sm transition-colors cursor-pointer">
           <span class="material-symbols-outlined text-xl">logout</span>
           Cerrar Sesión
         </button>
@@ -201,9 +223,9 @@ function isExpanded(item: NavItem): boolean {
 
     <!-- Main content -->
     <main id="admin-main" class="flex-1 flex flex-col min-h-screen min-w-0 pt-14 lg:pt-0">
-      <div class="border-b border-outline-variant bg-off-white">
+      <div class="border-b border-[#1e293b] bg-[#111d2e]">
         <div class="px-4 md:px-6 py-4">
-          <h1 class="font-headline text-headline-md text-monolith-black">{title}</h1>
+          <h1 class="font-headline text-headline-md text-[#dae2fd]">{title}</h1>
         </div>
       </div>
 
@@ -211,74 +233,80 @@ function isExpanded(item: NavItem): boolean {
         <slot />
       </div>
     </main>
-  </div>
 
-  <script is:inline>
-    // @ts-nocheck
-    // Auth guard
-    (async function () {
-      try {
-        const res = await fetch("/api/admin/verify.php");
-        const data = await res.json();
-        if (!data.valid) window.location.href = "/admin/login";
+    <Modal />
 
-        // Expose role globally for child pages
-        window.adminRole = data.role;
-
-        // Role-based navigation visibility
-        if (data.role !== "superadmin") {
-          document.querySelectorAll(".nav-superadmin").forEach(el => el.remove());
-        }
-
-        if (data.role === "cashier") {
-          // Cashier sees only Mostrador and Pedidos
-          document.querySelectorAll(".nav-cashier-hide").forEach(el => el.remove());
-          // Redirect if on restricted page
-          var allowedPaths = ["/admin/pos", "/admin/pedidos", "/admin/login"];
-          var current = window.location.pathname;
-          var isAllowed = allowedPaths.some(function (p) { return current === p || current.startsWith(p + "/"); });
-          if (!isAllowed) {
-            window.location.href = "/admin/pos/dashboard";
+    <script is:inline>
+      // @ts-nocheck
+      // Auth guard + CSRF injection
+      (async function () {
+        try {
+          const res = await fetch("/api/admin/verify.php");
+          const data = await res.json();
+          if (!data.valid) {
+            window.location.href = "/admin/login";
+            return;
           }
+
+          // Inject CSRF token
+          window.__csrfToken = data.csrf_token || '';
+          window.adminRole = data.role;
+
+          // Role-based navigation visibility
+          if (data.role !== "superadmin") {
+            document.querySelectorAll(".nav-superadmin").forEach(el => el.remove());
+          }
+
+          if (data.role === "cashier") {
+            document.querySelectorAll(".nav-cashier-hide").forEach(el => el.remove());
+            var allowedPaths = ["/admin/pos", "/admin/pedidos", "/admin/login"];
+            var current = window.location.pathname;
+            var isAllowed = allowedPaths.some(function (p) { return current === p || current.startsWith(p + "/"); });
+            if (!isAllowed) {
+              window.location.href = "/admin/pos/dashboard";
+            }
+          }
+        } catch {
+          window.location.href = "/admin/login";
         }
-      } catch {
-        window.location.href = "/admin/login";
+      })();
+
+      function logout() {
+        fetch("/api/admin/logout.php").then(function () {
+          window.location.href = "/admin/login";
+        });
       }
-    })();
+      document.getElementById("logoutBtn")?.addEventListener("click", logout);
+      document.getElementById("mobileLogoutBtn")?.addEventListener("click", logout);
 
-    function logout() {
-      fetch("/api/admin/logout.php").then(() => { window.location.href = "/admin/login"; });
-    }
-    document.getElementById("logoutBtn")?.addEventListener("click", logout);
-    document.getElementById("mobileLogoutBtn")?.addEventListener("click", logout);
-
-    // Mobile menu toggle
-    document.getElementById("mobileMenuBtn")?.addEventListener("click", function () {
-      const menu = document.getElementById("mobileMenu");
-      menu.classList.toggle("hidden");
-      this.textContent = menu.classList.contains("hidden") ? "menu" : "close";
-    });
-
-    // Sidebar expand/collapse — set initial chevron state for expanded sections
-    document.querySelectorAll('[data-nav-children]').forEach(function (container) {
-      if (!container.classList.contains('hidden')) {
-        var chevron = container.previousElementSibling?.querySelector('[data-nav-chevron] .material-symbols-outlined');
-        if (chevron) chevron.textContent = 'expand_less';
-      }
-    });
-
-    document.querySelectorAll('[data-nav-chevron]').forEach(function (btn) {
-      btn.addEventListener('click', function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        var parent = this.closest('[data-nav-parent]');
-        if (!parent) return;
-        var children = parent.nextElementSibling;
-        if (!children || !children.hasAttribute('data-nav-children')) return;
-        var isHidden = children.classList.toggle('hidden');
-        var icon = this.querySelector('.material-symbols-outlined');
-        if (icon) icon.textContent = isHidden ? 'expand_more' : 'expand_less';
+      // Mobile menu toggle
+      document.getElementById("mobileMenuBtn")?.addEventListener("click", function () {
+        const menu = document.getElementById("mobileMenu");
+        menu.classList.toggle("hidden");
+        this.textContent = menu.classList.contains("hidden") ? "menu" : "close";
       });
-    });
-  </script>
-</BaseLayout>
+
+      // Sidebar expand/collapse
+      document.querySelectorAll('[data-nav-children]').forEach(function (container) {
+        if (!container.classList.contains('hidden')) {
+          var chevron = container.previousElementSibling?.querySelector('[data-nav-chevron] .material-symbols-outlined');
+          if (chevron) chevron.textContent = 'expand_less';
+        }
+      });
+
+      document.querySelectorAll('[data-nav-chevron]').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          var parent = this.closest('[data-nav-parent]');
+          if (!parent) return;
+          var children = parent.nextElementSibling;
+          if (!children || !children.hasAttribute('data-nav-children')) return;
+          var isHidden = children.classList.toggle('hidden');
+          var icon = this.querySelector('.material-symbols-outlined');
+          if (icon) icon.textContent = isHidden ? 'expand_more' : 'expand_less';
+        });
+      });
+    </script>
+  </body>
+</html>

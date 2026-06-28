@@ -1,170 +1,30 @@
 ---
-import BaseLayout from "../../layouts/BaseLayout.astro";
-import Button from "../../components/atoms/Button.astro";
+import "../../styles/base.css";
+import "../../styles/admin.css";
+import LoginApp from "../../components/admin/LoginApp.vue";
 ---
 
-<BaseLayout title="Admin Login | Ram;Lop" description="Admin panel" seo={{ noindex: true }}>
-  <main class="min-h-screen flex items-center justify-center bg-background px-margin-mobile">
-    <div class="w-full max-w-sm">
-      <div class="text-center mb-12">
-        <h1 class="font-headline text-headline-md text-monolith-black mb-2">
-          <img data-store-logo alt="" class="h-10 w-auto hidden object-contain mx-auto mb-2" />
-          <span data-store-name>Ram;Lop</span>
-        </h1>
-        <p class="font-label-caps text-label-caps text-secondary">ADMIN PANEL</p>
-      </div>
-
-      <!-- Password form -->
-      <form id="loginForm" class="flex flex-col gap-6">
-        <div id="errorMsg" class="hidden font-body text-body-md text-error bg-error/10 p-3 text-center" aria-live="polite" aria-atomic="true"></div>
-        <div>
-          <label for="email" class="font-label-caps text-label-caps text-secondary block mb-2">EMAIL</label>
-          <input id="email" type="email" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none focus-visible:ring-2 focus-visible:ring-monolith-black focus-visible:ring-offset-1 transition-colors" />
-        </div>
-        <div>
-          <label for="password" class="font-label-caps text-label-caps text-secondary block mb-2">PASSWORD</label>
-          <input id="password" type="password" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none focus-visible:ring-2 focus-visible:ring-monolith-black focus-visible:ring-offset-1 transition-colors" />
-        </div>
-        <Button variant="primary" class="w-full mt-4" id="submitBtn">
-          SIGN IN
-        </Button>
-      </form>
-
-      <!-- TOTP form (hidden initially) -->
-      <form id="totpForm" class="hidden flex flex-col gap-6">
-        <div id="totpMsg" class="hidden font-body text-body-md text-error bg-error/10 p-3 text-center" aria-live="polite" aria-atomic="true"></div>
-        <p class="font-body text-body-md text-secondary text-center">Enter the code from your authenticator app or a backup code.</p>
-        <div>
-          <label for="totpCode" class="font-label-caps text-label-caps text-secondary block mb-2">VERIFICATION CODE</label>
-          <input id="totpCode" type="text" inputmode="numeric" autocomplete="one-time-code" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none focus-visible:ring-2 focus-visible:ring-monolith-black focus-visible:ring-offset-1 transition-colors text-center text-2xl tracking-[0.25em]" placeholder="000000" maxlength="8" />
-        </div>
-        <Button variant="primary" class="w-full mt-4" id="totpBtn">
-          VERIFY
-        </Button>
-        <button type="button" id="backToLoginBtn" class="font-body text-body-md text-clay-accent hover:text-monolith-black transition-colors underline underline-offset-2 text-center">
-          Back to login
-        </button>
-      </form>
-    </div>
-  </main>
-
-  <script>
-    // @ts-nocheck
-    const loginForm = document.getElementById("loginForm");
-    const totpForm = document.getElementById("totpForm");
-    const errorMsg = document.getElementById("errorMsg");
-    const totpMsg = document.getElementById("totpMsg");
-    const submitBtn = document.getElementById("submitBtn");
-    const totpBtn = document.getElementById("totpBtn");
-    const emailInput = document.getElementById("email");
-    const passwordInput = document.getElementById("password");
-    const totpInput = document.getElementById("totpCode");
-
-    let pendingEmail = "";
-
-    // Clear aria-invalid when user starts typing
-    emailInput.addEventListener("input", () => emailInput.removeAttribute("aria-invalid"));
-    passwordInput.addEventListener("input", () => passwordInput.removeAttribute("aria-invalid"));
-    totpInput.addEventListener("input", () => totpInput.removeAttribute("aria-invalid"));
-
-    // On page load: check if 2FA is already pending (e.g. after refresh)
-    (async function checkPending() {
-      try {
-        const res = await fetch("/api/admin/verify.php");
-        const data = await res.json();
-        if (data.totpPending) {
-          pendingEmail = data.email || "";
-          emailInput.value = pendingEmail;
-          emailInput.disabled = true;
-          passwordInput.disabled = true;
-          loginForm.classList.add("hidden");
-          totpForm.classList.remove("hidden");
-          totpInput.focus();
-        }
-      } catch {}
-    })();
-
-    // Password login
-    loginForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const email = emailInput.value;
-      const password = passwordInput.value;
-
-      submitBtn.disabled = true;
-      submitBtn.textContent = "SIGNING IN...";
-      errorMsg.classList.add("hidden");
-
-      try {
-        const res = await fetch("/api/admin/login.php", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        });
-
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Login failed");
-
-        if (data.totpRequired) {
-          pendingEmail = email;
-          loginForm.classList.add("hidden");
-          totpForm.classList.remove("hidden");
-          totpInput.value = "";
-          totpInput.focus();
-        } else {
-          window.location.href = "/admin/productos";
-        }
-      } catch (err) {
-        errorMsg.textContent = err.message || "Invalid credentials";
-        errorMsg.classList.remove("hidden");
-        emailInput.setAttribute("aria-invalid", "true");
-        passwordInput.setAttribute("aria-invalid", "true");
-        submitBtn.disabled = false;
-        submitBtn.textContent = "SIGN IN";
-      }
-    });
-
-    // TOTP verification
-    totpForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const code = totpInput.value.trim();
-
-      totpBtn.disabled = true;
-      totpBtn.textContent = "VERIFYING...";
-      totpMsg.classList.add("hidden");
-
-      try {
-        const res = await fetch("/api/admin/2fa/verify.php", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ code }),
-        });
-
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Verification failed");
-
-        window.location.href = "/admin/productos";
-      } catch (err) {
-        totpMsg.textContent = err.message || "Invalid code";
-        totpMsg.classList.remove("hidden");
-        totpInput.setAttribute("aria-invalid", "true");
-        totpBtn.disabled = false;
-        totpBtn.textContent = "VERIFY";
-        totpInput.value = "";
-        totpInput.focus();
-      }
-    });
-
-    // Back to login
-    document.getElementById("backToLoginBtn").addEventListener("click", async () => {
-      // Logout to clear pending state
-      await fetch("/api/admin/logout.php");
-      emailInput.disabled = false;
-      passwordInput.disabled = false;
-      pendingEmail = "";
-      totpForm.classList.add("hidden");
-      loginForm.classList.remove("hidden");
-      submitBtn.disabled = false;
-      submitBtn.textContent = "SIGN IN";
-    });
-  </script>
-</BaseLayout>
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Login | Ram;Lop</title>
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#0b1326" />
+    <link rel="icon" type="image/x-icon" href="/favicon/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@400;500;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="flex min-h-screen items-center justify-center bg-[#0b1326] antialiased">
+    <LoginApp client:only="vue" />
+  </body>
+</html>

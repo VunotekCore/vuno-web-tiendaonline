@@ -24,6 +24,7 @@
 13. [Base de Datos MySQL](#13-base-de-datos-mysql)
 14. [Plan de Pruebas](#14-plan-de-pruebas--panel-administrador)
 15. [Backend Architecture (SOA)](#15-backend-architecture-soa)
+16. [Vue Admin + Dark Theme Migration](#16-vue-admin--dark-theme-migration)
 
 ---
 
@@ -1097,4 +1098,465 @@ config.php: startAdminSession() / isAdminLoggedIn() / requireRole()
 ```
 
 > **Documentación generada:** 02/06/2026  
-> **Última actualización:** 27/06/2026 — Refactorización SOA completada. `php/` renombrado a `backend/`.
+> **Última actualización:** 29/06/2026 — Sección 16 añadida: Vue Admin + Dark Theme Migration.
+
+---
+
+## 16. Vue Admin + Dark Theme Migration
+
+> **Estado:** Planificado — inicio de implementación
+> **Objetivo:** Migrar el panel /admin de Astro + inline JS a Vue 3 (nativo) y aplicar el dark theme Vunotek.
+> **Proyecto referencia:** `/home/dail/developer/vuno-web-reservas` (hotel PMS, ya migrado)
+> **Stack destino:** Vue 3.5 + Composition API + `<script setup lang="ts">` · Pinia 2 · Tailwind CSS 4 · Astro 6
+
+### 16.1 Arquitectura
+
+```
+Astro (static shell)           Vue 3 (hidrata en cliente)
+┌─────────────────────┐        ┌──────────────────────────────┐
+│  admin/_layout.astro│───────▶│  page Vue component          │
+│  (sidebar HTML,     │        │  (DashboardApp, LoginApp,    │
+│   auth guard,       │        │   ProductosPage, etc.)       │
+│   CSRF injection)   │        │                              │
+│  <PageComponent     │        │  useApi() → useAuthStore()   │
+│    client:only="vue"│        │    .apiFetch()                │
+│  />                 │        │      ↓                       │
+└─────────────────────┘        │    fetch(/api/*.php)         │
+                               │    + X-CSRF-Token header     │
+                               └──────────────────────────────┘
+```
+
+- **Sin Vue Router**: la navegación usa `<a href>` tradicionales (full page load). Cada página monta su propio componente Vue independiente.
+- **Pinia** se instala vía `appEntrypoint` de `@astrojs/vue` — todos los componentes tienen acceso a stores.
+- **CSRF token** se inyecta desde `_layout.astro` a `window.__csrfToken` tras verificar sesión admin.
+- **Estilos**: globales `admin-*` classes (sin scoped CSS en page components).
+
+### 16.2 Dependencias
+
+```bash
+# Instalar
+pnpm add vue@^3.5 pinia@^2.2 @astrojs/vue@^6
+pnpm add -D @tailwindcss/vite
+```
+
+### 16.3 Estructura de Archivos Nueva
+
+```
+src/
+├── styles/
+│   ├── base.css              ← @import "tailwindcss" + @theme + reset + animaciones compartidas
+│   ├── admin.css             ← .admin-card, .admin-table, .admin-input, .admin-btn-*, .badge-*, .skeleton, sidebar
+│   └── public.css            ← .reveal, .product-card, .img-lift, .container-fluid (solo frontend público)
+├── plugins/
+│   └── vue-entrypoint.ts     ← createPinia(), app.use(pinia)
+├── stores/
+│   └── auth.ts               ← Pinia store: csrfToken, user, apiFetch()
+└── components/admin/
+    ├── useApi.ts             ← composable: get/post/put/del wrapping apiFetch()
+    ├── useCrud.ts            ← composable CRUD genérico (load, create, update, remove)
+    ├── useToast.ts           ← composable toast wrapper (VunoToast.success/error/info)
+    ├── CrudPage.vue          ← componente CRUD genérico config-driven
+    ├── LoginApp.vue
+    ├── DashboardApp.vue
+    ├── ProductosPage.vue
+    ├── ProductoFormApp.vue   ← reutilizable para nuevo/editar (5 tabs)
+    ├── VariantsMatrix.vue    ← grid stock colores × talles (migración del .astro)
+    ├── useVariantsMatrix.ts  ← lógica del VariantsMatrix separada
+    ├── CategoriasPage.vue    ← thin wrapper CrudPage
+    ├── BlogPage.vue
+    ├── BlogFormApp.vue
+    ├── BlogCategoriasPage.vue
+    ├── PedidosPage.vue
+    ├── PedidoDetailApp.vue
+    ├── ClientesPage.vue
+    ├── ClienteDetailApp.vue
+    ├── CuponesPage.vue
+    ├── ResenasPage.vue
+    ├── SuscriptoresPage.vue
+    ├── EmailTemplatesPage.vue
+    ├── EmailTemplateForm.vue
+    ├── CampanasPage.vue
+    ├── SeguridadApp.vue
+    ├── UsuariosPage.vue
+    ├── SettingsApp.vue       ← última prioridad (14 tabs)
+    ├── PosApp.vue
+    └── PosDashboard.vue
+```
+
+### 16.4 Configuración
+
+#### astro.config.mjs
+```js
+import { defineConfig } from 'astro/config';
+import vue from '@astrojs/vue';
+import tailwindcss from '@tailwindcss/vite';
+
+export default defineConfig({
+  output: 'static',
+  integrations: [vue({ appEntrypoint: '/src/plugins/vue-entrypoint' })],
+  vite: {
+    plugins: [tailwindcss()],
+    server: { proxy: { '/api': 'http://127.0.0.1:8000' } },
+  },
+});
+```
+
+#### tsconfig.json
+```json
+{
+  "compilerOptions": {
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "allowJs": true,
+    "jsx": "preserve"
+  }
+}
+```
+
+### 16.5 Infraestructura Compartida
+
+#### `src/plugins/vue-entrypoint.ts`
+```ts
+import { createPinia } from 'pinia'
+import type { App } from 'vue'
+export default function (app: App) {
+  app.use(createPinia())
+}
+```
+
+#### `src/stores/auth.ts` — Pinia store
+```ts
+import { defineStore } from 'pinia'
+export const useAuthStore = defineStore('auth', {
+  state: () => ({
+    csrfToken: window.__csrfToken || '',
+    user: null as { id: number; name: string; role: string } | null,
+  }),
+  actions: {
+    setCsrfToken(token: string) { this.csrfToken = token },
+    setUser(user: { id: number; name: string; role: string }) { this.user = user },
+    async apiFetch<T = unknown>(url: string, opts: RequestInit = {}): Promise<T> {
+      const headers = new Headers(opts.headers || {})
+      if (!headers.has('Content-Type')) headers.set('Content-Type', 'application/json')
+      if (this.csrfToken && opts.method && opts.method !== 'GET' && opts.method !== 'HEAD')
+        headers.set('X-CSRF-Token', this.csrfToken)
+      const res = await fetch(url, { ...opts, headers, credentials: 'include' })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: res.statusText }))
+        throw new Error(err.error || `HTTP ${res.status}`)
+      }
+      return res.json()
+    },
+  },
+})
+```
+
+#### `src/components/admin/useApi.ts`
+```ts
+import { useAuthStore } from '../../stores/auth'
+export function useApi() {
+  const auth = useAuthStore()
+  async function get<T = unknown>(url: string): Promise<T> { return auth.apiFetch<T>(url) }
+  async function post<T = unknown>(url: string, body: unknown): Promise<T> {
+    return auth.apiFetch<T>(url, { method: 'POST', body: JSON.stringify(body) })
+  }
+  async function put<T = unknown>(url: string, body: unknown): Promise<T> {
+    return auth.apiFetch<T>(url, { method: 'PUT', body: JSON.stringify(body) })
+  }
+  async function del<T = unknown>(url: string, body?: unknown): Promise<T> {
+    return auth.apiFetch<T>(url, { method: 'DELETE', ...(body ? { body: JSON.stringify(body) } : {}) })
+  }
+  return { get, post, put, del }
+}
+```
+
+#### `src/components/admin/useCrud.ts`
+```ts
+import { ref } from 'vue'
+import { useApi } from './useApi'
+
+export function useCrud<T extends { id: string | number }>(endpoint: string) {
+  const items = ref<T[]>([])
+  const loading = ref(false)
+  const api = useApi()
+
+  async function load(params: Record<string, string | number> = {}) {
+    loading.value = true
+    try {
+      const qs = new URLSearchParams()
+      Object.entries(params).forEach(([k, v]) => qs.set(k, String(v)))
+      const data = await api.get<{ items?: T[] } | T[]>(`/api/${endpoint}/list.php?${qs}`)
+      items.value = Array.isArray(data) ? data : (data as { items: T[] }).items || []
+    } finally { loading.value = false }
+  }
+
+  async function create(body: Partial<T>): Promise<T | null> {
+    const result = await api.post<T>(`/api/${endpoint}/create.php`, body)
+    await load()
+    return result
+  }
+
+  async function update(id: string | number, body: Partial<T>): Promise<T | null> {
+    const result = await api.post<T>(`/api/${endpoint}/update.php`, { id, ...body })
+    await load()
+    return result
+  }
+
+  async function remove(id: string | number): Promise<boolean> {
+    const result = await api.post<{ success: boolean }>(`/api/${endpoint}/delete.php`, { id })
+    if (result.success) await load()
+    return result.success
+  }
+
+  return { items, loading, load, create, update, remove }
+}
+```
+
+#### `src/components/admin/useToast.ts`
+```ts
+// Wrapper tipado sobre window.VunoToast (definido en Modal.astro)
+// Mantiene compatibilidad con el sistema de notificaciones existente
+export function useToast() {
+  return {
+    success: (msg: string) => window.VunoToast?.success(msg),
+    error: (msg: string) => window.VunoToast?.error(msg),
+    warning: (msg: string) => window.VunoToast?.warning(msg),
+    info: (msg: string) => window.VunoToast?.info(msg),
+  }
+}
+```
+
+> **NOTA:** `useToast` es un wrapper temporal. En el proyecto referencia (`vuno-web-reservas`) se usa el mismo patrón `VunoToast` global desde `Modal.astro`. Pendiente migrar a un sistema de notificaciones nativo Vue en ambos proyectos.
+
+#### `src/components/admin/CrudPage.vue`
+
+Componente genérico reutilizable (config-driven) para CRUDs simples. Ver patrón completo en proyecto referencia. Props:
+
+```ts
+interface CrudConfig {
+  title: string
+  description?: string
+  entityLabel: string
+  entityLabelPlural: string
+  apiEndpoint: string           // e.g. "categories"
+  columns: Column[]             // { key, label, render?, class? }
+  formFields: FormField[]       // { key, label, type, required?, options? }
+  idKey?: string                // default "id"
+  onFormOpen?: (item: any) => Partial<FormField>[]
+  onBeforeSave?: (data: any) => any
+}
+```
+
+Incluye: tabla, búsqueda, paginación (5-page window), modal form, dirty checking, create/edit/delete.
+
+### 16.6 Patrón de Página .astro → Vue
+
+Cada página admin se reduce a un wrapper Astro:
+
+```astro
+---
+import AdminLayout from './_layout.astro';
+import DashboardApp from '../../components/admin/DashboardApp.vue';
+---
+<AdminLayout title="Dashboard" pageTitle="Dashboard">
+  <DashboardApp client:only="vue" />
+</AdminLayout>
+```
+
+Excepción: **login** usa layout standalone (sin sidebar):
+```astro
+<body class="flex min-h-screen items-center justify-center bg-[#0b1326] antialiased">
+  <LoginApp client:only="vue" />
+</body>
+```
+
+### 16.7 Mapeo Completo Página → Componente
+
+| Página .astro actual | Vue component | Tipo | Dificultad |
+|---|---|---|---|
+| `admin/login.astro` | `LoginApp.vue` | Standalone | Fácil |
+| `admin/index.astro` | `DashboardApp.vue` | Custom | Fácil |
+| `admin/categorias.astro` | `CategoriasPage.vue` | CrudPage wrapper | Fácil |
+| `admin/blog/categorias.astro` | `BlogCategoriasPage.vue` | CrudPage wrapper | Fácil |
+| `admin/cupones.astro` | `CuponesPage.vue` | CrudPage wrapper | Fácil |
+| `admin/usuarios.astro` | `UsuariosPage.vue` | CrudPage wrapper | Fácil |
+| `admin/suscriptores.astro` | `SuscriptoresPage.vue` | Custom | Fácil |
+| `admin/resenas.astro` | `ResenasPage.vue` | Custom | Media |
+| `admin/blog.astro` | `BlogPage.vue` | Custom | Media |
+| `admin/blog/nuevo.astro` | `BlogFormApp.vue` | Form (reusable) | Media |
+| `admin/blog/editar.astro` | `BlogFormApp.vue` | Form (reusable) | Media |
+| `admin/email-templates.astro` | `EmailTemplatesPage.vue` | Custom | Media |
+| `admin/email-templates/nuevo.astro` | `EmailTemplateForm.vue` | Form | Media |
+| `admin/email-templates/editar.astro` | `EmailTemplateForm.vue` | Form | Media |
+| `admin/clientes.astro` | `ClientesPage.vue` | Custom | Media |
+| `admin/clientes/detalle.astro` | `ClienteDetailApp.vue` | Custom | Media |
+| `admin/pedidos.astro` | `PedidosPage.vue` | Custom | Alta |
+| `admin/pedidos/detalle.astro` | `PedidoDetailApp.vue` | Custom | Alta |
+| `admin/productos.astro` | `ProductosPage.vue` | Custom | Alta |
+| `admin/productos/nuevo.astro` | `ProductoFormApp.vue` | Form (5 tabs + matrix) | **Muy alta** |
+| `admin/productos/editar.astro` | `ProductoFormApp.vue` | Form (5 tabs + matrix) | **Muy alta** |
+| `admin/newsletter/campanas.astro` | `CampanasPage.vue` | Custom | Baja |
+| `admin/seguridad.astro` | `SeguridadApp.vue` | Custom | Baja |
+| `admin/pos.astro` | `PosApp.vue` | Custom | Baja |
+| `admin/pos/dashboard.astro` | `PosDashboard.vue` | Custom | Baja |
+| `admin/configuracion.astro` | `SettingsApp.vue` | 14 tabs | **Diferida** |
+
+### 16.8 VariantsMatrix — Notas de Migración
+
+El componente actual (`src/components/admin/VariantsMatrix.astro`, 882 líneas) se migra a:
+
+- **`VariantsMatrix.vue`** — template: grid colores × talles con inputs de stock
+- **`useVariantsMatrix.ts`** — lógica separada: estados, fill-all, clear-all, toggle color, keyboard nav
+
+Props:
+```ts
+interface VariantsMatrixProps {
+  colors: { name: string; hex: string }[]
+  sizes: string[]
+  initialStock?: Record<string, Record<string, number>>
+  lowStockThreshold?: number
+  readonly?: boolean
+  sizePrefix?: string
+}
+```
+
+Emits:
+```ts
+// Se emite en cada cambio de stock
+emit('update:stock', stockMap: Record<string, Record<string, number>>)
+```
+
+> **Pendiente en proyecto referencia:** Migrar `VariantsMatrix.astro` del proyecto hotelero (`vuno-web-reservas`) al mismo patrón Vue cuando se priorice.
+
+### 16.9 Layout Admin Refactorizado
+
+`_layout.astro` mantiene sidebar en HTML plano (sin Vue) porque la navegación es full page load:
+
+```astro
+---
+import '../styles/base.css';
+import '../styles/admin.css';
+import Modal from '../../components/molecules/Modal.astro';
+
+const navItems = [
+  { href: '/admin', label: 'Dashboard', icon: 'dashboard' },
+  { href: '/admin/productos', label: 'Productos', icon: 'inventory_2' },
+  // ... resto de items
+];
+---
+<aside class="fixed left-0 top-0 bottom-0 z-40 flex w-64 flex-col bg-[#0b1326]">
+  <!-- Logo + Nav items + Footer links -->
+</aside>
+<main class="md:ml-64 min-h-screen bg-[#0a1022]">
+  <!-- Header con pageTitle + logout -->
+  <slot />  <!-- Aquí se renderiza el Vue component -->
+</main>
+
+<script>
+  // Auth guard: fetch /api/admin/verify.php → set window.__csrfToken, window.adminRole
+  // Role-based nav filtering (remove DOM nodes by data-roles)
+  // Mobile sidebar toggle
+</script>
+```
+
+### 16.10 Fases de Implementación
+
+#### FASE 0 — Setup de infraestructura
+- [ ] Instalar dependencias (vue, pinia, @astrojs/vue)
+- [ ] Configurar `astro.config.mjs` + `tsconfig.json`
+- [ ] Crear `src/plugins/vue-entrypoint.ts`
+- [ ] Crear `src/stores/auth.ts`
+- [ ] Crear `src/components/admin/useApi.ts`
+- [ ] Crear `src/components/admin/useCrud.ts`
+- [ ] Crear `src/components/admin/useToast.ts`
+- [ ] Crear `src/components/admin/CrudPage.vue`
+- [ ] Dividir `global.css` en `base.css` + `admin.css` + `public.css`
+- [ ] Actualizar imports en `BaseLayout.astro` y `admin/_layout.astro`
+- [ ] Refactorizar `_layout.astro` (CSRF injection, sidebar dark, slot)
+
+#### FASE 1 — Páginas fáciles (Login + Dashboard)
+- [ ] `LoginApp.vue` — formulario login + manejo 2FA
+- [ ] `DashboardApp.vue` — 4 cards stats + pedidos recientes
+- [ ] Refactorizar `login.astro` (standalone layout)
+- [ ] Refactorizar `index.astro` (wrapper)
+
+#### FASE 2 — CRUDs simples (CrudPage wrappers)
+- [ ] `CategoriasPage.vue` + `categorias.astro`
+- [ ] `BlogCategoriasPage.vue` + `blog/categorias.astro`
+- [ ] `CuponesPage.vue` + `cupones.astro`
+- [ ] `UsuariosPage.vue` + `usuarios.astro`
+- [ ] `SuscriptoresPage.vue` + `suscriptores.astro`
+
+#### FASE 3 — Listas con filtros
+- [ ] `BlogPage.vue` + `BlogFormApp.vue` + `blog/*.astro`
+- [ ] `ResenasPage.vue` + `resenas.astro`
+- [ ] `EmailTemplatesPage.vue` + `EmailTemplateForm.vue` + `email-templates/*.astro`
+
+#### FASE 4 — Clientes + Pedidos
+- [ ] `ClientesPage.vue` + `ClienteDetailApp.vue` + `clientes/*.astro`
+- [ ] `PedidosPage.vue` + `PedidoDetailApp.vue` + `pedidos/*.astro`
+
+#### FASE 5 — Productos (más complejo)
+- [ ] `useVariantsMatrix.ts` — lógica de stock matrix
+- [ ] `VariantsMatrix.vue` — grid colores × talles
+- [ ] `ProductosPage.vue` — lista con búsqueda/filtros/paginación
+- [ ] `ProductoFormApp.vue` — 5 tabs (Información, Precio/Categoría, Imágenes, Variantes, SEO)
+- [ ] Refactorizar `productos.astro`, `productos/nuevo.astro`, `productos/editar.astro`
+
+#### FASE 6 — Páginas restantes
+- [ ] `CampanasPage.vue` + `newsletter/campanas.astro`
+- [ ] `SeguridadApp.vue` + `seguridad.astro`
+- [ ] `PosApp.vue` + `PosDashboard.vue` + `pos/*.astro`
+- [ ] `SettingsApp.vue` + `configuracion.astro` (14 tabs — diferido al final)
+
+#### FASE 7 — Dark Theme Vunotek (aplica durante toda la migración)
+- [ ] Escribir `admin.css` completo: cards, tables, inputs, buttons, badges, sidebar, skeleton, animations
+- [ ] Aplicar paleta oscura en `_layout.astro` (sidebar, header, background)
+- [ ] Migrar colores en cada componente Vue al crearlo:
+  ```
+  text-clay-accent     → text-[#42b883]
+  bg-off-white         → bg-[#111d2e]
+  bg-monolith-black    → bg-[#42b883]
+  text-monolith-black  → text-[#dae2fd]
+  text-secondary       → text-[#94a3b8]
+  border-outline-variant → border-[#1e293b]
+  hover:bg-monolith-black/5 → hover:bg-white/5
+  ```
+
+### 16.11 Paleta Admin (Vunotek Dark)
+
+| Token | Valor | Uso |
+|---|---|---|
+| `--sidebar-bg` | `#0b1326` | Sidebar fondo |
+| `--content-bg` | `#0a1022` | Main content area |
+| `--card-bg` | `#111d2e` | Cards fondo |
+| `--card-lg-bg` | `#162240` | Modals / elevated cards |
+| `--input-bg` | `#1e293b` | Inputs fondo |
+| `--border-color` | `#1e293b` | Bordes |
+| `--green-accent` | `#42b883` | Botón primario, acentos |
+| `--text-main` | `#dae2fd` | Texto principal |
+| `--text-muted` | `#94a3b8` | Texto secundario |
+| `--danger` | `#DC2626` | Botón peligro |
+| `--warning` | `#B8956A` | Badge warning |
+| `--info` | `#6B8FA3` | Badge info |
+
+### 16.12 Convenciones para Componentes Vue
+
+- **Siempre** `<script setup lang="ts">`
+- **Nunca** usar Vue Router — solo `<a href>` links
+- **Estilos**: usar clases globales `admin-*` (de `admin.css`). No scoped styles en page components (excepto animaciones muy específicas)
+- **API**: usar `useApi()` composable para toda comunicación HTTP
+- **CRUD simple**: usar `useCrud(endpoint)` + `CrudPage` config
+- **Toast**: usar `useToast()` (wrapper de `window.VunoToast`)
+- **Modal**: usar `window.VunoModal` (definido en `Modal.astro`)
+- **Layout**: cada página .astro es wrapper mínimo → `_layout.astro` + `<PageComponent client:only="vue" />`
+
+### 16.13 Pendientes del Proyecto Referencia
+
+Los siguientes items se identificaron durante la migración y deberían aplicarse también en `vuno-web-reservas`:
+
+| Item | Descripción |
+|---|---|
+| `useToast` composable | Reemplazar uso directo de `window.VunoToast` por composable Vue en todos los componentes |
+| `VariantsMatrix` migration | Migrar el `VariantsMatrix.astro` del hotelero a Vue con el mismo patrón que en e-commerce |
+| Admin components | Revisar que todos los page components usen `useApi()` en vez de `fetch()` directo |
