@@ -102,12 +102,12 @@ function formatPrice(val: number | null | undefined): string {
   <div class="admin-card">
     <div class="admin-card-header">
       <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 w-full">
-        <div class="flex flex-wrap items-center gap-4">
-          <div class="relative max-w-xs">
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full sm:w-auto">
+          <div class="relative w-full sm:max-w-xs">
             <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-[#94a3b8] pointer-events-none">search</span>
-            <input v-model="search" type="text" placeholder="Buscar por orden, cliente o email..." class="admin-input pl-10" @input="onSearchInput" />
+            <input v-model="search" type="text" placeholder="Buscar por orden, cliente o email..." class="admin-input pl-10 w-full" @input="onSearchInput" />
           </div>
-          <select v-model="statusFilter" class="admin-input max-w-[160px]" @change="onStatusChange">
+          <select v-model="statusFilter" class="admin-input w-full sm:w-auto sm:max-w-[160px]" @change="onStatusChange">
             <option value="">Todos los estados</option>
             <option value="pending">Pending</option>
             <option value="paid">Paid</option>
@@ -121,7 +121,7 @@ function formatPrice(val: number | null | undefined): string {
     </div>
 
     <!-- Desktop table -->
-    <div class="overflow-x-auto">
+    <div class="overflow-x-auto hidden md:block">
       <table class="admin-table">
         <thead>
           <tr>
@@ -164,7 +164,7 @@ function formatPrice(val: number | null | undefined): string {
               </span>
             </td>
             <td class="text-right">
-              <a :href="'/admin/pedidos/detalle?id=' + encodeURIComponent(o.id)" class="admin-btn admin-btn-ghost admin-btn-xs">
+              <a :href="'/admin/pedidos/detalle?id=' + encodeURIComponent(o.id)" class="admin-btn admin-btn-ghost admin-btn-xs whitespace-nowrap">
                 <span class="material-symbols-outlined text-sm">visibility</span>
                 VIEW
               </a>
@@ -174,7 +174,45 @@ function formatPrice(val: number | null | undefined): string {
       </table>
     </div>
 
-    <div v-if="totalPages > 1" class="admin-card-footer flex items-center justify-between">
+    <!-- Mobile cards -->
+    <div class="md:hidden space-y-3 px-6 pb-4">
+      <div v-if="loading" class="text-center py-8 text-[#94a3b8]">Cargando...</div>
+      <div v-else-if="items.length === 0" class="text-center py-12">
+        <div class="flex flex-col items-center gap-3">
+          <span class="material-symbols-outlined text-5xl text-[#94a3b8]/30">receipt_long</span>
+          <p class="text-sm text-[#94a3b8]">No hay pedidos aún</p>
+        </div>
+      </div>
+      <div v-for="o in items" :key="o.id" class="glass-card overflow-hidden rounded-xl">
+        <div class="px-5 pt-4 pb-3 border-b border-[#dae2fd]/5">
+          <div class="flex justify-between items-start gap-2">
+            <div class="min-w-0 flex-1">
+              <a :href="'/admin/pedidos/detalle?id=' + encodeURIComponent(o.id)" class="font-medium text-[#dae2fd] hover:underline truncate block">{{ o.id }}</a>
+              <div class="text-xs text-[#94a3b8] mt-0.5">{{ o.customer?.name || '—' }}</div>
+            </div>
+            <span class="badge shrink-0" :class="statusStyles[o.status] || ''">{{ o.status }}</span>
+          </div>
+        </div>
+        <div class="px-5 py-3 flex items-center justify-between">
+          <div class="flex items-center gap-2 text-sm text-[#94a3b8]">
+            <span class="material-symbols-outlined text-base">{{ paymentIcons[o.paymentMethod] || 'payments' }}</span>
+            {{ paymentLabels[o.paymentMethod] || o.paymentMethod }}
+          </div>
+          <div class="text-right">
+            <div class="text-xs text-[#94a3b8]">{{ formatDate(o.createdAt) }}</div>
+            <div class="font-medium text-[#dae2fd]">{{ o.display_symbol || '$' }}{{ formatPrice(o.display_total ?? o.total) }}</div>
+          </div>
+        </div>
+        <div class="px-5 py-3 border-t border-[#dae2fd]/5">
+          <a :href="'/admin/pedidos/detalle?id=' + encodeURIComponent(o.id)" class="admin-btn admin-btn-ghost admin-btn-xs w-full justify-center">
+            <span class="material-symbols-outlined text-sm">visibility</span>
+            VER DETALLE
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="totalPages > 1" class="admin-card-footer flex flex-col sm:flex-row items-center justify-between gap-3">
       <span class="text-sm text-[#94a3b8]">Página {{ currentPage }} de {{ totalPages }}</span>
       <div class="flex gap-1">
         <button class="admin-btn admin-btn-ghost admin-btn-xs" :disabled="currentPage === 1" @click="currentPage--; loadData()">Anterior</button>
