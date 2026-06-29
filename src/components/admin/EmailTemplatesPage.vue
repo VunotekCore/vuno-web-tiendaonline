@@ -24,7 +24,7 @@ const deleteId = ref<number | null>(null)
 const deleteName = ref('')
 const confirmVisible = ref(false)
 const editMode = ref(false)
-let searchTimeout: ReturnType<typeof setTimeout> | null = null
+const searchTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 
 const totalPages = computed(() => Math.max(1, Math.ceil(total.value / perPage)))
 
@@ -53,9 +53,10 @@ async function loadData() {
   } catch { items.value = []; total.value = 0 } finally { loading.value = false }
 }
 
-function onSearchInput() {
-  if (searchTimeout) clearTimeout(searchTimeout)
-  searchTimeout = setTimeout(() => { currentPage.value = 1; loadData() }, 300)
+function onSearchInput(val: string) {
+  search.value = val
+  if (searchTimer.value) clearTimeout(searchTimer.value)
+  searchTimer.value = setTimeout(() => { currentPage.value = 1; loadData() }, 300)
 }
 
 function openDelete(item: Template) {
@@ -112,9 +113,9 @@ async function reseed() {
     <div class="admin-card-header">
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 w-full">
         <div class="flex flex-wrap items-center gap-4">
-          <div class="relative flex-1 min-w-0">
+          <div class="relative w-full md:max-w-xs">
             <span class="material-symbols-outlined absolute left-3 inset-y-0 flex items-center text-[#94a3b8] pointer-events-none">search</span>
-            <input v-model="search" type="text" placeholder="Buscar plantillas..." class="admin-input pl-12 w-full" @input="onSearchInput" />
+            <input :value="search" type="text" placeholder="Buscar plantillas..." class="admin-input pl-12 w-full md:max-w-xs" @input="onSearchInput(($event.target as HTMLInputElement).value)" />
           </div>
           <span class="text-sm text-[#94a3b8] whitespace-nowrap">{{ total }} plantillas</span>
           <span v-if="editMode" class="badge badge-paid text-xs tracking-widest font-semibold">EDITANDO</span>
