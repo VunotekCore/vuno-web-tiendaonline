@@ -492,7 +492,7 @@ const remainingImages = computed(() => MAX_IMAGES - totalImages.value)
     </div>
 
     <!-- Tab: Info -->
-    <div v-show="activeTab === 'info'" id="tab-panel-info" role="tabpanel" class="max-w-2xl admin-card p-6">
+    <div v-show="activeTab === 'info'" id="tab-panel-info" role="tabpanel" class="max-w-2xl admin-card p-4 md:p-6">
       <h2 class="text-lg font-semibold text-[#dae2fd] mb-6 flex items-center gap-2">
         <VunoIcon icon="description" :size="24" />
         Información del Producto
@@ -527,7 +527,7 @@ const remainingImages = computed(() => MAX_IMAGES - totalImages.value)
     </div>
 
     <!-- Tab: Pricing -->
-    <div v-show="activeTab === 'pricing'" id="tab-panel-pricing" role="tabpanel" class="max-w-2xl admin-card p-6">
+    <div v-show="activeTab === 'pricing'" id="tab-panel-pricing" role="tabpanel" class="max-w-2xl admin-card p-4 md:p-6">
       <h2 class="text-lg font-semibold text-[#dae2fd] mb-6 flex items-center gap-2">
         <VunoIcon icon="sell" :size="24" />
         Precio y Categoría
@@ -588,11 +588,11 @@ const remainingImages = computed(() => MAX_IMAGES - totalImages.value)
             </button>
           </span>
         </div>
-        <div class="flex items-end gap-3">
+        <div class="flex flex-wrap items-end gap-3">
           <div>
             <label class="block text-[10px] font-semibold tracking-widest text-[#94a3b8] mb-1 uppercase">NOMBRE</label>
             <input v-model="colorNameInput" type="text" placeholder="Ej: Noir" maxlength="50"
-              class="w-32 h-9 px-3 bg-[#1e293b] border border-[#1e293b] text-[#dae2fd] text-sm focus:border-[#42b883] focus:outline-none rounded-sm"
+              class="w-full sm:w-32 h-9 px-3 bg-[#1e293b] border border-[#1e293b] text-[#dae2fd] text-sm focus:border-[#42b883] focus:outline-none rounded-sm"
               @keydown.enter.prevent="addColor" />
           </div>
           <div>
@@ -650,7 +650,7 @@ const remainingImages = computed(() => MAX_IMAGES - totalImages.value)
     </div>
 
     <!-- Tab: Images -->
-    <div v-show="activeTab === 'images'" id="tab-panel-images" role="tabpanel" class="max-w-2xl admin-card p-6">
+    <div v-show="activeTab === 'images'" id="tab-panel-images" role="tabpanel" class="max-w-2xl admin-card p-4 md:p-6">
       <h2 class="text-lg font-semibold text-[#dae2fd] mb-6 flex items-center gap-2">
         <VunoIcon icon="photo_library" :size="24" />
         Imágenes del Producto
@@ -706,7 +706,7 @@ const remainingImages = computed(() => MAX_IMAGES - totalImages.value)
     </div>
 
     <!-- Tab: SEO -->
-    <div v-show="activeTab === 'seo'" id="tab-panel-seo" role="tabpanel" class="max-w-2xl admin-card p-6">
+    <div v-show="activeTab === 'seo'" id="tab-panel-seo" role="tabpanel" class="max-w-2xl admin-card p-4 md:p-6">
       <h2 class="text-lg font-semibold text-[#dae2fd] mb-6 flex items-center gap-2">
         <VunoIcon icon="travel_explore" :size="24" />
         SEO & Open Graph
