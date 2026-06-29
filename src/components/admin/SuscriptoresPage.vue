@@ -16,6 +16,7 @@ interface Subscriber {
 const items = ref<Subscriber[]>([])
 const loading = ref(false)
 const search = ref('')
+const searchTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 const currentPage = ref(1)
 const total = ref(0)
 const perPage = 10
@@ -42,12 +43,18 @@ async function loadData() {
   try {
     const qs = new URLSearchParams()
     qs.set('limit', String(perPage))
-    qs.set('page', String(currentPage.value))
+    qs.set('offset', String((currentPage.value - 1) * perPage))
     if (search.value.trim()) qs.set('search', search.value.trim())
     const data = await api.get<{ items: Subscriber[]; total: number }>(`/api/suscriptores/list.php?${qs}`)
     items.value = data.items || []
     total.value = data.total || items.value.length
   } catch { items.value = []; total.value = 0 } finally { loading.value = false }
+}
+
+function onSearchInput(val: string) {
+  search.value = val
+  if (searchTimer.value) clearTimeout(searchTimer.value)
+  searchTimer.value = setTimeout(() => { currentPage.value = 1; loadData() }, 300)
 }
 
 function formatDate(d: string | null) {
@@ -83,29 +90,34 @@ async function confirmUnsub() {
 <template>
   <div class="admin-card">
     <div class="admin-card-header">
-      <div>
-        <h2 class="text-lg font-semibold text-[#dae2fd]">Suscriptores</h2>
-        <p class="text-sm text-[#94a3b8] mt-1">
-          {{ Math.min((currentPage - 1) * perPage + items.length, total) }} de {{ total }} suscriptores
-        </p>
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 w-full">
+        <div>
+          <h2 class="text-lg font-semibold text-[#dae2fd]">Suscriptores</h2>
+          <p class="text-sm text-[#94a3b8] mt-1">
+            {{ Math.min((currentPage - 1) * perPage + items.length, total) }} de {{ total }} suscriptores
+          </p>
+        </div>
+        <a href="/api/suscriptores/export.php" class="admin-btn admin-btn-primary w-full sm:w-auto justify-center">
+          <span class="material-symbols-outlined text-base">download</span>
+          Exportar CSV
+        </a>
       </div>
-      <a href="/api/suscriptores/export.php" class="admin-btn admin-btn-primary">
-        <span class="material-symbols-outlined text-base">download</span>
-        Exportar CSV
-      </a>
     </div>
 
     <div class="px-6 pb-4">
-      <input
-        v-model="search"
-        type="text"
-        placeholder="Buscar por email..."
-        class="admin-input max-w-xs"
-        @input="currentPage = 1; loadData()"
-      />
+      <div class="relative min-w-[200px] max-w-md">
+        <input
+          :value="search"
+          type="text"
+          placeholder="Buscar por email..."
+          class="admin-input pl-3 w-full"
+          @input="onSearchInput(($event.target as HTMLInputElement).value)"
+        />
+      </div>
     </div>
 
-    <div class="overflow-x-auto">
+    <!-- === Desktop table === -->
+    <div class="hidden md:block overflow-x-auto">
       <table class="admin-table">
         <thead>
           <tr>
@@ -145,7 +157,37 @@ async function confirmUnsub() {
       </table>
     </div>
 
-    <div v-if="totalPages > 1" class="admin-card-footer flex items-center justify-between">
+    <!-- === Mobile cards === -->
+    <div class="md:hidden px-6 pb-4 space-y-3">
+      <div v-if="loading" class="text-center py-8 text-[#94a3b8]">Cargando...</div>
+      <div v-else-if="items.length === 0" class="text-center py-8 text-[#94a3b8]">No hay suscriptores</div>
+      <div
+        v-for="item in items"
+        :key="item.id"
+        class="glass-card overflow-hidden rounded-xl"
+      >
+        <div class="px-5 pt-4 pb-3 border-b border-[#dae2fd]/5">
+          <div class="flex items-center justify-between gap-2">
+            <span class="font-medium text-[#dae2fd] text-sm truncate">{{ item.email }}</span>
+            <span v-if="item.is_active" class="badge badge-paid shrink-0">ACTIVO</span>
+            <span v-else class="badge badge-draft shrink-0">INACTIVO</span>
+          </div>
+        </div>
+        <div class="px-5 py-3 flex items-center justify-between">
+          <span class="text-sm text-[#94a3b8]">{{ formatDate(item.subscribed_at) }}</span>
+          <button
+            v-if="item.is_active"
+            class="admin-btn admin-btn-danger admin-btn-xs"
+            @click="openUnsub(item)"
+            title="Desuscribir"
+          >
+            <span class="material-symbols-outlined text-sm">block</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="totalPages > 1" class="admin-card-footer flex flex-col sm:flex-row items-center justify-between gap-3">
       <span class="text-sm text-[#94a3b8]">Página {{ currentPage }} de {{ totalPages }}</span>
       <div class="flex gap-1">
         <button class="admin-btn admin-btn-ghost admin-btn-xs" :disabled="currentPage === 1" @click="currentPage--; loadData()">Anterior</button>
@@ -156,7 +198,7 @@ async function confirmUnsub() {
   </div>
 
   <Teleport to="body">
-    <div v-if="confirmVisible" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md">
+    <div v-if="confirmVisible" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
       <div class="admin-card-lg w-full max-w-md mx-4">
         <div class="flex items-center gap-3 mb-4">
           <span class="material-symbols-outlined text-3xl text-[#B8956A]">contact_mail</span>
@@ -165,9 +207,9 @@ async function confirmUnsub() {
         <p class="text-sm text-[#94a3b8] mb-4">
           ¿Estás seguro de desuscribir a <strong class="text-[#dae2fd]">{{ unsubEmail }}</strong>?
         </p>
-        <div class="flex justify-end gap-3">
-          <button class="admin-btn admin-btn-secondary" @click="closeUnsub">Cancelar</button>
-          <button class="admin-btn admin-btn-danger" @click="confirmUnsub">
+        <div class="flex flex-col-reverse sm:flex-row justify-end gap-3">
+          <button class="admin-btn admin-btn-secondary w-full sm:w-auto justify-center" @click="closeUnsub">Cancelar</button>
+          <button class="admin-btn admin-btn-danger w-full sm:w-auto justify-center" @click="confirmUnsub">
             Desuscribir
           </button>
         </div>
