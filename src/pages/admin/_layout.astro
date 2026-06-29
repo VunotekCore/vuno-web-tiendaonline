@@ -1,4 +1,5 @@
 ---
+import { ClientRouter } from 'astro:transitions';
 import "../../styles/base.css";
 import "../../styles/admin.css";
 import Modal from "../../components/molecules/Modal.astro";
@@ -70,6 +71,7 @@ const navItems: NavItem[] = [
     <link rel="manifest" href="/site.webmanifest" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <ClientRouter fallback="swap" />
 
   </head>
   <body class="bg-[#0a1022] text-[#dae2fd] antialiased min-h-screen flex">

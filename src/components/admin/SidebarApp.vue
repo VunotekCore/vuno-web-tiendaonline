@@ -142,6 +142,7 @@ function closeMobile() {
 
   <!-- Sidebar -->
   <aside
+    transition:persist
     class="fixed left-0 top-0 bottom-0 z-50 flex w-64 flex-col bg-[#0b1326] border-r border-[#1e293b] transition-transform duration-300 ease-in-out will-change-transform lg:translate-x-0 lg:transition-none"
     :class="isMobileOpen ? 'translate-x-0' : '-translate-x-full'"
   >

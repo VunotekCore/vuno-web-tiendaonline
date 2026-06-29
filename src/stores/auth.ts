@@ -1,8 +1,10 @@
 import { defineStore } from 'pinia'
 
+const isBrowser = typeof window !== 'undefined'
+
 export const useAuthStore = defineStore('auth', {
   state: () => ({
-    csrfToken: (window as any).__csrfToken || '',
+    csrfToken: isBrowser ? (window as any).__csrfToken || '' : '',
     user: null as { id: number; name: string; role: string } | null,
   }),
   actions: {
