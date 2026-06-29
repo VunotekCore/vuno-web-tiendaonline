@@ -1,4 +1,4 @@
-# Ram;Lop — Architectural Minimalism in Footwear
+# Vunotek — Architectural Minimalism in Footwear
 
 Tienda online de calzado artesanal para damas con carrito de compra, pasarela de pago (Stripe + transferencia bancaria) y panel administrador.
 
@@ -63,5 +63,5 @@ SMTP_HOST=
 SMTP_PORT=587
 SMTP_USER=
 SMTP_PASS=
-FROM_EMAIL=noreply@ramlop.com
+FROM_EMAIL=noreply@vunotek.com
 ```

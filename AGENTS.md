@@ -1,7 +1,7 @@
-# 🏛️ RAM;LOP — Documentación Técnica y Comercial
+# 🏛️ VUNOTEK — Documentación Técnica y Comercial
 
 > **Proyecto:** Tienda online de calzado artesanal para damas
-> **Marca:** Ram;Lop — "Architectural Minimalism in Footwear"
+> **Marca:** Vunotek — "Architectural Minimalism in Footwear"
 > **Estado:** MVP funcional v1.0
 > **Stack:** Astro 6 (static) · PHP 8+ · TypeScript strict · Tailwind 4 · Stripe · ImageKit · PHPMailer
 
@@ -30,7 +30,7 @@
 
 ## 1. Resumen Ejecutivo
 
-Ram;Lop es una tienda online de **calzado artesanal femenino** con estética minimalista arquitectónica. El proyecto usa una arquitectura híbrida:
+Vunotek es una tienda online de **calzado artesanal femenino** con estética minimalista arquitectónica. El proyecto usa una arquitectura híbrida:
 
 - **Frontend**: Astro 6 con `output: "static"` — genera HTML/CSS/JS estático
 - **Backend**: PHP 8+ para APIs (CRUD productos/pedidos, Stripe, ImageKit, email)
@@ -265,7 +265,7 @@ Ver [sección 13 — Base de Datos MySQL](#13-base-de-datos-mysql) para el esque
 
 | Elemento | Descripción |
 |----------|-------------|
-| **Nombre** | Ram;Lop |
+| **Nombre** | Vunotek |
 | **Eslogan** | "Architectural Minimalism in Footwear" |
 | **Producto** | Calzado 100% artesanal para damas |
 | **Estilo** | Minimalismo arquitectónico — editorial gallery aesthetic |
@@ -424,7 +424,7 @@ hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 p-5
 │   │   └── orders.json             # 2 pedidos de muestra
 │   ├── styles/
 │   │   └── global.css              # Tailwind @theme + design tokens
-│   └── env.d.ts                    # Tipo global Window.RamLopCart
+│   └── env.d.ts                    # Tipo global Window.VunotekCart
 ├── backend/                        # 🏛️ PHP Backend (SOA)
 │   ├── Controllers/                # 21 controllers — lógica de negocio
 │   ├── Models/                     # 17 models — solo SQL prepared statements

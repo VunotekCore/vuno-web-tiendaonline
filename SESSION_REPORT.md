@@ -1,4 +1,4 @@
-# 🏁 Informe de Cierre de Sesión — Ram;Lop
+# 🏁 Informe de Cierre de Sesión — Vunotek
 
 > **Fecha:** 02/06/2026
 > **Estado:** MVP funcional v1.0 completo

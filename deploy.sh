@@ -1,5 +1,5 @@
 #!/bin/bash
-# Ram;Lop Deploy Script
+# Vunotek Deploy Script
 # Builds Astro static site + copies PHP API backend + installs Composer dependencies
 #
 # Usage:
@@ -16,7 +16,7 @@ for arg in "$@"; do
   case "$arg" in
     --no-install) SKIP_COMPOSER=true ;;
     --help|-h)
-      echo "Ram;Lop Deploy Script"
+      echo "Vunotek Deploy Script"
       echo ""
       echo "  bash deploy.sh               Full deploy (default)"
       echo "  bash deploy.sh --no-install  Build + copy files, skip composer install"

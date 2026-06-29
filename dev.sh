@@ -1,5 +1,5 @@
 #!/bin/bash
-# Ram;Lop Development Script
+# Vunotek Development Script
 #
 # ./dev.sh          → PHP API (:8000) + Astro HMR (:4321) en una terminal
 # ./dev.sh api      → Solo PHP API (:8000)
@@ -39,7 +39,7 @@ case "$CMD" in
     ;;
 
   *)
-    echo "Ram;Lop — Development"
+    echo "Vunotek — Development"
     echo ""
     echo "  ./dev.sh         PHP :8000 + Astro HMR :4321 (recommended)"
     echo "  ./dev.sh api     PHP API server on :8000"
