@@ -105,15 +105,13 @@ async function confirmUnsub() {
     </div>
 
     <div class="px-6 pb-4">
-      <div class="relative min-w-[200px] max-w-md">
-        <input
-          :value="search"
-          type="text"
-          placeholder="Buscar por email..."
-          class="admin-input pl-3 w-full"
-          @input="onSearchInput(($event.target as HTMLInputElement).value)"
-        />
-      </div>
+      <input
+        :value="search"
+        type="text"
+        placeholder="Buscar por email..."
+        class="admin-input pl-3 w-full"
+        @input="onSearchInput(($event.target as HTMLInputElement).value)"
+      />
     </div>
 
     <!-- === Desktop table === -->
