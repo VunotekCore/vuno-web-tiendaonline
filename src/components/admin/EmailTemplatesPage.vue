@@ -112,23 +112,23 @@ async function reseed() {
     <div class="admin-card-header">
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 w-full">
         <div class="flex flex-wrap items-center gap-4">
-          <div class="relative w-full md:max-w-xs">
-            <span class="material-symbols-outlined absolute left-4 inset-y-0 flex items-center text-lg text-[#94a3b8] pointer-events-none">search</span>
+          <div class="relative flex-1 min-w-0">
+            <span class="material-symbols-outlined absolute left-3 inset-y-0 flex items-center text-[#94a3b8] pointer-events-none">search</span>
             <input v-model="search" type="text" placeholder="Buscar plantillas..." class="admin-input pl-12 w-full" @input="onSearchInput" />
           </div>
           <span class="text-sm text-[#94a3b8] whitespace-nowrap">{{ total }} plantillas</span>
           <span v-if="editMode" class="badge badge-paid text-xs tracking-widest font-semibold">EDITANDO</span>
         </div>
-        <div class="flex gap-2">
-          <button class="admin-btn admin-btn-edit" @click="editMode = !editMode">
+        <div class="flex flex-wrap gap-2">
+          <button class="admin-btn admin-btn-edit w-full sm:w-auto justify-center" @click="editMode = !editMode">
             <span class="material-symbols-outlined text-base">{{ editMode ? 'edit_off' : 'edit' }}</span>
             {{ editMode ? 'SALIR' : 'EDITAR' }}
           </button>
-          <button class="admin-btn admin-btn-secondary" @click="reseed">
+          <button class="admin-btn admin-btn-secondary w-full sm:w-auto justify-center" @click="reseed">
             <span class="material-symbols-outlined text-base">refresh</span>
             RESEED
           </button>
-          <a v-if="editMode" href="/admin/email-templates/nuevo" class="admin-btn admin-btn-primary">
+          <a v-if="editMode" href="/admin/email-templates/nuevo" class="admin-btn admin-btn-primary w-full sm:w-auto justify-center">
             <span class="material-symbols-outlined text-base">add</span>
             NUEVA PLANTILLA
           </a>
