@@ -2,6 +2,10 @@ import { defineConfig } from 'astro/config'
 import tailwindcss from '@tailwindcss/vite'
 import sitemap from '@astrojs/sitemap'
 import vue from '@astrojs/vue'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
   site: 'https://shop.anicasolucionesintegrales.com',
@@ -30,8 +34,10 @@ export default defineConfig({
   ],
   vite: {
     plugins: [tailwindcss()],
-    define: {
-      __VUE_PROD_DEVTOOLS__: false,
+    resolve: {
+      alias: {
+        '@vue/devtools-api': path.resolve(__dirname, 'src/plugins/devtools-api-stub.ts'),
+      },
     },
     server: {
       proxy: {
