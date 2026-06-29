@@ -730,13 +730,13 @@ const remainingImages = computed(() => MAX_IMAGES - totalImages.value)
     </div>
 
     <!-- Submit -->
-    <div class="mt-8 pt-6 border-t border-[#1e293b] flex items-center gap-4">
+    <div class="mt-8 pt-6 border-t border-[#1e293b] flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-4">
+      <a href="/admin/productos" class="font-label-caps text-label-caps text-center sm:text-left text-[#94a3b8] hover:text-[#dae2fd] transition-colors py-3 sm:py-0">CANCELAR</a>
       <button type="submit" :disabled="submitting"
-        class="bg-[#42b883] text-white font-label-caps text-label-caps h-12 px-8 inline-flex items-center justify-center gap-1.5 rounded-md hover:bg-[#42b883]/90 hover:shadow-sm transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed">
+        class="bg-[#42b883] text-white font-label-caps text-label-caps h-12 px-8 inline-flex items-center justify-center gap-1.5 rounded-md hover:bg-[#42b883]/90 hover:shadow-sm transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed w-full sm:w-auto">
         <span class="material-symbols-outlined text-lg" :class="{ 'animate-spin': submitting }">{{ submitting ? 'progress_activity' : 'save' }}</span>
         {{ submitting ? 'GUARDANDO...' : (isEdit ? 'GUARDAR CAMBIOS' : 'GUARDAR PRODUCTO') }}
       </button>
-      <a href="/admin/productos" class="font-label-caps text-label-caps text-[#94a3b8] hover:text-[#dae2fd] transition-colors">CANCELAR</a>
     </div>
   </form>
 

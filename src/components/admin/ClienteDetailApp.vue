@@ -96,7 +96,7 @@ function formatPrice(val: number | null | undefined, symbol = '$') {
   <div v-else-if="customer" class="space-y-8 admin-enter">
     <!-- Customer Info + Notes -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div class="admin-card p-6">
+      <div class="glass-card overflow-hidden rounded-xl px-6 pt-5 pb-6">
         <h2 class="text-lg font-semibold text-[#dae2fd] mb-4 flex items-center gap-2">
           <span class="material-symbols-outlined text-xl">person</span>
           {{ customer.name }}
@@ -133,7 +133,7 @@ function formatPrice(val: number | null | undefined, symbol = '$') {
         </div>
       </div>
 
-      <div class="admin-card p-6">
+      <div class="glass-card overflow-hidden rounded-xl px-6 pt-5 pb-6">
         <h2 class="text-lg font-semibold text-[#dae2fd] mb-4 flex items-center gap-2">
           <span class="material-symbols-outlined text-xl">notes</span>
           Notas internas
@@ -143,14 +143,14 @@ function formatPrice(val: number | null | undefined, symbol = '$') {
     </div>
 
     <!-- Addresses -->
-    <div class="admin-card">
-      <div class="admin-card-header">
+    <div class="glass-card overflow-hidden rounded-xl">
+      <div class="px-6 pt-5 pb-4 border-b border-[#dae2fd]/5">
         <h2 class="text-lg font-semibold text-[#dae2fd] flex items-center gap-2">
           <span class="material-symbols-outlined text-xl">home</span>
           Direcciones
         </h2>
       </div>
-      <div v-if="customer.addresses?.length" class="admin-card-body grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div v-if="customer.addresses?.length" class="px-6 py-4 grid grid-cols-1 md:grid-cols-2 gap-4">
         <div v-for="(a, i) in customer.addresses" :key="i" class="border border-[#1e293b] rounded-lg p-4">
           <div v-if="a.is_default_shipping || a.is_default_billing" class="flex gap-1 mb-2">
             <span v-if="a.is_default_shipping" class="badge badge-paid text-[10px] px-1.5 py-0.5">Envío</span>
@@ -162,19 +162,20 @@ function formatPrice(val: number | null | undefined, symbol = '$') {
           <p v-if="a.phone" class="text-xs text-[#94a3b8] mt-1">{{ a.phone }}</p>
         </div>
       </div>
-      <div v-else class="admin-card-body text-sm text-[#94a3b8]">Sin direcciones guardadas.</div>
+      <div v-else class="px-6 py-4 text-sm text-[#94a3b8]">Sin direcciones guardadas.</div>
     </div>
 
     <!-- Order History -->
-    <div class="admin-card">
-      <div class="admin-card-header">
+    <div class="glass-card overflow-hidden rounded-xl">
+      <div class="px-6 pt-5 pb-4 border-b border-[#dae2fd]/5">
         <h2 class="text-lg font-semibold text-[#dae2fd] flex items-center gap-2">
           <span class="material-symbols-outlined text-xl">receipt_long</span>
           Historial de Pedidos
         </h2>
       </div>
       <template v-if="customer.orders?.length">
-        <div class="overflow-x-auto">
+        <!-- Desktop table -->
+        <div class="hidden md:block">
           <table class="admin-table">
             <thead>
               <tr>
@@ -204,25 +205,48 @@ function formatPrice(val: number | null | undefined, symbol = '$') {
             </tbody>
           </table>
         </div>
+        <!-- Mobile cards -->
+        <div class="md:hidden px-6 py-4 space-y-3">
+          <div v-for="o in customer.orders" :key="o.id" class="glass-card overflow-hidden rounded-xl">
+            <div class="px-4 pt-3 pb-2 border-b border-[#dae2fd]/5">
+              <div class="flex items-center justify-between gap-2">
+                <span class="font-medium text-[#dae2fd] text-sm">{{ o.order_number || o.id }}</span>
+                <span class="badge shrink-0" :class="'badge-' + o.status_code">{{ o.status_code }}</span>
+              </div>
+            </div>
+            <div class="px-4 py-3 flex items-center justify-between">
+              <div class="text-sm text-[#94a3b8] space-y-1">
+                <div>{{ formatDate(o.created_at) }}</div>
+                <div>{{ o.payment_method_code || '—' }}</div>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="font-medium text-[#dae2fd]">{{ formatPrice(o.display_total ?? o.total, o.display_symbol) }}</span>
+                <a :href="'/admin/pedidos/detalle?id=' + o.id" class="admin-btn admin-btn-ghost admin-btn-xs">
+                  <span class="material-symbols-outlined text-sm">visibility</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
       </template>
-      <div v-else class="admin-card-body text-sm text-[#94a3b8]">Sin pedidos.</div>
+      <div v-else class="px-6 py-4 text-sm text-[#94a3b8]">Sin pedidos.</div>
     </div>
 
     <!-- Wishlist -->
-    <div class="admin-card">
-      <div class="admin-card-header">
+    <div class="glass-card overflow-hidden rounded-xl">
+      <div class="px-6 pt-5 pb-4 border-b border-[#dae2fd]/5">
         <h2 class="text-lg font-semibold text-[#dae2fd] flex items-center gap-2">
           <span class="material-symbols-outlined text-xl">favorite</span>
           Wishlist
         </h2>
       </div>
-      <div v-if="customer.wishlist?.length" class="admin-card-body space-y-2">
+      <div v-if="customer.wishlist?.length" class="px-6 py-4 space-y-2">
         <div v-for="(w, i) in customer.wishlist" :key="i" class="flex items-center justify-between border-b border-[#1e293b] pb-2 last:border-0">
           <a :href="'/producto/' + w.slug" class="text-sm text-[#dae2fd] hover:text-[#42b883] transition-colors" target="_blank">{{ w.name }}</a>
           <span class="text-sm font-medium">{{ formatPrice(w.price, w.currency === 'NIO' ? 'C$' : '$') }}</span>
         </div>
       </div>
-      <div v-else class="admin-card-body text-sm text-[#94a3b8]">Sin productos en wishlist.</div>
+      <div v-else class="px-6 py-4 text-sm text-[#94a3b8]">Sin productos en wishlist.</div>
     </div>
 
     <div class="mt-6">

@@ -20,6 +20,7 @@ const items = ref<Product[]>([])
 const categories = ref<{ name: string }[]>([])
 const loading = ref(false)
 const search = ref('')
+const searchTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 const categoryFilter = ref('')
 const currentPage = ref(1)
 const total = ref(0)
@@ -27,7 +28,7 @@ const perPage = 10
 const deleteId = ref<number | null>(null)
 const deleteName = ref('')
 const confirmVisible = ref(false)
-let searchTimeout: ReturnType<typeof setTimeout> | null = null
+const editMode = ref(false)
 
 const totalPages = computed(() => Math.max(1, Math.ceil(total.value / perPage)))
 
@@ -40,8 +41,6 @@ const pageWindow = computed(() => {
   if (end - start < 4) start = Math.max(1, end - 4)
   return Array.from({ length: end - start + 1 }, (_, i) => start + i)
 })
-
-const isViewer = computed(() => (window as any).adminRole === 'viewer')
 
 onMounted(async () => {
   await loadCategories()
@@ -71,9 +70,10 @@ async function loadData() {
   } catch { items.value = []; total.value = 0 } finally { loading.value = false }
 }
 
-function onSearchInput() {
-  if (searchTimeout) clearTimeout(searchTimeout)
-  searchTimeout = setTimeout(() => { currentPage.value = 1; loadData() }, 300)
+function onSearchInput(val: string) {
+  search.value = val
+  if (searchTimer.value) clearTimeout(searchTimer.value)
+  searchTimer.value = setTimeout(() => { currentPage.value = 1; loadData() }, 300)
 }
 
 function onCategoryChange() {
@@ -120,25 +120,31 @@ async function confirmDelete() {
   <div class="admin-card">
     <div class="admin-card-header">
       <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 w-full">
-        <div class="flex flex-wrap items-center gap-4">
-          <div class="relative max-w-xs">
-            <span class="material-symbols-outlined absolute left-4 inset-y-0 flex items-center text-lg text-[#94a3b8] pointer-events-none">search</span>
-            <input v-model="search" type="text" placeholder="Buscar productos..." class="admin-input pl-12 w-full" @input="onSearchInput" />
+        <div class="flex-1 flex flex-wrap items-center gap-4">
+          <div class="relative min-w-[200px] flex-1">
+            <input :value="search" type="text" placeholder="Buscar productos..." class="admin-input pl-3 w-full" @input="onSearchInput(($event.target as HTMLInputElement).value)" />
           </div>
-          <select v-model="categoryFilter" class="admin-input max-w-[180px]" @change="onCategoryChange">
+          <select v-model="categoryFilter" class="admin-input w-full sm:w-auto sm:max-w-[180px]" @change="onCategoryChange">
             <option value="">Todas las categorías</option>
             <option v-for="c in categories" :key="c.name" :value="c.name">{{ c.name }}</option>
           </select>
           <span class="text-sm text-[#94a3b8] whitespace-nowrap">{{ total }} producto{{ total !== 1 ? 's' : '' }}</span>
         </div>
-        <a v-if="!isViewer" href="/admin/productos/nuevo" class="admin-btn admin-btn-primary shrink-0">
-          <span class="material-symbols-outlined text-lg">add</span>
-          NUEVO PRODUCTO
-        </a>
+        <div class="flex flex-wrap gap-2">
+          <button class="admin-btn admin-btn-edit w-full sm:w-auto justify-center" @click="editMode = !editMode">
+            <span class="material-symbols-outlined text-base">{{ editMode ? 'edit_off' : 'edit' }}</span>
+            {{ editMode ? 'SALIR' : 'EDITAR' }}
+          </button>
+          <a v-if="editMode" href="/admin/productos/nuevo" class="admin-btn admin-btn-primary w-full sm:w-auto justify-center">
+            <span class="material-symbols-outlined text-lg">add</span>
+            NUEVO PRODUCTO
+          </a>
+        </div>
       </div>
     </div>
 
-    <div class="overflow-x-auto">
+    <!-- Desktop table -->
+    <div class="hidden md:block overflow-x-auto">
       <table class="admin-table">
         <thead>
           <tr>
@@ -146,7 +152,7 @@ async function confirmDelete() {
             <th>Precio</th>
             <th>Categoría</th>
             <th>Stock</th>
-            <th class="w-40 text-right">Acciones</th>
+            <th v-if="editMode" class="w-40 text-right">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -163,27 +169,50 @@ async function confirmDelete() {
             <td>
               <span class="badge" :class="stockBadge(p.totalStock)">{{ p.totalStock === 0 ? 'AGOTADO' : p.totalStock + ' uds.' }}</span>
             </td>
-            <td class="text-right">
-              <template v-if="isViewer">
-                <span class="text-sm text-[#94a3b8] italic">Solo lectura</span>
-              </template>
-              <template v-else>
-                <a :href="'/admin/productos/editar?id=' + encodeURIComponent(p.id)" class="admin-btn admin-btn-ghost admin-btn-xs">
-                  <span class="material-symbols-outlined text-sm">edit</span>
-                  EDIT
-                </a>
-                <button class="admin-btn admin-btn-danger admin-btn-xs" @click="openDelete(p)">
-                  <span class="material-symbols-outlined text-sm">delete</span>
-                  DELETE
-                </button>
-              </template>
+            <td v-if="editMode" class="text-right whitespace-nowrap">
+              <a :href="'/admin/productos/editar?id=' + encodeURIComponent(p.id)" class="admin-btn admin-btn-ghost admin-btn-xs">
+                <span class="material-symbols-outlined text-sm">edit</span>
+                EDIT
+              </a>
+              <button class="admin-btn admin-btn-danger admin-btn-xs" @click="openDelete(p)">
+                <span class="material-symbols-outlined text-sm">delete</span>
+                DELETE
+              </button>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <div v-if="totalPages > 1" class="admin-card-footer flex items-center justify-between">
+    <!-- Mobile cards -->
+    <div class="md:hidden px-6 pb-4 space-y-3">
+      <div v-if="loading" class="text-center py-8 text-[#94a3b8]">Cargando...</div>
+      <div v-else-if="items.length === 0" class="text-center py-8 text-[#94a3b8]">No se encontraron productos</div>
+      <div v-for="p in items" :key="p.id" class="glass-card overflow-hidden rounded-xl">
+        <div class="px-5 pt-4 pb-3 border-b border-[#dae2fd]/5">
+          <div class="flex items-center justify-between gap-2">
+            <span class="font-medium text-[#dae2fd] text-sm truncate">{{ p.name }}</span>
+            <span class="badge shrink-0" :class="stockBadge(p.totalStock)">{{ p.totalStock === 0 ? 'AGOTADO' : p.totalStock + ' uds.' }}</span>
+          </div>
+        </div>
+        <div class="px-5 py-3 flex items-center justify-between">
+          <div class="flex items-center gap-4 text-sm">
+            <span class="text-[#dae2fd] font-medium">{{ formatPrice(p.display_price ?? p.price, p.display_symbol) }}</span>
+            <span class="text-[#94a3b8]">{{ p.category || '—' }}</span>
+          </div>
+          <div v-if="editMode" class="flex gap-1 shrink-0">
+            <a :href="'/admin/productos/editar?id=' + encodeURIComponent(p.id)" class="admin-btn admin-btn-ghost admin-btn-xs">
+              <span class="material-symbols-outlined text-sm">edit</span>
+            </a>
+            <button class="admin-btn admin-btn-danger admin-btn-xs" @click="openDelete(p)">
+              <span class="material-symbols-outlined text-sm">delete</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="totalPages > 1" class="admin-card-footer flex flex-col sm:flex-row items-center justify-between gap-3">
       <span class="text-sm text-[#94a3b8]">Página {{ currentPage }} de {{ totalPages }}</span>
       <div class="flex gap-1">
         <button class="admin-btn admin-btn-ghost admin-btn-xs" :disabled="currentPage === 1" @click="currentPage--; loadData()">Anterior</button>
@@ -194,7 +223,7 @@ async function confirmDelete() {
   </div>
 
   <Teleport to="body">
-    <div v-if="confirmVisible" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md">
+    <div v-if="confirmVisible" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
       <div class="admin-card-lg w-full max-w-md mx-4">
         <div class="flex items-center gap-3 mb-4">
           <span class="material-symbols-outlined text-3xl text-[#DC2626]">warning</span>
@@ -207,9 +236,9 @@ async function confirmDelete() {
           <span class="material-symbols-outlined text-sm">info</span>
           Esta acción no se puede deshacer.
         </p>
-        <div class="flex justify-end gap-3">
-          <button class="admin-btn admin-btn-secondary" @click="closeDelete">Cancelar</button>
-          <button class="admin-btn admin-btn-danger" @click="confirmDelete">Eliminar</button>
+        <div class="flex flex-col-reverse sm:flex-row justify-end gap-3">
+          <button class="admin-btn admin-btn-secondary w-full sm:w-auto justify-center" @click="closeDelete">Cancelar</button>
+          <button class="admin-btn admin-btn-danger w-full sm:w-auto justify-center" @click="confirmDelete">Eliminar</button>
         </div>
       </div>
     </div>

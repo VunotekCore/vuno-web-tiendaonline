@@ -251,8 +251,8 @@ async function handleSubmit() {
       <div>
         <label class="block text-sm font-medium text-[#94a3b8] mb-2">IMAGEN MINIATURA</label>
         <div class="border border-dashed border-[#1e293b] rounded-sm p-4">
-          <div class="flex items-center gap-4">
-            <button type="button" class="admin-btn admin-btn-secondary text-sm" @click="$refs.thumbnailInput?.click()">SUBIR IMAGEN</button>
+          <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <button type="button" class="admin-btn admin-btn-secondary text-sm w-full sm:w-auto justify-center" @click="$refs.thumbnailInput?.click()">SUBIR IMAGEN</button>
             <input ref="thumbnailInput" type="file" class="hidden" accept="image/jpeg,image/png,image/webp" @change="onFileChange($event, 'thumbnail')" />
             <span class="text-xs text-[#94a3b8]">JPEG, PNG o WebP</span>
           </div>
@@ -266,8 +266,8 @@ async function handleSubmit() {
       <div>
         <label class="block text-sm font-medium text-[#94a3b8] mb-2">IMAGEN DESTACADA</label>
         <div class="border border-dashed border-[#1e293b] rounded-sm p-4">
-          <div class="flex items-center gap-4">
-            <button type="button" class="admin-btn admin-btn-secondary text-sm" @click="$refs.featuredInput?.click()">SUBIR IMAGEN</button>
+          <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <button type="button" class="admin-btn admin-btn-secondary text-sm w-full sm:w-auto justify-center" @click="$refs.featuredInput?.click()">SUBIR IMAGEN</button>
             <input ref="featuredInput" type="file" class="hidden" accept="image/jpeg,image/png,image/webp" @change="onFileChange($event, 'featured')" />
             <span class="text-xs text-[#94a3b8]">JPEG, PNG o WebP</span>
           </div>
@@ -320,9 +320,9 @@ async function handleSubmit() {
       </div>
     </div>
 
-    <div class="flex justify-end gap-3 mt-8">
-      <a href="/admin/blog" class="admin-btn admin-btn-secondary">CANCELAR</a>
-      <button type="submit" class="admin-btn admin-btn-primary" :disabled="saving">
+    <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 mt-8">
+      <a href="/admin/blog" class="admin-btn admin-btn-secondary w-full sm:w-auto justify-center">CANCELAR</a>
+      <button type="submit" class="admin-btn admin-btn-primary w-full sm:w-auto justify-center" :disabled="saving">
         <span class="material-symbols-outlined text-base">{{ saving ? 'progress_activity' : 'save' }}</span>
         {{ saving ? 'GUARDANDO...' : 'GUARDAR' }}
       </button>
