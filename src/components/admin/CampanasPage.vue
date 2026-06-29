@@ -226,13 +226,16 @@ function resetForm() {
 <template>
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
     <!-- Composer -->
-    <div class="lg:col-span-2 admin-card p-6">
-      <h2 class="text-lg font-semibold text-[#dae2fd] mb-6">Nueva Campaña</h2>
+    <div class="lg:col-span-2 glass-card overflow-hidden rounded-xl">
+      <div class="px-6 pt-5 pb-4 border-b border-[#dae2fd]/5">
+        <h2 class="text-lg font-semibold text-[#dae2fd]">Nueva Campaña</h2>
+      </div>
+      <div class="px-6 py-4 space-y-5">
 
       <!-- Template selector -->
       <div class="mb-5">
         <label class="block text-xs font-semibold tracking-widest text-[#94a3b8] mb-2 uppercase">PLANTILLA</label>
-        <select class="admin-select" @change="onTemplateChange">
+        <select class="admin-input" @change="onTemplateChange">
           <option value="">Seleccionar plantilla...</option>
           <option v-for="t in templates" :key="t.id" :value="t.id" :disabled="!t.is_active">
             {{ t.name }}{{ t.is_active ? '' : ' (inactiva)' }}
@@ -254,36 +257,39 @@ function resetForm() {
       <!-- Preview -->
       <div v-if="showPreview" class="mb-5">
         <label class="block text-xs font-semibold tracking-widest text-[#94a3b8] mb-2 uppercase">VISTA PREVIA</label>
-        <div class="border border-[#1e293b] rounded-sm overflow-hidden bg-white">
+        <div class="border border-[#dae2fd]/10 rounded-sm overflow-hidden bg-white">
           <iframe class="w-full border-0" style="min-height:320px" sandbox="allow-same-origin" :srcdoc="previewHtml"></iframe>
         </div>
       </div>
 
       <!-- Actions -->
-      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-5 border-t border-[#1e293b]">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-5 border-t border-[#dae2fd]/5">
         <div>
           <p class="text-sm text-[#94a3b8]">
             <span class="material-symbols-outlined align-middle text-lg mr-1">people</span>
             {{ totalSubscribers }} suscriptores activos
           </p>
         </div>
-        <div class="flex gap-3 w-full sm:w-auto">
-          <button class="admin-btn admin-btn-secondary" :disabled="!selectedTemplate" @click="sendTest">
+        <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+          <button class="admin-btn admin-btn-secondary w-full sm:w-auto justify-center" :disabled="!selectedTemplate" @click="sendTest">
             <span class="material-symbols-outlined text-lg">bug_report</span>
             ENVIAR PRUEBA
           </button>
-          <button class="admin-btn admin-btn-primary" :disabled="!selectedTemplate || totalSubscribers === 0 || isSending" @click="openConfirm">
+          <button class="admin-btn admin-btn-primary w-full sm:w-auto justify-center" :disabled="!selectedTemplate || totalSubscribers === 0 || isSending" @click="openConfirm">
             <span class="material-symbols-outlined text-lg" :class="{ 'animate-spin': isSending }">{{ isSending ? 'progress_activity' : 'campaign' }}</span>
             {{ isSending ? 'ENVIANDO...' : 'ENVIAR CAMPAÑA' }}
           </button>
         </div>
       </div>
     </div>
+    </div>
 
     <!-- Sidebar -->
-    <div class="admin-card p-6 space-y-5">
-      <h3 class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase">VARIABLES DISPONIBLES</h3>
-      <div class="space-y-3 text-sm">
+    <div class="glass-card overflow-hidden rounded-xl">
+      <div class="px-6 pt-5 pb-4 border-b border-[#dae2fd]/5">
+        <h3 class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase">VARIABLES DISPONIBLES</h3>
+      </div>
+      <div class="px-6 py-4 space-y-3 text-sm">
         <div>
           <code class="bg-[#1e293b] px-2 py-0.5 rounded text-xs font-mono text-[#dae2fd]">&#123;&#123;subscriber_name&#125;&#125;</code>
           <p class="text-[#94a3b8] text-xs mt-1">Nombre del suscriptor</p>
@@ -305,9 +311,11 @@ function resetForm() {
           <p class="text-[#94a3b8] text-xs mt-1">Bloque HTML personalizado</p>
         </div>
       </div>
-      <p class="text-xs text-[#94a3b8]/60 pt-3 border-t border-[#1e293b]">
-        Las variables <code class="font-mono">&#123;&#123;store_name&#125;&#125;</code>, <code class="font-mono">&#123;&#123;store_logo_block&#125;&#125;</code> y <code class="font-mono">&#123;&#123;store_slogan&#125;&#125;</code> se inyectan automáticamente.
-      </p>
+      <div class="px-6 pb-5 pt-4 border-t border-[#dae2fd]/5">
+        <p class="text-xs text-[#94a3b8]/60">
+          Las variables <code class="font-mono">&#123;&#123;store_name&#125;&#125;</code>, <code class="font-mono">&#123;&#123;store_logo_block&#125;&#125;</code> y <code class="font-mono">&#123;&#123;store_slogan&#125;&#125;</code> se inyectan automáticamente.
+        </p>
+      </div>
     </div>
   </div>
 
@@ -325,9 +333,9 @@ function resetForm() {
         <p class="text-sm text-[#94a3b8] mb-6">
           ¿Estás seguro de enviar esta campaña utilizando la plantilla <strong class="text-[#dae2fd]">{{ confirmTemplateName }}</strong>?
         </p>
-        <div class="flex justify-end gap-3">
-          <button class="admin-btn admin-btn-secondary" @click="confirmModal = false">CANCELAR</button>
-          <button class="admin-btn admin-btn-primary" @click="confirmSend">
+        <div class="flex flex-col-reverse sm:flex-row justify-end gap-3">
+          <button class="admin-btn admin-btn-secondary w-full sm:w-auto justify-center" @click="confirmModal = false">CANCELAR</button>
+          <button class="admin-btn admin-btn-primary w-full sm:w-auto justify-center" @click="confirmSend">
             <span class="material-symbols-outlined text-lg">send</span>
             ENVIAR
           </button>
@@ -367,21 +375,14 @@ function resetForm() {
             <p class="text-sm text-[#94a3b8] mt-1">{{ resultText }}</p>
           </div>
         </div>
-        <div class="flex justify-end gap-3">
-          <button class="admin-btn admin-btn-secondary" @click="resetForm">
+        <div class="flex flex-col-reverse sm:flex-row justify-end gap-3">
+          <button class="admin-btn admin-btn-secondary w-full sm:w-auto justify-center" @click="resetForm">
             <span class="material-symbols-outlined text-lg">add</span>
             NUEVA CAMPAÑA
           </button>
-          <button class="admin-btn admin-btn-primary" @click="resultModal = false">CERRAR</button>
+          <button class="admin-btn admin-btn-primary w-full sm:w-auto justify-center" @click="resultModal = false">CERRAR</button>
         </div>
       </div>
     </div>
   </Teleport>
 </template>
-
-<style scoped>
-@reference "tailwindcss";
-:deep(.admin-select) {
-  @apply w-full h-10 px-3 bg-[#1e293b] border border-[#1e293b] text-[#dae2fd] rounded-sm text-sm cursor-pointer;
-}
-</style>
