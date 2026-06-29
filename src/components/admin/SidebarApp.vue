@@ -94,9 +94,7 @@ function isActive(href: string): boolean {
   return false
 }
 
-function toggleSubmenu(e: Event, href: string) {
-  e.preventDefault()
-  e.stopPropagation()
+function toggleSubmenu(href: string) {
   expandedParents.value = { ...expandedParents.value, [href]: !expandedParents.value[href] }
 }
 
@@ -144,7 +142,6 @@ function closeMobile() {
 
   <!-- Sidebar -->
   <aside
-    transition:persist
     class="fixed left-0 top-0 bottom-0 z-50 flex w-64 flex-col bg-[#0b1326] border-r border-[#1e293b] transition-transform duration-300 ease-in-out will-change-transform lg:translate-x-0 lg:transition-none"
     :class="isMobileOpen ? 'translate-x-0' : '-translate-x-full'"
   >
@@ -171,35 +168,44 @@ function closeMobile() {
     <nav class="relative z-10 flex-1 overflow-y-auto px-4 py-6 space-y-1 sidebar-scroll">
       <template v-for="item in filteredNavItems" :key="item.href">
         <!-- Item with children -->
-        <div v-if="item.children" :class="item.class">
-          <a
-            :href="item.href"
-            class="group flex items-center gap-4 px-3 py-3 font-label-caps text-label-caps rounded-sm transition-all duration-200"
-            :class="isActive(item.href)
-              ? 'sidebar-link-active'
-              : 'text-[#94a3b8] hover:bg-white/[0.06] hover:text-[#dae2fd]'"
-            @click.prevent="toggleSubmenu($event, item.href)"
-          >
-            <span class="transition-transform duration-200 group-hover:scale-110">
-              <VunoIcon :icon="item.icon" :size="20" class="shrink-0" />
-            </span>
-            <span class="flex-1">{{ item.label }}</span>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="shrink-0 transition-transform duration-250"
-              :class="expandedParents[item.href] ? 'rotate-180' : ''"
+        <div v-if="item.children" :class="item.class" class="relative">
+          <div class="flex items-center">
+            <a
+              :href="item.href"
+              class="group flex-1 flex items-center gap-4 px-3 py-3 font-label-caps text-label-caps rounded-sm transition-all duration-200"
+              :class="isActive(item.href)
+                ? 'sidebar-link-active'
+                : 'text-[#94a3b8] hover:bg-white/[0.06] hover:text-[#dae2fd]'"
+              @click="closeMobile"
             >
-              <polyline points="6 9 12 15 18 9"/>
-            </svg>
-          </a>
+              <span class="transition-transform duration-200 group-hover:scale-110">
+                <VunoIcon :icon="item.icon" :size="20" class="shrink-0" />
+              </span>
+              <span class="flex-1">{{ item.label }}</span>
+            </a>
+            <button
+              type="button"
+              class="flex items-center justify-center w-9 h-9 mr-1 rounded-sm text-[#94a3b8] hover:text-[#dae2fd] hover:bg-white/[0.06] transition-all duration-200 cursor-pointer"
+              @click.stop="toggleSubmenu(item.href)"
+              :aria-label="`Toggle ${item.label} submenu`"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="shrink-0 transition-transform duration-250"
+                :class="expandedParents[item.href] ? 'rotate-180' : ''"
+              >
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </button>
+          </div>
           <transition name="submenu-slide">
             <div v-if="expandedParents[item.href]" class="ml-4 space-y-0.5 overflow-hidden">
               <a
