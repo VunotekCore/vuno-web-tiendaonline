@@ -1,4 +1,13 @@
 @import "tailwindcss";
+@import "@fontsource/hanken-grotesk/400.css";
+@import "@fontsource/hanken-grotesk/500.css";
+@import "@fontsource/hanken-grotesk/600.css";
+@import "@fontsource/hanken-grotesk/700.css";
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
+@import "@fontsource/inter/700.css";
+@import "@fontsource/jetbrains-mono/500.css";
 
 @theme {
   --color-secondary-fixed-dim: #cdc5bd;
@@ -65,34 +74,39 @@
   --color-on-surface: #dae2fd;
   --color-slate-text: #94a3b8;
 
-  --font-headline-xl: "Instrument Serif", serif;
-  --font-headline-lg: "Instrument Serif", serif;
-  --font-headline-lg-mobile: "Instrument Serif", serif;
-  --font-headline-md: "Instrument Serif", serif;
-  --font-body-lg: "Satoshi", "DM Sans", sans-serif;
-  --font-body-md: "Satoshi", "DM Sans", sans-serif;
-  --font-label-caps: "Satoshi", "DM Sans", sans-serif;
-  --font-price-display: "Satoshi", "DM Sans", sans-serif;
+  --font-headline-xl: "Hanken Grotesk", sans-serif;
+  --font-headline-lg: "Hanken Grotesk", sans-serif;
+  --font-headline-lg-mobile: "Hanken Grotesk", sans-serif;
+  --font-headline-md: "Hanken Grotesk", sans-serif;
+  --font-body-lg: "Inter", sans-serif;
+  --font-body-md: "Inter", sans-serif;
+  --font-label-mono: "JetBrains Mono", monospace;
+  --font-price-display: "Inter", sans-serif;
 
-  --font-headline: "Instrument Serif", serif;
-  --font-body: "Satoshi", "DM Sans", sans-serif;
+  --font-headline: "Hanken Grotesk", sans-serif;
+  --font-body: "Inter", sans-serif;
 
-  --text-headline-xl: 72px;
-  --text-headline-xl--line-height: 76px;
-  --text-headline-xl--letter-spacing: -0.03em;
-  --text-headline-xl--font-weight: 400;
+  --text-display-lg: 64px;
+  --text-display-lg--line-height: 72px;
+  --text-display-lg--font-weight: 700;
+  --text-display-lg--letter-spacing: -0.02em;
 
-  --text-headline-lg: 44px;
-  --text-headline-lg--line-height: 48px;
-  --text-headline-lg--font-weight: 400;
+  --text-display-lg-mobile: 40px;
+  --text-display-lg-mobile--line-height: 48px;
+  --text-display-lg-mobile--font-weight: 700;
+  --text-display-lg-mobile--letter-spacing: -0.01em;
 
-  --text-headline-lg-mobile: 34px;
-  --text-headline-lg-mobile--line-height: 40px;
-  --text-headline-lg-mobile--font-weight: 400;
+  --text-headline-lg: 32px;
+  --text-headline-lg--line-height: 40px;
+  --text-headline-lg--font-weight: 600;
 
-  --text-headline-md: 26px;
+  --text-headline-lg-mobile: 26px;
+  --text-headline-lg-mobile--line-height: 32px;
+  --text-headline-lg-mobile--font-weight: 600;
+
+  --text-headline-md: 24px;
   --text-headline-md--line-height: 32px;
-  --text-headline-md--font-weight: 400;
+  --text-headline-md--font-weight: 600;
 
   --text-body-lg: 18px;
   --text-body-lg--line-height: 28px;
@@ -102,10 +116,15 @@
   --text-body-md--line-height: 24px;
   --text-body-md--font-weight: 400;
 
-  --text-label-caps: 11px;
-  --text-label-caps--line-height: 16px;
-  --text-label-caps--letter-spacing: 0.12em;
+  --text-label-mono: 14px;
+  --text-label-mono--line-height: 20px;
+  --text-label-mono--font-weight: 500;
+  --text-label-mono--letter-spacing: 0.05em;
+
+  --text-label-caps: 14px;
+  --text-label-caps--line-height: 20px;
   --text-label-caps--font-weight: 500;
+  --text-label-caps--letter-spacing: 0.05em;
 
   --text-price-display: 20px;
   --text-price-display--line-height: 24px;
@@ -197,12 +216,12 @@
   border: 0;
 }
 
+.font-label-mono,
 .font-label-caps {
-  font-family: var(--font-body);
-  font-size: var(--text-label-caps);
+  font-family: var(--font-label-mono);
+  font-size: var(--text-label-mono);
   font-weight: 500;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .font-price-display {

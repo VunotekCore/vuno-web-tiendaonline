@@ -1,5 +1,5 @@
 {
-  "name": "ramlop-tienda",
+  "name": "vunotek-tienda",
   "type": "module",
   "version": "0.0.1",
   "private": true,
@@ -15,6 +15,10 @@
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",
     "@astrojs/vue": "^6",
+    "@fontsource/hanken-grotesk": "^5.2.8",
+    "@fontsource/inter": "^5.2.8",
+    "@fontsource/jetbrains-mono": "^5.2.8",
+    "@lucide/vue": "^1.22.0",
     "@tailwindcss/vite": "^4.0.0",
     "astro": "^6.3.8",
     "hyperframes": "^0.6.108",

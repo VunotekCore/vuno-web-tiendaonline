@@ -74,12 +74,8 @@ const siteUrl = import.meta.env.PROD ? "https://vuno.com" : "http://localhost:43
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@400;500;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
       rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap"
     />
     <script src="/js/cart.js" is:inline></script>
     <script src="/js/wishlist.js" is:inline></script>
@@ -205,7 +201,7 @@ const siteUrl = import.meta.env.PROD ? "https://vuno.com" : "http://localhost:43
           .then(function (r) { return r.json(); })
           .then(function (data) {
             var store = data.store || {};
-            var name = store.name || "Ram;Lop";
+            var name = store.name || "Vunotek";
             var slogan = store.slogan || "";
             var description = store.description || "";
             var logo = store.logo || "";
@@ -213,7 +209,7 @@ const siteUrl = import.meta.env.PROD ? "https://vuno.com" : "http://localhost:43
             // Título de la página
             var titleEl = document.querySelector("title");
             if (titleEl) {
-              titleEl.textContent = titleEl.textContent.replace("Ram;Lop", name);
+              titleEl.textContent = titleEl.textContent.replace("Vunotek", name);
             }
 
             // Elementos con data-store-name
