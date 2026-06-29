@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useApi } from './useApi'
+import { useToast } from './useToast'
 
 const api = useApi()
+const toast = useToast()
 
 interface Review {
   id: number
@@ -19,14 +21,24 @@ interface Review {
 const items = ref<Review[]>([])
 const loading = ref(false)
 const search = ref('')
+const searchTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 const statusFilter = ref('')
-const currentOffset = ref(0)
+const currentPage = ref(1)
 const total = ref(0)
 const perPage = 15
-let searchTimeout: ReturnType<typeof setTimeout> | null = null
+const editMode = ref(false)
 
-const totalPages = () => Math.max(1, Math.ceil(total.value / perPage))
-const currentPage = () => Math.floor(currentOffset.value / perPage) + 1
+const totalPages = computed(() => Math.max(1, Math.ceil(total.value / perPage)))
+
+const pageWindow = computed(() => {
+  const t = totalPages.value
+  const c = currentPage.value
+  if (t <= 5) return Array.from({ length: t }, (_, i) => i + 1)
+  let start = Math.max(1, c - 2)
+  let end = Math.min(t, start + 4)
+  if (end - start < 4) start = Math.max(1, end - 4)
+  return Array.from({ length: end - start + 1 }, (_, i) => start + i)
+})
 
 onMounted(loadReviews)
 
@@ -35,7 +47,7 @@ async function loadReviews() {
   try {
     const qs = new URLSearchParams()
     qs.set('limit', String(perPage))
-    qs.set('offset', String(currentOffset.value))
+    qs.set('offset', String((currentPage.value - 1) * perPage))
     if (statusFilter.value) qs.set('status', statusFilter.value)
     if (search.value.trim()) qs.set('search', search.value.trim())
     const data = await api.get<{ items: Review[]; total: number }>(`/api/resenas/admin-list.php?${qs}`)
@@ -54,24 +66,21 @@ function formatDate(d: string) {
   return new Date(d).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' })
 }
 
-function filterReviews() {
-  currentOffset.value = 0
-  loadReviews()
+function onSearchInput(val: string) {
+  search.value = val
+  if (searchTimer.value) clearTimeout(searchTimer.value)
+  searchTimer.value = setTimeout(() => { currentPage.value = 1; loadReviews() }, 300)
 }
 
-function onSearchInput() {
-  if (searchTimeout) clearTimeout(searchTimeout)
-  searchTimeout = setTimeout(filterReviews, 300)
-}
-
-function goToPage(page: number) {
-  currentOffset.value = (page - 1) * perPage
+function onStatusChange() {
+  currentPage.value = 1
   loadReviews()
 }
 
 async function approve(item: Review) {
   try {
     await api.post('/api/resenas/approve.php', { id: item.id })
+    toast.success('Reseña aprobada')
     await loadReviews()
   } catch {}
 }
@@ -87,6 +96,7 @@ function confirmDelete(item: Review) {
     onConfirm: async () => {
       try {
         await api.post('/api/resenas/delete.php', { id: item.id })
+        toast.success('Reseña eliminada')
         await loadReviews()
       } catch {}
     },
@@ -97,21 +107,27 @@ function confirmDelete(item: Review) {
 <template>
   <div class="admin-card">
     <div class="admin-card-header">
-      <div class="flex flex-wrap items-center gap-4">
-        <select v-model="statusFilter" class="admin-input max-w-[160px]" @change="filterReviews">
-          <option value="">Todas</option>
-          <option value="pending">Pendientes</option>
-          <option value="approved">Aprobadas</option>
-        </select>
-        <div class="relative max-w-xs">
-          <span class="material-symbols-outlined absolute left-4 inset-y-0 flex items-center text-lg text-[#94a3b8] pointer-events-none">search</span>
-          <input v-model="search" type="text" placeholder="Buscar reseñas..." class="admin-input pl-12 w-full" @input="onSearchInput" />
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 w-full">
+        <div class="flex-1 flex flex-wrap items-center gap-4">
+          <div class="relative min-w-[200px] flex-1">
+            <input :value="search" type="text" placeholder="Buscar reseñas..." class="admin-input pl-3 w-full" @input="onSearchInput(($event.target as HTMLInputElement).value)" />
+          </div>
+          <select v-model="statusFilter" class="admin-input w-full sm:w-auto sm:max-w-[160px]" @change="onStatusChange">
+            <option value="">Todas</option>
+            <option value="pending">Pendientes</option>
+            <option value="approved">Aprobadas</option>
+          </select>
+          <span class="text-sm text-[#94a3b8] whitespace-nowrap">{{ total }} reseñas</span>
         </div>
-        <span class="text-sm text-[#94a3b8] whitespace-nowrap">{{ total }} reseñas</span>
+        <button class="admin-btn admin-btn-edit w-full sm:w-auto justify-center" @click="editMode = !editMode">
+          <span class="material-symbols-outlined text-base">{{ editMode ? 'edit_off' : 'edit' }}</span>
+          {{ editMode ? 'SALIR' : 'EDITAR' }}
+        </button>
       </div>
     </div>
 
-    <div class="overflow-x-auto">
+    <!-- Desktop table -->
+    <div class="hidden md:block overflow-x-auto">
       <table class="admin-table">
         <thead>
           <tr>
@@ -121,7 +137,7 @@ function confirmDelete(item: Review) {
             <th>Comentario</th>
             <th>Fecha</th>
             <th>Estado</th>
-            <th class="w-36 text-right">Acciones</th>
+            <th v-if="editMode" class="w-36 text-right">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -146,7 +162,7 @@ function confirmDelete(item: Review) {
             <td>
               <span class="badge" :class="item.isApproved ? 'badge-paid' : 'badge-pending'">{{ item.isApproved ? 'APROBADA' : 'PENDIENTE' }}</span>
             </td>
-            <td class="text-right">
+            <td v-if="editMode" class="text-right whitespace-nowrap">
               <button v-if="!item.isApproved" class="admin-btn admin-btn-ghost admin-btn-xs" @click="approve(item)" title="Aprobar">
                 <span class="material-symbols-outlined text-sm">check</span>
               </button>
@@ -159,14 +175,50 @@ function confirmDelete(item: Review) {
       </table>
     </div>
 
-    <div v-if="totalPages() > 1" class="admin-card-footer flex items-center justify-center gap-2">
-      <button class="admin-btn admin-btn-ghost admin-btn-xs" :disabled="currentPage() <= 1" @click="goToPage(currentPage() - 1)">
-        <span class="material-symbols-outlined text-sm">chevron_left</span>
-      </button>
-      <button v-for="p in totalPages()" :key="p" class="admin-btn admin-btn-xs" :class="p === currentPage() ? 'admin-btn-primary' : 'admin-btn-ghost'" @click="goToPage(p)">{{ p }}</button>
-      <button class="admin-btn admin-btn-ghost admin-btn-xs" :disabled="currentPage() >= totalPages()" @click="goToPage(currentPage() + 1)">
-        <span class="material-symbols-outlined text-sm">chevron_right</span>
-      </button>
+    <!-- Mobile cards -->
+    <div class="md:hidden px-6 pb-4 space-y-3">
+      <div v-if="loading" class="text-center py-8 text-[#94a3b8]">Cargando...</div>
+      <div v-else-if="items.length === 0" class="text-center py-8 text-[#94a3b8]">No hay reseñas</div>
+      <div v-for="item in items" :key="item.id" class="glass-card overflow-hidden rounded-xl">
+        <div class="px-5 pt-4 pb-3 border-b border-[#dae2fd]/5">
+          <div class="flex items-center justify-between gap-2">
+            <a :href="'/producto/' + item.productSlug" target="_blank" class="text-[#dae2fd] hover:underline text-sm font-medium truncate">{{ item.productName }}</a>
+            <span class="badge shrink-0" :class="item.isApproved ? 'badge-paid' : 'badge-pending'">{{ item.isApproved ? 'APROBADA' : 'PENDIENTE' }}</span>
+          </div>
+        </div>
+        <div class="px-5 py-3 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-sm text-[#94a3b8]">{{ item.reviewerName || 'Anónimo' }}</span>
+            <span v-html="starsHtml(item.rating)"></span>
+          </div>
+          <p v-if="item.title" class="text-sm font-medium text-[#dae2fd]">{{ item.title }}</p>
+          <p v-if="item.comment" class="text-sm text-[#94a3b8] line-clamp-2">{{ item.comment }}</p>
+          <div class="flex items-center justify-between text-xs text-[#64748b]">
+            <span>{{ formatDate(item.createdAt) }}</span>
+            <div v-if="editMode" class="flex gap-1">
+              <button v-if="!item.isApproved" class="admin-btn admin-btn-ghost admin-btn-xs" @click="approve(item)" title="Aprobar">
+                <span class="material-symbols-outlined text-sm">check</span>
+              </button>
+              <button class="admin-btn admin-btn-danger admin-btn-xs" @click="confirmDelete(item)" title="Eliminar">
+                <span class="material-symbols-outlined text-sm">delete</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="totalPages > 1" class="admin-card-footer flex flex-col sm:flex-row items-center justify-between gap-3">
+      <span class="text-sm text-[#94a3b8]">Página {{ currentPage }} de {{ totalPages }}</span>
+      <div class="flex gap-1">
+        <button class="admin-btn admin-btn-ghost admin-btn-xs" :disabled="currentPage <= 1" @click="currentPage--; loadReviews()">
+          <span class="material-symbols-outlined text-sm">chevron_left</span>
+        </button>
+        <button v-for="p in pageWindow" :key="p" class="admin-btn admin-btn-xs" :class="p === currentPage ? 'admin-btn-primary' : 'admin-btn-ghost'" @click="currentPage = p; loadReviews()">{{ p }}</button>
+        <button class="admin-btn admin-btn-ghost admin-btn-xs" :disabled="currentPage >= totalPages" @click="currentPage++; loadReviews()">
+          <span class="material-symbols-outlined text-sm">chevron_right</span>
+        </button>
+      </div>
     </div>
   </div>
 </template>

@@ -18,13 +18,14 @@ interface Cliente {
 const items = ref<Cliente[]>([])
 const loading = ref(false)
 const search = ref('')
+const searchTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 const currentPage = ref(1)
 const total = ref(0)
 const perPage = 10
 const deleteId = ref<number | null>(null)
 const deleteName = ref('')
 const confirmVisible = ref(false)
-let searchTimeout: ReturnType<typeof setTimeout> | null = null
+const editMode = ref(false)
 
 const totalPages = computed(() => Math.max(1, Math.ceil(total.value / perPage)))
 
@@ -37,8 +38,6 @@ const pageWindow = computed(() => {
   if (end - start < 4) start = Math.max(1, end - 4)
   return Array.from({ length: end - start + 1 }, (_, i) => start + i)
 })
-
-const isViewer = computed(() => (window as any).adminRole === 'viewer')
 
 onMounted(loadData)
 
@@ -55,9 +54,10 @@ async function loadData() {
   } catch { items.value = []; total.value = 0 } finally { loading.value = false }
 }
 
-function onSearchInput() {
-  if (searchTimeout) clearTimeout(searchTimeout)
-  searchTimeout = setTimeout(() => { currentPage.value = 1; loadData() }, 300)
+function onSearchInput(val: string) {
+  search.value = val
+  if (searchTimer.value) clearTimeout(searchTimer.value)
+  searchTimer.value = setTimeout(() => { currentPage.value = 1; loadData() }, 300)
 }
 
 function formatDate(d: string) {
@@ -93,18 +93,21 @@ async function confirmDelete() {
   <div class="admin-card">
     <div class="admin-card-header">
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 w-full">
-        <div class="flex flex-wrap items-center gap-4">
-          <div class="relative max-w-xs">
-            <span class="material-symbols-outlined absolute left-4 inset-y-0 flex items-center text-lg text-[#94a3b8] pointer-events-none">search</span>
-            <input v-model="search" type="text" placeholder="Buscar clientes..." class="admin-input pl-12 w-full" @input="onSearchInput" />
+        <div class="flex-1 flex flex-wrap items-center gap-4">
+          <div class="relative min-w-[200px] flex-1">
+            <input :value="search" type="text" placeholder="Buscar clientes..." class="admin-input pl-3 w-full" @input="onSearchInput(($event.target as HTMLInputElement).value)" />
           </div>
           <span class="text-sm text-[#94a3b8] whitespace-nowrap">{{ total }} cliente{{ total !== 1 ? 's' : '' }}</span>
         </div>
+        <button class="admin-btn admin-btn-edit w-full sm:w-auto justify-center" @click="editMode = !editMode">
+          <span class="material-symbols-outlined text-base">{{ editMode ? 'edit_off' : 'edit' }}</span>
+          {{ editMode ? 'SALIR' : 'EDITAR' }}
+        </button>
       </div>
     </div>
 
     <!-- Desktop table -->
-    <div class="overflow-x-auto">
+    <div class="hidden md:block overflow-x-auto">
       <table class="admin-table">
         <thead>
           <tr>
@@ -113,7 +116,7 @@ async function confirmDelete() {
             <th>Teléfono</th>
             <th>Pedidos</th>
             <th>Registrado</th>
-            <th class="w-32 text-right">Acciones</th>
+            <th v-if="editMode" class="w-32 text-right">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -131,11 +134,11 @@ async function confirmDelete() {
             <td class="text-[#94a3b8]">{{ item.phone || '—' }}</td>
             <td class="text-[#94a3b8]">{{ item.orders_count }}</td>
             <td class="text-sm text-[#94a3b8]">{{ formatDate(item.created_at) }}</td>
-            <td class="text-right">
+            <td v-if="editMode" class="text-right whitespace-nowrap">
               <a :href="'/admin/clientes/detalle?id=' + item.id" class="admin-btn admin-btn-ghost admin-btn-xs" title="Ver detalle">
                 <span class="material-symbols-outlined text-sm">visibility</span>
               </a>
-              <button v-if="!isViewer" class="admin-btn admin-btn-danger admin-btn-xs" @click="openDelete(item)" title="Eliminar">
+              <button class="admin-btn admin-btn-danger admin-btn-xs" @click="openDelete(item)" title="Eliminar">
                 <span class="material-symbols-outlined text-sm">delete</span>
               </button>
             </td>
@@ -144,7 +147,36 @@ async function confirmDelete() {
       </table>
     </div>
 
-    <div v-if="totalPages > 1" class="admin-card-footer flex items-center justify-between">
+    <!-- Mobile cards -->
+    <div class="md:hidden px-6 pb-4 space-y-3">
+      <div v-if="loading" class="text-center py-8 text-[#94a3b8]">Cargando...</div>
+      <div v-else-if="items.length === 0" class="text-center py-8 text-[#94a3b8]">No se encontraron clientes</div>
+      <div v-for="item in items" :key="item.id" class="glass-card overflow-hidden rounded-xl">
+        <div class="px-5 pt-4 pb-3 border-b border-[#dae2fd]/5">
+          <div class="flex items-center justify-between gap-2">
+            <a :href="'/admin/clientes/detalle?id=' + item.id" class="text-[#dae2fd] hover:text-[#42b883] font-medium text-sm truncate">{{ item.name }}</a>
+            <span class="text-xs text-[#94a3b8] shrink-0">{{ item.orders_count }} pedidos</span>
+          </div>
+        </div>
+        <div class="px-5 py-3 flex items-center justify-between">
+          <div class="flex flex-col gap-1 text-sm text-[#94a3b8]">
+            <span>{{ item.email }}</span>
+            <span>{{ item.phone || '—' }}</span>
+            <span class="text-xs">{{ formatDate(item.created_at) }}</span>
+          </div>
+          <div v-if="editMode" class="flex gap-1 shrink-0">
+            <a :href="'/admin/clientes/detalle?id=' + item.id" class="admin-btn admin-btn-ghost admin-btn-xs" title="Ver detalle">
+              <span class="material-symbols-outlined text-sm">visibility</span>
+            </a>
+            <button class="admin-btn admin-btn-danger admin-btn-xs" @click="openDelete(item)" title="Eliminar">
+              <span class="material-symbols-outlined text-sm">delete</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="totalPages > 1" class="admin-card-footer flex flex-col sm:flex-row items-center justify-between gap-3">
       <span class="text-sm text-[#94a3b8]">Página {{ currentPage }} de {{ totalPages }}</span>
       <div class="flex gap-1">
         <button class="admin-btn admin-btn-ghost admin-btn-xs" :disabled="currentPage === 1" @click="currentPage--; loadData()">Anterior</button>
@@ -155,7 +187,7 @@ async function confirmDelete() {
   </div>
 
   <Teleport to="body">
-    <div v-if="confirmVisible" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md">
+    <div v-if="confirmVisible" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
       <div class="admin-card-lg w-full max-w-md mx-4">
         <div class="flex items-center gap-3 mb-4">
           <span class="material-symbols-outlined text-3xl text-[#DC2626]">warning</span>
@@ -168,9 +200,9 @@ async function confirmDelete() {
           <span class="material-symbols-outlined text-sm">info</span>
           Los datos del cliente se eliminarán permanentemente. Los pedidos existentes quedarán sin asociación.
         </p>
-        <div class="flex justify-end gap-3">
-          <button class="admin-btn admin-btn-secondary" @click="closeDelete">Cancelar</button>
-          <button class="admin-btn admin-btn-danger" @click="confirmDelete">Eliminar</button>
+        <div class="flex flex-col-reverse sm:flex-row justify-end gap-3">
+          <button class="admin-btn admin-btn-secondary w-full sm:w-auto justify-center" @click="closeDelete">Cancelar</button>
+          <button class="admin-btn admin-btn-danger w-full sm:w-auto justify-center" @click="confirmDelete">Eliminar</button>
         </div>
       </div>
     </div>
