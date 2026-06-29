@@ -142,13 +142,11 @@ onMounted(async () => {
     </div>
 
     <!-- Quick actions -->
-    <div class="flex items-center gap-4">
-      <a href="/admin/pos"
-         class="admin-btn admin-btn-primary inline-flex items-center gap-2">
-        <span class="material-symbols-outlined text-lg">point_of_sale</span>
-        Ir a Mostrador POS
-      </a>
-    </div>
+    <a href="/admin/pos"
+       class="admin-btn admin-btn-primary inline-flex items-center justify-center gap-2 w-full">
+      <span class="material-symbols-outlined text-lg">point_of_sale</span>
+      Ir a Mostrador POS
+    </a>
 
     <!-- Two-column layout -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">

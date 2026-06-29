@@ -112,10 +112,9 @@ async function reseed() {
   <div class="admin-card">
     <div class="admin-card-header">
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 w-full">
-        <div class="flex flex-wrap items-center gap-4">
-          <div class="relative w-full md:max-w-xs">
-            <span class="material-symbols-outlined absolute left-3 inset-y-0 flex items-center text-[#94a3b8] pointer-events-none">search</span>
-            <input :value="search" type="text" placeholder="Buscar plantillas..." class="admin-input pl-12 w-full md:max-w-xs" @input="onSearchInput(($event.target as HTMLInputElement).value)" />
+        <div class="flex-1 flex flex-wrap items-center gap-4">
+          <div class="relative min-w-[200px] flex-1">
+            <input :value="search" type="text" placeholder="Buscar plantillas..." class="admin-input pl-3 w-full" @input="onSearchInput(($event.target as HTMLInputElement).value)" />
           </div>
           <span class="text-sm text-[#94a3b8] whitespace-nowrap">{{ total }} plantillas</span>
           <span v-if="editMode" class="badge badge-paid text-xs tracking-widest font-semibold">EDITANDO</span>
