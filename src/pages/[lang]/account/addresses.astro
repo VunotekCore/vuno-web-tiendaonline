@@ -12,7 +12,7 @@ const { lang } = Astro.params as { lang: Locale };
 const currentPath = Astro.url.pathname;
 ---
 
-<BaseLayout title={lang === "es" ? "Mis Direcciones | Ram;Lop" : "My Addresses | Ram;Lop"} lang={lang}>
+<BaseLayout title={lang === "es" ? "Mis Direcciones | Vunotek" : "My Addresses | Vunotek"} lang={lang}>
   <Navbar lang={lang} currentPath={currentPath} />
   <main class="flex-grow w-full max-w-2xl mx-auto px-margin-mobile md:px-margin-desktop py-section-gap">
     <div id="notLoggedIn" class="hidden text-center py-20">

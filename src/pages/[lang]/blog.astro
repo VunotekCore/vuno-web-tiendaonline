@@ -13,11 +13,11 @@ const currentPath = Astro.url.pathname;
 
 const blogTitleFallback = lang === "es" ? "Blog" : "Blog";
 const blogDescFallback = lang === "es"
-  ? "Explora el mundo de Ram;Lop: tendencias, cuidados y el proceso artesanal detrás de cada diseño."
-  : "Explore the world of Ram;Lop: trends, care, and the artisanal process behind each design.";
+  ? "Explora el mundo de Vunotek: tendencias, cuidados y el proceso artesanal detrás de cada diseño."
+  : "Explore the world of Vunotek: trends, care, and the artisanal process behind each design.";
 ---
 
-<BaseLayout title="Blog — Ram;Lop" lang={lang}>
+<BaseLayout title="Blog — Vunotek" lang={lang}>
   <Navbar lang={lang} currentPath={currentPath} />
 
   <main data-lang={lang} class="flex-grow w-full max-w-6xl mx-auto px-6 pt-12 pb-section-gap">
@@ -198,7 +198,7 @@ const blogDescFallback = lang === "es"
           }
 
           document.getElementById("postTitle").textContent = post.title || "";
-          document.getElementById("postAuthor").textContent = "Por " + (post.author || "Ram;Lop");
+          document.getElementById("postAuthor").textContent = "Por " + (post.author || "Vunotek");
           document.getElementById("postDate").textContent = formatDate(post.published_at || post.created_at);
 
           if (post.excerpt) {
