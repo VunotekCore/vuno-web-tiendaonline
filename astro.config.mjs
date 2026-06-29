@@ -8,6 +8,9 @@ export default defineConfig({
   output: 'static',
   trailingSlash: 'ignore',
   compressHTML: true,
+  devToolbar: {
+    enabled: false,
+  },
   integrations: [
     vue({ appEntrypoint: '/src/plugins/vue-entrypoint' }),
     sitemap({
@@ -27,6 +30,9 @@ export default defineConfig({
   ],
   vite: {
     plugins: [tailwindcss()],
+    define: {
+      __VUE_PROD_DEVTOOLS__: false,
+    },
     server: {
       proxy: {
         '/api': 'http://127.0.0.1:8000'
