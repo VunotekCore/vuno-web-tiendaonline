@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useApi } from './useApi'
 import { useToast } from './useToast'
+import VunoIcon from './VunoIcon.vue'
 
 const api = useApi()
 const toast = useToast()
@@ -121,15 +122,15 @@ async function reseed() {
         </div>
         <div class="flex flex-wrap gap-2">
           <button class="admin-btn admin-btn-edit w-full sm:w-auto justify-center" @click="editMode = !editMode">
-            <span class="material-symbols-outlined text-base">{{ editMode ? 'edit_off' : 'edit' }}</span>
+            <VunoIcon :icon="editMode ? 'edit_off' : 'edit'" :size="16" />
             {{ editMode ? 'SALIR' : 'EDITAR' }}
           </button>
           <button class="admin-btn admin-btn-secondary w-full sm:w-auto justify-center" @click="reseed">
-            <span class="material-symbols-outlined text-base">refresh</span>
+            <VunoIcon icon="refresh" :size="16" />
             RESEED
           </button>
           <a v-if="editMode" href="/admin/email-templates/nuevo" class="admin-btn admin-btn-primary w-full sm:w-auto justify-center">
-            <span class="material-symbols-outlined text-base">add</span>
+            <VunoIcon icon="add" :size="16" />
             NUEVA PLANTILLA
           </a>
         </div>
@@ -153,7 +154,11 @@ async function reseed() {
             <td colspan="5" class="text-center py-8 text-[#94a3b8]">Cargando...</td>
           </tr>
           <tr v-else-if="items.length === 0">
-            <td colspan="5" class="text-center py-8 text-[#94a3b8]">No hay plantillas</td>
+            <td colspan="5" class="empty-state px-6 py-10">
+              <VunoIcon icon="mail" :size="36" class="empty-state-icon" />
+              <p class="empty-state-title">Sin plantillas</p>
+              <p class="empty-state-desc">No hay plantillas de email.</p>
+            </td>
           </tr>
           <tr v-for="item in items" :key="item.id">
             <td class="font-mono text-xs text-[#B8956A] font-medium">{{ item.code || '—' }}</td>
@@ -165,10 +170,10 @@ async function reseed() {
             <td class="text-right">
               <div class="flex gap-1 flex-nowrap justify-end whitespace-nowrap">
                 <a v-if="editMode" :href="'/admin/email-templates/editar?id=' + item.id" class="admin-btn admin-btn-ghost admin-btn-xs" title="Editar">
-                  <span class="material-symbols-outlined text-sm">edit</span>
+                  <VunoIcon icon="edit" :size="14" />
                 </a>
                 <button v-if="editMode" class="admin-btn admin-btn-danger admin-btn-xs" @click="openDelete(item)" title="Eliminar">
-                  <span class="material-symbols-outlined text-sm">delete</span>
+                  <VunoIcon icon="delete" :size="14" />
                 </button>
               </div>
             </td>
@@ -180,7 +185,11 @@ async function reseed() {
     <!-- Mobile cards -->
     <div class="md:hidden space-y-3 px-6 pb-4">
       <div v-if="loading" class="text-center py-8 text-[#94a3b8]">Cargando...</div>
-      <div v-else-if="items.length === 0" class="text-center py-8 text-[#94a3b8]">No hay plantillas</div>
+      <div v-else-if="items.length === 0" class="empty-state">
+        <VunoIcon icon="mail" :size="36" class="empty-state-icon" />
+        <p class="empty-state-title">Sin plantillas</p>
+        <p class="empty-state-desc">No hay plantillas de email.</p>
+      </div>
       <div v-for="item in items" :key="item.id" class="glass-card overflow-hidden rounded-xl">
         <div class="px-5 pt-4 pb-3 border-b border-[#dae2fd]/5">
           <div class="flex justify-between items-start gap-2">
@@ -196,11 +205,11 @@ async function reseed() {
         </div>
         <div class="px-5 py-3 border-t border-[#dae2fd]/5 flex gap-2">
           <a v-if="editMode" :href="'/admin/email-templates/editar?id=' + item.id" class="admin-btn admin-btn-ghost admin-btn-xs flex-1 justify-center">
-            <span class="material-symbols-outlined text-sm">edit</span>
+            <VunoIcon icon="edit" :size="14" />
             Editar
           </a>
           <button v-if="editMode" class="admin-btn admin-btn-danger admin-btn-xs flex-1 justify-center" @click="openDelete(item)">
-            <span class="material-symbols-outlined text-sm">delete</span>
+            <VunoIcon icon="delete" :size="14" />
             Eliminar
           </button>
         </div>
@@ -218,24 +227,26 @@ async function reseed() {
   </div>
 
   <Teleport to="body">
-    <div v-if="confirmVisible" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md">
-      <div class="admin-card-lg w-full max-w-md mx-4">
-        <div class="flex items-center gap-3 mb-4">
-          <span class="material-symbols-outlined text-3xl text-[#DC2626]">warning</span>
-          <h3 class="text-lg font-semibold text-[#dae2fd]">Eliminar Plantilla</h3>
-        </div>
-        <p class="text-sm text-[#94a3b8] mb-4">
-          ¿Estás seguro de eliminar <strong class="text-[#dae2fd]">{{ deleteName }}</strong>?
-        </p>
-        <p class="text-xs text-[#DC2626]/70 mb-6 flex items-center gap-1">
-          <span class="material-symbols-outlined text-sm">info</span>
-          Esta acción no se puede deshacer.
-        </p>
-        <div class="flex flex-col-reverse sm:flex-row justify-end gap-3">
-          <button class="admin-btn admin-btn-secondary w-full sm:w-auto justify-center" @click="closeDelete">Cancelar</button>
-          <button class="admin-btn admin-btn-danger w-full sm:w-auto justify-center" @click="confirmDelete">Eliminar</button>
+    <Transition name="modal-slide">
+      <div v-if="confirmVisible" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md">
+        <div class="admin-card-lg w-full max-w-md mx-4">
+          <div class="flex items-center gap-3 mb-4">
+            <VunoIcon icon="warning" :size="20" class="text-[#DC2626]" />
+            <h3 class="text-lg font-semibold text-[#dae2fd]">Eliminar Plantilla</h3>
+          </div>
+          <p class="text-sm text-[#94a3b8] mb-4">
+            ¿Estás seguro de eliminar <strong class="text-[#dae2fd]">{{ deleteName }}</strong>?
+          </p>
+          <p class="text-xs text-[#DC2626]/70 mb-6 flex items-center gap-1">
+            <VunoIcon icon="info" :size="20" />
+            Esta acción no se puede deshacer.
+          </p>
+          <div class="flex flex-col-reverse sm:flex-row justify-end gap-3">
+            <button class="admin-btn admin-btn-secondary w-full sm:w-auto justify-center" @click="closeDelete">Cancelar</button>
+            <button class="admin-btn admin-btn-danger w-full sm:w-auto justify-center" @click="confirmDelete">Eliminar</button>
+          </div>
         </div>
       </div>
-    </div>
+    </Transition>
   </Teleport>
 </template>

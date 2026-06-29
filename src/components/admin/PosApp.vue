@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useApi } from './useApi'
 import { useToast } from './useToast'
+import VunoIcon from './VunoIcon.vue'
 
 interface Variant {
   id: number
@@ -304,7 +305,7 @@ onMounted(() => {
 
 <template>
   <div v-if="loading" class="text-center py-8">
-    <span class="material-symbols-outlined text-3xl block mb-2 animate-spin text-[#dae2fd]">progress_activity</span>
+    <VunoIcon icon="progress_activity" :size="30" class="block mb-2 animate-spin text-[#dae2fd]" />
     <p class="text-[#94a3b8]">Cargando productos...</p>
   </div>
 
@@ -316,7 +317,7 @@ onMounted(() => {
     <!-- Breadcrumb -->
     <div class="flex items-center gap-1.5 sm:gap-2 mb-3 sm:mb-4">
       <a href="/admin/pos/dashboard" class="inline-flex items-center gap-1 text-xs sm:text-sm text-[#94a3b8] hover:text-[#dae2fd] transition-colors">
-        <span class="material-symbols-outlined text-base sm:text-lg">dashboard</span>
+        <VunoIcon icon="dashboard" :size="20" />
         <span class="hidden sm:inline">Dashboard</span>
       </a>
       <span class="text-[#94a3b8]/30 text-xs sm:text-sm">/</span>
@@ -330,7 +331,7 @@ onMounted(() => {
         <div v-if="productListPanel">
           <div class="flex flex-col sm:flex-row items-stretch sm:items-end gap-3">
             <div class="relative flex-1">
-              <span class="material-symbols-outlined absolute left-0 top-1/2 -translate-y-1/2 text-[#94a3b8] text-lg">search</span>
+              <VunoIcon icon="search" :size="20" class="absolute left-0 top-1/2 -translate-y-1/2 text-[#94a3b8]" />
               <input id="posSearch" v-model="searchText" type="text" placeholder="Buscar producto..."
                      class="w-full bg-transparent border-b border-[#1e293b] pb-3 pl-8 pr-8 text-[#dae2fd]
                             focus:border-[#42b883] focus:outline-none placeholder:text-[#94a3b8]
@@ -363,7 +364,7 @@ onMounted(() => {
                 <img v-if="p.images?.[0]" :src="p.images[0]" alt="" class="w-12 sm:w-16 h-12 sm:h-16 object-cover rounded-sm shrink-0"
                      @error="($event.target as HTMLElement).style.display='none'" />
                 <div v-else class="w-12 sm:w-16 h-12 sm:h-16 bg-[#1e293b] rounded-sm shrink-0 flex items-center justify-center">
-                  <span class="material-symbols-outlined text-lg sm:text-xl text-[#94a3b8]/30">inventory_2</span>
+                  <VunoIcon icon="inventory_2" :size="24" class="text-[#94a3b8]/30" />
                 </div>
                 <div class="flex-1 min-w-0">
                   <h4 class="text-sm sm:text-base font-semibold truncate text-[#dae2fd] group-hover:text-[#42b883] transition-colors">{{ esc(p.name) }}</h4>
@@ -375,7 +376,7 @@ onMounted(() => {
                     <span v-if="p.category" class="text-[#94a3b8]/50"> · {{ esc(p.category) }}</span>
                   </p>
                 </div>
-                <span class="material-symbols-outlined text-lg text-[#94a3b8]/30 self-center">chevron_right</span>
+                <VunoIcon icon="chevron_right" :size="20" class="text-[#94a3b8]/30 self-center" />
               </div>
             </button>
           </div>
@@ -384,7 +385,7 @@ onMounted(() => {
         <!-- Product Detail -->
         <div v-if="productDetailPanel" class="sm:mb-0 max-sm:pb-20">
           <button @click="hideProductDetail" class="inline-flex items-center gap-1.5 text-sm text-[#94a3b8] hover:text-[#dae2fd] transition-colors mb-4">
-            <span class="material-symbols-outlined text-lg">arrow_back</span>
+            <VunoIcon icon="arrow_back" :size="20" />
             Volver a productos
           </button>
 
@@ -395,7 +396,7 @@ onMounted(() => {
                    class="w-full h-56 object-cover rounded-sm"
                    @error="($event.target as HTMLElement).style.display='none'" />
               <div v-else class="w-full h-56 bg-[#1e293b] rounded-sm flex items-center justify-center">
-                <span class="material-symbols-outlined text-4xl text-[#94a3b8]/20">inventory_2</span>
+                <VunoIcon icon="inventory_2" :size="36" class="text-[#94a3b8]/20" />
               </div>
               <div class="mt-3 space-y-1">
                 <h3 class="text-lg font-semibold text-[#dae2fd]">{{ esc(selectedProduct.name) }}</h3>
@@ -477,7 +478,7 @@ onMounted(() => {
                 <button @click="addToCart"
                         class="w-full admin-btn admin-btn-primary min-h-[48px]"
                         :disabled="(selectedVariant.stock || 0) <= 0">
-                  <span class="material-symbols-outlined text-xl">add_shopping_cart</span>
+                  <VunoIcon icon="add_shopping_cart" :size="24" />
                   <span>Agregar al carrito — {{ currencySymbol }}{{ formatPrice(displayPrice) }}</span>
                 </button>
               </div>
@@ -490,14 +491,14 @@ onMounted(() => {
       <div class="hidden lg:block lg:col-span-2 admin-card p-5 flex flex-col h-fit sticky top-0">
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-lg font-semibold text-[#dae2fd] flex items-center gap-2">
-            <span class="material-symbols-outlined text-xl">shopping_cart</span>
+            <VunoIcon icon="shopping_cart" :size="24" />
             Venta
           </h2>
           <span v-if="hasItems" class="text-xs font-semibold tracking-widest bg-[#42b883] text-white px-2 py-0.5 rounded-sm">{{ totalQty }}</span>
         </div>
 
         <div v-if="!hasItems" class="text-center py-8 text-[#94a3b8]">
-          <span class="material-symbols-outlined text-4xl block mb-2">add_shopping_cart</span>
+          <VunoIcon icon="add_shopping_cart" :size="36" class="block mb-2" />
           Carrito vacío<br />
           <span class="text-sm">Seleccioná un producto de la izquierda</span>
         </div>
@@ -516,7 +517,7 @@ onMounted(() => {
               <span class="w-8 text-center font-semibold text-[#dae2fd] tabular-nums">{{ item.quantity }}</span>
               <button @click="updateQty(idx, 1)" class="w-8 h-8 flex items-center justify-center border border-[#1e293b] rounded-sm hover:bg-white/5 text-sm">+</button>
               <button @click="removeItem(idx)" class="ml-1 text-[#DC2626]/60 hover:text-[#DC2626]" aria-label="Eliminar item">
-                <span class="material-symbols-outlined text-lg">delete</span>
+                <VunoIcon icon="delete" :size="20" />
               </button>
             </div>
           </div>
@@ -565,7 +566,7 @@ onMounted(() => {
                     :class="paymentMethod === pm.code
                       ? 'bg-[#42b883] text-white'
                       : 'bg-transparent border border-[#1e293b] text-[#dae2fd] hover:border-[#42b883]'">
-              <span class="material-symbols-outlined text-lg">{{ pm.icon }}</span>
+              <VunoIcon :icon="pm.icon" :size="20" />
               <span class="hidden xl:inline">{{ pm.label }}</span>
             </button>
           </div>
@@ -574,7 +575,7 @@ onMounted(() => {
         <!-- Process button -->
         <button @click="processSale" :disabled="!hasItems"
                 class="mt-4 w-full admin-btn admin-btn-primary min-h-[48px] disabled:opacity-40 disabled:cursor-not-allowed">
-          <span class="material-symbols-outlined text-xl">point_of_sale</span>
+          <VunoIcon icon="point_of_sale" :size="24" />
           <span>Procesar Venta</span>
         </button>
       </div>
@@ -585,7 +586,7 @@ onMounted(() => {
          :class="hasItems ? 'translate-y-0' : 'translate-y-full'"
          style="transition: transform 0.3s ease-out">
       <div class="flex items-center gap-2 shrink-0">
-        <span class="material-symbols-outlined text-xl text-[#dae2fd]">shopping_cart</span>
+        <VunoIcon icon="shopping_cart" :size="24" class="text-[#dae2fd]" />
         <span v-if="hasItems" class="text-xs font-semibold tracking-widest bg-[#42b883] text-white px-2 py-0.5 rounded-sm">{{ totalQty }}</span>
       </div>
       <div class="flex-1 min-w-0">
@@ -596,7 +597,7 @@ onMounted(() => {
       </div>
       <button @click="openCartOverlay" :disabled="!hasItems"
               class="bg-[#42b883] text-white text-xs font-semibold tracking-widest min-h-[40px] px-4 rounded-sm flex items-center gap-1.5 hover:bg-[#42b883]/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
-        <span class="material-symbols-outlined text-lg">point_of_sale</span>
+        <VunoIcon icon="point_of_sale" :size="20" />
         <span class="hidden sm:inline">Ver carrito</span>
         <span class="inline sm:hidden">Ir</span>
       </button>
@@ -612,10 +613,10 @@ onMounted(() => {
           <!-- Header -->
           <div class="flex items-center justify-between mb-5">
             <h2 class="text-lg font-semibold text-[#dae2fd] flex items-center gap-2">
-              <span class="material-symbols-outlined text-xl">shopping_cart</span>
+              <VunoIcon icon="shopping_cart" :size="24" />
               Venta
             </h2>
-            <button @click="closeCartOverlay" class="material-symbols-outlined text-2xl text-[#94a3b8] hover:text-[#dae2fd]">close</button>
+            <button @click="closeCartOverlay" class="text-[#94a3b8] hover:text-[#dae2fd]"><VunoIcon icon="close" :size="28" /></button>
           </div>
 
           <!-- Cart items -->
@@ -634,7 +635,7 @@ onMounted(() => {
                 <span class="w-8 text-center font-semibold text-[#dae2fd] tabular-nums">{{ item.quantity }}</span>
                 <button @click="updateQty(idx, 1)" class="w-8 h-8 flex items-center justify-center border border-[#1e293b] rounded-sm hover:bg-white/5 text-sm">+</button>
                 <button @click="removeItem(idx)" class="ml-1 text-[#DC2626]/60 hover:text-[#DC2626]" aria-label="Eliminar item">
-                  <span class="material-symbols-outlined text-lg">delete</span>
+                  <VunoIcon icon="delete" :size="20" />
                 </button>
               </div>
             </div>
@@ -683,7 +684,7 @@ onMounted(() => {
                       :class="paymentMethod === pm.code
                         ? 'bg-[#42b883] text-white'
                         : 'bg-transparent border border-[#1e293b] text-[#dae2fd] hover:border-[#42b883]'">
-                <span class="material-symbols-outlined text-lg">{{ pm.icon }}</span>
+                <VunoIcon :icon="pm.icon" :size="20" />
                 <span class="hidden sm:inline">{{ pm.label }}</span>
               </button>
             </div>
@@ -692,7 +693,7 @@ onMounted(() => {
           <!-- Process button -->
           <button @click="processSale" :disabled="!hasItems"
                   class="mt-5 w-full admin-btn admin-btn-primary min-h-[48px] disabled:opacity-40 disabled:cursor-not-allowed">
-            <span class="material-symbols-outlined text-xl">point_of_sale</span>
+            <VunoIcon icon="point_of_sale" :size="20" />
             <span>Procesar Venta</span>
           </button>
         </div>

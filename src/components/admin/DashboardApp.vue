@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useApi } from './useApi'
+import VunoIcon from './VunoIcon.vue'
 
 const api = useApi()
 
@@ -55,16 +56,16 @@ const statCards = [
 <template>
   <div v-if="loading" class="space-y-8">
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-      <div v-for="i in 4" :key="i" class="admin-card-sm p-5">
+      <div v-for="i in 4" :key="i" class="glass-card overflow-hidden rounded-xl p-5">
         <div class="skeleton skeleton-title w-20 mb-4"></div>
         <div class="skeleton skeleton-text w-16"></div>
       </div>
     </div>
-    <div class="admin-card">
-      <div class="admin-card-header">
+    <div class="glass-card overflow-hidden rounded-xl">
+      <div class="px-6 pt-5 pb-4 border-b border-[#dae2fd]/5">
         <div class="skeleton skeleton-title w-40"></div>
       </div>
-      <div class="admin-card-body space-y-3">
+      <div class="px-6 py-4 space-y-3">
         <div v-for="i in 3" :key="i" class="skeleton skeleton-text"></div>
       </div>
     </div>
@@ -80,11 +81,11 @@ const statCards = [
       <div
         v-for="card in statCards"
         :key="card.key"
-        class="admin-card-sm p-5 flex flex-col gap-2 admin-hover-lift"
+        class="glass-card overflow-hidden rounded-xl p-5 flex flex-col gap-2 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#42b883]/35 hover:shadow-[0_12px_40px_rgba(0,0,0,0.45),0_0_30px_rgba(66,184,131,0.06)]"
       >
         <div class="flex items-center justify-between">
           <span class="font-label-caps text-label-caps text-[#94a3b8]">{{ card.label }}</span>
-          <span class="material-symbols-outlined text-xl text-[#94a3b8]">{{ card.icon }}</span>
+          <VunoIcon :icon="card.icon" :size="24" class="text-[#94a3b8]" />
         </div>
         <span class="text-2xl font-bold text-[#dae2fd] tracking-tight">
           <template v-if="card.isCurrency">
@@ -100,21 +101,21 @@ const statCards = [
     <!-- Charts / secondary -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <!-- Recent orders -->
-      <div class="admin-card">
-        <div class="admin-card-header">
+      <div class="glass-card overflow-hidden rounded-xl">
+        <div class="px-6 pt-5 pb-4 border-b border-[#dae2fd]/5">
           <h2 class="text-lg font-semibold text-[#dae2fd]">Pedidos Recientes</h2>
         </div>
-        <div class="admin-card-body">
+        <div class="px-6 py-4">
           <template v-if="stats.recentOrders?.length">
             <div
               v-for="order in stats.recentOrders"
               :key="order.id"
-              class="flex items-center justify-between py-3 border-b border-[#1e293b] last:border-0"
+              class="flex items-center justify-between py-3 border-b border-[#dae2fd]/5 last:border-0"
             >
               <div>
                 <a
                   :href="'/admin/pedidos/detalle?id=' + encodeURIComponent(order.id)"
-                  class="text-[#dae2fd] hover:underline text-sm font-medium"
+                  class="text-[#dae2fd] hover:text-[#42b883] text-sm font-medium transition-colors"
                 >{{ order.id }}</a>
                 <p class="text-sm text-[#94a3b8]">{{ order.customerName || '—' }}</p>
               </div>
@@ -131,16 +132,16 @@ const statCards = [
       </div>
 
       <!-- Stock alerts -->
-      <div class="admin-card">
-        <div class="admin-card-header">
+      <div class="glass-card overflow-hidden rounded-xl">
+        <div class="px-6 pt-5 pb-4 border-b border-[#dae2fd]/5">
           <h2 class="text-lg font-semibold text-[#dae2fd]">Alertas de Stock</h2>
         </div>
-        <div class="admin-card-body">
+        <div class="px-6 py-4">
           <template v-if="stats.lowStockProducts?.length">
             <div
               v-for="p in stats.lowStockProducts"
               :key="p.name"
-              class="flex items-center justify-between py-3 border-b border-[#1e293b] last:border-0"
+              class="flex items-center justify-between py-3 border-b border-[#dae2fd]/5 last:border-0"
             >
               <span class="text-sm text-[#dae2fd]">{{ p.name }}</span>
               <span

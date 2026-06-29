@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useApi } from './useApi'
 import { useToast } from './useToast'
+import VunoIcon from './VunoIcon.vue'
 
 interface Template {
   id: number
@@ -266,17 +267,17 @@ function resetForm() {
       <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-5 border-t border-[#dae2fd]/5">
         <div>
           <p class="text-sm text-[#94a3b8]">
-            <span class="material-symbols-outlined align-middle text-lg mr-1">people</span>
+            <VunoIcon icon="people" :size="20" class="align-middle mr-1" />
             {{ totalSubscribers }} suscriptores activos
           </p>
         </div>
         <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
           <button class="admin-btn admin-btn-secondary w-full sm:w-auto justify-center" :disabled="!selectedTemplate" @click="sendTest">
-            <span class="material-symbols-outlined text-lg">bug_report</span>
+            <VunoIcon icon="bug_report" :size="20" />
             ENVIAR PRUEBA
           </button>
           <button class="admin-btn admin-btn-primary w-full sm:w-auto justify-center" :disabled="!selectedTemplate || totalSubscribers === 0 || isSending" @click="openConfirm">
-            <span class="material-symbols-outlined text-lg" :class="{ 'animate-spin': isSending }">{{ isSending ? 'progress_activity' : 'campaign' }}</span>
+            <VunoIcon :icon="isSending ? 'progress_activity' : 'campaign'" :size="20" :class="{ 'animate-spin': isSending }" />
             {{ isSending ? 'ENVIANDO...' : 'ENVIAR CAMPAÑA' }}
           </button>
         </div>
@@ -324,7 +325,7 @@ function resetForm() {
     <div v-if="confirmModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4" @click.self="confirmModal = false">
       <div class="admin-card-lg w-full max-w-md mx-4 p-6">
         <div class="flex items-center gap-3 mb-4">
-          <span class="material-symbols-outlined text-3xl text-[#B8956A]">campaign</span>
+          <VunoIcon icon="campaign" :size="32" class="text-[#B8956A]" />
           <div>
             <h3 class="text-lg font-semibold text-[#dae2fd]">Enviar Campaña</h3>
             <p class="text-sm text-[#94a3b8]">Esto enviará un email a <strong class="text-[#dae2fd]">{{ confirmCount }}</strong> suscriptores activos.</p>
@@ -336,7 +337,7 @@ function resetForm() {
         <div class="flex flex-col-reverse sm:flex-row justify-end gap-3">
           <button class="admin-btn admin-btn-secondary w-full sm:w-auto justify-center" @click="confirmModal = false">CANCELAR</button>
           <button class="admin-btn admin-btn-primary w-full sm:w-auto justify-center" @click="confirmSend">
-            <span class="material-symbols-outlined text-lg">send</span>
+            <VunoIcon icon="send" :size="20" />
             ENVIAR
           </button>
         </div>
@@ -347,7 +348,7 @@ function resetForm() {
     <div v-if="progressModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
       <div class="admin-card-lg w-full max-w-md mx-4 p-6">
         <div class="flex items-center gap-4 mb-4">
-          <span class="material-symbols-outlined text-2xl text-[#42b883] animate-spin">progress_activity</span>
+          <VunoIcon icon="progress_activity" :size="28" class="text-[#42b883] animate-spin" />
           <div class="flex-1 min-w-0">
             <p class="font-semibold text-[#dae2fd]">{{ progressTitle }}</p>
             <p class="text-sm text-[#94a3b8] mt-1">{{ progressText }}</p>
@@ -358,7 +359,7 @@ function resetForm() {
         </div>
         <div v-if="progressErrors.length > 0" class="mt-4">
           <p class="text-sm text-[#DC2626] flex items-center gap-1">
-            <span class="material-symbols-outlined text-sm">warning</span>
+            <VunoIcon icon="warning" :size="14" />
             {{ progressErrors.length }} errores — revisa el log del servidor
           </p>
         </div>
@@ -369,7 +370,7 @@ function resetForm() {
     <div v-if="resultModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4" @click.self="resultModal = false">
       <div class="admin-card-lg w-full max-w-md mx-4 p-6">
         <div class="flex items-start gap-3 mb-4">
-          <span class="material-symbols-outlined text-3xl" :class="resultIconClass">{{ resultIcon }}</span>
+          <VunoIcon :icon="resultIcon" :size="32" :class="resultIconClass" />
           <div class="flex-1 min-w-0">
             <h3 class="text-lg font-semibold text-[#dae2fd]">{{ resultTitle }}</h3>
             <p class="text-sm text-[#94a3b8] mt-1">{{ resultText }}</p>
@@ -377,7 +378,7 @@ function resetForm() {
         </div>
         <div class="flex flex-col-reverse sm:flex-row justify-end gap-3">
           <button class="admin-btn admin-btn-secondary w-full sm:w-auto justify-center" @click="resetForm">
-            <span class="material-symbols-outlined text-lg">add</span>
+            <VunoIcon icon="add" :size="20" />
             NUEVA CAMPAÑA
           </button>
           <button class="admin-btn admin-btn-primary w-full sm:w-auto justify-center" @click="resultModal = false">CERRAR</button>

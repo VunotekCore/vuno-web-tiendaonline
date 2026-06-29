@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useApi } from './useApi'
 import { useToast } from './useToast'
+import VunoIcon from './VunoIcon.vue'
 
 const api = useApi()
 const toast = useToast()
@@ -116,11 +117,11 @@ async function confirmDelete() {
         </div>
         <div class="flex flex-wrap gap-2">
           <button class="admin-btn admin-btn-edit w-full sm:w-auto justify-center" @click="editMode = !editMode">
-            <span class="material-symbols-outlined text-base">{{ editMode ? 'edit_off' : 'edit' }}</span>
+            <VunoIcon :icon="editMode ? 'edit_off' : 'edit'" :size="16" />
             {{ editMode ? 'SALIR' : 'EDITAR' }}
           </button>
           <a v-if="editMode" href="/admin/blog/nuevo" class="admin-btn admin-btn-primary w-full sm:w-auto justify-center">
-            <span class="material-symbols-outlined text-base">add</span>
+            <VunoIcon icon="add" :size="16" />
             NUEVO POST
           </a>
         </div>
@@ -145,7 +146,11 @@ async function confirmDelete() {
             <td colspan="6" class="text-center py-8 text-[#94a3b8]">Cargando...</td>
           </tr>
           <tr v-else-if="items.length === 0">
-            <td colspan="6" class="text-center py-8 text-[#94a3b8]">No hay posts</td>
+            <td colspan="6" class="empty-state px-6 py-10">
+              <VunoIcon icon="file-text" :size="36" class="empty-state-icon" />
+              <p class="empty-state-title">Sin posts</p>
+              <p class="empty-state-desc">No hay publicaciones aún.</p>
+            </td>
           </tr>
           <tr v-for="item in items" :key="item.id">
             <td class="font-medium max-w-xs truncate">{{ item.title || 'Untitled' }}</td>
@@ -157,10 +162,10 @@ async function confirmDelete() {
             <td class="text-sm text-[#94a3b8]">{{ formatDate(item.published_at || item.created_at) }}</td>
             <td v-if="editMode" class="text-right whitespace-nowrap">
               <a :href="'/admin/blog/editar?id=' + item.id" class="admin-btn admin-btn-ghost admin-btn-xs" title="Editar">
-                <span class="material-symbols-outlined text-sm">edit</span>
+                <VunoIcon icon="edit" :size="14" />
               </a>
               <button class="admin-btn admin-btn-danger admin-btn-xs" @click="openDelete(item)" title="Eliminar">
-                <span class="material-symbols-outlined text-sm">delete</span>
+                <VunoIcon icon="delete" :size="14" />
               </button>
             </td>
           </tr>
@@ -171,7 +176,11 @@ async function confirmDelete() {
     <!-- Mobile cards -->
     <div class="md:hidden px-6 pb-4 space-y-3">
       <div v-if="loading" class="text-center py-8 text-[#94a3b8]">Cargando...</div>
-      <div v-else-if="items.length === 0" class="text-center py-8 text-[#94a3b8]">No hay posts</div>
+      <div v-else-if="items.length === 0" class="empty-state">
+        <VunoIcon icon="file-text" :size="36" class="empty-state-icon" />
+        <p class="empty-state-title">Sin posts</p>
+        <p class="empty-state-desc">No hay publicaciones aún.</p>
+      </div>
       <div v-for="item in items" :key="item.id" class="glass-card overflow-hidden rounded-xl">
         <div class="px-5 pt-4 pb-3 border-b border-[#dae2fd]/5">
           <div class="flex items-center justify-between gap-2">
@@ -187,10 +196,10 @@ async function confirmDelete() {
           </div>
           <div v-if="editMode" class="flex gap-1 shrink-0">
             <a :href="'/admin/blog/editar?id=' + item.id" class="admin-btn admin-btn-ghost admin-btn-xs" title="Editar">
-              <span class="material-symbols-outlined text-sm">edit</span>
+              <VunoIcon icon="edit" :size="14" />
             </a>
             <button class="admin-btn admin-btn-danger admin-btn-xs" @click="openDelete(item)" title="Eliminar">
-              <span class="material-symbols-outlined text-sm">delete</span>
+              <VunoIcon icon="delete" :size="14" />
             </button>
           </div>
         </div>
@@ -208,24 +217,26 @@ async function confirmDelete() {
   </div>
 
   <Teleport to="body">
-    <div v-if="confirmVisible" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
-      <div class="admin-card-lg w-full max-w-md mx-4">
-        <div class="flex items-center gap-3 mb-4">
-          <span class="material-symbols-outlined text-3xl text-[#DC2626]">warning</span>
-          <h3 class="text-lg font-semibold text-[#dae2fd]">Eliminar Post</h3>
-        </div>
-        <p class="text-sm text-[#94a3b8] mb-4">
-          ¿Estás seguro de eliminar <strong class="text-[#dae2fd]">{{ deleteTitle }}</strong>?
-        </p>
-        <p class="text-xs text-[#DC2626]/70 mb-6 flex items-center gap-1">
-          <span class="material-symbols-outlined text-sm">info</span>
-          Esta acción no se puede deshacer.
-        </p>
-        <div class="flex flex-col-reverse sm:flex-row justify-end gap-3">
-          <button class="admin-btn admin-btn-secondary w-full sm:w-auto justify-center" @click="closeDelete">Cancelar</button>
-          <button class="admin-btn admin-btn-danger w-full sm:w-auto justify-center" @click="confirmDelete">Eliminar</button>
+    <Transition name="modal-slide">
+      <div v-if="confirmVisible" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
+        <div class="admin-card-lg w-full max-w-md mx-4">
+          <div class="flex items-center gap-3 mb-4">
+            <span class="text-[#DC2626]"><VunoIcon icon="warning" :size="30" /></span>
+            <h3 class="text-lg font-semibold text-[#dae2fd]">Eliminar Post</h3>
+          </div>
+          <p class="text-sm text-[#94a3b8] mb-4">
+            ¿Estás seguro de eliminar <strong class="text-[#dae2fd]">{{ deleteTitle }}</strong>?
+          </p>
+          <p class="text-xs text-[#DC2626]/70 mb-6 flex items-center gap-1">
+            <VunoIcon icon="info" :size="14" />
+            Esta acción no se puede deshacer.
+          </p>
+          <div class="flex flex-col-reverse sm:flex-row justify-end gap-3">
+            <button class="admin-btn admin-btn-secondary w-full sm:w-auto justify-center" @click="closeDelete">Cancelar</button>
+            <button class="admin-btn admin-btn-danger w-full sm:w-auto justify-center" @click="confirmDelete">Eliminar</button>
+          </div>
         </div>
       </div>
-    </div>
+    </Transition>
   </Teleport>
 </template>

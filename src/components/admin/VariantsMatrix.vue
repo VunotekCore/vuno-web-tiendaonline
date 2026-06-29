@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useVariantsMatrix, type MatrixColor } from './useVariantsMatrix'
+import VunoIcon from './VunoIcon.vue'
 
 interface Props {
   colors: MatrixColor[]
@@ -175,7 +176,7 @@ defineExpose({
     <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3 lg:gap-4 mb-5">
       <div>
         <h3 class="font-headline text-headline-md flex items-center gap-2 text-[#dae2fd]">
-          <span class="material-symbols-outlined text-xl">inventory</span>
+          <VunoIcon icon="inventory" :size="24" />
           Matriz de Inventario
         </h3>
         <p class="font-body text-body-sm text-[#94a3b8] mt-1">
@@ -255,7 +256,7 @@ defineExpose({
                     title="Aplicar N a todas las talles"
                     @click="showFillPrompt(c.name)"
                   >
-                    <span class="material-symbols-outlined text-sm">deblur</span>
+                    <VunoIcon icon="grid" :size="14" />
                   </button>
                   <button
                     type="button" :disabled="readonly"
@@ -263,7 +264,7 @@ defineExpose({
                     title="Limpiar color"
                     @click="clearColor(c.name)"
                   >
-                    <span class="material-symbols-outlined text-sm">backspace</span>
+                    <VunoIcon icon="close" :size="14" />
                   </button>
                 </div>
               </div>
@@ -294,7 +295,7 @@ defineExpose({
                   @click="matrix.setStock(c.name, sz, Math.max(0, matrix.getStock(c.name, sz) - 1))"
                   aria-label="Disminuir"
                 >
-                  <span class="material-symbols-outlined text-base">remove</span>
+                  <VunoIcon icon="remove" :size="16" />
                 </button>
                 <input
                   type="number" min="0" step="1"
@@ -314,7 +315,7 @@ defineExpose({
                   @click="matrix.setStock(c.name, sz, matrix.getStock(c.name, sz) + 1)"
                   aria-label="Aumentar"
                 >
-                  <span class="material-symbols-outlined text-base">add</span>
+                  <VunoIcon icon="add" :size="16" />
                 </button>
               </div>
             </td>
@@ -363,7 +364,7 @@ defineExpose({
               title="Aplicar N"
               @click="showFillPrompt(c.name)"
             >
-              <span class="material-symbols-outlined text-base">deblur</span>
+              <VunoIcon icon="grid" :size="16" />
             </button>
             <button
               type="button" :disabled="readonly"
@@ -371,7 +372,7 @@ defineExpose({
               title="Limpiar"
               @click="clearColor(c.name)"
             >
-              <span class="material-symbols-outlined text-base">backspace</span>
+              <VunoIcon icon="close" :size="16" />
             </button>
           </div>
         </div>
@@ -386,7 +387,7 @@ defineExpose({
               @click="matrix.setStock(c.name, sz, Math.max(0, matrix.getStock(c.name, sz) - 1))"
               aria-label="Disminuir"
             >
-              <span class="material-symbols-outlined text-base">remove</span>
+              <VunoIcon icon="remove" :size="16" />
             </button>
             <div class="flex flex-col items-center flex-1">
               <span class="font-label-caps text-label-caps text-[#94a3b8] text-[9px]">{{ matrix.sizePrefix.value }} {{ sz }}</span>
@@ -409,7 +410,7 @@ defineExpose({
               @click="matrix.setStock(c.name, sz, matrix.getStock(c.name, sz) + 1)"
               aria-label="Aumentar"
             >
-              <span class="material-symbols-outlined text-base">add</span>
+              <VunoIcon icon="add" :size="16" />
             </button>
           </div>
         </div>

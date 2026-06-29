@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import { useApi } from './useApi'
 import { useToast } from './useToast'
+import VunoIcon from './VunoIcon.vue'
 
 export interface Column {
   key: string
@@ -181,12 +182,12 @@ loadData()
       </div>
       <div class="flex items-center gap-3 w-full md:w-auto">
         <button v-if="!editMode" class="admin-btn admin-btn-edit h-11 px-5 w-full md:w-auto justify-center" @click="enableEdit">
-          <span class="material-symbols-outlined text-base">edit</span>
+          <VunoIcon icon="edit" :size="16" />
           EDITAR
         </button>
         <span v-else class="badge badge-paid shrink-0">EDITANDO</span>
         <button v-if="editMode" class="admin-btn admin-btn-primary w-full md:w-auto justify-center" @click="openCreate">
-          <span class="material-symbols-outlined text-base">add</span>
+          <VunoIcon icon="add" :size="16" />
           Nuevo {{ config.entityLabel }}
         </button>
       </div>
@@ -216,8 +217,10 @@ loadData()
             <td :colspan="config.columns.length + 1" class="text-center py-8 text-[#94a3b8]">Cargando...</td>
           </tr>
           <tr v-else-if="items.length === 0">
-            <td :colspan="config.columns.length + 1" class="text-center py-8 text-[#94a3b8]">
-              No hay {{ config.entityLabelPlural.toLowerCase() }}
+            <td :colspan="config.columns.length + 1" class="empty-state px-6 py-10">
+              <VunoIcon icon="inventory_2" :size="36" class="empty-state-icon" />
+              <p class="empty-state-title">Sin {{ config.entityLabelPlural.toLowerCase() }}</p>
+              <p class="empty-state-desc">No hay {{ config.entityLabelPlural.toLowerCase() }} aún.</p>
             </td>
           </tr>
           <tr v-for="item in items" :key="item[idKey]">
@@ -228,10 +231,10 @@ loadData()
             <td class="text-right whitespace-nowrap">
               <div v-if="editMode" class="flex gap-1 justify-end flex-nowrap">
                 <button class="admin-btn admin-btn-ghost admin-btn-xs" @click="openEdit(item)" title="Editar">
-                  <span class="material-symbols-outlined text-sm">edit</span>
+                  <VunoIcon icon="edit" :size="14" />
                 </button>
                 <button class="admin-btn admin-btn-danger admin-btn-xs" @click="remove(item)" title="Eliminar">
-                  <span class="material-symbols-outlined text-sm">delete</span>
+                  <VunoIcon icon="delete" :size="14" />
                 </button>
               </div>
               <span v-else class="text-xs text-[#94a3b8]">—</span>
@@ -244,7 +247,11 @@ loadData()
     <!-- Mobile: cards -->
     <div class="md:hidden px-6 pb-4">
       <div v-if="loading" class="text-center py-8 text-[#94a3b8]">Cargando...</div>
-      <div v-else-if="items.length === 0" class="text-center py-8 text-[#94a3b8]">No hay {{ config.entityLabelPlural.toLowerCase() }}</div>
+      <div v-else-if="items.length === 0" class="empty-state">
+        <VunoIcon icon="inventory_2" :size="36" class="empty-state-icon" />
+        <p class="empty-state-title">Sin {{ config.entityLabelPlural.toLowerCase() }}</p>
+        <p class="empty-state-desc">No hay {{ config.entityLabelPlural.toLowerCase() }} aún.</p>
+      </div>
       <div v-else class="space-y-3">
         <div v-for="item in items" :key="item[idKey]" class="glass-card overflow-hidden rounded-xl">
           <!-- Header -->
@@ -253,7 +260,7 @@ loadData()
               <span class="text-sm font-semibold text-[#dae2fd] truncate">{{ item[config.columns[0]?.key] ?? item.name ?? item.id }}</span>
               <span v-if="config.columns.length > 1 && item[config.columns[1]?.key]" class="text-xs text-[#94a3b8] truncate">{{ item[config.columns[1]?.key] }}</span>
             </div>
-            <span class="text-[#42b883]/30 material-symbols-outlined text-2xl shrink-0 ml-2">inventory_2</span>
+            <VunoIcon icon="inventory_2" :size="28" class="text-[#42b883]/30 shrink-0 ml-2" />
           </div>
           <!-- Body -->
           <div class="px-6 py-4 space-y-2.5">
@@ -266,11 +273,11 @@ loadData()
           <!-- Footer -->
           <div class="flex items-center gap-2 px-6 pb-5 pt-4 border-t border-[#dae2fd]/5">
             <button v-if="editMode" class="admin-btn admin-btn-edit flex-1 justify-center gap-1.5 py-2.5" @click="openEdit(item)">
-              <span class="material-symbols-outlined text-base">edit</span>
+              <VunoIcon icon="edit" :size="16" />
               <span class="text-xs font-semibold">Editar</span>
             </button>
             <button v-if="editMode" class="admin-btn admin-btn-danger flex-1 justify-center gap-1.5 py-2.5" @click="remove(item)">
-              <span class="material-symbols-outlined text-base">delete</span>
+              <VunoIcon icon="delete" :size="16" />
               <span class="text-xs font-semibold">Eliminar</span>
             </button>
             <span v-if="!editMode" class="text-xs text-[#94a3b8] w-full text-center py-2">Vista previa — Editar para modificar</span>
@@ -317,7 +324,7 @@ loadData()
             {{ editingItem ? 'Editar' : 'Nuevo' }} {{ config.entityLabel }}
           </h3>
           <button class="admin-btn admin-btn-ghost admin-btn-xs" @click="closeModal">
-            <span class="material-symbols-outlined">close</span>
+            <VunoIcon icon="close" :size="20" />
           </button>
         </div>
         <div class="space-y-4">
@@ -388,7 +395,7 @@ loadData()
         <div class="flex justify-end gap-3 mt-6">
           <button class="admin-btn admin-btn-secondary" @click="closeModal">Cancelar</button>
           <button class="admin-btn admin-btn-primary" :disabled="saving" @click="save">
-            <span v-if="saving" class="material-symbols-outlined text-base animate-spin">progress_activity</span>
+            <VunoIcon v-if="saving" icon="progress_activity" :size="16" class="animate-spin" />
             {{ saving ? 'Guardando...' : (editingItem ? 'Actualizar' : 'Crear') }}
           </button>
         </div>

@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useApi } from './useApi'
 import { useToast } from './useToast'
+import VunoIcon from './VunoIcon.vue'
 
 const api = useApi()
 const toast = useToast()
@@ -98,7 +99,7 @@ async function confirmUnsub() {
           </p>
         </div>
         <a href="/api/suscriptores/export.php" class="admin-btn admin-btn-primary w-full sm:w-auto justify-center">
-          <span class="material-symbols-outlined text-base">download</span>
+          <VunoIcon icon="download" :size="16" />
           Exportar CSV
         </a>
       </div>
@@ -130,7 +131,11 @@ async function confirmUnsub() {
             <td colspan="4" class="text-center py-8 text-[#94a3b8]">Cargando...</td>
           </tr>
           <tr v-else-if="items.length === 0">
-            <td colspan="4" class="text-center py-8 text-[#94a3b8]">No hay suscriptores</td>
+            <td colspan="4" class="empty-state px-6 py-10">
+              <VunoIcon icon="contacts" :size="36" class="empty-state-icon" />
+              <p class="empty-state-title">Sin suscriptores</p>
+              <p class="empty-state-desc">No hay suscriptores en la lista.</p>
+            </td>
           </tr>
           <tr v-for="item in items" :key="item.id">
             <td class="font-medium">{{ item.email }}</td>
@@ -146,7 +151,7 @@ async function confirmUnsub() {
                 @click="openUnsub(item)"
                 title="Desuscribir"
               >
-                <span class="material-symbols-outlined text-sm">block</span>
+                <VunoIcon icon="block" :size="14" />
               </button>
               <span v-else class="text-sm text-[#94a3b8]">—</span>
             </td>
@@ -158,7 +163,11 @@ async function confirmUnsub() {
     <!-- === Mobile cards === -->
     <div class="md:hidden px-6 pb-4 space-y-3">
       <div v-if="loading" class="text-center py-8 text-[#94a3b8]">Cargando...</div>
-      <div v-else-if="items.length === 0" class="text-center py-8 text-[#94a3b8]">No hay suscriptores</div>
+      <div v-else-if="items.length === 0" class="empty-state">
+        <VunoIcon icon="contacts" :size="36" class="empty-state-icon" />
+        <p class="empty-state-title">Sin suscriptores</p>
+        <p class="empty-state-desc">No hay suscriptores en la lista.</p>
+      </div>
       <div
         v-for="item in items"
         :key="item.id"
@@ -179,7 +188,7 @@ async function confirmUnsub() {
             @click="openUnsub(item)"
             title="Desuscribir"
           >
-            <span class="material-symbols-outlined text-sm">block</span>
+            <VunoIcon icon="block" :size="14" />
           </button>
         </div>
       </div>
@@ -196,22 +205,24 @@ async function confirmUnsub() {
   </div>
 
   <Teleport to="body">
-    <div v-if="confirmVisible" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
-      <div class="admin-card-lg w-full max-w-md mx-4">
-        <div class="flex items-center gap-3 mb-4">
-          <span class="material-symbols-outlined text-3xl text-[#B8956A]">contact_mail</span>
-          <h3 class="text-lg font-semibold text-[#dae2fd]">Desuscribir</h3>
-        </div>
-        <p class="text-sm text-[#94a3b8] mb-4">
-          ¿Estás seguro de desuscribir a <strong class="text-[#dae2fd]">{{ unsubEmail }}</strong>?
-        </p>
-        <div class="flex flex-col-reverse sm:flex-row justify-end gap-3">
-          <button class="admin-btn admin-btn-secondary w-full sm:w-auto justify-center" @click="closeUnsub">Cancelar</button>
-          <button class="admin-btn admin-btn-danger w-full sm:w-auto justify-center" @click="confirmUnsub">
-            Desuscribir
-          </button>
+    <Transition name="modal-slide">
+      <div v-if="confirmVisible" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
+        <div class="admin-card-lg w-full max-w-md mx-4">
+          <div class="flex items-center gap-3 mb-4">
+            <VunoIcon icon="contact_mail" :size="32" class="text-[#B8956A]" />
+            <h3 class="text-lg font-semibold text-[#dae2fd]">Desuscribir</h3>
+          </div>
+          <p class="text-sm text-[#94a3b8] mb-4">
+            ¿Estás seguro de desuscribir a <strong class="text-[#dae2fd]">{{ unsubEmail }}</strong>?
+          </p>
+          <div class="flex flex-col-reverse sm:flex-row justify-end gap-3">
+            <button class="admin-btn admin-btn-secondary w-full sm:w-auto justify-center" @click="closeUnsub">Cancelar</button>
+            <button class="admin-btn admin-btn-danger w-full sm:w-auto justify-center" @click="confirmUnsub">
+              Desuscribir
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </Transition>
   </Teleport>
 </template>

@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useApi } from './useApi'
 import { useToast } from './useToast'
 import VariantsMatrix from './VariantsMatrix.vue'
+import VunoIcon from './VunoIcon.vue'
 
 const api = useApi()
 const toast = useToast()
@@ -484,7 +485,7 @@ const remainingImages = computed(() => MAX_IMAGES - totalImages.value)
           @keydown.left.prevent="switchTab(tabs[(tabs.indexOf(t) - 1 + tabs.length) % tabs.length].id)"
           @keydown.right.prevent="switchTab(tabs[(tabs.indexOf(t) + 1) % tabs.length].id)"
         >
-          <span class="material-symbols-outlined text-lg">{{ t.icon }}</span>
+          <VunoIcon :icon="t.icon" :size="20" />
           {{ t.label }}
         </button>
       </div>
@@ -493,7 +494,7 @@ const remainingImages = computed(() => MAX_IMAGES - totalImages.value)
     <!-- Tab: Info -->
     <div v-show="activeTab === 'info'" id="tab-panel-info" role="tabpanel" class="max-w-2xl admin-card p-6">
       <h2 class="text-lg font-semibold text-[#dae2fd] mb-6 flex items-center gap-2">
-        <span class="material-symbols-outlined text-xl">description</span>
+        <VunoIcon icon="description" :size="24" />
         Información del Producto
       </h2>
       <div class="space-y-6">
@@ -528,7 +529,7 @@ const remainingImages = computed(() => MAX_IMAGES - totalImages.value)
     <!-- Tab: Pricing -->
     <div v-show="activeTab === 'pricing'" id="tab-panel-pricing" role="tabpanel" class="max-w-2xl admin-card p-6">
       <h2 class="text-lg font-semibold text-[#dae2fd] mb-6 flex items-center gap-2">
-        <span class="material-symbols-outlined text-xl">sell</span>
+        <VunoIcon icon="sell" :size="24" />
         Precio y Categoría
       </h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -558,7 +559,7 @@ const remainingImages = computed(() => MAX_IMAGES - totalImages.value)
     <div v-show="activeTab === 'variants'" id="tab-panel-variants" role="tabpanel" class="admin-card p-6">
       <details class="mb-6 group">
         <summary class="cursor-pointer text-xs font-semibold tracking-widest text-[#94a3b8] hover:text-[#dae2fd] transition-colors flex items-center gap-1.5">
-          <span class="material-symbols-outlined text-lg group-open:rotate-90 transition-transform">help</span>
+          <VunoIcon icon="help" :size="20" class="group-open:rotate-90 transition-transform" />
           ¿Cómo funciona la matriz de inventario?
         </summary>
         <div class="mt-3 pl-6 space-y-1 text-sm text-[#94a3b8]">
@@ -574,7 +575,7 @@ const remainingImages = computed(() => MAX_IMAGES - totalImages.value)
       <!-- Color Manager -->
       <div class="mb-8">
         <h4 class="font-headline text-headline-sm mb-3 text-[#dae2fd] flex items-center gap-2">
-          <span class="material-symbols-outlined text-lg">palette</span>
+          <VunoIcon icon="palette" :size="20" />
           Colores disponibles
         </h4>
         <div class="flex flex-wrap gap-2 mb-3">
@@ -583,7 +584,7 @@ const remainingImages = computed(() => MAX_IMAGES - totalImages.value)
             <span class="w-3 h-3 rounded-full inline-block" :style="{ backgroundColor: c.hex, border: '1px solid rgba(255,255,255,0.1)' }"></span>
             {{ c.name }}
             <button type="button" class="text-[#94a3b8] hover:text-[#DC2626] transition-colors" @click="removeColor(c.name)">
-              <span class="material-symbols-outlined text-sm">close</span>
+              <VunoIcon icon="close" :size="14" />
             </button>
           </span>
         </div>
@@ -605,7 +606,7 @@ const remainingImages = computed(() => MAX_IMAGES - totalImages.value)
       <!-- Size Manager -->
       <div class="mb-8">
         <h4 class="font-headline text-headline-sm mb-3 text-[#dae2fd] flex items-center gap-2">
-          <span class="material-symbols-outlined text-lg">straighten</span>
+          <VunoIcon icon="straighten" :size="20" />
           Talles disponibles
         </h4>
         <div class="flex flex-wrap gap-2 mb-3">
@@ -620,7 +621,7 @@ const remainingImages = computed(() => MAX_IMAGES - totalImages.value)
             class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#1e293b] border border-[#1e293b] rounded-sm text-xs">
             {{ sizePrefix }} {{ s }}
             <button type="button" class="text-[#94a3b8] hover:text-[#DC2626] transition-colors" @click="removeSize(s)">
-              <span class="material-symbols-outlined text-sm">close</span>
+              <VunoIcon icon="close" :size="14" />
             </button>
           </span>
         </div>
@@ -651,7 +652,7 @@ const remainingImages = computed(() => MAX_IMAGES - totalImages.value)
     <!-- Tab: Images -->
     <div v-show="activeTab === 'images'" id="tab-panel-images" role="tabpanel" class="max-w-2xl admin-card p-6">
       <h2 class="text-lg font-semibold text-[#dae2fd] mb-6 flex items-center gap-2">
-        <span class="material-symbols-outlined text-xl">photo_library</span>
+        <VunoIcon icon="photo_library" :size="24" />
         Imágenes del Producto
       </h2>
       <div
@@ -664,7 +665,7 @@ const remainingImages = computed(() => MAX_IMAGES - totalImages.value)
         @dragleave.prevent="($event.target as HTMLElement).classList.remove('border-[#42b883]', 'bg-[#42b883]/5')"
         @drop.prevent="onDrop($event); ($event.target as HTMLElement).classList.remove('border-[#42b883]', 'bg-[#42b883]/5')"
       >
-        <span class="material-symbols-outlined text-4xl text-[#94a3b8] mb-2 block">cloud_upload</span>
+        <VunoIcon icon="cloud_upload" :size="36" class="text-[#94a3b8] mb-2 block mx-auto" />
         <p class="text-sm text-[#94a3b8] mb-1">Arrastra imágenes aquí o haz clic para seleccionar</p>
         <p class="text-sm text-[#94a3b8] text-xs">JPG, PNG, WebP · Máximo 5MB cada una</p>
         <input type="file" ref="fileInput" accept="image/jpeg,image/png,image/webp" multiple class="hidden" @change="onFileInputChange" />
@@ -674,7 +675,11 @@ const remainingImages = computed(() => MAX_IMAGES - totalImages.value)
       </div>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <template v-if="totalImages === 0">
-          <p class="text-sm text-[#94a3b8] col-span-full text-center py-4">No hay imágenes subidas</p>
+          <div class="empty-state col-span-full">
+            <VunoIcon icon="photo_library" :size="36" class="empty-state-icon" />
+            <p class="empty-state-title">Sin imágenes</p>
+            <p class="empty-state-desc">Subí imágenes del producto usando el área de carga.</p>
+          </div>
         </template>
         <div v-for="(img, i) in uploadedImages" :key="i" class="relative group border border-[#1e293b] rounded-sm overflow-hidden bg-[#111d2e]">
           <div class="relative">
@@ -684,8 +689,8 @@ const remainingImages = computed(() => MAX_IMAGES - totalImages.value)
                 class="bg-[#DC2626] text-white rounded-full w-10 h-10 flex items-center justify-center transition-all pointer-events-auto"
                 :disabled="deletingIdx === i"
                 @click="removeImage(i)">
-                <span v-if="deletingIdx === i" class="material-symbols-outlined text-sm animate-spin">progress_activity</span>
-                <span v-else class="material-symbols-outlined text-sm">close</span>
+                <VunoIcon v-if="deletingIdx === i" icon="progress_activity" :size="14" class="animate-spin" />
+                <VunoIcon v-else icon="close" :size="14" />
               </button>
             </div>
           </div>
@@ -703,7 +708,7 @@ const remainingImages = computed(() => MAX_IMAGES - totalImages.value)
     <!-- Tab: SEO -->
     <div v-show="activeTab === 'seo'" id="tab-panel-seo" role="tabpanel" class="max-w-2xl admin-card p-6">
       <h2 class="text-lg font-semibold text-[#dae2fd] mb-6 flex items-center gap-2">
-        <span class="material-symbols-outlined text-xl">travel_explore</span>
+        <VunoIcon icon="travel_explore" :size="24" />
         SEO & Open Graph
       </h2>
       <div class="space-y-6">
@@ -734,7 +739,7 @@ const remainingImages = computed(() => MAX_IMAGES - totalImages.value)
       <a href="/admin/productos" class="font-label-caps text-label-caps text-center sm:text-left text-[#94a3b8] hover:text-[#dae2fd] transition-colors py-3 sm:py-0">CANCELAR</a>
       <button type="submit" :disabled="submitting"
         class="bg-[#42b883] text-white font-label-caps text-label-caps h-12 px-8 inline-flex items-center justify-center gap-1.5 rounded-md hover:bg-[#42b883]/90 hover:shadow-sm transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed w-full sm:w-auto">
-        <span class="material-symbols-outlined text-lg" :class="{ 'animate-spin': submitting }">{{ submitting ? 'progress_activity' : 'save' }}</span>
+        <VunoIcon :icon="submitting ? 'progress_activity' : 'save'" :size="20" :class="{ 'animate-spin': submitting }" />
         {{ submitting ? 'GUARDANDO...' : (isEdit ? 'GUARDAR CAMBIOS' : 'GUARDAR PRODUCTO') }}
       </button>
     </div>
@@ -759,7 +764,7 @@ const remainingImages = computed(() => MAX_IMAGES - totalImages.value)
 
   <div class="mt-6">
     <a href="/admin/productos" class="inline-flex items-center gap-1.5 text-sm text-[#94a3b8] hover:text-[#dae2fd] transition-colors">
-      <span class="material-symbols-outlined text-lg">arrow_back</span>
+      <VunoIcon icon="arrow_back" :size="20" />
       Volver a Productos
     </a>
   </div>

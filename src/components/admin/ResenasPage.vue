@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useApi } from './useApi'
 import { useToast } from './useToast'
+import VunoIcon from './VunoIcon.vue'
 
 const api = useApi()
 const toast = useToast()
@@ -58,7 +59,7 @@ async function loadReviews() {
 
 function starsHtml(rating: number) {
   return Array(5).fill(0).map((_, i) =>
-    `<span class="material-symbols-outlined text-sm ${i < rating ? 'text-[#B8956A]' : 'text-[#1e293b]'}" style="font-variation-settings: 'FILL' ${i < rating ? 1 : 0}">star</span>`
+    `<span class="${i < rating ? 'text-[#B8956A]' : 'text-[#1e293b]'}"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="${i < rating ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>`
   ).join('')
 }
 
@@ -120,7 +121,7 @@ function confirmDelete(item: Review) {
           <span class="text-sm text-[#94a3b8] whitespace-nowrap">{{ total }} reseñas</span>
         </div>
         <button class="admin-btn admin-btn-edit w-full sm:w-auto justify-center" @click="editMode = !editMode">
-          <span class="material-symbols-outlined text-base">{{ editMode ? 'edit_off' : 'edit' }}</span>
+          <VunoIcon :icon="editMode ? 'edit_off' : 'edit'" :size="16" />
           {{ editMode ? 'SALIR' : 'EDITAR' }}
         </button>
       </div>
@@ -145,7 +146,11 @@ function confirmDelete(item: Review) {
             <td colspan="7" class="text-center py-8 text-[#94a3b8]">Cargando...</td>
           </tr>
           <tr v-else-if="items.length === 0">
-            <td colspan="7" class="text-center py-8 text-[#94a3b8]">No hay reseñas</td>
+            <td colspan="7" class="empty-state px-6 py-10">
+              <VunoIcon icon="star" :size="36" class="empty-state-icon" />
+              <p class="empty-state-title">Sin reseñas</p>
+              <p class="empty-state-desc">No hay reseñas de clientes.</p>
+            </td>
           </tr>
           <tr v-for="item in items" :key="item.id">
             <td>
@@ -164,10 +169,10 @@ function confirmDelete(item: Review) {
             </td>
             <td v-if="editMode" class="text-right whitespace-nowrap">
               <button v-if="!item.isApproved" class="admin-btn admin-btn-ghost admin-btn-xs" @click="approve(item)" title="Aprobar">
-                <span class="material-symbols-outlined text-sm">check</span>
+                <VunoIcon icon="check" :size="14" />
               </button>
               <button class="admin-btn admin-btn-danger admin-btn-xs" @click="confirmDelete(item)" title="Eliminar">
-                <span class="material-symbols-outlined text-sm">delete</span>
+                <VunoIcon icon="delete" :size="14" />
               </button>
             </td>
           </tr>
@@ -178,7 +183,11 @@ function confirmDelete(item: Review) {
     <!-- Mobile cards -->
     <div class="md:hidden px-6 pb-4 space-y-3">
       <div v-if="loading" class="text-center py-8 text-[#94a3b8]">Cargando...</div>
-      <div v-else-if="items.length === 0" class="text-center py-8 text-[#94a3b8]">No hay reseñas</div>
+      <div v-else-if="items.length === 0" class="empty-state">
+        <VunoIcon icon="star" :size="36" class="empty-state-icon" />
+        <p class="empty-state-title">Sin reseñas</p>
+        <p class="empty-state-desc">No hay reseñas de clientes.</p>
+      </div>
       <div v-for="item in items" :key="item.id" class="glass-card overflow-hidden rounded-xl">
         <div class="px-5 pt-4 pb-3 border-b border-[#dae2fd]/5">
           <div class="flex items-center justify-between gap-2">
@@ -197,10 +206,10 @@ function confirmDelete(item: Review) {
             <span>{{ formatDate(item.createdAt) }}</span>
             <div v-if="editMode" class="flex gap-1">
               <button v-if="!item.isApproved" class="admin-btn admin-btn-ghost admin-btn-xs" @click="approve(item)" title="Aprobar">
-                <span class="material-symbols-outlined text-sm">check</span>
+                <VunoIcon icon="check" :size="14" />
               </button>
               <button class="admin-btn admin-btn-danger admin-btn-xs" @click="confirmDelete(item)" title="Eliminar">
-                <span class="material-symbols-outlined text-sm">delete</span>
+                <VunoIcon icon="delete" :size="14" />
               </button>
             </div>
           </div>
@@ -212,11 +221,11 @@ function confirmDelete(item: Review) {
       <span class="text-sm text-[#94a3b8]">Página {{ currentPage }} de {{ totalPages }}</span>
       <div class="flex gap-1">
         <button class="admin-btn admin-btn-ghost admin-btn-xs" :disabled="currentPage <= 1" @click="currentPage--; loadReviews()">
-          <span class="material-symbols-outlined text-sm">chevron_left</span>
+          <VunoIcon icon="chevron_left" :size="14" />
         </button>
         <button v-for="p in pageWindow" :key="p" class="admin-btn admin-btn-xs" :class="p === currentPage ? 'admin-btn-primary' : 'admin-btn-ghost'" @click="currentPage = p; loadReviews()">{{ p }}</button>
         <button class="admin-btn admin-btn-ghost admin-btn-xs" :disabled="currentPage >= totalPages" @click="currentPage++; loadReviews()">
-          <span class="material-symbols-outlined text-sm">chevron_right</span>
+          <VunoIcon icon="chevron_right" :size="14" />
         </button>
       </div>
     </div>

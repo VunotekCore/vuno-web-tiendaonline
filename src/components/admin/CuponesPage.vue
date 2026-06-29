@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useApi } from './useApi'
 import { useToast } from './useToast'
+import VunoIcon from './VunoIcon.vue'
 
 const api = useApi()
 const toast = useToast()
@@ -208,12 +209,12 @@ async function remove(item: Coupon) {
       </div>
       <div class="flex items-center gap-3 w-full md:w-auto">
         <button v-if="!editMode" class="admin-btn admin-btn-edit h-11 px-5 w-full md:w-auto justify-center" @click="enableEdit">
-          <span class="material-symbols-outlined text-base">edit</span>
+          <VunoIcon icon="edit" :size="16" />
           EDITAR
         </button>
         <span v-else class="badge badge-paid shrink-0">EDITANDO</span>
         <button v-if="editMode" class="admin-btn admin-btn-primary w-full md:w-auto justify-center" @click="openCreate">
-          <span class="material-symbols-outlined text-base">add</span>
+          <VunoIcon icon="add" :size="16" />
           Nuevo Cupón
         </button>
       </div>
@@ -241,7 +242,11 @@ async function remove(item: Coupon) {
             <td colspan="6" class="text-center py-8 text-[#94a3b8]">Cargando...</td>
           </tr>
           <tr v-else-if="items.length === 0">
-            <td colspan="6" class="text-center py-8 text-[#94a3b8]">No hay cupones</td>
+            <td colspan="6" class="empty-state px-6 py-10">
+              <VunoIcon icon="ticket" :size="36" class="empty-state-icon" />
+              <p class="empty-state-title">Sin cupones</p>
+              <p class="empty-state-desc">No hay cupones de descuento.</p>
+            </td>
           </tr>
           <tr v-for="item in items" :key="item.id">
             <td>
@@ -258,10 +263,10 @@ async function remove(item: Coupon) {
             <td class="text-right whitespace-nowrap">
               <div v-if="editMode" class="flex gap-1 justify-end flex-nowrap">
                 <button class="admin-btn admin-btn-ghost admin-btn-xs" @click="openEdit(item)" title="Editar">
-                  <span class="material-symbols-outlined text-sm">edit</span>
+                  <VunoIcon icon="edit" :size="14" />
                 </button>
                 <button class="admin-btn admin-btn-danger admin-btn-xs" @click="remove(item)" title="Eliminar">
-                  <span class="material-symbols-outlined text-sm">delete</span>
+                  <VunoIcon icon="delete" :size="14" />
                 </button>
               </div>
               <span v-else class="text-xs text-[#94a3b8]">—</span>
@@ -274,7 +279,11 @@ async function remove(item: Coupon) {
     <!-- Mobile: cards -->
     <div class="md:hidden px-6 pb-4">
       <div v-if="loading" class="text-center py-8 text-[#94a3b8]">Cargando...</div>
-      <div v-else-if="items.length === 0" class="text-center py-8 text-[#94a3b8]">No hay cupones</div>
+      <div v-else-if="items.length === 0" class="empty-state">
+        <VunoIcon icon="ticket" :size="36" class="empty-state-icon" />
+        <p class="empty-state-title">Sin cupones</p>
+        <p class="empty-state-desc">No hay cupones de descuento.</p>
+      </div>
       <div v-else class="space-y-3">
         <div v-for="item in items" :key="item.id" class="glass-card overflow-hidden rounded-xl">
           <!-- Header -->
@@ -303,11 +312,11 @@ async function remove(item: Coupon) {
           <!-- Footer -->
           <div class="flex items-center gap-2 px-6 pb-5 pt-4 border-t border-[#dae2fd]/5">
             <button v-if="editMode" class="admin-btn admin-btn-edit flex-1 justify-center gap-1.5 py-2.5" @click="openEdit(item)">
-              <span class="material-symbols-outlined text-base">edit</span>
+              <VunoIcon icon="edit" :size="16" />
               <span class="text-xs font-semibold">Editar</span>
             </button>
             <button v-if="editMode" class="admin-btn admin-btn-danger flex-1 justify-center gap-1.5 py-2.5" @click="remove(item)">
-              <span class="material-symbols-outlined text-base">delete</span>
+              <VunoIcon icon="delete" :size="16" />
               <span class="text-xs font-semibold">Eliminar</span>
             </button>
             <span v-if="!editMode" class="text-xs text-[#94a3b8] w-full text-center py-2">Vista previa — Editar para modificar</span>
@@ -327,79 +336,81 @@ async function remove(item: Coupon) {
   </div>
 
   <Teleport to="body">
-    <div v-if="modalVisible" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
-      <div class="admin-card-lg w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
-        <div class="flex items-center justify-between mb-6">
-          <h3 class="text-lg font-semibold text-[#dae2fd]">{{ editingItem ? 'Editar' : 'Nuevo' }} Cupón</h3>
-          <button class="admin-btn admin-btn-ghost admin-btn-xs" @click="closeModal">
-            <span class="material-symbols-outlined">close</span>
-          </button>
-        </div>
+    <Transition name="modal-slide">
+      <div v-if="modalVisible" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
+        <div class="admin-card-lg w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-semibold text-[#dae2fd]">{{ editingItem ? 'Editar' : 'Nuevo' }} Cupón</h3>
+            <button class="admin-btn admin-btn-ghost admin-btn-xs" @click="closeModal">
+              <VunoIcon icon="close" :size="20" />
+            </button>
+          </div>
 
-        <div v-if="formError" class="text-sm text-[#DC2626] bg-[#DC2626]/10 p-3 mb-4">{{ formError }}</div>
+          <div v-if="formError" class="text-sm text-[#DC2626] bg-[#DC2626]/10 p-3 mb-4">{{ formError }}</div>
 
-        <div class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-[#94a3b8] mb-1">Código *</label>
-            <input v-model="formCode" type="text" class="admin-input uppercase" maxlength="50" placeholder="Ej. BIENVENIDO10" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-[#94a3b8] mb-1">Descripción</label>
-            <input v-model="formDescription" type="text" class="admin-input" maxlength="255" placeholder="Descripción interna" />
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="space-y-4">
             <div>
-              <label class="block text-sm font-medium text-[#94a3b8] mb-1">Tipo *</label>
-              <select v-model="formType" class="admin-input">
-                <option value="percentage">Porcentaje (%)</option>
-                <option value="fixed">Monto fijo ($)</option>
-              </select>
+              <label class="block text-sm font-medium text-[#94a3b8] mb-1">Código *</label>
+              <input v-model="formCode" type="text" class="admin-input uppercase" maxlength="50" placeholder="Ej. BIENVENIDO10" />
             </div>
             <div>
-              <label class="block text-sm font-medium text-[#94a3b8] mb-1">Valor *</label>
-              <input v-model.number="formValue" type="number" step="0.01" min="0" class="admin-input" placeholder="10" />
+              <label class="block text-sm font-medium text-[#94a3b8] mb-1">Descripción</label>
+              <input v-model="formDescription" type="text" class="admin-input" maxlength="255" placeholder="Descripción interna" />
             </div>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-[#94a3b8] mb-1">Monto mínimo de pedido</label>
-            <input v-model.number="formMinAmount" type="number" step="0.01" min="0" class="admin-input" placeholder="0 (sin mínimo)" />
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-[#94a3b8] mb-1">Usos máximos (total)</label>
-              <input v-model.number="formMaxUses" type="number" min="0" class="admin-input" placeholder="Ilimitado" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-[#94a3b8] mb-1">Usos por cliente</label>
-              <input v-model.number="formMaxPerCustomer" type="number" min="0" class="admin-input" placeholder="Ilimitado" />
-            </div>
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-[#94a3b8] mb-1">Válido desde</label>
-              <input v-model="formStartsAt" type="datetime-local" class="admin-input" />
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-[#94a3b8] mb-1">Tipo *</label>
+                <select v-model="formType" class="admin-input">
+                  <option value="percentage">Porcentaje (%)</option>
+                  <option value="fixed">Monto fijo ($)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-[#94a3b8] mb-1">Valor *</label>
+                <input v-model.number="formValue" type="number" step="0.01" min="0" class="admin-input" placeholder="10" />
+              </div>
             </div>
             <div>
-              <label class="block text-sm font-medium text-[#94a3b8] mb-1">Válido hasta</label>
-              <input v-model="formExpiresAt" type="datetime-local" class="admin-input" />
+              <label class="block text-sm font-medium text-[#94a3b8] mb-1">Monto mínimo de pedido</label>
+              <input v-model.number="formMinAmount" type="number" step="0.01" min="0" class="admin-input" placeholder="0 (sin mínimo)" />
             </div>
-          </div>
-          <label class="admin-toggle-label cursor-pointer py-2">
-            <label class="admin-toggle">
-              <input v-model="formActive" type="checkbox" />
-              <div></div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-[#94a3b8] mb-1">Usos máximos (total)</label>
+                <input v-model.number="formMaxUses" type="number" min="0" class="admin-input" placeholder="Ilimitado" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-[#94a3b8] mb-1">Usos por cliente</label>
+                <input v-model.number="formMaxPerCustomer" type="number" min="0" class="admin-input" placeholder="Ilimitado" />
+              </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-[#94a3b8] mb-1">Válido desde</label>
+                <input v-model="formStartsAt" type="datetime-local" class="admin-input" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-[#94a3b8] mb-1">Válido hasta</label>
+                <input v-model="formExpiresAt" type="datetime-local" class="admin-input" />
+              </div>
+            </div>
+            <label class="admin-toggle-label cursor-pointer py-2">
+              <label class="admin-toggle">
+                <input v-model="formActive" type="checkbox" />
+                <div></div>
+              </label>
+              <span class="text-xs font-semibold tracking-widest uppercase" :class="formActive ? 'text-[#42b883]' : 'text-[#94a3b8]'">{{ formActive ? 'ACTIVO' : 'INACTIVO' }}</span>
             </label>
-            <span class="text-xs font-semibold tracking-widest uppercase" :class="formActive ? 'text-[#42b883]' : 'text-[#94a3b8]'">{{ formActive ? 'ACTIVO' : 'INACTIVO' }}</span>
-          </label>
-        </div>
+          </div>
 
-        <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 mt-6">
-          <button class="admin-btn admin-btn-secondary w-full sm:w-auto justify-center" @click="closeModal">Cancelar</button>
-          <button class="admin-btn admin-btn-primary w-full sm:w-auto justify-center" :disabled="saving" @click="save">
-            {{ saving ? 'Guardando...' : (editingItem ? 'Actualizar' : 'Crear') }}
-          </button>
+          <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 mt-6">
+            <button class="admin-btn admin-btn-secondary w-full sm:w-auto justify-center" @click="closeModal">Cancelar</button>
+            <button class="admin-btn admin-btn-primary w-full sm:w-auto justify-center" :disabled="saving" @click="save">
+              {{ saving ? 'Guardando...' : (editingItem ? 'Actualizar' : 'Crear') }}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </Transition>
   </Teleport>
 </template>

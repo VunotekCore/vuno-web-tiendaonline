@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useApi } from './useApi'
+import VunoIcon from './VunoIcon.vue'
 
 const api = useApi()
 
@@ -139,12 +140,10 @@ function formatPrice(val: number | null | undefined): string {
             <td colspan="7" class="text-center py-8 text-[#94a3b8]">Cargando...</td>
           </tr>
           <tr v-else-if="items.length === 0">
-            <td colspan="7" class="text-center py-12">
-              <div class="flex flex-col items-center gap-3">
-                <span class="material-symbols-outlined text-5xl text-[#94a3b8]/30">receipt_long</span>
-                <p class="text-sm text-[#94a3b8]">No hay pedidos aún</p>
-                <p class="text-xs text-[#94a3b8]/60">Los pedidos aparecerán aquí cuando los clientes realicen compras</p>
-              </div>
+            <td colspan="7" class="empty-state px-6 py-10">
+              <VunoIcon icon="receipt-long" :size="36" class="empty-state-icon" />
+              <p class="empty-state-title">Sin pedidos</p>
+              <p class="empty-state-desc">No hay pedidos aún.</p>
             </td>
           </tr>
           <tr v-for="o in items" :key="o.id">
@@ -159,13 +158,13 @@ function formatPrice(val: number | null | undefined): string {
             </td>
             <td>
               <span class="inline-flex items-center gap-1.5 text-sm text-[#94a3b8] capitalize">
-                <span class="material-symbols-outlined text-base">{{ paymentIcons[o.paymentMethod] || 'payments' }}</span>
+                <VunoIcon :icon="paymentIcons[o.paymentMethod] || 'payments'" :size="16" />
                 {{ paymentLabels[o.paymentMethod] || o.paymentMethod }}
               </span>
             </td>
             <td class="text-right">
               <a :href="'/admin/pedidos/detalle?id=' + encodeURIComponent(o.id)" class="admin-btn admin-btn-ghost admin-btn-xs whitespace-nowrap">
-                <span class="material-symbols-outlined text-sm">visibility</span>
+                <VunoIcon icon="visibility" :size="14" />
                 VIEW
               </a>
             </td>
@@ -177,11 +176,10 @@ function formatPrice(val: number | null | undefined): string {
     <!-- Mobile cards -->
     <div class="md:hidden space-y-3 px-6 pb-4">
       <div v-if="loading" class="text-center py-8 text-[#94a3b8]">Cargando...</div>
-      <div v-else-if="items.length === 0" class="text-center py-12">
-        <div class="flex flex-col items-center gap-3">
-          <span class="material-symbols-outlined text-5xl text-[#94a3b8]/30">receipt_long</span>
-          <p class="text-sm text-[#94a3b8]">No hay pedidos aún</p>
-        </div>
+      <div v-else-if="items.length === 0" class="empty-state">
+        <VunoIcon icon="receipt-long" :size="36" class="empty-state-icon" />
+        <p class="empty-state-title">Sin pedidos</p>
+        <p class="empty-state-desc">No hay pedidos aún.</p>
       </div>
       <div v-for="o in items" :key="o.id" class="glass-card overflow-hidden rounded-xl">
         <div class="px-5 pt-4 pb-3 border-b border-[#dae2fd]/5">
@@ -195,7 +193,7 @@ function formatPrice(val: number | null | undefined): string {
         </div>
         <div class="px-5 py-3 flex items-center justify-between">
           <div class="flex items-center gap-2 text-sm text-[#94a3b8]">
-            <span class="material-symbols-outlined text-base">{{ paymentIcons[o.paymentMethod] || 'payments' }}</span>
+            <VunoIcon :icon="paymentIcons[o.paymentMethod] || 'payments'" :size="16" />
             {{ paymentLabels[o.paymentMethod] || o.paymentMethod }}
           </div>
           <div class="text-right">
@@ -205,7 +203,7 @@ function formatPrice(val: number | null | undefined): string {
         </div>
         <div class="px-5 py-3 border-t border-[#dae2fd]/5">
           <a :href="'/admin/pedidos/detalle?id=' + encodeURIComponent(o.id)" class="admin-btn admin-btn-ghost admin-btn-xs w-full justify-center">
-            <span class="material-symbols-outlined text-sm">visibility</span>
+            <VunoIcon icon="visibility" :size="14" />
             VER DETALLE
           </a>
         </div>

@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useApi } from './useApi'
 import { useToast } from './useToast'
+import VunoIcon from './VunoIcon.vue'
 
 const api = useApi()
 const toast = useToast()
@@ -110,11 +111,11 @@ async function remove(item: BlogCategory) {
         </div>
         <div class="flex flex-wrap gap-2">
           <button class="admin-btn admin-btn-edit w-full sm:w-auto justify-center" @click="editMode = !editMode">
-            <span class="material-symbols-outlined text-base">{{ editMode ? 'edit_off' : 'edit' }}</span>
+            <VunoIcon :icon="editMode ? 'edit_off' : 'edit'" :size="16" />
             {{ editMode ? 'SALIR' : 'EDITAR' }}
           </button>
           <button v-if="editMode" class="admin-btn admin-btn-primary w-full sm:w-auto justify-center" @click="openCreate">
-            <span class="material-symbols-outlined text-base">add</span>
+            <VunoIcon icon="add" :size="16" />
             Nueva Categoría
           </button>
         </div>
@@ -140,7 +141,11 @@ async function remove(item: BlogCategory) {
             <td colspan="4" class="text-center py-8 text-[#94a3b8]">Cargando...</td>
           </tr>
           <tr v-else-if="filteredItems.length === 0">
-            <td colspan="4" class="text-center py-8 text-[#94a3b8]">No hay categorías</td>
+            <td colspan="4" class="empty-state px-6 py-10">
+              <VunoIcon icon="folder" :size="36" class="empty-state-icon" />
+              <p class="empty-state-title">Sin categorías</p>
+              <p class="empty-state-desc">No hay categorías aún. Crea la primera.</p>
+            </td>
           </tr>
           <tr v-for="item in filteredItems" :key="item.id">
             <td class="font-medium">{{ item.name }}</td>
@@ -148,10 +153,10 @@ async function remove(item: BlogCategory) {
             <td class="text-[#94a3b8]">{{ item.description || '—' }}</td>
             <td v-if="editMode" class="text-right whitespace-nowrap">
               <button class="admin-btn admin-btn-ghost admin-btn-xs" @click="openEdit(item)" title="Editar">
-                <span class="material-symbols-outlined text-sm">edit</span>
+                <VunoIcon icon="edit" :size="14" />
               </button>
               <button class="admin-btn admin-btn-danger admin-btn-xs" @click="remove(item)" title="Eliminar">
-                <span class="material-symbols-outlined text-sm">delete</span>
+                <VunoIcon icon="delete" :size="14" />
               </button>
             </td>
           </tr>
@@ -162,7 +167,11 @@ async function remove(item: BlogCategory) {
     <!-- Mobile cards -->
     <div class="md:hidden px-6 pb-4 space-y-3">
       <div v-if="loading" class="text-center py-8 text-[#94a3b8]">Cargando...</div>
-      <div v-else-if="filteredItems.length === 0" class="text-center py-8 text-[#94a3b8]">No hay categorías</div>
+      <div v-else-if="filteredItems.length === 0" class="empty-state">
+        <VunoIcon icon="folder" :size="36" class="empty-state-icon" />
+        <p class="empty-state-title">Sin categorías</p>
+        <p class="empty-state-desc">No hay categorías aún. Crea la primera.</p>
+      </div>
       <div v-for="item in filteredItems" :key="item.id" class="glass-card overflow-hidden rounded-xl">
         <div class="px-5 pt-4 pb-3 border-b border-[#dae2fd]/5">
           <div class="flex items-center justify-between gap-2">
@@ -174,10 +183,10 @@ async function remove(item: BlogCategory) {
           <span class="text-sm text-[#94a3b8] truncate">{{ item.description || '—' }}</span>
           <div v-if="editMode" class="flex gap-1 shrink-0">
             <button class="admin-btn admin-btn-ghost admin-btn-xs" @click="openEdit(item)" title="Editar">
-              <span class="material-symbols-outlined text-sm">edit</span>
+              <VunoIcon icon="edit" :size="14" />
             </button>
             <button class="admin-btn admin-btn-danger admin-btn-xs" @click="remove(item)" title="Eliminar">
-              <span class="material-symbols-outlined text-sm">delete</span>
+              <VunoIcon icon="delete" :size="14" />
             </button>
           </div>
         </div>
@@ -186,31 +195,33 @@ async function remove(item: BlogCategory) {
   </div>
 
   <Teleport to="body">
-    <div v-if="modalVisible" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
-      <div class="admin-card-lg w-full max-w-lg mx-4">
-        <div class="flex items-center justify-between mb-6">
-          <h3 class="text-lg font-semibold text-[#dae2fd]">{{ editingItem ? 'Editar' : 'Nueva' }} Categoría</h3>
-          <button class="admin-btn admin-btn-ghost admin-btn-xs" @click="closeModal">
-            <span class="material-symbols-outlined">close</span>
-          </button>
-        </div>
-        <div class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-[#94a3b8] mb-1">Nombre</label>
-            <input v-model="formName" type="text" class="admin-input" required maxlength="200" />
+    <Transition name="modal-slide">
+      <div v-if="modalVisible" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
+        <div class="admin-card-lg w-full max-w-lg mx-4">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-semibold text-[#dae2fd]">{{ editingItem ? 'Editar' : 'Nueva' }} Categoría</h3>
+            <button class="admin-btn admin-btn-ghost admin-btn-xs" @click="closeModal">
+              <VunoIcon icon="close" :size="20" />
+            </button>
           </div>
-          <div v-if="!editingItem">
-            <label class="block text-sm font-medium text-[#94a3b8] mb-1">Descripción</label>
-            <input v-model="formDescription" type="text" class="admin-input" maxlength="300" placeholder="Opcional" />
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-[#94a3b8] mb-1">Nombre</label>
+              <input v-model="formName" type="text" class="admin-input" required maxlength="200" />
+            </div>
+            <div v-if="!editingItem">
+              <label class="block text-sm font-medium text-[#94a3b8] mb-1">Descripción</label>
+              <input v-model="formDescription" type="text" class="admin-input" maxlength="300" placeholder="Opcional" />
+            </div>
           </div>
-        </div>
-        <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 mt-6">
-          <button class="admin-btn admin-btn-secondary w-full sm:w-auto justify-center" @click="closeModal">Cancelar</button>
-          <button class="admin-btn admin-btn-primary w-full sm:w-auto justify-center" :disabled="saving || !formName.trim()" @click="save">
-            {{ saving ? 'Guardando...' : (editingItem ? 'Actualizar' : 'Crear') }}
-          </button>
+          <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 mt-6">
+            <button class="admin-btn admin-btn-secondary w-full sm:w-auto justify-center" @click="closeModal">Cancelar</button>
+            <button class="admin-btn admin-btn-primary w-full sm:w-auto justify-center" :disabled="saving || !formName.trim()" @click="save">
+              {{ saving ? 'Guardando...' : (editingItem ? 'Actualizar' : 'Crear') }}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </Transition>
   </Teleport>
 </template>

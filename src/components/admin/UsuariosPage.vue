@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useApi } from './useApi'
 import { useToast } from './useToast'
+import VunoIcon from './VunoIcon.vue'
 
 const api = useApi()
 const toast = useToast()
@@ -141,11 +142,11 @@ async function changeRole(userId: number, role: string) {
         </div>
         <div class="flex gap-2">
           <button class="admin-btn admin-btn-edit" @click="editMode = !editMode">
-            <span class="material-symbols-outlined text-base">{{ editMode ? 'edit_off' : 'edit' }}</span>
+            <VunoIcon :icon="editMode ? 'edit_off' : 'edit'" :size="16" />
             {{ editMode ? 'SALIR' : 'EDITAR' }}
           </button>
           <button v-if="editMode" class="admin-btn admin-btn-primary" @click="openCreate">
-            <span class="material-symbols-outlined text-base">add</span>
+            <VunoIcon icon="add" :size="16" />
             Nuevo Usuario
           </button>
         </div>
@@ -169,7 +170,11 @@ async function changeRole(userId: number, role: string) {
             <td colspan="5" class="text-center py-8 text-[#94a3b8]">Cargando...</td>
           </tr>
           <tr v-else-if="items.length === 0">
-            <td colspan="5" class="text-center py-8 text-[#94a3b8]">No hay usuarios</td>
+            <td colspan="5" class="empty-state px-6 py-10">
+              <VunoIcon icon="users" :size="36" class="empty-state-icon" />
+              <p class="empty-state-title">Sin usuarios</p>
+              <p class="empty-state-desc">No hay usuarios registrados.</p>
+            </td>
           </tr>
           <tr v-for="item in items" :key="item.id">
             <td class="font-medium">{{ item.email }}</td>
@@ -187,7 +192,7 @@ async function changeRole(userId: number, role: string) {
             <td class="text-right">
               <div class="flex gap-1 flex-nowrap justify-end whitespace-nowrap">
                 <button v-if="editMode" class="admin-btn admin-btn-ghost admin-btn-xs" @click="openEdit(item)" title="Editar">
-                  <span class="material-symbols-outlined text-sm">edit</span>
+                  <VunoIcon icon="edit" :size="14" />
                 </button>
                 <button
                   v-if="editMode && item.email !== currentUserEmail"
@@ -195,7 +200,7 @@ async function changeRole(userId: number, role: string) {
                   @click="remove(item)"
                   title="Eliminar"
                 >
-                  <span class="material-symbols-outlined text-sm">delete</span>
+                  <VunoIcon icon="delete" :size="14" />
                 </button>
               </div>
             </td>
@@ -207,7 +212,11 @@ async function changeRole(userId: number, role: string) {
     <!-- Mobile cards -->
     <div class="md:hidden space-y-3 px-6 pb-4">
       <div v-if="loading" class="text-center py-8 text-[#94a3b8]">Cargando...</div>
-      <div v-else-if="items.length === 0" class="text-center py-8 text-[#94a3b8]">No hay usuarios</div>
+      <div v-else-if="items.length === 0" class="empty-state">
+        <VunoIcon icon="users" :size="36" class="empty-state-icon" />
+        <p class="empty-state-title">Sin usuarios</p>
+        <p class="empty-state-desc">No hay usuarios registrados.</p>
+      </div>
       <div v-for="item in items" :key="item.id" class="glass-card overflow-hidden rounded-xl">
         <div class="px-5 pt-4 pb-3 border-b border-[#dae2fd]/5">
           <div class="flex justify-between items-start gap-2">
@@ -232,14 +241,14 @@ async function changeRole(userId: number, role: string) {
           <span class="text-xs text-[#94a3b8]">{{ new Date(item.createdAt).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' }) }}</span>
           <div class="flex gap-2">
             <button v-if="editMode" class="admin-btn admin-btn-ghost admin-btn-xs" @click="openEdit(item)">
-              <span class="material-symbols-outlined text-sm">edit</span>
+              <VunoIcon icon="edit" :size="14" />
             </button>
             <button
               v-if="editMode && item.email !== currentUserEmail"
               class="admin-btn admin-btn-danger admin-btn-xs"
               @click="remove(item)"
             >
-              <span class="material-symbols-outlined text-sm">delete</span>
+              <VunoIcon icon="delete" :size="14" />
             </button>
           </div>
         </div>
@@ -248,44 +257,46 @@ async function changeRole(userId: number, role: string) {
   </div>
 
   <Teleport to="body">
-    <div v-if="modalVisible" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md">
-      <div class="admin-card-lg w-full max-w-lg mx-4">
-        <div class="flex items-center justify-between mb-6">
-          <h3 class="text-lg font-semibold text-[#dae2fd]">{{ editingItem ? 'Editar' : 'Nuevo' }} Usuario</h3>
-          <button class="admin-btn admin-btn-ghost admin-btn-xs" @click="closeModal">
-            <span class="material-symbols-outlined">close</span>
-          </button>
-        </div>
-        <div class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-[#94a3b8] mb-1">Email *</label>
-            <input v-model="formEmail" type="email" class="admin-input" required maxlength="255" />
+    <Transition name="modal-slide">
+      <div v-if="modalVisible" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md">
+        <div class="admin-card-lg w-full max-w-lg mx-4">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-semibold text-[#dae2fd]">{{ editingItem ? 'Editar' : 'Nuevo' }} Usuario</h3>
+            <button class="admin-btn admin-btn-ghost admin-btn-xs" @click="closeModal">
+              <VunoIcon icon="close" :size="20" />
+            </button>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-[#94a3b8] mb-1">Nombre</label>
-            <input v-model="formName" type="text" class="admin-input" maxlength="200" placeholder="Opcional" />
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-[#94a3b8] mb-1">Email *</label>
+              <input v-model="formEmail" type="email" class="admin-input" required maxlength="255" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-[#94a3b8] mb-1">Nombre</label>
+              <input v-model="formName" type="text" class="admin-input" maxlength="200" placeholder="Opcional" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-[#94a3b8] mb-1">
+                Contraseña
+                <span class="text-xs text-[#64748b] font-normal">{{ editingItem ? '(dejar vacío para mantener)' : '(mín. 6 caracteres)' }}</span>
+              </label>
+              <input v-model="formPassword" type="password" class="admin-input" :required="!editingItem" maxlength="255" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-[#94a3b8] mb-1">Rol</label>
+              <select v-model="formRole" class="admin-input">
+                <option v-for="r in roles" :key="r.code" :value="r.code">{{ r.name }}</option>
+              </select>
+            </div>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-[#94a3b8] mb-1">
-              Contraseña
-              <span class="text-xs text-[#64748b] font-normal">{{ editingItem ? '(dejar vacío para mantener)' : '(mín. 6 caracteres)' }}</span>
-            </label>
-            <input v-model="formPassword" type="password" class="admin-input" :required="!editingItem" maxlength="255" />
+          <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 mt-6">
+            <button class="admin-btn admin-btn-secondary w-full sm:w-auto justify-center" @click="closeModal">Cancelar</button>
+            <button class="admin-btn admin-btn-primary w-full sm:w-auto justify-center" :disabled="saving || !formEmail.trim()" @click="save">
+              {{ saving ? 'Guardando...' : (editingItem ? 'Actualizar' : 'Crear') }}
+            </button>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-[#94a3b8] mb-1">Rol</label>
-            <select v-model="formRole" class="admin-input">
-              <option v-for="r in roles" :key="r.code" :value="r.code">{{ r.name }}</option>
-            </select>
-          </div>
-        </div>
-        <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 mt-6">
-          <button class="admin-btn admin-btn-secondary w-full sm:w-auto justify-center" @click="closeModal">Cancelar</button>
-          <button class="admin-btn admin-btn-primary w-full sm:w-auto justify-center" :disabled="saving || !formEmail.trim()" @click="save">
-            {{ saving ? 'Guardando...' : (editingItem ? 'Actualizar' : 'Crear') }}
-          </button>
         </div>
       </div>
-    </div>
+    </Transition>
   </Teleport>
 </template>

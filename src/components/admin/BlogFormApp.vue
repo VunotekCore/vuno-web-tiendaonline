@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useApi } from './useApi'
 import { useToast } from './useToast'
+import VunoIcon from './VunoIcon.vue'
 
 const api = useApi()
 const toast = useToast()
@@ -49,7 +50,7 @@ onMounted(async () => {
       content.value = post.content || ''
       thumbnailImage.value = post.thumbnail_image || ''
       featuredImage.value = post.featured_image || ''
-      author.value = post.author || 'Ram;Lop'
+      author.value = post.author || 'Vunotek'
       categoryId.value = post.category_id ? String(post.category_id) : ''
       status.value = post.status || 'draft'
       metaTitle.value = post.meta_title || ''
@@ -181,7 +182,7 @@ async function handleSubmit() {
       content: html,
       thumbnail_image: thumbnailImage.value,
       featured_image: featuredImage.value,
-      author: author.value.trim() || 'Ram;Lop',
+      author: author.value.trim() || 'Vunotek',
       category_id: categoryId.value || null,
       status: status.value,
       meta_title: metaTitle.value.trim(),
@@ -211,7 +212,7 @@ async function handleSubmit() {
   <form v-else class="max-w-4xl" @submit.prevent="handleSubmit">
     <div class="admin-card space-y-6">
       <h2 class="text-lg font-semibold text-[#dae2fd] flex items-center gap-2">
-        <span class="material-symbols-outlined text-xl">article</span>
+        <VunoIcon icon="article" :size="20" />
         {{ isEdit ? 'Editar Post' : 'Nuevo Post' }}
       </h2>
 
@@ -282,7 +283,7 @@ async function handleSubmit() {
         <div>
           <label class="block text-sm font-medium text-[#94a3b8] mb-2">AUTOR</label>
           <div class="relative">
-            <input v-model="author" type="text" :maxlength="AUTHOR_MAX" class="admin-input pr-14" placeholder="Ram;Lop" />
+            <input v-model="author" type="text" :maxlength="AUTHOR_MAX" class="admin-input pr-14" placeholder="Vunotek" />
             <span class="absolute right-2 bottom-2 text-xs pointer-events-none" :class="countClass(author.length, AUTHOR_MAX)">{{ author.length }}/{{ AUTHOR_MAX }}</span>
           </div>
         </div>
@@ -304,7 +305,7 @@ async function handleSubmit() {
 
       <div class="pt-6 mt-6 border-t border-[#1e293b]">
         <h3 class="text-sm font-semibold text-[#94a3b8] mb-4 flex items-center gap-2">
-          <span class="material-symbols-outlined text-lg">travel_explore</span>
+          <VunoIcon icon="travel_explore" :size="20" />
           SEO & Open Graph
         </h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -323,7 +324,7 @@ async function handleSubmit() {
     <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 mt-8">
       <a href="/admin/blog" class="admin-btn admin-btn-secondary w-full sm:w-auto justify-center">CANCELAR</a>
       <button type="submit" class="admin-btn admin-btn-primary w-full sm:w-auto justify-center" :disabled="saving">
-        <span class="material-symbols-outlined text-base">{{ saving ? 'progress_activity' : 'save' }}</span>
+        <VunoIcon :icon="saving ? 'progress_activity' : 'save'" :size="16" />
         {{ saving ? 'GUARDANDO...' : 'GUARDAR' }}
       </button>
     </div>

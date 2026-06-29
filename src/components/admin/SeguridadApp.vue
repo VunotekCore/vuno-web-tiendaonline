@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useApi } from './useApi'
 import { useToast } from './useToast'
+import VunoIcon from './VunoIcon.vue'
 
 const api = useApi()
 const toast = useToast()
@@ -163,22 +164,22 @@ async function confirmDisable() {
     <!-- Status card -->
     <div class="admin-card p-6">
       <h2 class="text-lg font-semibold text-[#dae2fd] mb-4 flex items-center gap-2">
-        <span class="material-symbols-outlined text-xl">security</span>
+        <VunoIcon icon="security" :size="24" />
         Autenticación de Dos Factores (2FA)
       </h2>
       <div class="flex items-center gap-3 mb-6">
-        <span class="material-symbols-outlined text-2xl" :class="enabled ? 'text-[#42b883]' : 'text-[#94a3b8]'">{{ enabled ? 'lock' : 'lock_open' }}</span>
+        <VunoIcon :icon="enabled ? 'lock' : 'lock_open'" :size="28" :class="enabled ? 'text-[#42b883]' : 'text-[#94a3b8]'" />
         <div>
           <p class="font-medium text-[#dae2fd]">{{ enabled ? '2FA está activo' : '2FA no está configurado' }}</p>
           <p class="text-sm text-[#94a3b8]">{{ enabled ? 'Se requiere código de autenticación al iniciar sesión.' : 'Protege tu cuenta con autenticación de dos factores.' }}</p>
         </div>
       </div>
       <button v-if="!enabled" class="admin-btn admin-btn-primary w-full sm:w-auto justify-center" @click="startSetup">
-        <span class="material-symbols-outlined text-lg">add</span>
+        <VunoIcon icon="add" :size="20" />
         CONFIGURAR 2FA
       </button>
       <button v-else class="admin-btn admin-btn-danger w-full sm:w-auto justify-center" @click="openDisable">
-        <span class="material-symbols-outlined text-lg">lock_open</span>
+        <VunoIcon icon="lock_open" :size="20" />
         DESACTIVAR 2FA
       </button>
     </div>
@@ -190,7 +191,7 @@ async function confirmDisable() {
       <input v-model="setupPassword" type="password" class="admin-input mb-4" placeholder="••••••••" @keydown.enter.prevent="confirmPassword" />
       <p v-if="setupPasswordMsg" class="text-sm mb-4" :class="setupPasswordError ? 'text-[#DC2626]' : 'text-[#42b883]'">{{ setupPasswordMsg }}</p>
       <button class="admin-btn admin-btn-primary w-full sm:w-auto justify-center" :disabled="verifying" @click="confirmPassword">
-        <span class="material-symbols-outlined text-lg" :class="{ 'animate-spin': verifying }">{{ verifying ? 'progress_activity' : 'arrow_forward' }}</span>
+        <VunoIcon :icon="verifying ? 'progress_activity' : 'arrow_forward'" :size="20" :class="{ 'animate-spin': verifying }" />
         {{ verifying ? 'VERIFICANDO...' : 'CONTINUAR' }}
       </button>
     </div>
@@ -212,7 +213,7 @@ async function confirmDisable() {
         <input v-model="verifCode" type="text" inputmode="numeric" class="admin-input text-center text-2xl tracking-[0.25em] mb-4" placeholder="000000" maxlength="8" @keydown.enter.prevent="verifyAndEnable" />
         <p v-if="qrMsg" class="text-sm mb-4" :class="qrError ? 'text-[#DC2626]' : 'text-[#42b883]'">{{ qrMsg }}</p>
         <button class="admin-btn admin-btn-primary w-full sm:w-auto justify-center" :disabled="verifying" @click="verifyAndEnable">
-          <span class="material-symbols-outlined text-lg" :class="{ 'animate-spin': verifying }">{{ verifying ? 'progress_activity' : 'verified' }}</span>
+          <VunoIcon :icon="verifying ? 'progress_activity' : 'verified'" :size="20" :class="{ 'animate-spin': verifying }" />
           {{ verifying ? 'VERIFICANDO...' : 'VERIFICAR Y ACTIVAR' }}
         </button>
       </div>
@@ -221,7 +222,7 @@ async function confirmDisable() {
     <!-- Setup Step 3: Backup codes -->
     <div v-if="step === 'backup'" class="admin-card p-6">
       <h3 class="text-lg font-semibold text-[#dae2fd] mb-2 flex items-center gap-2">
-        <span class="material-symbols-outlined text-xl text-[#B8956A]">warning</span>
+        <VunoIcon icon="warning" :size="24" class="text-[#B8956A]" />
         Códigos de Respaldo
       </h3>
       <p class="text-sm text-[#94a3b8] mb-4">Guarda estos códigos en un lugar seguro. Son de un solo uso y te permitirán acceder si pierdes tu dispositivo.</p>
@@ -233,7 +234,7 @@ async function confirmDisable() {
       </div>
       <p class="text-sm text-[#DC2626] mb-4">Estos códigos no se mostrarán nuevamente.</p>
       <button class="admin-btn admin-btn-primary w-full sm:w-auto justify-center" @click="finishSetup">
-        <span class="material-symbols-outlined text-lg">check</span>
+        <VunoIcon icon="check" :size="20" />
         FINALIZAR
       </button>
     </div>
@@ -250,7 +251,7 @@ async function confirmDisable() {
         <div class="flex flex-col-reverse sm:flex-row justify-end gap-3">
           <button class="admin-btn admin-btn-secondary w-full sm:w-auto justify-center" @click="closeDisable">Cancelar</button>
           <button class="admin-btn admin-btn-danger w-full sm:w-auto justify-center" :disabled="verifying" @click="confirmDisable">
-            <span class="material-symbols-outlined text-lg" :class="{ 'animate-spin': verifying }">{{ verifying ? 'progress_activity' : 'lock_open' }}</span>
+            <VunoIcon :icon="verifying ? 'progress_activity' : 'lock_open'" :size="20" :class="{ 'animate-spin': verifying }" />
             {{ verifying ? 'DESACTIVANDO...' : 'DESACTIVAR' }}
           </button>
         </div>

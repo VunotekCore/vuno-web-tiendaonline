@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useApi } from './useApi'
+import VunoIcon from './VunoIcon.vue'
 
 interface StatsData {
   currency?: { symbol?: string }
@@ -116,7 +117,7 @@ onMounted(async () => {
 
 <template>
   <div v-if="loading" class="text-center py-8">
-    <span class="material-symbols-outlined text-3xl block mb-2 animate-spin text-[#dae2fd]">progress_activity</span>
+    <VunoIcon icon="progress_activity" :size="32" class="block mb-2 animate-spin text-[#dae2fd]" />
     <p class="text-[#94a3b8]">Cargando dashboard...</p>
   </div>
 
@@ -133,8 +134,8 @@ onMounted(async () => {
         <div class="flex items-center justify-between">
           <span class="text-xs font-semibold tracking-widest"
                 :class="card.muted ? 'text-[#94a3b8]/40' : 'text-[#94a3b8]'">{{ card.label }}</span>
-          <span class="material-symbols-outlined text-lg sm:text-xl"
-                :class="card.muted ? 'text-[#94a3b8]/20' : 'text-[#94a3b8]'">{{ card.icon }}</span>
+          <VunoIcon :icon="card.icon" :size="20"
+                :class="card.muted ? 'text-[#94a3b8]/20' : 'text-[#94a3b8]'" />
         </div>
         <span class="text-xl sm:text-2xl font-semibold truncate text-[#dae2fd]"
               :class="card.muted ? 'text-[#94a3b8]/40' : ''">{{ card.value }}</span>
@@ -144,7 +145,7 @@ onMounted(async () => {
     <!-- Quick actions -->
     <a href="/admin/pos"
        class="admin-btn admin-btn-primary inline-flex items-center justify-center gap-2 w-full">
-      <span class="material-symbols-outlined text-lg">point_of_sale</span>
+      <VunoIcon icon="point_of_sale" :size="20" />
       Ir a Mostrador POS
     </a>
 
@@ -161,7 +162,7 @@ onMounted(async () => {
             <div v-for="o in data.recent_orders" :key="o.order_number"
                  class="flex items-center justify-between py-2.5 sm:py-3 border-b border-[#1e293b]/30 last:border-0">
               <div class="flex items-center gap-2 sm:gap-3 min-w-0">
-                <span class="material-symbols-outlined text-base sm:text-lg text-[#94a3b8]/40 shrink-0">{{ paymentIcon(o.payment_method_code) }}</span>
+                <VunoIcon :icon="paymentIcon(o.payment_method_code)" :size="16" class="text-[#94a3b8]/40 shrink-0" />
                 <div class="min-w-0">
                   <a :href="'/admin/pedidos/detalle?id=' + encodeURIComponent(o.order_number)"
                      class="text-sm sm:text-base text-[#dae2fd] hover:underline truncate block max-w-[140px] sm:max-w-none">{{ esc(o.order_number) }}</a>
@@ -189,7 +190,7 @@ onMounted(async () => {
                  class="py-2.5 sm:py-3 border-b border-[#1e293b]/30 last:border-0">
               <div class="flex items-center justify-between mb-1">
                 <div class="flex items-center gap-2">
-                  <span class="material-symbols-outlined text-base sm:text-lg text-[#94a3b8]">{{ paymentIcon(pm.code) }}</span>
+                  <VunoIcon :icon="paymentIcon(pm.code)" :size="16" class="text-[#94a3b8]" />
                   <span class="text-sm sm:text-base text-[#dae2fd]">{{ esc(pm.name) }}</span>
                 </div>
                 <span class="text-xs sm:text-sm font-semibold text-[#dae2fd]">{{ data.currency?.symbol || '$' }}{{ formatPrice(pm.display_total || 0) }}</span>

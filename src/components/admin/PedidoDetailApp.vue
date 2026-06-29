@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useApi } from './useApi'
 import { useToast } from './useToast'
+import VunoIcon from './VunoIcon.vue'
 
 const api = useApi()
 const toast = useToast()
@@ -137,38 +138,38 @@ async function updateStatus() {
       <div class="glass-card overflow-hidden rounded-xl">
         <div class="px-6 pt-5 pb-4 border-b border-[#dae2fd]/5">
           <h2 class="text-lg font-semibold text-[#dae2fd] flex items-center gap-2">
-            <span class="material-symbols-outlined text-xl">receipt</span>
+            <VunoIcon icon="receipt" :size="24" />
             Order <span class="text-[#dae2fd]">{{ order.id }}</span>
           </h2>
         </div>
         <div class="px-6 py-4 space-y-3 text-sm">
           <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-base text-[#94a3b8]">calendar_today</span>
+            <VunoIcon icon="calendar_today" :size="16" class="text-[#94a3b8]" />
             <span class="text-[#94a3b8]">Date:</span>
             <span class="text-[#dae2fd]">{{ formatDate(order.createdAt) }}</span>
           </div>
           <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-base text-[#94a3b8]">info</span>
+            <VunoIcon icon="info" :size="16" class="text-[#94a3b8]" />
             <span class="text-[#94a3b8]">Status:</span>
             <span class="badge" :class="statusStyles[order.status] || ''">{{ order.status }}</span>
           </div>
           <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-base text-[#94a3b8]">credit_card</span>
+            <VunoIcon icon="credit_card" :size="16" class="text-[#94a3b8]" />
             <span class="text-[#94a3b8]">Payment:</span>
             <span class="text-[#dae2fd]">{{ payLabels[order.paymentMethod] || order.paymentMethod }}</span>
           </div>
           <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-base text-[#94a3b8]">check_circle</span>
+            <VunoIcon icon="check_circle" :size="16" class="text-[#94a3b8]" />
             <span class="text-[#94a3b8]">Payment Status:</span>
             <span class="text-[#dae2fd]">{{ order.paymentStatus || 'N/A' }}</span>
           </div>
           <div v-if="order.transferReceipt" class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-base text-[#94a3b8]">description</span>
+            <VunoIcon icon="description" :size="16" class="text-[#94a3b8]" />
             <span class="text-[#94a3b8]">Comprobante:</span>
             <a :href="order.transferReceipt" target="_blank" class="text-[#42b883] underline hover:no-underline">Ver comprobante</a>
           </div>
           <div v-if="order.selectedBankName" class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-base text-[#94a3b8]">account_balance</span>
+            <VunoIcon icon="account_balance" :size="16" class="text-[#94a3b8]" />
             <span class="text-[#94a3b8]">Bank:</span>
             <span class="text-[#dae2fd]">{{ order.selectedBankName }}</span>
           </div>
@@ -178,39 +179,43 @@ async function updateStatus() {
       <div class="glass-card overflow-hidden rounded-xl">
         <div class="px-6 pt-5 pb-4 border-b border-[#dae2fd]/5">
           <h2 class="text-lg font-semibold text-[#dae2fd] flex items-center gap-2">
-            <span class="material-symbols-outlined text-xl">person</span>
+            <VunoIcon icon="person" :size="24" />
             Customer
           </h2>
         </div>
         <div class="px-6 py-4">
           <div v-if="order.customer" class="space-y-3 text-sm">
             <div class="flex items-center gap-2">
-              <span class="material-symbols-outlined text-base text-[#94a3b8]">badge</span>
+              <VunoIcon icon="badge" :size="16" class="text-[#94a3b8]" />
               <span class="text-[#94a3b8]">Name:</span>
               <span class="text-[#dae2fd]">{{ order.customer.name }}</span>
             </div>
             <div class="flex items-center gap-2">
-              <span class="material-symbols-outlined text-base text-[#94a3b8]">mail</span>
+              <VunoIcon icon="mail" :size="16" class="text-[#94a3b8]" />
               <span class="text-[#94a3b8]">Email:</span>
               <span class="text-[#dae2fd]">{{ order.customer.email }}</span>
             </div>
             <div class="flex items-start gap-2">
-              <span class="material-symbols-outlined text-base text-[#94a3b8] mt-0.5">home</span>
+              <VunoIcon icon="home" :size="16" class="text-[#94a3b8] mt-0.5" />
               <span class="text-[#94a3b8]">Address:</span>
               <span class="text-[#dae2fd]">{{ order.customer.address }}</span>
             </div>
             <div class="flex items-center gap-2">
-              <span class="material-symbols-outlined text-base text-[#94a3b8]">location_city</span>
+              <VunoIcon icon="location_city" :size="16" class="text-[#94a3b8]" />
               <span class="text-[#94a3b8]">City:</span>
               <span class="text-[#dae2fd]">{{ order.customer.city }}</span>
             </div>
             <div class="flex items-center gap-2">
-              <span class="material-symbols-outlined text-base text-[#94a3b8]">pin_drop</span>
+              <VunoIcon icon="pin_drop" :size="16" class="text-[#94a3b8]" />
               <span class="text-[#94a3b8]">Zip:</span>
               <span class="text-[#dae2fd]">{{ order.customer.zip }}</span>
             </div>
           </div>
-          <p v-else class="text-sm text-[#94a3b8]">No customer data.</p>
+          <div v-else class="empty-state">
+            <VunoIcon icon="person_off" :size="36" class="empty-state-icon" />
+            <p class="empty-state-title">Sin datos</p>
+            <p class="empty-state-desc">No hay datos del cliente.</p>
+          </div>
         </div>
       </div>
     </div>
@@ -219,7 +224,7 @@ async function updateStatus() {
     <div class="glass-card overflow-hidden rounded-xl">
       <div class="px-6 pt-5 pb-4 border-b border-[#dae2fd]/5">
         <h2 class="text-lg font-semibold text-[#dae2fd] flex items-center gap-2">
-          <span class="material-symbols-outlined text-xl">shopping_bag</span>
+          <VunoIcon icon="shopping_bag" :size="24" />
           Order Items
         </h2>
       </div>
@@ -274,10 +279,10 @@ async function updateStatus() {
             <div class="font-medium text-[#dae2fd] mb-2">{{ item.product?.name || '' }}</div>
             <div class="flex items-center gap-3 text-sm text-[#94a3b8] mb-2">
               <span v-if="item.selectedColor" class="inline-flex items-center gap-1">
-                <span class="material-symbols-outlined text-sm">palette</span>{{ item.selectedColor }}
+                <VunoIcon icon="palette" :size="14" />{{ item.selectedColor }}
               </span>
               <span v-if="item.selectedSize" class="inline-flex items-center gap-1">
-                <span class="material-symbols-outlined text-sm">straighten</span>{{ item.selectedSize }}
+                <VunoIcon icon="straighten" :size="14" />{{ item.selectedSize }}
               </span>
             </div>
             <div class="flex items-center justify-between text-sm">
@@ -305,14 +310,18 @@ async function updateStatus() {
           </div>
         </div>
       </template>
-      <div v-else class="px-6 py-4 text-sm text-[#94a3b8]">No items.</div>
+      <div v-else class="empty-state">
+        <VunoIcon icon="inventory_2" :size="36" class="empty-state-icon" />
+        <p class="empty-state-title">Sin items</p>
+        <p class="empty-state-desc">Este pedido no contiene productos.</p>
+      </div>
     </div>
 
     <!-- Update Status -->
     <div class="glass-card overflow-hidden rounded-xl">
       <div class="px-6 pt-5 pb-4 border-b border-[#dae2fd]/5">
         <h2 class="text-lg font-semibold text-[#dae2fd] flex items-center gap-2">
-          <span class="material-symbols-outlined text-xl">update</span>
+          <VunoIcon icon="update" :size="24" />
           Update Status
         </h2>
       </div>
@@ -328,7 +337,7 @@ async function updateStatus() {
             class="admin-btn admin-btn-primary w-full sm:w-auto justify-center"
             :disabled="statusUpdating || selectedStatus === order.status"
           >
-            <span class="material-symbols-outlined text-lg" :class="{ 'animate-spin': statusUpdating }">{{ statusUpdating ? 'progress_activity' : 'save' }}</span>
+            <VunoIcon :icon="statusUpdating ? 'progress_activity' : 'save'" :size="20" :class="{ 'animate-spin': statusUpdating }" />
             {{ statusUpdating ? 'UPDATING...' : 'UPDATE' }}
           </button>
         </form>
@@ -337,7 +346,7 @@ async function updateStatus() {
 
     <div class="mt-4">
       <a href="/admin/pedidos" class="inline-flex items-center gap-1.5 text-sm text-[#94a3b8] hover:text-[#dae2fd] transition-colors">
-        <span class="material-symbols-outlined text-lg">arrow_back</span>
+        <VunoIcon icon="arrow_back" :size="20" />
         Back to Orders
       </a>
     </div>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useApi } from './useApi'
+import VunoIcon from './VunoIcon.vue'
 
 const api = useApi()
 
@@ -98,35 +99,35 @@ function formatPrice(val: number | null | undefined, symbol = '$') {
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <div class="glass-card overflow-hidden rounded-xl px-6 pt-5 pb-6">
         <h2 class="text-lg font-semibold text-[#dae2fd] mb-4 flex items-center gap-2">
-          <span class="material-symbols-outlined text-xl">person</span>
+          <VunoIcon icon="person" :size="24" />
           {{ customer.name }}
         </h2>
         <div class="space-y-3 text-sm">
           <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-base text-[#94a3b8]">mail</span>
+            <VunoIcon icon="mail" :size="16" class="text-[#94a3b8]" />
             <span class="text-[#94a3b8]">Email:</span>
             <a :href="'mailto:' + customer.email" class="text-[#dae2fd] hover:text-[#42b883] transition-colors">{{ customer.email }}</a>
           </div>
           <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-base text-[#94a3b8]">phone</span>
+            <VunoIcon icon="phone" :size="16" class="text-[#94a3b8]" />
             <span class="text-[#94a3b8]">Teléfono:</span>
             <span class="text-[#dae2fd]">{{ customer.phone || '—' }}</span>
           </div>
           <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-base text-[#94a3b8]">verified</span>
+            <VunoIcon icon="verified" :size="16" class="text-[#94a3b8]" />
             <span class="text-[#94a3b8]">Verificado:</span>
             <span v-if="customer.is_verified" class="text-[#42b883] flex items-center gap-1">
-              <span class="material-symbols-outlined text-sm">check_circle</span>Sí
+              <VunoIcon icon="check_circle" :size="14" class="text-[#42b883]" />Sí
             </span>
             <span v-else class="text-[#94a3b8]">No</span>
           </div>
           <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-base text-[#94a3b8]">calendar_today</span>
+            <VunoIcon icon="calendar_today" :size="16" class="text-[#94a3b8]" />
             <span class="text-[#94a3b8]">Registrado:</span>
             <span class="text-[#dae2fd]">{{ formatDate(customer.created_at) }}</span>
           </div>
           <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-base text-[#94a3b8]">history</span>
+            <VunoIcon icon="history" :size="16" class="text-[#94a3b8]" />
             <span class="text-[#94a3b8]">Último pedido:</span>
             <span class="text-[#dae2fd]">{{ formatDate(customer.last_order_at) }}</span>
           </div>
@@ -135,7 +136,7 @@ function formatPrice(val: number | null | undefined, symbol = '$') {
 
       <div class="glass-card overflow-hidden rounded-xl px-6 pt-5 pb-6">
         <h2 class="text-lg font-semibold text-[#dae2fd] mb-4 flex items-center gap-2">
-          <span class="material-symbols-outlined text-xl">notes</span>
+          <VunoIcon icon="notes" :size="24" />
           Notas internas
         </h2>
         <p class="text-sm text-[#94a3b8] leading-relaxed whitespace-pre-wrap">{{ customer.notes || 'Sin notas.' }}</p>
@@ -146,7 +147,7 @@ function formatPrice(val: number | null | undefined, symbol = '$') {
     <div class="glass-card overflow-hidden rounded-xl">
       <div class="px-6 pt-5 pb-4 border-b border-[#dae2fd]/5">
         <h2 class="text-lg font-semibold text-[#dae2fd] flex items-center gap-2">
-          <span class="material-symbols-outlined text-xl">home</span>
+          <VunoIcon icon="home" :size="24" />
           Direcciones
         </h2>
       </div>
@@ -162,14 +163,18 @@ function formatPrice(val: number | null | undefined, symbol = '$') {
           <p v-if="a.phone" class="text-xs text-[#94a3b8] mt-1">{{ a.phone }}</p>
         </div>
       </div>
-      <div v-else class="px-6 py-4 text-sm text-[#94a3b8]">Sin direcciones guardadas.</div>
+      <div v-else class="empty-state">
+        <VunoIcon icon="home" :size="36" class="empty-state-icon" />
+        <p class="empty-state-title">Sin direcciones</p>
+        <p class="empty-state-desc">El cliente no tiene direcciones guardadas.</p>
+      </div>
     </div>
 
     <!-- Order History -->
     <div class="glass-card overflow-hidden rounded-xl">
       <div class="px-6 pt-5 pb-4 border-b border-[#dae2fd]/5">
         <h2 class="text-lg font-semibold text-[#dae2fd] flex items-center gap-2">
-          <span class="material-symbols-outlined text-xl">receipt_long</span>
+          <VunoIcon icon="receipt_long" :size="24" />
           Historial de Pedidos
         </h2>
       </div>
@@ -198,7 +203,7 @@ function formatPrice(val: number | null | undefined, symbol = '$') {
                 <td class="font-medium">{{ formatPrice(o.display_total ?? o.total, o.display_symbol) }}</td>
                 <td class="text-right">
                   <a :href="'/admin/pedidos/detalle?id=' + o.id" class="admin-btn admin-btn-ghost admin-btn-xs">
-                    <span class="material-symbols-outlined text-sm">visibility</span>
+                    <VunoIcon icon="visibility" :size="14" />
                   </a>
                 </td>
               </tr>
@@ -222,21 +227,25 @@ function formatPrice(val: number | null | undefined, symbol = '$') {
               <div class="flex items-center gap-2">
                 <span class="font-medium text-[#dae2fd]">{{ formatPrice(o.display_total ?? o.total, o.display_symbol) }}</span>
                 <a :href="'/admin/pedidos/detalle?id=' + o.id" class="admin-btn admin-btn-ghost admin-btn-xs">
-                  <span class="material-symbols-outlined text-sm">visibility</span>
+                  <VunoIcon icon="visibility" :size="14" />
                 </a>
               </div>
             </div>
           </div>
         </div>
       </template>
-      <div v-else class="px-6 py-4 text-sm text-[#94a3b8]">Sin pedidos.</div>
+      <div v-else class="empty-state">
+        <VunoIcon icon="receipt-long" :size="36" class="empty-state-icon" />
+        <p class="empty-state-title">Sin pedidos</p>
+        <p class="empty-state-desc">El cliente no ha realizado pedidos.</p>
+      </div>
     </div>
 
     <!-- Wishlist -->
     <div class="glass-card overflow-hidden rounded-xl">
       <div class="px-6 pt-5 pb-4 border-b border-[#dae2fd]/5">
         <h2 class="text-lg font-semibold text-[#dae2fd] flex items-center gap-2">
-          <span class="material-symbols-outlined text-xl">favorite</span>
+          <VunoIcon icon="favorite" :size="24" />
           Wishlist
         </h2>
       </div>
@@ -246,12 +255,16 @@ function formatPrice(val: number | null | undefined, symbol = '$') {
           <span class="text-sm font-medium">{{ formatPrice(w.price, w.currency === 'NIO' ? 'C$' : '$') }}</span>
         </div>
       </div>
-      <div v-else class="px-6 py-4 text-sm text-[#94a3b8]">Sin productos en wishlist.</div>
+      <div v-else class="empty-state">
+        <VunoIcon icon="favorite" :size="36" class="empty-state-icon" />
+        <p class="empty-state-title">Sin favoritos</p>
+        <p class="empty-state-desc">El cliente no tiene productos en su wishlist.</p>
+      </div>
     </div>
 
     <div class="mt-6">
       <a href="/admin/clientes" class="inline-flex items-center gap-1.5 text-sm text-[#94a3b8] hover:text-[#dae2fd] transition-colors">
-        <span class="material-symbols-outlined text-lg">arrow_back</span>
+        <VunoIcon icon="arrow_back" :size="20" />
         Volver a Clientes
       </a>
     </div>

@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useApi } from './useApi'
 import { useToast } from './useToast'
+import VunoIcon from './VunoIcon.vue'
 
 const api = useApi()
 const toast = useToast()
@@ -230,7 +231,7 @@ function countClass(len: number, max: number) {
   <form v-else class="max-w-3xl" @submit.prevent="handleSubmit">
     <div class="admin-card space-y-6">
       <h2 class="text-lg font-semibold text-[#dae2fd] flex items-center gap-2">
-        <span class="material-symbols-outlined text-xl">mail</span>
+        <VunoIcon icon="mail" :size="24" />
         {{ isEdit ? 'Editar Plantilla' : 'Nueva Plantilla' }}
       </h2>
 
@@ -254,7 +255,7 @@ function countClass(len: number, max: number) {
       <div>
         <label class="block text-sm font-medium text-[#94a3b8] mb-2">ASUNTO *</label>
         <div class="relative">
-          <input v-model="subject" type="text" required :maxlength="SUBJECT_MAX" class="admin-input pr-16" placeholder="Order Confirmation #{{order_id}} — Ram;Lop" />
+          <input v-model="subject" type="text" required :maxlength="SUBJECT_MAX" class="admin-input pr-16" placeholder="Order Confirmation #{{order_id}} — Vunotek" />
           <span class="absolute right-2 bottom-2 text-xs pointer-events-none" :class="countClass(subject.length, SUBJECT_MAX)">{{ subject.length }}/{{ SUBJECT_MAX }}</span>
         </div>
         <p class="text-xs text-[#64748b] mt-1">Usa <code class="text-[#B8956A]">&#123;&#123;variable&#125;&#125;</code> para datos dinámicos</p>
@@ -266,11 +267,11 @@ function countClass(len: number, max: number) {
           <label class="block text-sm font-medium text-[#94a3b8]">CUERPO DE LA PLANTILLA *</label>
           <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
             <button v-if="isEdit" type="button" class="text-xs font-medium text-[#B8956A] border border-[#B8956A]/30 rounded-sm px-3 h-8 inline-flex items-center gap-1 hover:bg-[#B8956A]/5 transition-all justify-center sm:justify-start" @click="restoreOriginal">
-              <span class="material-symbols-outlined text-sm">restore</span>
+              <VunoIcon icon="restore" :size="14" />
               ORIGINAL
             </button>
             <button type="button" class="text-xs font-medium text-[#dae2fd] border border-[#1e293b] rounded-sm px-3 h-8 inline-flex items-center gap-1 hover:bg-white/5 transition-all justify-center flex-1 sm:flex-none" @click="openPreview">
-              <span class="material-symbols-outlined text-sm">visibility</span>
+              <VunoIcon icon="visibility" :size="14" />
               VISTA PREVIA
             </button>
             <div class="flex items-stretch gap-0.5 border border-[#1e293b] rounded-sm overflow-hidden text-xs font-medium flex-1 sm:flex-none">
@@ -290,13 +291,13 @@ function countClass(len: number, max: number) {
           <button type="button" class="px-2 min-h-[44px] flex items-center justify-center rounded-sm hover:bg-white/10 text-[#dae2fd] text-xs font-semibold" title="Título mediano" @click="execCmd('formatBlock', 'h3')">H3</button>
           <button type="button" class="px-2 min-h-[44px] flex items-center justify-center rounded-sm hover:bg-white/10 text-[#dae2fd] text-xs" title="Párrafo" @click="execCmd('formatBlock', 'p')">¶</button>
           <span class="w-px h-5 bg-[#1e293b] mx-0.5"></span>
-          <button type="button" class="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-sm hover:bg-white/10 text-[#dae2fd]" title="Lista viñetas" @click="execCmd('insertUnorderedList')"><span class="material-symbols-outlined text-base">format_list_bulleted</span></button>
-          <button type="button" class="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-sm hover:bg-white/10 text-[#dae2fd]" title="Lista numerada" @click="execCmd('insertOrderedList')"><span class="material-symbols-outlined text-base">format_list_numbered</span></button>
+          <button type="button" class="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-sm hover:bg-white/10 text-[#dae2fd]" title="Lista viñetas" @click="execCmd('insertUnorderedList')"><VunoIcon icon="format_list_bulleted" :size="16" /></button>
+          <button type="button" class="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-sm hover:bg-white/10 text-[#dae2fd]" title="Lista numerada" @click="execCmd('insertOrderedList')"><VunoIcon icon="format_list_numbered" :size="16" /></button>
           <span class="w-px h-5 bg-[#1e293b] mx-0.5"></span>
-          <button type="button" class="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-sm hover:bg-white/10 text-[#dae2fd]" title="Insertar enlace" @click="execCmd('link')"><span class="material-symbols-outlined text-base">link</span></button>
-          <button type="button" class="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-sm hover:bg-white/10 text-[#94a3b8]" title="Quitar enlace" @click="execCmd('unlink')"><span class="material-symbols-outlined text-base">link_off</span></button>
+          <button type="button" class="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-sm hover:bg-white/10 text-[#dae2fd]" title="Insertar enlace" @click="execCmd('link')"><VunoIcon icon="link" :size="16" /></button>
+          <button type="button" class="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-sm hover:bg-white/10 text-[#94a3b8]" title="Quitar enlace" @click="execCmd('unlink')"><VunoIcon icon="link_off" :size="16" /></button>
           <span class="w-px h-5 bg-[#1e293b] mx-0.5"></span>
-          <button type="button" class="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-sm hover:bg-white/10 text-[#94a3b8]" title="Limpiar formato" @click="execCmd('removeFormat')"><span class="material-symbols-outlined text-base">format_clear</span></button>
+          <button type="button" class="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-sm hover:bg-white/10 text-[#94a3b8]" title="Limpiar formato" @click="execCmd('removeFormat')"><VunoIcon icon="format_clear" :size="16" /></button>
         </div>
 
         <!-- Visual contenteditable -->
@@ -352,7 +353,7 @@ function countClass(len: number, max: number) {
     <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 mt-8">
       <a href="/admin/email-templates" class="admin-btn admin-btn-secondary w-full sm:w-auto justify-center">CANCELAR</a>
       <button type="submit" class="admin-btn admin-btn-primary w-full sm:w-auto justify-center" :disabled="saving">
-        <span class="material-symbols-outlined text-base">{{ saving ? 'progress_activity' : 'save' }}</span>
+        <VunoIcon :icon="saving ? 'progress_activity' : 'save'" :size="16" />
         {{ saving ? 'GUARDANDO...' : 'GUARDAR' }}
       </button>
     </div>
@@ -365,13 +366,13 @@ function countClass(len: number, max: number) {
         <div class="flex items-center justify-between p-4 border-b border-[#1e293b] shrink-0">
           <div class="flex items-center gap-3 min-w-0 flex-1">
             <h3 class="text-lg font-semibold text-[#dae2fd] flex items-center gap-2">
-              <span class="material-symbols-outlined text-xl">visibility</span>
+              <VunoIcon icon="visibility" :size="24" />
               Vista Previa
             </h3>
             <span class="text-sm text-[#94a3b8] truncate">{{ previewSubject }}</span>
           </div>
           <button type="button" class="w-10 h-10 flex items-center justify-center text-[#94a3b8] hover:text-[#dae2fd] transition-colors rounded-sm hover:bg-white/5 shrink-0 ml-4" @click="closePreview">
-            <span class="material-symbols-outlined text-lg">close</span>
+            <VunoIcon icon="close" :size="20" />
           </button>
         </div>
         <div class="flex-1 overflow-auto p-4 bg-white">

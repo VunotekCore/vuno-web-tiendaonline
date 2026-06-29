@@ -2,6 +2,7 @@
 import { ref, reactive, onMounted, computed, watch } from 'vue'
 import { useApi } from './useApi'
 import { useToast } from './useToast'
+import VunoIcon from './VunoIcon.vue'
 
 const api = useApi()
 const toast = useToast()
@@ -541,7 +542,7 @@ const landingFieldLabels: Record<string, string> = {
                   : 'text-[#94a3b8] hover:bg-white/5 hover:text-[#dae2fd]'"
                 class="px-3 py-3 text-xs font-semibold tracking-widest rounded-sm transition-all flex items-center justify-center gap-1.5"
                 @click="activeTab = t.id; if (t.children?.length) activeChildTab = t.children[0].id">
-          <span class="material-symbols-outlined text-base shrink-0">{{ t.icon }}</span>
+          <VunoIcon :icon="t.icon" :size="16" class="shrink-0" />
           <span class="truncate leading-tight text-center">{{ t.label }}</span>
         </button>
       </div>
@@ -556,7 +557,7 @@ const landingFieldLabels: Record<string, string> = {
                   : 'text-[#94a3b8] hover:bg-white/10 hover:text-[#dae2fd] border border-[#1e293b]'"
                 class="xs:px-2 sm:px-3 xs:text-[11px] py-2 text-xs font-semibold tracking-widest rounded-sm transition-all flex items-center justify-center gap-1.5"
                 @click="activeChildTab = child.id">
-          <span class="material-symbols-outlined text-base">{{ child.icon }}</span>
+          <VunoIcon :icon="child.icon" :size="16" />
           {{ child.label }}
         </button>
       </div>
@@ -571,7 +572,7 @@ const landingFieldLabels: Record<string, string> = {
                   : 'text-[#94a3b8] hover:bg-white/10 hover:text-[#dae2fd] border border-[#1e293b]'"
                 class="xs:px-2 sm:px-3 xs:text-[11px] py-2 text-xs font-semibold tracking-widest rounded-sm transition-all flex items-center justify-center gap-1.5"
                 @click="activeChildTab = child.id">
-          <span class="material-symbols-outlined text-base">{{ child.icon }}</span>
+          <VunoIcon :icon="child.icon" :size="16" />
           {{ child.label }}
         </button>
       </div>
@@ -586,7 +587,7 @@ const landingFieldLabels: Record<string, string> = {
                   : 'text-[#94a3b8] hover:bg-white/10 hover:text-[#dae2fd] border border-[#1e293b]'"
                 class="xs:px-2 sm:px-3 xs:text-[11px] py-2 text-xs font-semibold tracking-widest rounded-sm transition-all flex items-center justify-center gap-1.5"
                 @click="activeChildTab = child.id">
-          <span class="material-symbols-outlined text-base">{{ child.icon }}</span>
+          <VunoIcon :icon="child.icon" :size="16" />
           {{ child.label }}
         </button>
       </div>
@@ -601,7 +602,7 @@ const landingFieldLabels: Record<string, string> = {
                   : 'text-[#94a3b8] hover:bg-white/10 hover:text-[#dae2fd] border border-[#1e293b]'"
                 class="xs:px-2 sm:px-3 xs:text-[11px] py-2 text-xs font-semibold tracking-widest rounded-sm transition-all flex items-center justify-center gap-1.5"
                 @click="activeChildTab = child.id">
-          <span class="material-symbols-outlined text-base">{{ child.icon }}</span>
+          <VunoIcon :icon="child.icon" :size="16" />
           {{ child.label }}
         </button>
       </div>
@@ -613,14 +614,14 @@ const landingFieldLabels: Record<string, string> = {
     <div v-if="effectiveTab === 'store-info'" :key="'store-info'" class="admin-card p-4 md:p-6 admin-enter">
       <div class="flex items-start gap-4 mb-6">
         <div class="w-10 h-10 rounded-sm bg-[#42b883]/10 flex items-center justify-center shrink-0">
-          <span class="material-symbols-outlined text-[#42b883]">store</span>
+          <VunoIcon icon="store" class="text-[#42b883]" />
         </div>
         <div class="flex-1">
           <h2 class="text-lg font-semibold text-[#dae2fd]">Información de la Tienda</h2>
           <p class="text-sm text-[#94a3b8] mt-1">Datos básicos que identifican tu marca en la tienda pública.</p>
         </div>
         <button v-if="!isEditing('store')" class="admin-btn admin-btn-edit h-11 px-4 shrink-0" @click="enableEdit('store')">
-          <span class="material-symbols-outlined text-base">edit</span>
+          <VunoIcon icon="edit" :size="16" />
           EDITAR
         </button>
         <span v-else class="badge badge-paid shrink-0 h-fit mt-2">EDITANDO</span>
@@ -629,7 +630,7 @@ const landingFieldLabels: Record<string, string> = {
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="md:col-span-2">
           <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">NOMBRE DE LA TIENDA</label>
-          <input v-model="store.name" class="admin-input" maxlength="200" placeholder="Ram;Lop" @input="markDirty('store')" :disabled="!isEditing('store')" />
+          <input v-model="store.name" class="admin-input" maxlength="200" placeholder="Vunotek" @input="markDirty('store')" :disabled="!isEditing('store')" />
         </div>
         <div class="md:col-span-2">
           <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">LEMA / SLOGAN</label>
@@ -637,7 +638,7 @@ const landingFieldLabels: Record<string, string> = {
         </div>
         <div class="md:col-span-2">
           <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">EMAIL DE CONTACTO</label>
-          <input v-model="store.email" type="email" class="admin-input" maxlength="255" placeholder="hola@ramlop.com" @input="markDirty('store')" :disabled="!isEditing('store')" />
+          <input v-model="store.email" type="email" class="admin-input" maxlength="255" placeholder="hola@vunotek.com" @input="markDirty('store')" :disabled="!isEditing('store')" />
         </div>
         <div class="md:col-span-2">
           <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">DESCRIPCIÓN</label>
@@ -659,7 +660,7 @@ const landingFieldLabels: Record<string, string> = {
              @drop.prevent="isEditing('store') && handleLogoUpload(($event.dataTransfer?.files[0])!)">
           <input ref="logoInput" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" class="hidden" @change="($event.target as HTMLInputElement).files?.[0] && handleLogoUpload(($event.target as HTMLInputElement).files![0])" />
           <div class="w-16 h-16 rounded-full bg-[#1e293b] flex items-center justify-center mx-auto mb-4 group-hover:bg-[#42b883]/10 transition-colors">
-            <span class="material-symbols-outlined text-3xl text-[#94a3b8] group-hover:text-[#42b883] transition-colors">image</span>
+            <VunoIcon icon="image" :size="32" class="text-[#94a3b8] group-hover:text-[#42b883] transition-colors" />
           </div>
           <p class="text-sm text-[#94a3b8] mb-1">Arrastrá el logotipo o <span class="text-[#42b883] underline font-medium">seleccioná un archivo</span></p>
           <p class="text-xs text-[#94a3b8]/60">PNG, JPG, WEBP o SVG — Máx 1 MB — 800×400 px máx</p>
@@ -670,10 +671,10 @@ const landingFieldLabels: Record<string, string> = {
           </div>
           <div class="flex items-center gap-3">
             <button class="text-xs font-semibold tracking-widest text-[#42b883] hover:text-[#dae2fd] transition-colors inline-flex items-center gap-1.5 px-3 py-2 border border-[#1e293b] rounded-sm hover:border-[#42b883]/30" :disabled="!isEditing('store')" @click="$refs.logoInput?.click()">
-              <span class="material-symbols-outlined text-lg">refresh</span> REEMPLAZAR
+              <VunoIcon icon="refresh" :size="20" /> REEMPLAZAR
             </button>
             <button class="text-xs font-semibold tracking-widest text-[#DC2626] hover:text-[#ff4444] transition-colors inline-flex items-center gap-1.5 px-3 py-2 border border-[#1e293b] rounded-sm hover:border-[#DC2626]/30" :disabled="!isEditing('store')" @click="removeLogo">
-              <span class="material-symbols-outlined text-lg">delete</span> ELIMINAR
+              <VunoIcon icon="delete" :size="20" /> ELIMINAR
             </button>
           </div>
         </div>
@@ -682,12 +683,12 @@ const landingFieldLabels: Record<string, string> = {
             <div class="bg-[#42b883] h-1.5 rounded-full transition-all duration-500 ease-out" :style="{ width: Math.max(0, Math.min(100, logoProgress)) + '%' }"></div>
           </div>
           <p class="text-xs text-[#94a3b8] mt-1.5 flex items-center gap-1.5">
-            <span class="material-symbols-outlined text-sm animate-spin">progress_activity</span>
+            <VunoIcon icon="progress_activity" :size="14" class="animate-spin" />
             Subiendo...
           </p>
         </div>
         <p v-if="logoError" class="text-xs text-[#DC2626] mt-2 flex items-center gap-1">
-          <span class="material-symbols-outlined text-sm">error</span>
+          <VunoIcon icon="error" :size="14" />
           {{ logoError }}
         </p>
       </div>
@@ -697,7 +698,7 @@ const landingFieldLabels: Record<string, string> = {
       <!-- Newsletter coupon -->
       <div>
         <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2 flex items-center gap-2">
-          <span class="material-symbols-outlined text-lg">confirmation_number</span>
+          <VunoIcon icon="confirmation_number" :size="20" />
           CUPÓN DE BIENVENIDA NEWSLETTER
         </label>
         <p class="text-sm text-[#94a3b8]/70 mb-3">Cupón que se asigna automáticamente al suscribirse al newsletter.</p>
@@ -716,21 +717,21 @@ const landingFieldLabels: Record<string, string> = {
     <div v-if="effectiveTab === 'store-currency'" :key="'store-currency'" class="admin-card p-4 md:p-6 admin-enter">
       <div class="flex items-start gap-4 mb-6">
         <div class="w-10 h-10 rounded-sm bg-[#42b883]/10 flex items-center justify-center shrink-0">
-          <span class="material-symbols-outlined text-[#42b883]">payments</span>
+          <VunoIcon icon="payments" class="text-[#42b883]" />
         </div>
         <div class="flex-1">
           <h2 class="text-lg font-semibold text-[#dae2fd]">Moneda — Divisas</h2>
           <p class="text-sm text-[#94a3b8] mt-1">Seleccioná la moneda principal y configurá las tasas de cambio.</p>
         </div>
         <button v-if="!isEditing('moneda')" class="admin-btn admin-btn-edit h-11 px-4 shrink-0" @click="enableEdit('moneda')">
-          <span class="material-symbols-outlined text-base">edit</span>
+          <VunoIcon icon="edit" :size="16" />
           EDITAR
         </button>
         <span v-else class="badge badge-paid shrink-0 h-fit mt-2">EDITANDO</span>
       </div>
 
       <div class="bg-[#1e293b]/40 border border-[#1e293b] rounded-sm p-4 mb-6 flex items-start gap-3">
-        <span class="material-symbols-outlined text-[#42b883] text-lg shrink-0 mt-px">info</span>
+        <VunoIcon icon="info" :size="20" class="text-[#42b883] shrink-0 mt-px" />
         <p class="text-xs text-[#94a3b8] leading-relaxed">
           Los precios se almacenan en USD y se convierten a la moneda seleccionada usando la tasa de cambio.
           La moneda base de referencia es USD con tasa fija 1.0.
@@ -763,7 +764,7 @@ const landingFieldLabels: Record<string, string> = {
                 <span v-if="c.code === storeCurrency" class="badge badge-paid">ACTIVA</span>
                 <span v-if="c.code === 'USD'" class="text-[10px] text-[#94a3b8] bg-[#1e293b]/60 px-2 py-0.5 rounded-sm font-semibold">BASE</span>
               </div>
-              <span v-if="c.code === storeCurrency" class="text-[#42b883] material-symbols-outlined text-xl">check_circle</span>
+              <VunoIcon v-if="c.code === storeCurrency" icon="check_circle" :size="24" class="text-[#42b883]" />
             </div>
 
             <!-- Body -->
@@ -803,7 +804,7 @@ const landingFieldLabels: Record<string, string> = {
                       class="w-11 h-11 flex items-center justify-center shrink-0 text-[#94a3b8] hover:text-[#DC2626] hover:bg-[#DC2626]/10 rounded-sm transition-all touch-target"
                       :disabled="!isEditing('moneda')"
                       @click="deleteCurrency(c.code)" title="Desactivar moneda">
-                <span class="material-symbols-outlined text-xl">delete</span>
+                <VunoIcon icon="delete" :size="24" />
               </button>
             </div>
           </div>
@@ -856,7 +857,7 @@ const landingFieldLabels: Record<string, string> = {
                           class="w-8 h-8 flex items-center justify-center text-[#94a3b8] hover:text-[#DC2626] hover:bg-[#DC2626]/10 rounded-sm transition-all"
                           :disabled="!isEditing('moneda')"
                           @click="deleteCurrency(c.code)" title="Desactivar moneda">
-                    <span class="material-symbols-outlined text-lg">delete</span>
+                    <VunoIcon icon="delete" :size="20" />
                   </button>
                 </td>
               </tr>
@@ -864,7 +865,7 @@ const landingFieldLabels: Record<string, string> = {
           </table>
         </div>
         <button class="mt-4 text-xs font-semibold tracking-widest text-[#94a3b8] hover:text-[#42b883] inline-flex items-center gap-1.5 transition-all px-3 py-2 border border-[#1e293b] rounded-sm hover:border-[#42b883]/30" :disabled="!isEditing('moneda')" @click="showCurrencyModal = true">
-          <span class="material-symbols-outlined text-lg">add_circle</span> AGREGAR MONEDA
+          <VunoIcon icon="add_circle" :size="20" /> AGREGAR MONEDA
         </button>
       </div>
     </div>
@@ -875,21 +876,21 @@ const landingFieldLabels: Record<string, string> = {
     <div v-if="effectiveTab === 'store-tax'" :key="'store-tax'" class="admin-card p-4 md:p-6 admin-enter">
       <div class="flex items-start gap-4 mb-6">
         <div class="w-10 h-10 rounded-sm bg-[#42b883]/10 flex items-center justify-center shrink-0">
-          <span class="material-symbols-outlined text-[#42b883]">receipt_long</span>
+          <VunoIcon icon="receipt_long" class="text-[#42b883]" />
         </div>
         <div class="flex-1">
           <h2 class="text-lg font-semibold text-[#dae2fd]">Impuestos — IVA / Tax Rate</h2>
           <p class="text-sm text-[#94a3b8] mt-1">Configuración del impuesto aplicado a los pedidos.</p>
         </div>
         <button v-if="!isEditing('tax')" class="admin-btn admin-btn-edit h-11 px-4 shrink-0" @click="enableEdit('tax')">
-          <span class="material-symbols-outlined text-base">edit</span>
+          <VunoIcon icon="edit" :size="16" />
           EDITAR
         </button>
         <span v-else class="badge badge-paid shrink-0 h-fit mt-2">EDITANDO</span>
       </div>
 
       <div class="bg-[#1e293b]/40 border border-[#1e293b] rounded-sm p-4 mb-8 flex items-start gap-3">
-        <span class="material-symbols-outlined text-[#42b883] text-lg shrink-0 mt-px">info</span>
+        <VunoIcon icon="info" :size="20" class="text-[#42b883] shrink-0 mt-px" />
         <div class="text-xs text-[#94a3b8] leading-relaxed">
           <p>El impuesto se calcula sobre el <strong class="text-[#dae2fd]">subtotal después de descuentos</strong> y se suma al total del pedido.</p>
           <p v-if="tax.rate && tax.rate > 0" class="mt-2">
@@ -922,21 +923,21 @@ const landingFieldLabels: Record<string, string> = {
     <div v-if="effectiveTab === 'store-receipt'" :key="'store-receipt'" class="admin-card p-4 md:p-6 admin-enter">
       <div class="flex items-start gap-4 mb-6">
         <div class="w-10 h-10 rounded-sm bg-[#42b883]/10 flex items-center justify-center shrink-0">
-          <span class="material-symbols-outlined text-[#42b883]">receipt</span>
+          <VunoIcon icon="receipt" class="text-[#42b883]" />
         </div>
         <div class="flex-1">
           <h2 class="text-lg font-semibold text-[#dae2fd]">Recibo — Datos de Facturación</h2>
           <p class="text-sm text-[#94a3b8] mt-1">Datos fiscales que aparecen en los recibos de compra.</p>
         </div>
         <button v-if="!isEditing('receipt')" class="admin-btn admin-btn-edit h-11 px-4 shrink-0" @click="enableEdit('receipt')">
-          <span class="material-symbols-outlined text-base">edit</span>
+          <VunoIcon icon="edit" :size="16" />
           EDITAR
         </button>
         <span v-else class="badge badge-paid shrink-0 h-fit mt-2">EDITANDO</span>
       </div>
 
       <div class="bg-[#1e293b]/40 border border-[#1e293b] rounded-sm p-4 mb-6 flex items-start gap-3">
-        <span class="material-symbols-outlined text-[#42b883] text-lg shrink-0 mt-px">info</span>
+        <VunoIcon icon="info" :size="20" class="text-[#42b883] shrink-0 mt-px" />
         <p class="text-xs text-[#94a3b8] leading-relaxed">
           Estos datos se muestran en los comprobantes de pago y facturas. Completalos según la información fiscal de tu negocio.
         </p>
@@ -979,13 +980,13 @@ const landingFieldLabels: Record<string, string> = {
       <div class="flex items-start justify-between mb-4">
         <div>
           <h2 class="text-lg font-semibold text-[#dae2fd] flex items-center gap-2">
-            <span class="material-symbols-outlined text-xl">photo_library</span>
+            <VunoIcon icon="photo_library" :size="24" />
             ImageKit — Gestión de Imágenes
           </h2>
           <p class="text-sm text-[#94a3b8] mt-1">Configuración del servicio de gestión de imágenes.</p>
         </div>
         <button v-if="!isEditing('imagekit')" class="admin-btn admin-btn-edit h-11 px-4 shrink-0" @click="enableEdit('imagekit')">
-          <span class="material-symbols-outlined text-base">edit</span>
+          <VunoIcon icon="edit" :size="16" />
           EDITAR
         </button>
         <span v-else class="badge badge-paid shrink-0 h-fit mt-2">EDITANDO</span>
@@ -1008,13 +1009,13 @@ const landingFieldLabels: Record<string, string> = {
       <div class="flex items-start justify-between mb-2">
         <div>
           <h2 class="text-lg font-semibold text-[#dae2fd] flex items-center gap-2">
-            <span class="material-symbols-outlined text-xl">credit_card</span>
+            <VunoIcon icon="credit_card" :size="24" />
             Stripe — Pasarela de Pago
           </h2>
           <p class="text-sm text-[#94a3b8] mt-1">Configuración de la pasarela de pagos con tarjeta.</p>
         </div>
         <button v-if="!isEditing('stripe')" class="admin-btn admin-btn-edit h-11 px-4 shrink-0" @click="enableEdit('stripe')">
-          <span class="material-symbols-outlined text-base">edit</span>
+          <VunoIcon icon="edit" :size="16" />
           EDITAR
         </button>
         <span v-else class="badge badge-paid shrink-0 h-fit mt-2">EDITANDO</span>
@@ -1047,13 +1048,13 @@ const landingFieldLabels: Record<string, string> = {
       <div class="flex items-start justify-between mb-4">
         <div>
           <h2 class="text-lg font-semibold text-[#dae2fd] flex items-center gap-2">
-            <span class="material-symbols-outlined text-xl">account_balance</span>
+            <VunoIcon icon="account_balance" :size="24" />
             Transferencia Bancaria
           </h2>
           <p class="text-sm text-[#94a3b8] mt-1">Método offline: el cliente recibe datos bancarios al finalizar la compra.</p>
         </div>
         <button v-if="!isEditing('transfer')" class="admin-btn admin-btn-edit h-11 px-4 shrink-0" @click="enableEdit('transfer')">
-          <span class="material-symbols-outlined text-base">edit</span>
+          <VunoIcon icon="edit" :size="16" />
           EDITAR
         </button>
         <span v-else class="badge badge-paid shrink-0 h-fit mt-2">EDITANDO</span>
@@ -1073,7 +1074,7 @@ const landingFieldLabels: Record<string, string> = {
       </div>
       <div class="space-y-6">
         <div v-for="(bank, i) in transfer.banks" :key="i" class="border border-[#1e293b] rounded-sm p-4 relative">
-          <button class="absolute top-2 right-2 w-10 h-10 flex items-center justify-center text-[#94a3b8] hover:text-[#DC2626] transition-colors" :disabled="!isEditing('transfer')" @click="removeBank(i)"><span class="material-symbols-outlined text-lg">close</span></button>
+          <button class="absolute top-2 right-2 w-10 h-10 flex items-center justify-center text-[#94a3b8] hover:text-[#DC2626] transition-colors" :disabled="!isEditing('transfer')" @click="removeBank(i)"><VunoIcon icon="close" :size="20" /></button>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-1">NOMBRE DEL BANCO</label>
               <input v-model="bank.bankName" class="admin-input-sm" maxlength="200" @input="markDirty('transfer')" :disabled="!isEditing('transfer')" /></div>
@@ -1094,7 +1095,7 @@ const landingFieldLabels: Record<string, string> = {
         </div>
       </div>
       <button class="mt-4 text-xs font-semibold tracking-widest text-[#94a3b8] hover:text-[#dae2fd] inline-flex items-center gap-1.5 transition-colors" :disabled="!isEditing('transfer')" @click="addBank">
-        <span class="material-symbols-outlined text-lg">add_circle</span> AGREGAR BANCO
+        <VunoIcon icon="add_circle" :size="20" /> AGREGAR BANCO
       </button>
     </div>
 
@@ -1103,13 +1104,13 @@ const landingFieldLabels: Record<string, string> = {
       <div class="flex items-start justify-between mb-4">
         <div>
           <h2 class="text-lg font-semibold text-[#dae2fd] flex items-center gap-2">
-            <span class="material-symbols-outlined text-xl">mail</span>
+            <VunoIcon icon="mail" :size="24" />
             Email / SMTP — Notificaciones
           </h2>
           <p class="text-sm text-[#94a3b8] mt-1">Configuración SMTP para emails transaccionales.</p>
         </div>
         <button v-if="!isEditing('smtp')" class="admin-btn admin-btn-edit h-11 px-4 shrink-0" @click="enableEdit('smtp')">
-          <span class="material-symbols-outlined text-base">edit</span>
+          <VunoIcon icon="edit" :size="16" />
           EDITAR
         </button>
         <span v-else class="badge badge-paid shrink-0 h-fit mt-2">EDITANDO</span>
@@ -1129,9 +1130,9 @@ const landingFieldLabels: Record<string, string> = {
         <div><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">FROM EMAIL</label>
           <input v-model="smtp.fromEmail" type="email" class="admin-input" maxlength="255" placeholder="tienda@vuno.com" @input="markDirty('smtp')" :disabled="!isEditing('smtp')" /></div>
         <div><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">FROM NAME</label>
-          <input v-model="smtp.fromName" class="admin-input" maxlength="100" placeholder="Ram;Lop" @input="markDirty('smtp')" :disabled="!isEditing('smtp')" /></div>
+          <input v-model="smtp.fromName" class="admin-input" maxlength="100" placeholder="Vunotek" @input="markDirty('smtp')" :disabled="!isEditing('smtp')" /></div>
         <div class="md:col-span-2"><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">EMAIL DE NOTIFICACIONES</label>
-          <input v-model="smtp.adminEmail" type="email" class="admin-input" maxlength="255" placeholder="admin@ramlop.com" @input="markDirty('smtp')" :disabled="!isEditing('smtp')" />
+          <input v-model="smtp.adminEmail" type="email" class="admin-input" maxlength="255" placeholder="admin@vunotek.com" @input="markDirty('smtp')" :disabled="!isEditing('smtp')" />
           <p class="text-xs text-[#94a3b8]/60 mt-1">Destino de notificaciones de nuevos pedidos y formulario de contacto.</p></div>
       </div>
     </div>
@@ -1143,13 +1144,13 @@ const landingFieldLabels: Record<string, string> = {
       <div class="flex items-start justify-between mb-4">
         <div>
           <h2 class="text-lg font-semibold text-[#dae2fd] flex items-center gap-2">
-            <span class="material-symbols-outlined text-xl">local_shipping</span>
+            <VunoIcon icon="local_shipping" :size="24" />
             Envío — Tarifa Plana
           </h2>
           <p class="text-sm text-[#94a3b8] mt-1">Configurá el costo de envío para los pedidos.</p>
         </div>
         <button v-if="!isEditing('shipping')" class="admin-btn admin-btn-edit h-11 px-4 shrink-0" @click="enableEdit('shipping')">
-          <span class="material-symbols-outlined text-base">edit</span>
+          <VunoIcon icon="edit" :size="16" />
           EDITAR
         </button>
         <span v-else class="badge badge-paid shrink-0 h-fit mt-2">EDITANDO</span>
@@ -1181,13 +1182,13 @@ const landingFieldLabels: Record<string, string> = {
       <div class="flex items-start justify-between mb-4">
         <div>
           <h2 class="text-lg font-semibold text-[#dae2fd] flex items-center gap-2">
-            <span class="material-symbols-outlined text-xl">chat</span>
+            <VunoIcon icon="chat" :size="24" />
             WhatsApp — Chat Flotante
           </h2>
           <p class="text-sm text-[#94a3b8] mt-1">Botón flotante en la esquina inferior derecha de la tienda.</p>
         </div>
         <button v-if="!isEditing('whatsapp')" class="admin-btn admin-btn-edit h-11 px-4 shrink-0" @click="enableEdit('whatsapp')">
-          <span class="material-symbols-outlined text-base">edit</span>
+          <VunoIcon icon="edit" :size="16" />
           EDITAR
         </button>
         <span v-else class="badge badge-paid shrink-0 h-fit mt-2">EDITANDO</span>
@@ -1218,13 +1219,13 @@ const landingFieldLabels: Record<string, string> = {
       <div class="flex items-start justify-between mb-2">
         <div>
           <h2 class="text-lg font-semibold text-[#dae2fd] flex items-center gap-2">
-            <span class="material-symbols-outlined text-xl">policy</span>
+            <VunoIcon icon="policy" :size="24" />
             Políticas
           </h2>
           <p class="text-sm text-[#94a3b8] mt-1">Textos legales que se muestran en los modales del footer.</p>
         </div>
         <button v-if="!isEditing('policies')" class="admin-btn admin-btn-edit h-11 px-4 shrink-0" @click="enableEdit('policies')">
-          <span class="material-symbols-outlined text-base">edit</span>
+          <VunoIcon icon="edit" :size="16" />
           EDITAR
         </button>
         <span v-else class="badge badge-paid shrink-0 h-fit mt-2">EDITANDO</span>
@@ -1249,13 +1250,13 @@ const landingFieldLabels: Record<string, string> = {
       <div class="flex items-start justify-between mb-2">
         <div>
           <h2 class="text-lg font-semibold text-[#dae2fd] flex items-center gap-2">
-            <span class="material-symbols-outlined text-xl">travel_explore</span>
+            <VunoIcon icon="travel_explore" :size="24" />
             SEO — Optimización para Motores de Búsqueda
           </h2>
           <p class="text-sm text-[#94a3b8] mt-1">Configuración global de SEO. Fallback si una página no define los suyos.</p>
         </div>
         <button v-if="!isEditing('seo')" class="admin-btn admin-btn-edit h-11 px-4 shrink-0" @click="enableEdit('seo')">
-          <span class="material-symbols-outlined text-base">edit</span>
+          <VunoIcon icon="edit" :size="16" />
           EDITAR
         </button>
         <span v-else class="badge badge-paid shrink-0 h-fit mt-2">EDITANDO</span>
@@ -1293,21 +1294,21 @@ const landingFieldLabels: Record<string, string> = {
     <div v-if="activeTab === 'group-landing'" :key="'group-landing'" class="admin-card p-4 md:p-6 admin-enter">
       <div class="flex items-start gap-4 mb-6">
         <div class="w-10 h-10 rounded-sm bg-[#42b883]/10 flex items-center justify-center shrink-0">
-          <span class="material-symbols-outlined text-[#42b883]">dashboard_customize</span>
+          <VunoIcon icon="dashboard_customize" class="text-[#42b883]" />
         </div>
         <div class="flex-1">
           <h2 class="text-lg font-semibold text-[#dae2fd]">Landing — Página Principal</h2>
           <p class="text-sm text-[#94a3b8] mt-1">Personalizá cada sección de la home. Campos vacíos usan valores por defecto.</p>
         </div>
         <button v-if="!isEditing('landing')" class="admin-btn admin-btn-edit h-11 px-4 shrink-0" @click="enableEdit('landing')">
-          <span class="material-symbols-outlined text-base">edit</span>
+          <VunoIcon icon="edit" :size="16" />
           EDITAR
         </button>
         <span v-else class="badge badge-paid shrink-0 h-fit mt-2">EDITANDO</span>
       </div>
 
       <div class="bg-[#1e293b]/40 border border-[#1e293b] rounded-sm p-4 mb-6 flex items-start gap-3">
-        <span class="material-symbols-outlined text-[#42b883] text-lg shrink-0 mt-px">info</span>
+        <VunoIcon icon="info" :size="20" class="text-[#42b883] shrink-0 mt-px" />
         <p class="text-xs text-[#94a3b8] leading-relaxed">
           Seleccioná una sección en los sub-tabs de arriba para editar su contenido. Cada sección tiene campos en español e inglés, más opciones adicionales como imágenes, enlaces y configurción de visibilidad.
         </p>
@@ -1358,7 +1359,7 @@ const landingFieldLabels: Record<string, string> = {
             <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">TESTIMONIOS</label>
             <div class="space-y-4">
               <div v-for="(item, i) in (landing[activeChildTab]?.items || [])" :key="i" class="border border-[#1e293b] rounded-sm p-4 relative">
-                <button class="absolute top-2 right-2 w-10 h-10 flex items-center justify-center text-[#94a3b8] hover:text-[#DC2626] transition-colors" :disabled="!isEditing('landing')" @click="removeTestimonial(activeChildTab, i)"><span class="material-symbols-outlined text-lg">close</span></button>
+                <button class="absolute top-2 right-2 w-10 h-10 flex items-center justify-center text-[#94a3b8] hover:text-[#DC2626] transition-colors" :disabled="!isEditing('landing')" @click="removeTestimonial(activeChildTab, i)"><VunoIcon icon="close" :size="20" /></button>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-1">NOMBRE</label>
                     <input :value="item.name" @input="item.name = ($event.target as HTMLInputElement).value; markDirty('landing')" class="admin-input-sm" maxlength="100" :disabled="!isEditing('landing')" /></div>
@@ -1369,7 +1370,7 @@ const landingFieldLabels: Record<string, string> = {
                 </div>
               </div>
             </div>
-            <button class="mt-2 text-xs font-semibold tracking-widest text-[#94a3b8] hover:text-[#dae2fd] inline-flex items-center gap-1.5" :disabled="!isEditing('landing')" @click="addTestimonial(activeChildTab)"><span class="material-symbols-outlined text-lg">add_circle</span> AGREGAR TESTIMONIO</button>
+            <button class="mt-2 text-xs font-semibold tracking-widest text-[#94a3b8] hover:text-[#dae2fd] inline-flex items-center gap-1.5" :disabled="!isEditing('landing')" @click="addTestimonial(activeChildTab)"><VunoIcon icon="add_circle" :size="20" /> AGREGAR TESTIMONIO</button>
           </template>
           <template v-else-if="ext === 'platforms'">
             <div class="border-b border-[#1e293b] pb-4 mb-4"><span class="text-xs font-semibold tracking-[0.15em] text-[#42b883]">PLATAFORMAS</span></div>
@@ -1398,7 +1399,7 @@ const landingFieldLabels: Record<string, string> = {
               <input :ref="'landingImg' + activeChildTab" type="file" accept="image/png,image/jpeg,image/webp" class="hidden"
                      :disabled="!isEditing('landing')"
                      @change="($event.target as HTMLInputElement).files?.[0] && handleLandingImageUpload(activeChildTab, ($event.target as HTMLInputElement).files![0])" />
-              <span class="material-symbols-outlined text-2xl text-[#94a3b8] block mb-1">upload</span>
+              <VunoIcon icon="upload" :size="28" class="text-[#94a3b8] block mb-1" />
               <p class="text-sm text-[#94a3b8]">Arrastrá la imagen o <span class="text-[#42b883] underline">seleccioná un archivo</span></p>
             </div>
             <div v-else class="border border-[#1e293b] rounded-sm p-3 flex items-center gap-4">
@@ -1407,8 +1408,8 @@ const landingFieldLabels: Record<string, string> = {
               </div>
               <div class="flex flex-col gap-1.5">
                 <button class="text-xs font-semibold tracking-widest text-[#42b883] hover:text-[#dae2fd] transition-colors inline-flex items-center gap-1" :disabled="!isEditing('landing')"
-                        @click="($refs as any)['landingImg' + activeChildTab]?.click()"><span class="material-symbols-outlined text-lg">refresh</span> REEMPLAZAR</button>
-                <button class="text-xs font-semibold tracking-widest text-[#DC2626] hover:text-red-700 transition-colors inline-flex items-center gap-1" :disabled="!isEditing('landing')" @click="removeLandingImage(activeChildTab)"><span class="material-symbols-outlined text-lg">delete</span> ELIMINAR</button>
+                        @click="($refs as any)['landingImg' + activeChildTab]?.click()"><VunoIcon icon="refresh" :size="20" /> REEMPLAZAR</button>
+                <button class="text-xs font-semibold tracking-widest text-[#DC2626] hover:text-red-700 transition-colors inline-flex items-center gap-1" :disabled="!isEditing('landing')" @click="removeLandingImage(activeChildTab)"><VunoIcon icon="delete" :size="20" /> ELIMINAR</button>
               </div>
             </div>
             <p class="text-xs text-[#94a3b8] mt-1">URL pública de la imagen. Relación 4:5 recomendada.</p>
@@ -1428,14 +1429,14 @@ const landingFieldLabels: Record<string, string> = {
     <div v-if="effectiveTab === 'store-sizeguide'" :key="'store-sizeguide'" class="admin-card p-4 md:p-6 admin-enter">
       <div class="flex items-start gap-4 mb-6">
         <div class="w-10 h-10 rounded-sm bg-[#42b883]/10 flex items-center justify-center shrink-0">
-          <span class="material-symbols-outlined text-[#42b883]">straighten</span>
+          <VunoIcon icon="straighten" class="text-[#42b883]" />
         </div>
         <div class="flex-1">
           <h2 class="text-lg font-semibold text-[#dae2fd]">Guía de Talles</h2>
           <p class="text-sm text-[#94a3b8] mt-1">Tabla de conversión que se muestra en la página de cada producto.</p>
         </div>
         <button v-if="!isEditing('size_guide')" class="admin-btn admin-btn-edit h-11 px-4 shrink-0" @click="enableEdit('size_guide')">
-          <span class="material-symbols-outlined text-base">edit</span>
+          <VunoIcon icon="edit" :size="16" />
           EDITAR
         </button>
         <span v-else class="badge badge-paid shrink-0 h-fit mt-2">EDITANDO</span>
@@ -1464,7 +1465,7 @@ const landingFieldLabels: Record<string, string> = {
 
       <div>
         <p class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase mb-3 flex items-center gap-2">
-          <span class="material-symbols-outlined text-lg">table_rows</span>
+          <VunoIcon icon="table_rows" :size="20" />
           FILAS DE CONVERSIÓN
         </p>
         <p class="text-sm text-[#94a3b8]/70 mb-4">Agregá las equivalencias de talles US / EU / UK / CM.</p>
@@ -1487,7 +1488,7 @@ const landingFieldLabels: Record<string, string> = {
                 <td class="py-2 px-4"><input v-model="row.cm" class="admin-input-sm w-full font-mono" maxlength="6" placeholder="23.5" @input="markDirty('size_guide')" :disabled="!isEditing('size_guide')" /></td>
                 <td class="py-2 px-4">
                   <button class="w-7 h-7 flex items-center justify-center text-[#94a3b8] hover:text-[#DC2626] hover:bg-[#DC2626]/10 rounded-sm transition-all" :disabled="!isEditing('size_guide')" @click="removeSizeGuideRow(i)" title="Eliminar fila">
-                    <span class="material-symbols-outlined text-lg">remove_circle</span>
+                    <VunoIcon icon="remove_circle" :size="20" />
                   </button>
                 </td>
               </tr>
@@ -1495,7 +1496,7 @@ const landingFieldLabels: Record<string, string> = {
           </table>
         </div>
         <button class="mt-3 text-xs font-semibold tracking-widest text-[#94a3b8] hover:text-[#42b883] inline-flex items-center gap-1.5 transition-all px-3 py-2 border border-[#1e293b] rounded-sm hover:border-[#42b883]/30" :disabled="!isEditing('size_guide')" @click="addSizeGuideRow">
-          <span class="material-symbols-outlined text-lg">add_circle</span> AGREGAR FILA
+          <VunoIcon icon="add_circle" :size="20" /> AGREGAR FILA
         </button>
       </div>
     </div>
@@ -1535,7 +1536,7 @@ const landingFieldLabels: Record<string, string> = {
           <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-[#1e293b]">
             <button class="admin-btn admin-btn-secondary" @click="showCurrencyModal = false">CANCELAR</button>
             <button class="admin-btn admin-btn-primary" :disabled="currencyModalLoading" @click="addCurrency">
-              <span class="material-symbols-outlined text-lg" :class="{ 'animate-spin': currencyModalLoading }">{{ currencyModalLoading ? 'progress_activity' : 'add' }}</span>
+              <VunoIcon :icon="currencyModalLoading ? 'progress_activity' : 'add'" :size="20" :class="{ 'animate-spin': currencyModalLoading }" />
               {{ currencyModalLoading ? 'GUARDANDO...' : 'AGREGAR' }}
             </button>
           </div>
@@ -1546,7 +1547,7 @@ const landingFieldLabels: Record<string, string> = {
     <!-- Save button -->
     <div class="mt-8 pt-6 border-t border-[#1e293b]">
       <button class="admin-btn admin-btn-primary w-full md:w-auto h-12 px-8 justify-center gap-2" :disabled="editMode.size === 0" @click="save">
-        <span class="material-symbols-outlined text-lg">save</span>
+        <VunoIcon icon="save" :size="20" />
         GUARDAR CONFIGURACIÓN
         <span v-if="dirtySections.size" class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/20 text-[11px] font-bold">{{ dirtySections.size }}</span>
       </button>
