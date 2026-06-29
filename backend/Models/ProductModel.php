@@ -91,6 +91,23 @@ final class ProductModel
         return $row !== false ? $row : null;
     }
 
+    /** @return array<string, array<string, mixed>> */
+    public function findRawByIds(array $ids): array
+    {
+        if ($ids === []) return [];
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $stmt = $this->db->prepare(
+            "SELECT * FROM products WHERE id IN ({$placeholders}) AND deleted_at IS NULL"
+        );
+        $stmt->execute(array_values($ids));
+        $rows = $stmt->fetchAll();
+        $grouped = [];
+        foreach ($rows as $r) {
+            $grouped[$r['id']] = $r;
+        }
+        return $grouped;
+    }
+
     /** @return ?array<string, mixed> */
     public function findRawBySlug(string $slug): ?array
     {
@@ -110,6 +127,23 @@ final class ProductModel
         return $stmt->fetchAll();
     }
 
+    /** @return array<string, array<string>> */
+    public function getDetailsBatch(array $ids): array
+    {
+        if ($ids === []) return [];
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $stmt = $this->db->prepare(
+            "SELECT product_id, detail_text FROM product_details WHERE product_id IN ({$placeholders}) ORDER BY sort_order"
+        );
+        $stmt->execute(array_values($ids));
+        $rows = $stmt->fetchAll();
+        $grouped = [];
+        foreach ($rows as $r) {
+            $grouped[$r['product_id']][] = $r['detail_text'];
+        }
+        return $grouped;
+    }
+
     /** @return array<array{id: int, url: string, file_id: ?string, color_id: ?int, sort_order: int, is_primary: int}> */
     public function getImages(string $productId): array
     {
@@ -122,6 +156,24 @@ final class ProductModel
         return $stmt->fetchAll();
     }
 
+    /** @return array<string, array<array{id: int, url: string, file_id: ?string, color_id: ?int, sort_order: int, is_primary: int}>> */
+    public function getImagesBatch(array $ids): array
+    {
+        if ($ids === []) return [];
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $stmt = $this->db->prepare(
+            "SELECT pi.product_id, pi.id, pi.url, pi.file_id, pi.color_id, pi.sort_order, pi.is_primary
+             FROM product_images pi WHERE pi.product_id IN ({$placeholders}) ORDER BY pi.sort_order"
+        );
+        $stmt->execute(array_values($ids));
+        $rows = $stmt->fetchAll();
+        $grouped = [];
+        foreach ($rows as $r) {
+            $grouped[$r['product_id']][] = $r;
+        }
+        return $grouped;
+    }
+
     /** @return array<array{category_id: string}> */
     public function getCategoryIds(string $productId): array
     {
@@ -129,6 +181,23 @@ final class ProductModel
         $stmt->execute([$productId]);
         /** @var array<array{category_id: string}> */
         return $stmt->fetchAll();
+    }
+
+    /** @return array<string, array<int>> */
+    public function getCategoryIdsBatch(array $ids): array
+    {
+        if ($ids === []) return [];
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $stmt = $this->db->prepare(
+            "SELECT product_id, category_id FROM product_categories WHERE product_id IN ({$placeholders})"
+        );
+        $stmt->execute(array_values($ids));
+        $rows = $stmt->fetchAll();
+        $grouped = [];
+        foreach ($rows as $r) {
+            $grouped[$r['product_id']][] = $r['category_id'];
+        }
+        return $grouped;
     }
 
     /** @return ?array{id: string, name: string, slug: string} */
@@ -139,6 +208,19 @@ final class ProductModel
         /** @var ?array{id: int, name: string, slug: string} */
         $row = $stmt->fetch();
         return $row !== false ? $row : null;
+    }
+
+    /** @return array<array{id: int, name: string, slug: string}> */
+    public function getCategoriesByIds(array $catIds): array
+    {
+        if ($catIds === []) return [];
+        $placeholders = implode(',', array_fill(0, count($catIds), '?'));
+        $stmt = $this->db->prepare(
+            "SELECT id, name, slug FROM categories WHERE id IN ({$placeholders})"
+        );
+        $stmt->execute(array_values($catIds));
+        /** @var array<array{id: int, name: string, slug: string}> */
+        return $stmt->fetchAll();
     }
 
     /** @return array<array{id: int, name: string, hex: string, sort_order: int}> */
@@ -152,6 +234,23 @@ final class ProductModel
         return $stmt->fetchAll();
     }
 
+    /** @return array<string, array<array{id: int, name: string, hex: string, sort_order: int}>> */
+    public function getColorsBatch(array $ids): array
+    {
+        if ($ids === []) return [];
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $stmt = $this->db->prepare(
+            "SELECT product_id, id, name, hex, sort_order FROM product_colors WHERE product_id IN ({$placeholders}) ORDER BY sort_order"
+        );
+        $stmt->execute(array_values($ids));
+        $rows = $stmt->fetchAll();
+        $grouped = [];
+        foreach ($rows as $r) {
+            $grouped[$r['product_id']][] = $r;
+        }
+        return $grouped;
+    }
+
     /** @return array<array{id: int, label: string, value: string, sort_order: int}> */
     public function getSizes(string $productId): array
     {
@@ -163,6 +262,23 @@ final class ProductModel
         return $stmt->fetchAll();
     }
 
+    /** @return array<string, array<array{id: int, label: string, value: string, sort_order: int}>> */
+    public function getSizesBatch(array $ids): array
+    {
+        if ($ids === []) return [];
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $stmt = $this->db->prepare(
+            "SELECT product_id, id, label, value, sort_order FROM product_sizes WHERE product_id IN ({$placeholders}) ORDER BY sort_order"
+        );
+        $stmt->execute(array_values($ids));
+        $rows = $stmt->fetchAll();
+        $grouped = [];
+        foreach ($rows as $r) {
+            $grouped[$r['product_id']][] = $r;
+        }
+        return $grouped;
+    }
+
     /** @return array<array{color_id: int, size_id: int, stock: int}> */
     public function getVariants(string $productId): array
     {
@@ -172,6 +288,23 @@ final class ProductModel
         $stmt->execute([$productId]);
         /** @var array<array{color_id: int, size_id: int, stock: int}> */
         return $stmt->fetchAll();
+    }
+
+    /** @return array<string, array<array{color_id: int, size_id: int, stock: int}>> */
+    public function getVariantsBatch(array $ids): array
+    {
+        if ($ids === []) return [];
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $stmt = $this->db->prepare(
+            "SELECT product_id, color_id, size_id, stock FROM product_variants WHERE product_id IN ({$placeholders}) AND is_active = 1"
+        );
+        $stmt->execute(array_values($ids));
+        $rows = $stmt->fetchAll();
+        $grouped = [];
+        foreach ($rows as $r) {
+            $grouped[$r['product_id']][] = $r;
+        }
+        return $grouped;
     }
 
     /** @return array<array{id: int, color_name: string, size_value: string, stock: int, price_override: ?float}> */
@@ -188,6 +321,28 @@ final class ProductModel
         $stmt->execute([$productId]);
         /** @var array<array{id: int, color_name: string, size_value: string, stock: int, price_override: ?float}> */
         return $stmt->fetchAll();
+    }
+
+    /** @return array<string, array<array{id: int, color_name: string, size_value: string, stock: int, price_override: ?float}>> */
+    public function getVariantMatrixBatch(array $ids): array
+    {
+        if ($ids === []) return [];
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $stmt = $this->db->prepare(
+            "SELECT pv.product_id, pv.id, pc.name AS color_name, ps.value AS size_value, pv.stock, pv.price_override
+             FROM product_variants pv
+             JOIN product_colors pc ON pc.id = pv.color_id
+             JOIN product_sizes ps ON ps.id = pv.size_id
+             WHERE pv.product_id IN ({$placeholders}) AND pv.is_active = 1
+             ORDER BY ps.sort_order, pc.sort_order"
+        );
+        $stmt->execute(array_values($ids));
+        $rows = $stmt->fetchAll();
+        $grouped = [];
+        foreach ($rows as $r) {
+            $grouped[$r['product_id']][] = $r;
+        }
+        return $grouped;
     }
 
     /** @return ?array{id: int, name: string, description: ?string, details: ?string} */

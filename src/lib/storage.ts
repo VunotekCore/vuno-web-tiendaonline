@@ -4,6 +4,7 @@ import type { Locale } from "../i18n/utils";
 export interface SocialPlatformConfig {
   enabled: boolean;
   url: string;
+  image_url?: string;
 }
 
 export interface SocialImageItem {
@@ -25,6 +26,9 @@ export interface LandingSectionData {
   cta_link?: string;
   cta_category_slug?: string;
   image_url?: string;
+  badge_number?: string;
+  badge_es?: string;
+  badge_en?: string;
   enabled?: boolean;
   facebook_url?: string;
   instagram_url?: string;
@@ -54,7 +58,8 @@ export interface LandingData {
   blog: LandingSectionData;
 }
 
-const API_BASE = import.meta.env.PUBLIC_API_URL || "/api";
+const API_BASE = import.meta.env.PUBLIC_API_URL
+  || (import.meta.env.SSR ? "http://127.0.0.1:8000/api" : "/api");
 
 export async function getCategories(lang?: Locale): Promise<Category[]> {
   try {

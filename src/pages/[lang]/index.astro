@@ -21,17 +21,17 @@ const { lang } = Astro.params as { lang: Locale };
 const products = await getProducts(lang);
 const allCategories = await getCategories(lang);
 
-const activeCategorySlugs = new Set(products.map(p => (p.category || "").toLowerCase()));
+const activeCategorySlugs = new Set(products.map(p => p.category_slug).filter(Boolean));
 const categories = allCategories.filter(c => activeCategorySlugs.has(c.slug));
 
 function productForCategory(slug: string) {
-  return products.find(p => (p.category || "").toLowerCase() === slug);
+  return products.find(p => p.category_slug === slug);
 }
 
 const featuredProductsList = products.filter(p => p.isFeatured);
 const heroProducts = featuredProductsList.length > 0 ? featuredProductsList.slice(0, 4) : products.slice(0, 4);
 const newArrivals = [...products].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-const categoryVitrines = categories.slice(0, 6);
+const categoryVitrines = categories;
 const landing = await getLanding();
 
 const currentPath = Astro.url.pathname;

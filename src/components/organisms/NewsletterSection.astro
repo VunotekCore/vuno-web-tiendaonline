@@ -23,7 +23,7 @@ if (variant === "full" && theme === "dark") {
   placeholder = t("home.newsletter.placeholder", lang);
   cta = t("home.newsletter.cta", lang);
 } else if (variant === "full") {
-  if (!data?.enabled) return;
+  if (data && data.enabled === false) return;
 
   title = data?.title_es && data?.title_en
     ? (lang === "es" ? data.title_es : data.title_en)

@@ -15,6 +15,7 @@ export interface Product {
   imagesByColor?: Record<string, string[]>;
   isFeatured?: boolean;
   category: string;
+  category_slug?: string;
   colors: ProductColor[];
   sizes: ProductSize[];
   variants?: Variant[];

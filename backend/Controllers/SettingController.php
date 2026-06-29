@@ -105,7 +105,7 @@ final class SettingController
     public function public(): void
     {
         try {
-            $settings = $this->model->getAll();
+            $settings = $this->model->getBySections(['store', 'stripe', 'transfer', 'landing', 'policies', 'size_guide', 'whatsapp', 'tax']);
             $storeCurrency = $this->getCurrencyModel()->getStoreCurrency();
             if ($storeCurrency === null) {
                 $storeCurrency = ['code' => 'USD', 'symbol' => '$', 'name' => 'US Dollar', 'exchange_rate' => 1.0, 'decimal_places' => 2];
@@ -134,7 +134,7 @@ final class SettingController
                     'exchange_rate'  => $storeCurrency['exchange_rate'],
                     'decimal_places' => $storeCurrency['decimal_places'],
                 ],
-                'landing' => $settings['landing'] ?? [],
+                'landing' => $this->mergeReviewsIntoLanding($settings['landing'] ?? []),
                 'policies' => [
                     'shipping_es' => $settings['policies']['shipping_es'] ?? '',
                     'shipping_en' => $settings['policies']['shipping_en'] ?? '',
@@ -163,5 +163,39 @@ final class SettingController
         } catch (\Throwable $e) {
             $this->jsonError('Error al obtener configuración pública: ' . $e->getMessage(), 500);
         }
+    }
+
+    /**
+     * Append approved product reviews as testimonial items.
+     */
+    private function mergeReviewsIntoLanding(array $landing): array
+    {
+        $db = \App\Config\Database::getConnection();
+
+        $rows = $db->query(
+            "SELECT reviewer_name, rating, comment
+             FROM product_reviews
+             WHERE is_approved = 1 AND comment IS NOT NULL AND comment != ''
+             ORDER BY created_at DESC
+             LIMIT 9"
+        )->fetchAll(\PDO::FETCH_ASSOC);
+
+        if ($rows === [] || $rows === false) {
+            return $landing;
+        }
+
+        if (!isset($landing['testimonials']['items']) || !is_array($landing['testimonials']['items'])) {
+            $landing['testimonials']['items'] = [];
+        }
+
+        foreach ($rows as $r) {
+            $landing['testimonials']['items'][] = [
+                'name'   => $r['reviewer_name'] ?: 'Cliente',
+                'rating' => (int) $r['rating'],
+                'text'   => $r['comment'],
+            ];
+        }
+
+        return $landing;
     }
 }

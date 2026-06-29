@@ -9,7 +9,7 @@ interface Props {
 
 const { lang, data } = Astro.props;
 
-if (!data?.enabled) return;
+if (data && data.enabled === false) return;
 
 const title = data?.title_es && data?.title_en
   ? (lang === "es" ? data.title_es : data.title_en)
@@ -17,6 +17,12 @@ const title = data?.title_es && data?.title_en
 
 const platforms: Record<string, SocialPlatformConfig> = data?.platforms || {};
 const images: SocialImageItem[] = data?.images || [];
+
+// If platforms have per-platform image_url, use those instead of the flat images array
+const platformImages = Object.entries(platforms)
+  .filter(([name, cfg]) => cfg.enabled && cfg.image_url)
+  .map(([name, cfg]) => ({ image_url: cfg.image_url!, platform: name }));
+const displayImages: SocialImageItem[] = platformImages.length > 0 ? platformImages : images;
 
 // Fallback: migrate old flat urls into platforms if new structure is empty
 if (Object.keys(platforms).length === 0) {
@@ -72,9 +78,9 @@ function renderPlatformIcon(platform: string): string {
       <span class="arch-line arch-line-clay mx-auto mt-6"></span>
     </div>
 
-    {images.length > 0 && (
-      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-w-5xl mx-auto mb-10">
-        {images.map((item) => {
+    {displayImages.length > 0 && (
+      <div class="flex flex-wrap justify-center gap-3 max-w-5xl mx-auto mb-10">
+        {displayImages.map((item) => {
           const platCfg = platforms[item.platform];
           const platLabel = platformLabels[item.platform] || item.platform;
           const href = platCfg?.url || "#";
@@ -84,7 +90,7 @@ function renderPlatformIcon(platform: string): string {
               href={href}
               target="_blank"
               rel="noopener noreferrer"
-              class="group relative aspect-square bg-surface-container overflow-hidden block"
+              class="group relative aspect-square bg-surface-container overflow-hidden block w-24 md:w-28 lg:w-32"
               aria-label={`${platLabel} — ${lang === "es" ? "Abrir en nueva ventana" : "Open in new window"}`}
             >
               <img

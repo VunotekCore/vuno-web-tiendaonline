@@ -51,6 +51,40 @@ final class SettingModel
     }
 
     /**
+     * Get settings filtered by section names (for public endpoint).
+     * Reduces overhead vs getAll() when only a subset is needed.
+     *
+     * @param string[] $sections
+     * @return array<string, array<string, mixed>>
+     */
+    public function getBySections(array $sections): array
+    {
+        if ($sections === []) return [];
+        $placeholders = implode(',', array_fill(0, count($sections), '?'));
+        $stmt = $this->db->prepare(
+            "SELECT section, `key`, `value` FROM settings WHERE section IN ({$placeholders}) ORDER BY section, `key`"
+        );
+        $stmt->execute(array_values($sections));
+        $rows = $stmt->fetchAll();
+        $settings = [];
+        foreach ($rows as $row) {
+            $section = $row['section'];
+            $key = $row['key'];
+            $value = $row['value'];
+            if (!isset($settings[$section])) {
+                $settings[$section] = [];
+            }
+            $settings[$section][$key] = $value;
+        }
+        $this->decryptSensitive($settings);
+        $this->coerceBooleans($settings);
+        $this->decodeJsonSections($settings);
+        $this->migrateLegacySections($settings);
+        $this->injectBankAccounts($settings);
+        return $settings;
+    }
+
+    /**
      * Save settings from a nested input array.
      * Uses transaction + upsert pattern.
      *

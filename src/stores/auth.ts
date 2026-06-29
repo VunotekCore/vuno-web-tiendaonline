@@ -16,7 +16,8 @@ export const useAuthStore = defineStore('auth', {
     },
     async apiFetch<T = unknown>(url: string, opts: RequestInit = {}): Promise<T> {
       const headers = new Headers(opts.headers || {})
-      if (!headers.has('Content-Type')) {
+      const isFormData = opts.body instanceof FormData
+      if (!isFormData && !headers.has('Content-Type')) {
         headers.set('Content-Type', 'application/json')
       }
       if (this.csrfToken && opts.method && opts.method !== 'GET' && opts.method !== 'HEAD') {

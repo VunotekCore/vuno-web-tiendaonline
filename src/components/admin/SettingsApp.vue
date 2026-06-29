@@ -189,12 +189,12 @@ function clearDirty(section?: string) {
 }
 
 const landingSections: Record<string, { label: string; fields: string[]; extras: string[] }> = {
-  hero: { label: 'Hero', fields: ['label', 'title', 'subtitle', 'cta'], extras: ['enabled', 'cta_link', 'cta_category_slug'] },
-  new_arrivals: { label: 'New Arrivals', fields: ['label', 'title', 'subtitle', 'cta'], extras: ['enabled', 'cta_link', 'cta_category_slug'] },
-  categories: { label: 'Categories', fields: ['label', 'title'], extras: ['enabled', 'cta_link', 'cta_category_slug'] },
-  brand_values: { label: 'Brand Values', fields: ['label', 'title', 'paragraph', 'cta'], extras: ['enabled', 'image_url', 'cta_link', 'cta_category_slug'] },
-  closing_cta: { label: 'Closing CTA', fields: ['label', 'title', 'subtitle', 'cta'], extras: ['enabled', 'cta_link', 'cta_category_slug'] },
-  social: { label: 'Social Media', fields: ['title'], extras: ['enabled', 'platforms', 'images'] },
+  hero: { label: 'Hero', fields: ['label', 'title', 'subtitle', 'cta'], extras: ['enabled', 'cta_category_slug'] },
+  new_arrivals: { label: 'New Arrivals', fields: ['label', 'title', 'subtitle', 'cta'], extras: ['enabled', 'cta_category_slug'] },
+  categories: { label: 'Categories', fields: ['label', 'title'], extras: ['enabled', 'cta_category_slug'] },
+  brand_values: { label: 'Brand Values', fields: ['label', 'title', 'paragraph', 'badge', 'cta'], extras: ['badge_number', 'enabled', 'image_url', 'cta_category_slug'] },
+  closing_cta: { label: 'Closing CTA', fields: ['label', 'title', 'subtitle', 'cta'], extras: ['enabled', 'cta_category_slug'] },
+  social: { label: 'Social Media', fields: ['title'], extras: ['enabled', 'platforms'] },
   testimonials: { label: 'Testimonials', fields: ['title', 'subtitle'], extras: ['enabled', 'testimonial_items'] },
   blog: { label: 'Blog Journal', fields: ['label', 'title', 'desc', 'view_all'], extras: ['enabled'] },
 }
@@ -205,6 +205,15 @@ function setLs(section: string, field: string, val: any) {
   if (!landing[section]) landing[section] = {}
   landing[section][field] = val
   markDirty('landing')
+}
+
+function lsDel(section: string, sectionKey: string, itemKey: string, nestedKey: string) {
+  const obj = landing[section]?.[sectionKey]?.[itemKey]
+  if (obj) {
+    const copy = { ...obj }
+    delete copy[nestedKey]
+    setLs(section, sectionKey, { ...(landing[section]?.[sectionKey] || {}), [itemKey]: copy })
+  }
 }
 
 onMounted(async () => {
@@ -393,87 +402,114 @@ function removeSizeGuideRow(index: number) {
   markDirty('size_guide')
 }
 
+async function deleteImageKitFile(fileId: string): Promise<boolean> {
+  try {
+    await api.post<any>('/api/imagekit/delete.php', { fileId })
+    return true
+  } catch (_e) { return false }
+}
+
+function openLandingFilePicker(section: string) {
+  const el = document.querySelector(`[data-landing-input="${section}"]`) as HTMLElement | null
+  el?.click()
+}
+
 async function handleLandingImageUpload(section: string, file: File) {
   if (!file) return
   const allowed = ['image/png', 'image/jpeg', 'image/webp']
   if (!allowed.includes(file.type)) { toast.error('Formato no válido'); return }
   if (file.size > 5 * 1024 * 1024) { toast.error('Máx 5 MB'); return }
+  const prevFileId = landing[section]?.image_fileId
+  if (prevFileId) {
+    if (!confirm('¿Eliminar la imagen anterior antes de subir la nueva?')) return
+    await deleteImageKitFile(prevFileId)
+  }
   try {
     const fd = new FormData()
     fd.append('file', file)
-    fd.append('folder', 'brand-values')
+    fd.append('folder', section.replace(/_/g, '-'))
     const data = await api.post<any>('/api/imagekit/upload.php', fd as any)
     setLs(section, 'image_url', data.url)
+    if (data.fileId) {
+      landing[section].image_fileId = data.fileId
+      markDirty('landing')
+    }
   } catch (err: any) { toast.error(err.message) }
 }
 
-function removeLandingImage(section: string) {
+async function removeLandingImage(section: string) {
+  const fileId = landing[section]?.image_fileId
+  if (fileId) {
+    if (!confirm('¿Eliminar la imagen definitivamente?')) return
+    await deleteImageKitFile(fileId)
+  }
   setLs(section, 'image_url', '')
+  if (landing[section]) landing[section].image_fileId = ''
 }
 
 async function save() {
-  if (dirtySections.size === 0) {
-    toast.info('Sin cambios que guardar')
-    return
-  }
-
-  const settings: Record<string, any> = {}
-  const sectionDefs: Record<string, { text: string[]; bool: string[] }> = {
-    store: { text: ['name', 'slogan', 'email', 'description', 'logo', 'newsletter_discount_code'], bool: [] },
-    receipt: { text: ['businessName', 'taxId', 'address', 'city', 'state', 'zip', 'phone'], bool: [] },
-    imagekit: { text: ['publicKey', 'privateKey', 'urlEndpoint'], bool: [] },
-    stripe: { text: ['publishableKey', 'secretKey', 'webhookSecret'], bool: ['enabled'] },
-    smtp: { text: ['host', 'port', 'user', 'pass', 'fromEmail', 'fromName', 'adminEmail'], bool: [] },
-    shipping: { text: ['base_rate', 'free_above', 'estimated_days'], bool: ['enabled'] },
-    whatsapp: { text: ['number', 'message'], bool: ['enabled'] },
-    tax: { text: ['rate'], bool: [] },
-    policies: { text: ['shipping_es', 'shipping_en', 'returns_es', 'returns_en', 'privacy_es', 'privacy_en'], bool: [] },
-    seo: { text: ['global_title', 'global_description', 'og_default_image', 'twitter_site', 'facebook_page_id', 'google_site_verification', 'bing_site_verification', 'ga_id', 'robots_default', 'theme_color'], bool: [] },
-    size_guide: { text: ['title_es', 'title_en', 'footer_es', 'footer_en'], bool: [] },
-  }
-
-  for (const section of dirtySections) {
-    if (section === 'transfer') {
-      settings.transfer = { enabled: transfer.enabled, banks: transfer.banks.map(b => ({ ...b })) }
-      continue
-    }
-    if (section === 'landing') {
-      settings.landing = JSON.parse(JSON.stringify(landing))
-      continue
-    }
-    if (section === 'size_guide') {
-      settings.size_guide = {
-        title_es: sizeGuide.title_es ?? '',
-        title_en: sizeGuide.title_en ?? '',
-        footer_es: sizeGuide.footer_es ?? '',
-        footer_en: sizeGuide.footer_en ?? '',
-        rows: sizeGuideRows.value.filter(r => r.us || r.eu || r.uk || r.cm),
-      }
-      continue
-    }
-
-    const def = sectionDefs[section]
-    if (!def) continue
-
-    const data: Record<string, any> = {}
-    const srcMap: Record<string, any> = {
-      store, receipt, imagekit, stripe, smtp, shipping, whatsapp, tax, policies, seo, size_guide: sizeGuide,
-    }
-    const src = srcMap[section]
-    if (!src) continue
-
-    for (const field of def.text) {
-      const val = src[field]
-      if (isSensitive(section, field) && (!val || val === '••••••••')) continue
-      data[field] = val ?? ''
-    }
-    for (const field of def.bool) {
-      data[field] = src[field] ?? false
-    }
-    settings[section] = data
-  }
-
   try {
+    if (dirtySections.size === 0) {
+      toast.info('Sin cambios que guardar')
+      return
+    }
+
+    const settings: Record<string, any> = {}
+    const sectionDefs: Record<string, { text: string[]; bool: string[] }> = {
+      store: { text: ['name', 'slogan', 'email', 'description', 'logo', 'newsletter_discount_code'], bool: [] },
+      receipt: { text: ['businessName', 'taxId', 'address', 'city', 'state', 'zip', 'phone'], bool: [] },
+      imagekit: { text: ['publicKey', 'privateKey', 'urlEndpoint'], bool: [] },
+      stripe: { text: ['publishableKey', 'secretKey', 'webhookSecret'], bool: ['enabled'] },
+      smtp: { text: ['host', 'port', 'user', 'pass', 'fromEmail', 'fromName', 'adminEmail'], bool: [] },
+      shipping: { text: ['base_rate', 'free_above', 'estimated_days'], bool: ['enabled'] },
+      whatsapp: { text: ['number', 'message'], bool: ['enabled'] },
+      tax: { text: ['rate'], bool: [] },
+      policies: { text: ['shipping_es', 'shipping_en', 'returns_es', 'returns_en', 'privacy_es', 'privacy_en'], bool: [] },
+      seo: { text: ['global_title', 'global_description', 'og_default_image', 'twitter_site', 'facebook_page_id', 'google_site_verification', 'bing_site_verification', 'ga_id', 'robots_default', 'theme_color'], bool: [] },
+      size_guide: { text: ['title_es', 'title_en', 'footer_es', 'footer_en'], bool: [] },
+    }
+
+    for (const section of dirtySections) {
+      if (section === 'transfer') {
+        settings.transfer = { enabled: transfer.enabled, banks: transfer.banks.map(b => ({ ...b })) }
+        continue
+      }
+      if (section === 'landing') {
+        settings.landing = JSON.parse(JSON.stringify(landing))
+        continue
+      }
+      if (section === 'size_guide') {
+        settings.size_guide = {
+          title_es: sizeGuide.title_es ?? '',
+          title_en: sizeGuide.title_en ?? '',
+          footer_es: sizeGuide.footer_es ?? '',
+          footer_en: sizeGuide.footer_en ?? '',
+          rows: sizeGuideRows.value.filter(r => r.us || r.eu || r.uk || r.cm),
+        }
+        continue
+      }
+
+      const def = sectionDefs[section]
+      if (!def) continue
+
+      const data: Record<string, any> = {}
+      const srcMap: Record<string, any> = {
+        store, receipt, imagekit, stripe, smtp, shipping, whatsapp, tax, policies, seo, size_guide: sizeGuide,
+      }
+      const src = srcMap[section]
+      if (!src) continue
+
+      for (const field of def.text) {
+        const val = src[field]
+        if (isSensitive(section, field) && (!val || val === '••••••••')) continue
+        data[field] = val ?? ''
+      }
+      for (const field of def.bool) {
+        data[field] = src[field] ?? false
+      }
+      settings[section] = data
+    }
+
     const res = await api.post<{ success: boolean; error?: string }>('/api/configuracion/update.php', settings)
     if (!res.success) throw new Error(res.error || 'Error saving')
 
@@ -503,8 +539,6 @@ function collectLandingSection(section: string) {
       data.enabled = landing[section]?.enabled ?? true
     } else if (ext === 'cta_category_slug') {
       data.cta_category_slug = landing[section]?.cta_category_slug ?? ''
-    } else if (ext === 'cta_link') {
-      data.cta_link = landing[section]?.cta_link ?? ''
     } else if (ext === 'image_url') {
       data.image_url = landing[section]?.image_url ?? ''
     }
@@ -520,6 +554,7 @@ const landingFieldLabels: Record<string, string> = {
   cta_es: 'CTA (ES)', cta_en: 'CTA (EN)',
   desc_es: 'DESCRIPCIÓN (ES)', desc_en: 'DESCRIPTION (EN)',
   view_all_es: 'VER TODOS (ES)', view_all_en: 'VIEW ALL (EN)',
+  badge_es: 'BADGE (ES)', badge_en: 'BADGE (EN)',
 }
 </script>
 
@@ -658,7 +693,6 @@ const landingFieldLabels: Record<string, string> = {
              @dragover.prevent="isEditing('store') && ($event.target as HTMLElement).classList.add('!border-[#42b883]', '!bg-[#42b883]/5')"
              @dragleave.prevent="isEditing('store') && ($event.target as HTMLElement).classList.remove('!border-[#42b883]', '!bg-[#42b883]/5')"
              @drop.prevent="isEditing('store') && handleLogoUpload(($event.dataTransfer?.files[0])!)">
-          <input ref="logoInput" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" class="hidden" @change="($event.target as HTMLInputElement).files?.[0] && handleLogoUpload(($event.target as HTMLInputElement).files![0])" />
           <div class="w-16 h-16 rounded-full bg-[#1e293b] flex items-center justify-center mx-auto mb-4 group-hover:bg-[#42b883]/10 transition-colors">
             <VunoIcon icon="image" :size="32" class="text-[#94a3b8] group-hover:text-[#42b883] transition-colors" />
           </div>
@@ -678,6 +712,7 @@ const landingFieldLabels: Record<string, string> = {
             </button>
           </div>
         </div>
+        <input ref="logoInput" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" class="hidden" @change="($event.target as HTMLInputElement).files?.[0] && handleLogoUpload(($event.target as HTMLInputElement).files![0])" />
         <div v-if="logoUploading" class="mt-3">
           <div class="w-full bg-[#1e293b] rounded-full h-1.5 overflow-hidden">
             <div class="bg-[#42b883] h-1.5 rounded-full transition-all duration-500 ease-out" :style="{ width: Math.max(0, Math.min(100, logoProgress)) + '%' }"></div>
@@ -1315,29 +1350,35 @@ const landingFieldLabels: Record<string, string> = {
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="md:col-span-2"><div class="border-b border-[#1e293b] pb-4 mb-4"><span class="text-xs font-semibold tracking-[0.15em] text-[#42b883]">ESPAÑOL</span></div></div>
-        <div v-for="f in landingSections[activeChildTab]?.fields" :key="f+'_es'" class="md:col-span-2">
-          <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">{{ landingFieldLabels[f+'_es'] }}</label>
-          <textarea v-if="f.startsWith('paragraph') || f.startsWith('desc')"
-                    :value="lsVal(activeChildTab, f+'_es')"
-                    @input="setLs(activeChildTab, f+'_es', ($event.target as HTMLTextAreaElement).value)"
-                    class="admin-textarea h-20" maxlength="500" :disabled="!isEditing('landing')"></textarea>
-          <input v-else :value="lsVal(activeChildTab, f+'_es')"
-                 @input="setLs(activeChildTab, f+'_es', ($event.target as HTMLInputElement).value)"
-                 class="admin-input" :maxlength="f.includes('title') ? '200' : '100'" :disabled="!isEditing('landing')" />
+        <!-- Left column: ESPAÑOL -->
+        <div>
+          <div class="border-b border-[#1e293b] pb-4 mb-4"><span class="text-xs font-semibold tracking-[0.15em] text-[#42b883]">ESPAÑOL</span></div>
+          <div v-for="f in landingSections[activeChildTab]?.fields" :key="f+'_es'" class="mb-4">
+            <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">{{ landingFieldLabels[f+'_es'] }}</label>
+            <textarea v-if="f.startsWith('paragraph') || f.startsWith('desc')"
+                      :value="lsVal(activeChildTab, f+'_es')"
+                      @input="setLs(activeChildTab, f+'_es', ($event.target as HTMLTextAreaElement).value)"
+                      class="admin-textarea h-20" maxlength="500" :disabled="!isEditing('landing')"></textarea>
+            <input v-else :value="lsVal(activeChildTab, f+'_es')"
+                   @input="setLs(activeChildTab, f+'_es', ($event.target as HTMLInputElement).value)"
+                   class="admin-input" :maxlength="f.includes('title') ? '200' : '100'" :disabled="!isEditing('landing')" />
+          </div>
         </div>
-        <div class="md:col-span-2"><div class="border-b border-[#1e293b] pb-4 mb-4"><span class="text-xs font-semibold tracking-[0.15em] text-[#42b883]">ENGLISH</span></div></div>
-        <div v-for="f in landingSections[activeChildTab]?.fields" :key="f+'_en'" class="md:col-span-2">
-          <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">{{ landingFieldLabels[f+'_en'] }}</label>
-          <textarea v-if="f.startsWith('paragraph') || f.startsWith('desc')"
-                    :value="lsVal(activeChildTab, f+'_en')"
-                    @input="setLs(activeChildTab, f+'_en', ($event.target as HTMLTextAreaElement).value)"
-                    class="admin-textarea h-20" maxlength="500" :disabled="!isEditing('landing')"></textarea>
-          <input v-else :value="lsVal(activeChildTab, f+'_en')"
-                 @input="setLs(activeChildTab, f+'_en', ($event.target as HTMLInputElement).value)"
-                 class="admin-input" :maxlength="f.includes('title') ? '200' : '100'" :disabled="!isEditing('landing')" />
+        <!-- Right column: ENGLISH -->
+        <div>
+          <div class="border-b border-[#1e293b] pb-4 mb-4"><span class="text-xs font-semibold tracking-[0.15em] text-[#42b883]">ENGLISH</span></div>
+          <div v-for="f in landingSections[activeChildTab]?.fields" :key="f+'_en'" class="mb-4">
+            <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">{{ landingFieldLabels[f+'_en'] }}</label>
+            <textarea v-if="f.startsWith('paragraph') || f.startsWith('desc')"
+                      :value="lsVal(activeChildTab, f+'_en')"
+                      @input="setLs(activeChildTab, f+'_en', ($event.target as HTMLTextAreaElement).value)"
+                      class="admin-textarea h-20" maxlength="500" :disabled="!isEditing('landing')"></textarea>
+            <input v-else :value="lsVal(activeChildTab, f+'_en')"
+                   @input="setLs(activeChildTab, f+'_en', ($event.target as HTMLInputElement).value)"
+                   class="admin-input" :maxlength="f.includes('title') ? '200' : '100'" :disabled="!isEditing('landing')" />
+          </div>
         </div>
-        <!-- Extra fields -->
+        <!-- Extra fields — full width below -->
         <div v-for="ext in landingSections[activeChildTab]?.extras" :key="ext" class="md:col-span-2">
           <template v-if="ext === 'enabled'">
             <label class="admin-toggle-label">
@@ -1376,29 +1417,38 @@ const landingFieldLabels: Record<string, string> = {
             <div class="border-b border-[#1e293b] pb-4 mb-4"><span class="text-xs font-semibold tracking-[0.15em] text-[#42b883]">PLATAFORMAS</span></div>
             <div v-for="pName in ['facebook','instagram','tiktok','linkedin','youtube']" :key="pName" class="flex items-start gap-4 py-3 border-b border-[#1e293b]/40">
               <div class="flex items-center gap-3 pt-2 min-w-[140px]">
-                <label class="admin-toggle"><input :checked="landing[activeChildTab]?.platforms?.[pName]?.enabled" type="checkbox"
-                  @change="setLs(activeChildTab, 'platforms', { ...(landing[activeChildTab]?.platforms || {}), [pName]: { enabled: ($event.target as HTMLInputElement).checked, url: landing[activeChildTab]?.platforms?.[pName]?.url || '' } })" :disabled="!isEditing('landing')" /><div></div></label>
+                 <label class="admin-toggle"><input :checked="landing[activeChildTab]?.platforms?.[pName]?.enabled" type="checkbox"
+                   @change="setLs(activeChildTab, 'platforms', { ...(landing[activeChildTab]?.platforms || {}), [pName]: { enabled: ($event.target as HTMLInputElement).checked, url: landing[activeChildTab]?.platforms?.[pName]?.url || '', image_url: landing[activeChildTab]?.platforms?.[pName]?.image_url || '' } })" :disabled="!isEditing('landing')" /><div></div></label>
                 <span class="text-sm capitalize text-[#dae2fd]">{{ pName }}</span>
                 <span class="text-[10px] font-semibold tracking-widest uppercase" :class="landing[activeChildTab]?.platforms?.[pName]?.enabled ? 'text-[#42b883]' : 'text-[#94a3b8]'">{{ landing[activeChildTab]?.platforms?.[pName]?.enabled ? 'ON' : 'OFF' }}</span>
               </div>
-              <div class="flex-1">
-                <input :value="landing[activeChildTab]?.platforms?.[pName]?.url || ''"
-                       @input="setLs(activeChildTab, 'platforms', { ...(landing[activeChildTab]?.platforms || {}), [pName]: { enabled: landing[activeChildTab]?.platforms?.[pName]?.enabled || false, url: ($event.target as HTMLInputElement).value } })"
-                       class="admin-input text-sm" maxlength="500" :placeholder="'https://' + pName + '.com/...'" :disabled="!isEditing('landing')" />
-              </div>
+               <div class="flex-1 min-w-0">
+                 <div class="flex flex-col md:flex-row gap-2">
+                   <input :value="landing[activeChildTab]?.platforms?.[pName]?.url || ''"
+                          @input="setLs(activeChildTab, 'platforms', { ...(landing[activeChildTab]?.platforms || {}), [pName]: { enabled: landing[activeChildTab]?.platforms?.[pName]?.enabled || false, url: ($event.target as HTMLInputElement).value, image_url: landing[activeChildTab]?.platforms?.[pName]?.image_url || '' } })"
+                          class="admin-input text-sm flex-1" maxlength="500" :placeholder="'https://' + pName + '.com/...'" :disabled="!isEditing('landing')" />
+                   <div class="flex items-center gap-1.5 flex-1">
+                     <input :value="landing[activeChildTab]?.platforms?.[pName]?.image_url || ''"
+                            @input="setLs(activeChildTab, 'platforms', { ...(landing[activeChildTab]?.platforms || {}), [pName]: { enabled: landing[activeChildTab]?.platforms?.[pName]?.enabled || false, url: landing[activeChildTab]?.platforms?.[pName]?.url || '', image_url: ($event.target as HTMLInputElement).value } })"
+                            class="admin-input text-xs flex-1" maxlength="500" placeholder="URL imagen" :disabled="!isEditing('landing')" />
+                     <button v-if="landing[activeChildTab]?.platforms?.[pName]?.image_url" @click="lsDel(activeChildTab, 'platforms', pName, 'image_url')" class="text-[#94a3b8] hover:text-[#DC2626] transition-colors shrink-0" title="Quitar imagen"><VunoIcon icon="close" :size="16" /></button>
+                   </div>
+                 </div>
+               </div>
             </div>
           </template>
           <template v-else-if="ext === 'image_url'">
             <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">IMAGEN (URL)</label>
+            <input type="file" accept="image/png,image/jpeg,image/webp" class="hidden"
+                   :data-landing-input="activeChildTab"
+                   :disabled="!isEditing('landing')"
+                   @change="($event.target as HTMLInputElement).files?.[0] && handleLandingImageUpload(activeChildTab, ($event.target as HTMLInputElement).files![0])" />
             <div v-if="!lsVal(activeChildTab, 'image_url')" class="border-2 border-dashed border-[#1e293b] hover:border-[#42b883] rounded-sm p-6 text-center cursor-pointer transition-colors"
                  :class="{ 'opacity-50 pointer-events-none': !isEditing('landing') }"
-                 @click="isEditing('landing') && ($refs as any)['landingImg' + activeChildTab]?.click()"
+                 @click="isEditing('landing') && openLandingFilePicker(activeChildTab)"
                  @dragover.prevent="isEditing('landing') && ($event.target as HTMLElement).classList.add('border-[#42b883]')"
                  @dragleave.prevent="isEditing('landing') && ($event.target as HTMLElement).classList.remove('border-[#42b883]')"
                  @drop.prevent="isEditing('landing') && handleLandingImageUpload(activeChildTab, ($event.dataTransfer?.files[0])!)">
-              <input :ref="'landingImg' + activeChildTab" type="file" accept="image/png,image/jpeg,image/webp" class="hidden"
-                     :disabled="!isEditing('landing')"
-                     @change="($event.target as HTMLInputElement).files?.[0] && handleLandingImageUpload(activeChildTab, ($event.target as HTMLInputElement).files![0])" />
               <VunoIcon icon="upload" :size="28" class="text-[#94a3b8] block mb-1" />
               <p class="text-sm text-[#94a3b8]">Arrastrá la imagen o <span class="text-[#42b883] underline">seleccioná un archivo</span></p>
             </div>
@@ -1408,14 +1458,14 @@ const landingFieldLabels: Record<string, string> = {
               </div>
               <div class="flex flex-col gap-1.5">
                 <button class="text-xs font-semibold tracking-widest text-[#42b883] hover:text-[#dae2fd] transition-colors inline-flex items-center gap-1" :disabled="!isEditing('landing')"
-                        @click="($refs as any)['landingImg' + activeChildTab]?.click()"><VunoIcon icon="refresh" :size="20" /> REEMPLAZAR</button>
+                        @click="isEditing('landing') && openLandingFilePicker(activeChildTab)"><VunoIcon icon="refresh" :size="20" /> REEMPLAZAR</button>
                 <button class="text-xs font-semibold tracking-widest text-[#DC2626] hover:text-red-700 transition-colors inline-flex items-center gap-1" :disabled="!isEditing('landing')" @click="removeLandingImage(activeChildTab)"><VunoIcon icon="delete" :size="20" /> ELIMINAR</button>
               </div>
             </div>
             <p class="text-xs text-[#94a3b8] mt-1">URL pública de la imagen. Relación 4:5 recomendada.</p>
           </template>
           <template v-else>
-            <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">{{ ext === 'image_url' ? 'IMAGEN (URL)' : ext === 'cta_link' ? 'CTA LINK (URL)' : ext }}</label>
+            <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">{{ { badge_number: 'NÚMERO BADGE' }[ext] || ext }}</label>
             <input :value="lsVal(activeChildTab, ext)" @input="setLs(activeChildTab, ext, ($event.target as HTMLInputElement).value)"
                    class="admin-input" maxlength="500" :disabled="!isEditing('landing')" />
           </template>
@@ -1560,18 +1610,4 @@ const landingFieldLabels: Record<string, string> = {
 
 <style scoped>
 @reference "tailwindcss";
-.admin-toggle input[type="checkbox"] { @apply sr-only; }
-.admin-toggle div {
-  @apply w-12 h-6 rounded-full relative cursor-pointer transition-colors;
-  background: #2a3038;
-}
-.admin-toggle input:checked + div {
-  background: #42b883;
-}
-.admin-toggle div::after {
-  content: '';
-  @apply absolute top-[3px] left-[3px] bg-white border border-[#2a3038] rounded-full h-5 w-5 transition-all;
-}
-.admin-toggle input:checked + div::after { @apply translate-x-6 border-white; }
-.admin-toggle-label { @apply flex items-center gap-3 cursor-pointer; }
 </style>

@@ -25,7 +25,7 @@ interface Props {
 }
 
 const { lang, products, count = 8, data } = Astro.props;
-if (!data?.enabled) return;
+if (data && data.enabled === false) return;
 const displayProducts = products.slice(0, count);
 
 const label = data?.label_es && data?.label_en

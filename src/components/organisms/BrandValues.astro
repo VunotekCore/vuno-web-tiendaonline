@@ -9,7 +9,7 @@ interface Props {
 }
 
 const { lang, data } = Astro.props;
-if (!data?.enabled) return;
+if (data && data.enabled === false) return;
 
 const label = data?.label_es && data?.label_en
   ? (lang === "es" ? data.label_es : data.label_en)
@@ -27,6 +27,10 @@ const ctaLink = data?.cta_category_slug
   ? `/${lang}/catalogo?categoria=${data.cta_category_slug}`
   : (data?.cta_link || `/${lang}/catalogo`);
 const imageUrl = data?.image_url || "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=700&h=900&fit=crop";
+const badgeNumber = data?.badge_number || "100%";
+const badgeText = data?.badge_es && data?.badge_en
+  ? (lang === "es" ? data.badge_es : data.badge_en)
+  : t("home.brandValues.badge_text", lang);
 ---
 
 <section class="relative py-section-gap px-margin-mobile md:px-margin-desktop overflow-hidden" data-section="brand_values">
@@ -40,8 +44,8 @@ const imageUrl = data?.image_url || "https://images.unsplash.com/photo-154929891
               loading="lazy"
             />
             <div class="absolute -bottom-4 -right-4 md:-bottom-5 md:-right-5 lg:-bottom-6 lg:-right-6 bg-off-white p-6 md:p-8 border border-outline-variant shadow-lg max-w-[200px]">
-              <span class="font-headline-lg text-headline-lg text-monolith-black block leading-none">100%</span>
-              <span class="font-body-md text-body-md text-secondary mt-1 block">{lang === "es" ? "Hecho a mano" : "Handcrafted"}</span>
+              <span class="font-headline-lg text-headline-lg text-monolith-black block leading-none">{badgeNumber}</span>
+              <span class="font-body-md text-body-md text-secondary mt-1 block">{badgeText}</span>
             </div>
           </div>
         </div>

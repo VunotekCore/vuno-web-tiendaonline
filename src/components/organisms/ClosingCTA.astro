@@ -9,7 +9,7 @@ interface Props {
 }
 
 const { lang, data } = Astro.props;
-if (!data?.enabled) return;
+if (data && data.enabled === false) return;
 
 const label = data?.label_es && data?.label_en
   ? (lang === "es" ? data.label_es : data.label_en)

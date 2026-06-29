@@ -5,6 +5,8 @@ namespace App\Models;
 
 final class CurrencyModel
 {
+    private ?array $storeCurrencyCache = null;
+
     public function __construct(private \PDO $db) {}
 
     /** @return array<int, array<string, mixed>> */
@@ -28,13 +30,17 @@ final class CurrencyModel
     /** @return ?array<string, mixed> */
     public function getStoreCurrency(): ?array
     {
+        if ($this->storeCurrencyCache !== null) {
+            return $this->storeCurrencyCache;
+        }
         try {
             $stmt = $this->db->query("SELECT `value` FROM settings WHERE section = 'currency' AND `key` = 'code' LIMIT 1");
             $code = $stmt !== false ? (string) $stmt->fetchColumn() : '';
             if ($code === '') {
                 $code = 'NIO';
             }
-            return $this->getByCode($code);
+            $this->storeCurrencyCache = $this->getByCode($code);
+            return $this->storeCurrencyCache;
         } catch (\Throwable) {
             return null;
         }
