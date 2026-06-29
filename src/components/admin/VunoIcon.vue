@@ -62,6 +62,7 @@ const iconMap: Record<string, Component> = {
   menu: Menu,
   expand_more: ChevronDown,
   dashboard: LayoutDashboard,
+  reviews: Star,
   receipt_long: ClipboardList,
   confirmation_number: Ticket,
   category: Folder,

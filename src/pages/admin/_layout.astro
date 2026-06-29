@@ -1,8 +1,9 @@
 ---
+import { ClientRouter } from 'astro:transitions';
 import "../../styles/base.css";
 import "../../styles/admin.css";
 import Modal from "../../components/molecules/Modal.astro";
-import VunoIcon from "../../components/atoms/VunoIcon.astro";
+import SidebarApp from "../../components/admin/SidebarApp.vue";
 
 
 interface Props {
@@ -21,9 +22,9 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { href: "/admin/pos/dashboard", label: "Mostrador", icon: "point_of_sale", class: "nav-pos" },
-  { href: "/admin/pos", label: "POS", icon: "point_of_sale", class: "nav-pos" },
+  { href: "/admin/pos/dashboard", label: "Dashboard Vendor", icon: "shopping_bag", class: "nav-admin-hide" },
   { href: "/admin", label: "Dashboard", icon: "dashboard", class: "nav-cashier-hide" },
+  { href: "/admin/pos", label: "POS", icon: "point_of_sale" },
   { href: "/admin/productos", label: "Productos", icon: "inventory_2", class: "nav-cashier-hide" },
   { href: "/admin/resenas", label: "Reseñas", icon: "reviews", class: "nav-cashier-hide" },
   { href: "/admin/clientes", label: "Clientes", icon: "group", class: "nav-cashier-hide" },
@@ -53,31 +54,6 @@ const navItems: NavItem[] = [
   },
   { href: "/admin/usuarios", label: "Usuarios", icon: "group", class: "nav-superadmin nav-cashier-hide" },
 ];
-
-const iconMap: Record<string, string> = {
-  point_of_sale: 'shopping-cart',
-  dashboard: 'layout-dashboard',
-  inventory_2: 'package',
-  reviews: 'star',
-  group: 'users',
-  article: 'file-text',
-  category: 'folder',
-  contacts: 'contact-round',
-  campaign: 'megaphone',
-  receipt_long: 'receipt-text',
-  settings: 'settings',
-  confirmation_number: 'ticket',
-  mail: 'mail',
-  security: 'shield',
-};
-
-const mapIcon = (icon: string): string => iconMap[icon] || icon;
-
-function isExpanded(item: NavItem): boolean {
-  if (!item.children) return false;
-  if (currentPath === item.href) return true;
-  return item.children.some((c: { href: string }) => currentPath === c.href);
-}
 ---
 
 <!doctype html>
@@ -95,170 +71,16 @@ function isExpanded(item: NavItem): boolean {
     <link rel="manifest" href="/site.webmanifest" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <ClientRouter fallback="swap" />
 
   </head>
   <body class="bg-[#0a1022] text-[#dae2fd] antialiased min-h-screen flex">
     <a href="#admin-main" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[200] focus:px-4 focus:py-2 focus:bg-[#42b883] focus:text-white focus:outline-none focus:ring-2 focus:ring-white" aria-label="Saltar al contenido principal">Saltar al contenido</a>
 
-    <!-- Sidebar (desktop) -->
-    <aside class="hidden lg:flex lg:flex-col w-64 shrink-0 bg-[#0b1326] border-r border-[#1e293b]">
-      <div class="px-6 py-5 border-b border-[#1e293b]">
-        <a href="/admin" class="flex items-center gap-3">
-          <svg width="32" height="20" viewBox="100 105 280 180" fill="none" aria-hidden="true" class="shrink-0">
-            <path fill="#449FD9" d="M239.5,234.1c0,10.2,0,20,0,30.5c-8.7,0-17.1,0.2-25.5-0.2c-1.3-0.1-2.8-2.4-3.6-3.9c-15.6-28.5-31.2-57.1-46.8-85.6c-8.5-15.7-17.1-31.3-26.2-47.9c6.7,0,12.8-0.1,18.9,0.1c1,0,2.1,1.7,2.7,2.9c11.6,21.3,23.1,42.6,34.6,63.9c9.5,17.5,19.1,35,28.6,52.5c0.3,0.6,0.8,1.2,2,3.1c0-7.2,0-13,0-19C227.9,233.2,233.5,234.4,239.5,234.1z"/>
-            <path fill="#FFFFFF" d="M251.2,143.4c0,5.2,0,9.2,0,13.6c-4-3.4-10.6-4.7-14.7-4.4c0-8.3,0-16.6,0-25.9c6.2,0,12.3,0.3,18.4-0.1c4.6-0.3,7.3,1,9.9,5.2c22.2,34.3,44.7,68.3,67.2,102.4c0.8,1.3,1.8,2.4,3.5,4.6c0-38,0-74.7,0-111.8c6.5,0,12.5,0,18.8,0c0,45.8,0,91.4,0,137.6c-7.7,0-15.2,0.2-22.6-0.2c-1.3-0.1-2.8-1.9-3.7-3.2c-25.1-38.6-50.2-77.3-75.2-116C252.6,144.9,252.4,144.7,251.2,143.4z"/>
-            <path fill="#61C3DB" d="M265,194c-0.1,16.1-13.4,29.3-29.4,29.1c-16-0.2-28.7-13.2-28.6-29.3c0.1-16.3,13.1-29.4,29.1-29.4C252.2,164.4,265.1,177.6,265,194z"/>
-          </svg>
-          <span class="text-lg font-bold text-[#dae2fd] tracking-tight" data-store-name>VUNOTEK</span>
-        </a>
-      </div>
-
-      <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-        {navItems.map(item => (
-          item.children ? (
-            <div class={item.class || ''}>
-              <a
-                href={item.href}
-                class={`flex items-center gap-4 px-3 py-3 font-label-caps text-label-caps rounded-sm transition-colors ${
-                  currentPath === item.href
-                    ? "bg-white/[0.07] text-[#dae2fd] before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[3px] before:bg-[#42b883] before:rounded-r-sm"
-                    : "text-[#94a3b8] hover:text-[#dae2fd] hover:bg-white/[0.04]"
-                }`}
-                data-nav-parent
-              >
-                <VunoIcon icon={mapIcon(item.icon)} size={20} class="shrink-0" />
-                {item.label}
-                <button type="button" class="ml-auto cursor-pointer" data-nav-chevron aria-label="Toggle submenu">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 transition-transform" data-chevron-icon>
-                    <polyline points="6 9 12 15 18 9"/>
-                  </svg>
-                </button>
-              </a>
-              <div class="ml-4 space-y-0.5 {isExpanded(item) ? '' : 'hidden'}" data-nav-children>
-                {item.children.map(child => (
-                  <a
-                    href={child.href}
-                    class={`flex items-center gap-4 px-3 py-2 font-label-caps text-label-caps rounded-sm transition-colors ${
-                      currentPath === child.href
-                        ? "bg-white/[0.07] text-[#dae2fd] before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[3px] before:bg-[#42b883] before:rounded-r-sm"
-                        : "text-[#94a3b8] hover:text-[#dae2fd] hover:bg-white/[0.04]"
-                    }`}
-                  >
-                    <VunoIcon icon={mapIcon(child.icon || '')} size={18} class="shrink-0" />
-                    {child.label}
-                  </a>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <a
-              href={item.href}
-              class={`flex items-center gap-4 px-3 py-3 font-label-caps text-label-caps rounded-sm transition-colors ${
-                currentPath === item.href
-                  ? "bg-white/[0.07] text-[#dae2fd] before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[3px] before:bg-[#42b883] before:rounded-r-sm"
-                  : "text-[#94a3b8] hover:text-[#dae2fd] hover:bg-white/[0.04]"
-              } ${item.class || ''}`}
-            >
-              <VunoIcon icon={mapIcon(item.icon)} size={20} class="shrink-0" />
-              {item.label}
-            </a>
-          )
-        ))}
-      </nav>
-
-      <div class="px-4 py-4 border-t border-[#1e293b] space-y-1">
-        <a href="/" target="_blank" class="flex items-center gap-4 px-3 py-3 font-label-caps text-label-caps text-[#94a3b8] hover:text-[#dae2fd] hover:bg-white/5 rounded-sm transition-colors">
-          <VunoIcon icon="external-link" size={20} class="shrink-0" />
-          Sitio Público
-        </a>
-        <button id="logoutBtn" class="w-full flex items-center gap-4 px-3 py-3 font-label-caps text-label-caps text-[#94a3b8] hover:text-[#DC2626] hover:bg-white/5 rounded-sm transition-colors cursor-pointer">
-          <VunoIcon icon="log-out" size={20} class="shrink-0" />
-          Cerrar Sesión
-        </button>
-      </div>
-    </aside>
-
-    <!-- Mobile top nav -->
-    <nav class="lg:hidden fixed top-0 left-0 right-0 z-50 bg-[#0b1326] border-b border-[#1e293b]">
-      <div class="flex items-center justify-between px-4 h-14">
-        <a href="/admin" class="flex items-center gap-2">
-          <svg width="24" height="15.5" viewBox="100 105 280 180" fill="none" aria-hidden="true" class="shrink-0">
-            <path fill="#449FD9" d="M239.5,234.1c0,10.2,0,20,0,30.5c-8.7,0-17.1,0.2-25.5-0.2c-1.3-0.1-2.8-2.4-3.6-3.9c-15.6-28.5-31.2-57.1-46.8-85.6c-8.5-15.7-17.1-31.3-26.2-47.9c6.7,0,12.8-0.1,18.9,0.1c1,0,2.1,1.7,2.7,2.9c11.6,21.3,23.1,42.6,34.6,63.9c9.5,17.5,19.1,35,28.6,52.5c0.3,0.6,0.8,1.2,2,3.1c0-7.2,0-13,0-19C227.9,233.2,233.5,234.4,239.5,234.1z"/>
-            <path fill="#FFFFFF" d="M251.2,143.4c0,5.2,0,9.2,0,13.6c-4-3.4-10.6-4.7-14.7-4.4c0-8.3,0-16.6,0-25.9c6.2,0,12.3,0.3,18.4-0.1c4.6-0.3,7.3,1,9.9,5.2c22.2,34.3,44.7,68.3,67.2,102.4c0.8,1.3,1.8,2.4,3.5,4.6c0-38,0-74.7,0-111.8c6.5,0,12.5,0,18.8,0c0,45.8,0,91.4,0,137.6c-7.7,0-15.2,0.2-22.6-0.2c-1.3-0.1-2.8-1.9-3.7-3.2c-25.1-38.6-50.2-77.3-75.2-116C252.6,144.9,252.4,144.7,251.2,143.4z"/>
-            <path fill="#61C3DB" d="M265,194c-0.1,16.1-13.4,29.3-29.4,29.1c-16-0.2-28.7-13.2-28.6-29.3c0.1-16.3,13.1-29.4,29.1-29.4C252.2,164.4,265.1,177.6,265,194z"/>
-          </svg>
-          <span class="text-[15px] font-bold text-[#dae2fd] tracking-tight" data-store-name>VUNOTEK</span>
-        </a>
-        <button id="mobileMenuBtn" class="cursor-pointer text-[#dae2fd]" aria-label="Menú">
-          <svg data-menu-icon xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="18" x2="20" y2="18"/>
-          </svg>
-        </button>
-      </div>
-      <div id="mobileMenu" class="hidden px-4 pb-4 space-y-1">
-        {navItems.map(item => (
-          item.children ? (
-            <div class={item.class || ''}>
-              <a
-                href={item.href}
-                class={`flex items-center gap-4 px-3 py-3 font-label-caps text-label-caps rounded-sm transition-colors ${
-                  currentPath === item.href
-                    ? "bg-white/[0.07] text-[#dae2fd] before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[3px] before:bg-[#42b883] before:rounded-r-sm"
-                    : "text-[#94a3b8] hover:text-[#dae2fd] hover:bg-white/[0.04]"
-                }`}
-                data-nav-parent
-              >
-                <VunoIcon icon={mapIcon(item.icon)} size={20} class="shrink-0" />
-                {item.label}
-                <button type="button" class="ml-auto cursor-pointer" data-nav-chevron aria-label="Toggle submenu">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 transition-transform" data-chevron-icon>
-                    <polyline points="6 9 12 15 18 9"/>
-                  </svg>
-                </button>
-              </a>
-              <div class="ml-4 space-y-0.5 {isExpanded(item) ? '' : 'hidden'}" data-nav-children>
-                {item.children.map(child => (
-                  <a
-                    href={child.href}
-                    class={`flex items-center gap-4 px-3 py-2 font-label-caps text-label-caps rounded-sm transition-colors ${
-                      currentPath === child.href
-                        ? "bg-white/[0.07] text-[#dae2fd] before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[3px] before:bg-[#42b883] before:rounded-r-sm"
-                        : "text-[#94a3b8] hover:text-[#dae2fd] hover:bg-white/[0.04]"
-                    }`}
-                  >
-                    <VunoIcon icon={mapIcon(child.icon || '')} size={18} class="shrink-0" />
-                    {child.label}
-                  </a>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <a
-              href={item.href}
-              class={`flex items-center gap-4 px-3 py-3 font-label-caps text-label-caps rounded-sm transition-colors ${
-                currentPath === item.href
-                  ? "bg-white/[0.07] text-[#dae2fd] before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[3px] before:bg-[#42b883] before:rounded-r-sm"
-                  : "text-[#94a3b8] hover:text-[#dae2fd] hover:bg-white/[0.04]"
-              } ${item.class || ''}`}
-            >
-              <VunoIcon icon={mapIcon(item.icon)} size={20} class="shrink-0" />
-              {item.label}
-            </a>
-          )
-        ))}
-        <a href="/" target="_blank" class="flex items-center gap-4 px-3 py-3 font-label-caps text-label-caps text-[#94a3b8] hover:text-[#dae2fd] hover:bg-white/5 rounded-sm transition-colors">
-          <VunoIcon icon="external-link" size={20} class="shrink-0" />
-          Sitio Público
-        </a>
-        <button id="mobileLogoutBtn" class="w-full flex items-center gap-4 px-3 py-3 font-label-caps text-label-caps text-[#94a3b8] hover:text-[#DC2626] hover:bg-white/5 rounded-sm transition-colors cursor-pointer">
-          <VunoIcon icon="log-out" size={20} class="shrink-0" />
-          Cerrar Sesión
-        </button>
-      </div>
-    </nav>
+    <SidebarApp client:load navItems={navItems} currentPath={currentPath} />
 
     <!-- Main content -->
-    <main id="admin-main" class="flex-1 flex flex-col min-h-screen min-w-0 pt-14 lg:pt-0 relative">
+    <main id="admin-main" class="flex-1 flex flex-col min-h-screen min-w-0 pt-14 lg:pt-0 ml-0 lg:ml-64 relative">
       <div class="noise-overlay opacity-[0.025]"></div>
       <div class="border-b border-[#1e293b] bg-[#111d2e]">
         <div class="px-4 md:px-6 py-4">
@@ -275,7 +97,7 @@ function isExpanded(item: NavItem): boolean {
 
     <script is:inline>
       // @ts-nocheck
-      // Auth guard + CSRF injection
+      // Auth guard — runs before Vue hydrate
       (async function () {
         try {
           const res = await fetch("/api/admin/verify.php");
@@ -284,77 +106,12 @@ function isExpanded(item: NavItem): boolean {
             window.location.href = "/admin/login";
             return;
           }
-
-          // Inject CSRF token
           window.__csrfToken = data.csrf_token || '';
           window.adminRole = data.role;
-
-          // Role-based navigation visibility
-          if (data.role !== "superadmin") {
-            document.querySelectorAll(".nav-superadmin").forEach(el => el.remove());
-          }
-
-          if (data.role === "cashier") {
-            document.querySelectorAll(".nav-cashier-hide").forEach(el => el.remove());
-            var allowedPaths = ["/admin/pos", "/admin/pedidos", "/admin/login"];
-            var current = window.location.pathname;
-            var isAllowed = allowedPaths.some(function (p) { return current === p || current.startsWith(p + "/"); });
-            if (!isAllowed) {
-              window.location.href = "/admin/pos/dashboard";
-            }
-          }
         } catch {
           window.location.href = "/admin/login";
         }
       })();
-
-      function logout() {
-        fetch("/api/admin/logout.php").then(function () {
-          window.location.href = "/admin/login";
-        });
-      }
-      document.getElementById("logoutBtn")?.addEventListener("click", logout);
-      document.getElementById("mobileLogoutBtn")?.addEventListener("click", logout);
-
-      // Mobile menu toggle
-      document.getElementById("mobileMenuBtn")?.addEventListener("click", function () {
-        const menu = document.getElementById("mobileMenu");
-        menu.classList.toggle("hidden");
-        var iconEl = this.querySelector('[data-menu-icon]');
-        if (iconEl) {
-          iconEl.innerHTML = menu.classList.contains("hidden")
-            ? '<line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="18" x2="20" y2="18"/>'
-            : '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>';
-        }
-      });
-
-      // Sidebar expand/collapse
-      document.querySelectorAll('[data-nav-children]').forEach(function (container) {
-        if (!container.classList.contains('hidden')) {
-          var chevron = container.previousElementSibling?.querySelector('[data-nav-chevron] [data-chevron-icon]');
-          if (chevron) {
-            var polyline = chevron.querySelector('polyline');
-            if (polyline) polyline.setAttribute('points', '18 15 12 9 6 15');
-          }
-        }
-      });
-
-      document.querySelectorAll('[data-nav-chevron]').forEach(function (btn) {
-        btn.addEventListener('click', function (e) {
-          e.preventDefault();
-          e.stopPropagation();
-          var parent = this.closest('[data-nav-parent]');
-          if (!parent) return;
-          var children = parent.nextElementSibling;
-          if (!children || !children.hasAttribute('data-nav-children')) return;
-          var isHidden = children.classList.toggle('hidden');
-          var icon = this.querySelector('[data-chevron-icon]');
-          if (icon) {
-            var polyline = icon.querySelector('polyline');
-            if (polyline) polyline.setAttribute('points', isHidden ? '6 9 12 15 18 9' : '18 15 12 9 6 15');
-          }
-        });
-      });
     </script>
   </body>
 </html>

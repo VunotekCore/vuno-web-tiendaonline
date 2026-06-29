@@ -179,7 +179,7 @@ async function backToLogin() {
                 <path fill="#FFFFFF" d="M251.2,143.4c0,5.2,0,9.2,0,13.6c-4-3.4-10.6-4.7-14.7-4.4c0-8.3,0-16.6,0-25.9c6.2,0,12.3,0.3,18.4-0.1c4.6-0.3,7.3,1,9.9,5.2c22.2,34.3,44.7,68.3,67.2,102.4c0.8,1.3,1.8,2.4,3.5,4.6c0-38,0-74.7,0-111.8c6.5,0,12.5,0,18.8,0c0,45.8,0,91.4,0,137.6c-7.7,0-15.2,0.2-22.6-0.2c-1.3-0.1-2.8-1.9-3.7-3.2c-25.1-38.6-50.2-77.3-75.2-116C252.6,144.9,252.4,144.7,251.2,143.4z"/>
                 <path fill="#61C3DB" d="M265,194c-0.1,16.1-13.4,29.3-29.4,29.1c-16-0.2-28.7-13.2-28.6-29.3c0.1-16.3,13.1-29.4,29.1-29.4C252.2,164.4,265.1,177.6,265,194z"/>
               </svg>
-              <span class="text-lg font-bold text-[#dae2fd] tracking-tight">VUNOTEK</span>
+              <span class="font-headline text-lg text-[#dae2fd] tracking-tight">VUNO<span class="text-[#00A8FF]">-ECOMERCE</span></span>
           </div>
           <p class="font-label-mono text-[#42b883]">management suite</p>
         </div>
