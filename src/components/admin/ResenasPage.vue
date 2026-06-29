@@ -104,8 +104,8 @@ function confirmDelete(item: Review) {
           <option value="approved">Aprobadas</option>
         </select>
         <div class="relative max-w-xs">
-          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-[#94a3b8] pointer-events-none">search</span>
-          <input v-model="search" type="text" placeholder="Buscar reseñas..." class="admin-input pl-10" @input="onSearchInput" />
+          <span class="material-symbols-outlined absolute left-4 inset-y-0 flex items-center text-lg text-[#94a3b8] pointer-events-none">search</span>
+          <input v-model="search" type="text" placeholder="Buscar reseñas..." class="admin-input pl-12 w-full" @input="onSearchInput" />
         </div>
         <span class="text-sm text-[#94a3b8] whitespace-nowrap">{{ total }} reseñas</span>
       </div>

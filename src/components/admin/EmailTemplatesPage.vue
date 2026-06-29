@@ -113,8 +113,8 @@ async function reseed() {
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 w-full">
         <div class="flex flex-wrap items-center gap-4">
           <div class="relative w-full md:max-w-xs">
-            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-[#94a3b8] pointer-events-none">search</span>
-            <input v-model="search" type="text" placeholder="Buscar plantillas..." class="admin-input pl-10 w-full" @input="onSearchInput" />
+            <span class="material-symbols-outlined absolute left-4 inset-y-0 flex items-center text-lg text-[#94a3b8] pointer-events-none">search</span>
+            <input v-model="search" type="text" placeholder="Buscar plantillas..." class="admin-input pl-12 w-full" @input="onSearchInput" />
           </div>
           <span class="text-sm text-[#94a3b8] whitespace-nowrap">{{ total }} plantillas</span>
           <span v-if="editMode" class="badge badge-paid text-xs tracking-widest font-semibold">EDITANDO</span>

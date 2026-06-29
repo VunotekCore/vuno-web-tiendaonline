@@ -104,8 +104,8 @@ function formatPrice(val: number | null | undefined): string {
       <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 w-full">
         <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full">
           <div class="relative flex-1 min-w-0">
-            <span class="material-symbols-outlined absolute left-3 inset-y-0 flex items-center text-lg text-[#94a3b8] pointer-events-none">search</span>
-            <input v-model="search" type="text" placeholder="Buscar por orden, cliente o email..." class="admin-input pl-10 w-full" @input="onSearchInput" />
+            <span class="material-symbols-outlined absolute left-4 inset-y-0 flex items-center text-lg text-[#94a3b8] pointer-events-none">search</span>
+            <input v-model="search" type="text" placeholder="Buscar por orden, cliente o email..." class="admin-input pl-12 w-full" @input="onSearchInput" />
           </div>
           <select v-model="statusFilter" class="admin-input w-full sm:w-auto sm:max-w-[160px]" @change="onStatusChange">
             <option value="">Todos los estados</option>

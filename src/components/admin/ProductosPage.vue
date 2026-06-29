@@ -122,8 +122,8 @@ async function confirmDelete() {
       <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 w-full">
         <div class="flex flex-wrap items-center gap-4">
           <div class="relative max-w-xs">
-            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-[#94a3b8] pointer-events-none">search</span>
-            <input v-model="search" type="text" placeholder="Buscar productos..." class="admin-input pl-10" @input="onSearchInput" />
+            <span class="material-symbols-outlined absolute left-4 inset-y-0 flex items-center text-lg text-[#94a3b8] pointer-events-none">search</span>
+            <input v-model="search" type="text" placeholder="Buscar productos..." class="admin-input pl-12 w-full" @input="onSearchInput" />
           </div>
           <select v-model="categoryFilter" class="admin-input max-w-[180px]" @change="onCategoryChange">
             <option value="">Todas las categorías</option>
