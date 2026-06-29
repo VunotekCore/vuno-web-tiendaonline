@@ -30,7 +30,7 @@ INSERT IGNORE INTO settings (section, `key`, `value`) VALUES
 
 -- Closing CTA
 ('landing', 'closing_cta',
- '{"enabled":true,"label_es":"RAM;LOP","label_en":"RAM;LOP","title_es":"El minimalismo arquitectónico en cada paso.","title_en":"Architectural minimalism in every step.","subtitle_es":"Descubrí la colección completa donde la estructura se encuentra con la elegancia.","subtitle_en":"Discover the full collection where structure meets elegance.","cta_es":"EXPLORAR COLECCIÓN","cta_en":"EXPLORE COLLECTION"}'),
+ '{"enabled":true,"label_es":"VUNOTEK","label_en":"VUNOTEK","title_es":"El minimalismo arquitectónico en cada paso.","title_en":"Architectural minimalism in every step.","subtitle_es":"Descubrí la colección completa donde la estructura se encuentra con la elegancia.","subtitle_en":"Discover the full collection where structure meets elegance.","cta_es":"EXPLORAR COLECCIÓN","cta_en":"EXPLORE COLLECTION"}'),
 
 -- Social Media
 ('landing', 'social',
@@ -42,7 +42,7 @@ INSERT IGNORE INTO settings (section, `key`, `value`) VALUES
 
 -- Testimonials
 ('landing', 'testimonials',
- '{"enabled":false,"title_es":"Lo Que Dicen Nuestras Clientes","title_en":"What Our Clients Say","subtitle_es":"Historias reales de mujeres que caminan con Ram;Lop.","subtitle_en":"Real stories from women who walk with Ram;Lop.","items":[]}'),
+ '{"enabled":false,"title_es":"Lo Que Dicen Nuestras Clientes","title_en":"What Our Clients Say","subtitle_es":"Historias reales de mujeres que caminan con Vunotek.","subtitle_en":"Real stories from women who walk with Vunotek.","items":[]}'),
 
 -- Blog Journal
 ('landing', 'blog',

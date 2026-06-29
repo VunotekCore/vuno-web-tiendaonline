@@ -217,7 +217,7 @@ final class AuthService
         /** @var non-empty-string $nonEmptyEmail */
         $nonEmptyEmail = $email;
         /** @var non-empty-string $nonEmptyIssuer */
-        $nonEmptyIssuer = $issuer ?? 'Ram;Lop Admin';
+        $nonEmptyIssuer = $issuer ?? 'Vunotek Admin';
         $totp = \OTPHP\TOTP::createFromSecret($nonEmptySecret);
         $totp->setLabel($nonEmptyEmail);
         $totp->setIssuer($nonEmptyIssuer);

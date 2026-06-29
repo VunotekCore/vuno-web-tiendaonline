@@ -1141,9 +1141,9 @@ PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 -- Default settings
 INSERT INTO settings (section, `key`, value) VALUES
-('store', 'name', 'Ram;Lop'),
+('store', 'name', 'Vunotek'),
 ('store', 'slogan', 'Architectural Minimalism in Footwear'),
-('store', 'email', 'hola@ramlop.com'),
+('store', 'email', 'hola@vunotek.com'),
 ('store', 'logo', ''),
 ('store', 'description', 'Calzado artesanal para damas — diseño minimalista con inspiración arquitectónica.'),
 ('store', 'newsletter_discount_code', ''),
@@ -1162,7 +1162,7 @@ INSERT INTO settings (section, `key`, value) VALUES
 ('smtp', 'user', ''),
 ('smtp', 'pass', ''),
 ('smtp', 'from_email', ''),
-('smtp', 'from_name', 'Ram;Lop'),
+('smtp', 'from_name', 'Vunotek'),
 ('smtp', 'adminEmail', 'admin@vunotek.com'),
 ('stripe', 'enabled', '1'),
 ('stripe', 'publishableKey', ''),
@@ -1173,8 +1173,8 @@ INSERT INTO settings (section, `key`, value) VALUES
 ('policies', 'shipping_en', 'We offer free standard shipping on all orders. Orders are processed within 1-2 business days and estimated delivery is 5-10 business days depending on your location.'),
 ('policies', 'returns_es', 'Aceptamos devoluciones dentro de los 14 días posteriores a la entrega para artículos en su condición original, sin usar y con todas las etiquetas originales. Los gastos de envío de devolución corren por cuenta del cliente.'),
 ('policies', 'returns_en', 'Returns are accepted within 14 days of delivery for items in their original condition, unworn, and with all original tags. Return shipping costs are the responsibility of the customer.'),
-('policies', 'privacy_es', 'Tu información personal se utiliza únicamente para procesar pedidos y mejorar tu experiencia en Ram;Lop. No compartimos datos con terceros sin tu consentimiento explícito. Al realizar una compra, aceptas los términos de esta política de privacidad.'),
-('policies', 'privacy_en', 'Your personal information is used solely to process orders and improve your experience at Ram;Lop. We do not share data with third parties without your explicit consent. By making a purchase, you agree to the terms of this privacy policy.'),
+('policies', 'privacy_es', 'Tu información personal se utiliza únicamente para procesar pedidos y mejorar tu experiencia en Vunotek. No compartimos datos con terceros sin tu consentimiento explícito. Al realizar una compra, aceptas los términos de esta política de privacidad.'),
+('policies', 'privacy_en', 'Your personal information is used solely to process orders and improve your experience at Vunotek. We do not share data with third parties without your explicit consent. By making a purchase, you agree to the terms of this privacy policy.'),
 ('size_guide', 'title_es', 'Guía de Talles'),
 ('size_guide', 'title_en', 'Size Guide'),
 ('size_guide', 'footer_es', 'Medí tu pie desde el talón hasta el dedo más largo. Si estás entre talles, recomendamos elegir el talle superior.'),
@@ -1199,8 +1199,8 @@ INSERT INTO size_guide_rows (us_size, eu_size, uk_size, cm_size, sort_order) VAL
 
 -- Bank accounts for transfer payments
 INSERT INTO bank_accounts (bank_name, account_holder, account_number, account_type, routing_number, instructions, is_active, sort_order) VALUES
-('Banco Nacional', 'Ram;Lop S.A.S.', '1234567890', 'Corriente', 'BNC-001', 'Depósito en ventanilla o transferencia electrónica', TRUE, 1),
-('Banco del Estado', 'Ram;Lop S.A.S.', '0987654321', 'Ahorros', 'BDE-001', 'Transferencia inmediata desde cualquier banco nacional', TRUE, 2);
+('Banco Nacional', 'Vunotek S.A.S.', '1234567890', 'Corriente', 'BNC-001', 'Depósito en ventanilla o transferencia electrónica', TRUE, 1),
+('Banco del Estado', 'Vunotek S.A.S.', '0987654321', 'Ahorros', 'BDE-001', 'Transferencia inmediata desde cualquier banco nacional', TRUE, 2);
 
 -- Currencies (multi-currency support, base = USD)
 INSERT INTO currencies (code, name, symbol, exchange_rate, decimal_places, is_active, sort_order) VALUES
@@ -1303,7 +1303,7 @@ CREATE TABLE blog_posts (
     thumbnail_image   VARCHAR(500),
     content           LONGTEXT NOT NULL,
     featured_image    VARCHAR(500),
-    author            VARCHAR(200) DEFAULT 'Ram;Lop',
+    author            VARCHAR(200) DEFAULT 'Vunotek',
     status            ENUM('draft', 'published') DEFAULT 'draft',
     category_id       INT UNSIGNED DEFAULT NULL,
     meta_title        VARCHAR(255),
@@ -2002,13 +2002,13 @@ INSERT INTO blog_posts (title, slug, excerpt, thumbnail_image, content, featured
  'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=600&q=80',
  '<h2>El Regreso del Minimalismo Arquitectónico</h2><p>Esta temporada, la moda abraza la pureza de las líneas limpias y las siluetas depuradas. Los diseñadores apuestan por formas escultóricas que recuerdan a la arquitectura brutalista, con bloques geométricos y tacones que desafían la gravedad.</p><p>Los materiales nobles como el cuero vacuno, la piel de becerro y los acabados satinados dominan las colecciones. Los colores tierra, el negro monólito y los tonos nude se consolidan como la paleta esencial del armario consciente.</p>',
  'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=1200&q=80',
- 'María Ram;Lop', 1, 'published', NOW() - INTERVAL 7 DAY),
+ 'María Vunotek', 1, 'published', NOW() - INTERVAL 7 DAY),
 ('Guía Completa para el Cuidado de Tus Zapatos Artesanales', 'guia-cuidado-zapatos-artesanales',
  'Aprende a preservar la belleza y durabilidad de tus zapatos hechos a mano con nuestra guía experta de cuidados, limpieza y almacenamiento.',
  'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=600&q=80',
  '<h2>Por Qué el Cuidado es Esencial</h2><p>Un par de zapatos artesanales es una inversión en calidad, diseño y sostenibilidad. Cuidarlos adecuadamente no solo prolonga su vida útil, sino que honra el trabajo del artesano que los creó.</p><p>Con los cuidados apropiados, unos zapatos artesanales de buena calidad pueden durar décadas.</p>',
  'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=1200&q=80',
- 'Ram;Lop', 2, 'published', NOW() - INTERVAL 4 DAY),
+ 'Vunotek', 2, 'published', NOW() - INTERVAL 4 DAY),
 ('El Proceso Artesanal: De la Inspiración al Calzado', 'proceso-artesanal-inspiracion-calzado',
  'Te llevamos detrás del taller para mostrarte cómo nace cada diseño: desde el boceto inicial hasta el último punto de costura en nuestras piezas artesanales.',
  'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=600&q=80',
@@ -2020,7 +2020,7 @@ INSERT INTO blog_posts (title, slug, excerpt, thumbnail_image, content, featured
  'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=600&q=80',
  '<h2>La Regla de Oro: Menos es Más</h2><p>En la moda consciente, la máxima de menos es más sigue vigente. La clave está en elegir un punto focal y construir alrededor de él.</p><p>Si tus zapatos son la pieza protagonista, el resto de accesorios deben acompañar sin competir.</p>',
  'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=1200&q=80',
- 'Ram;Lop', 1, 'published', NOW());
+ 'Vunotek', 1, 'published', NOW());
 
 -- Seed coupons
 INSERT INTO coupons (code, description, discount_type, discount_value, min_order_amount, max_uses, max_uses_per_customer, is_active, starts_at, expires_at) VALUES

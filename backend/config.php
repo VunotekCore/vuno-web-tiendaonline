@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 /**
- * Ram;Lop - PHP Backend Configuration
+ * Vunotek - PHP Backend Configuration
  * Loads environment variables from .env or hosting environment.
  */
 

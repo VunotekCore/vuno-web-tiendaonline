@@ -309,7 +309,7 @@ final class AuthController
         $settings = $this->getSettings()->getAll();
         $storeSection = is_array($settings['store'] ?? null) ? $settings['store'] : [];
         $storeNameRaw = $storeSection['name'] ?? null;
-        $storeName = is_string($storeNameRaw) ? $storeNameRaw : 'Ram;Lop';
+        $storeName = is_string($storeNameRaw) ? $storeNameRaw : 'Vunotek';
 
         $secret = $this->auth->generateTotpSecret();
         $uri = $this->auth->getProvisioningUri($secret, $email, $storeName);

@@ -1,5 +1,5 @@
 # =============================================================================
-# Ram;Lop — Production .htaccess
+# Vunotek — Production .htaccess
 # Copy this file to dist/.htaccess (or rename to .htaccess on the server)
 # Place in the web root (public_html/)
 # =============================================================================

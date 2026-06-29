@@ -367,7 +367,7 @@ final class OrderController
             $paymentCompleted = $this->model->resolvePaymentStatusId('completed');
 
             $customerName = $this->str($body, 'customer_name', 'Venta en Mostrador');
-            $customerEmail = $this->str($body, 'customer_email', 'pos@ramlop.com');
+            $customerEmail = $this->str($body, 'customer_email', 'pos@vunotek.com');
 
             $storeCurrency = $this->getCurrencyModel()->getStoreCurrency();
             if ($storeCurrency === null) {

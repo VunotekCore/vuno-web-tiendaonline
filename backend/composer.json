@@ -1,6 +1,6 @@
 {
-  "name": "ramlop/backend",
-  "description": "Ram;Lop PHP Backend",
+  "name": "vunotek/backend",
+  "description": "Vunotek PHP Backend",
   "type": "project",
   "require": {
     "php": ">=8.1",

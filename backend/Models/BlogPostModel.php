@@ -110,7 +110,7 @@ final class BlogPostModel
             $data['thumbnail_image'] ?? null,
             $data['content'],
             $data['featured_image'] ?? null,
-            $data['author'] ?? 'Ram;Lop',
+            $data['author'] ?? 'Vunotek',
             $data['status'] ?? 'draft',
             $data['category_id'] ?? null,
         ]);

@@ -77,11 +77,11 @@ final class EmailService
     public function getStoreTemplateVars(): array
     {
         $vars = [
-            'store_name'       => 'Ram;Lop',
+            'store_name'       => 'Vunotek',
             'store_logo_url'   => '',
             'store_slogan'     => 'Architectural Minimalism in Footwear',
             'store_email'      => '',
-            'store_logo_block' => '<p style="margin:0;font-family:\'Playfair Display\',Georgia,serif;font-size:20px;color:#1a1a1a;letter-spacing:0.02em">Ram;Lop</p>',
+            'store_logo_block' => '<p style="margin:0;font-family:\'Playfair Display\',Georgia,serif;font-size:20px;color:#1a1a1a;letter-spacing:0.02em">Vunotek</p>',
         ];
 
         try {
@@ -92,7 +92,7 @@ final class EmailService
                 $vars['store_name'] = htmlspecialchars($store['name']);
                 $name = $vars['store_name'];
             } else {
-                $name = 'Ram;Lop';
+                $name = 'Vunotek';
             }
 
             $vars['store_slogan'] = !empty($store['slogan'])
@@ -236,10 +236,10 @@ final class EmailService
         $pass = $smtp['pass'] ?? '';
         $port = $smtp['port'] ?? '587';
         $from = $fromEmail ?: ($smtp['fromEmail'] ?? 'noreply@vuno.com');
-        $fromName = $smtp['fromName'] ?? 'Ram;Lop';
+        $fromName = $smtp['fromName'] ?? 'Vunotek';
 
         if ($host === '' || $user === '') {
-            \error_log("[Ram;Lop Email] SMTP not configured. Would send to: {$to}, Subject: {$template['subject']}");
+            \error_log("[Vunotek Email] SMTP not configured. Would send to: {$to}, Subject: {$template['subject']}");
             return ['success' => true, 'note' => 'Email not sent (SMTP not configured)'];
         }
 
@@ -269,7 +269,7 @@ final class EmailService
             $mail->send();
             return ['success' => true];
         } catch (\PHPMailer\PHPMailer\Exception $e) {
-            \error_log("[Ram;Lop Email] Failed: " . $e->getMessage());
+            \error_log("[Vunotek Email] Failed: " . $e->getMessage());
             return ['success' => false, 'error' => $e->getMessage()];
         }
     }
@@ -446,7 +446,7 @@ final class EmailService
         $settings = $this->getSettingModel()->getAll();
         $adminEmail = $settings['smtp']['adminEmail'] ?? '';
         if ($adminEmail === '') {
-            \error_log('[Ram;Lop Email] Notificaciones: no hay email configurado en Admin → SMTP → Email de Notificaciones.');
+            \error_log('[Vunotek Email] Notificaciones: no hay email configurado en Admin → SMTP → Email de Notificaciones.');
             return ['success' => false, 'error' => 'Admin notification email not configured'];
         }
         return $this->sendTemplatedEmail('new_order_notification', $adminEmail, $vars, cc: $order['customer']['email'] ?? '');

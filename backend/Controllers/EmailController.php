@@ -146,11 +146,11 @@ final class EmailController
         }
 
         $appUrl = \env('APP_URL', 'http://localhost:4321');
-        $storeName = 'Ram;Lop';
+        $storeName = 'Vunotek';
 
         try {
             $settings = $this->getSettingModel()->getAll();
-            $storeName = $settings['store']['name'] ?? 'Ram;Lop';
+            $storeName = $settings['store']['name'] ?? 'Vunotek';
         } catch (\Exception $e) {
             // Use defaults
         }

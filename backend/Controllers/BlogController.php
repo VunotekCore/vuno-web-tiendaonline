@@ -159,7 +159,7 @@ final class BlogController
                 'thumbnail_image' => $this->str($body, 'thumbnail_image') ?: null,
                 'content' => $content,
                 'featured_image' => $this->str($body, 'featured_image') ?: null,
-                'author' => $this->str($body, 'author', 'Ram;Lop'),
+                'author' => $this->str($body, 'author', 'Vunotek'),
                 'status' => $this->str($body, 'status', 'draft'),
                 'category_id' => $this->int($body, 'category_id') > 0 ? $this->int($body, 'category_id') : null,
             ]);

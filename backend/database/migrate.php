@@ -13,7 +13,7 @@ require_once __DIR__ . '/../config.php';
 function runMigration(): void
 {
     $db = getDb();
-    echo "=== Ram;Lop Database Migration ===\n\n";
+    echo "=== Vunotek Database Migration ===\n\n";
 
     // 0. Ensure admin_users has TOTP columns (schema v1.1.0+)
     echo "--- Admin users TOTP columns ---\n";
@@ -84,7 +84,7 @@ function runMigration(): void
             excerpt           TEXT,
             content           LONGTEXT NOT NULL,
             featured_image    VARCHAR(500),
-            author            VARCHAR(200) DEFAULT 'Ram;Lop',
+            author            VARCHAR(200) DEFAULT 'Vunotek',
             status            ENUM('draft', 'published') DEFAULT 'draft',
             category_id       INT UNSIGNED DEFAULT NULL,
             published_at      TIMESTAMP NULL,
@@ -245,7 +245,7 @@ function runMigration(): void
 <p>La inversión en piezas de calidad, hechas a mano y con materiales nobles, no solo es una elección estética sino también ética. La moda lenta apuesta por la durabilidad, la atemporalidad y el respeto por el trabajo artesanal.</p>',
                 'featured_image' => 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=1200&q=80',
                 'thumbnail_image' => 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=600&q=80',
-                'author' => 'María Ram;Lop',
+                'author' => 'María Vunotek',
                 'category_id' => 1,
                 'status' => 'published',
                 'published_at' => 'NOW() - INTERVAL 7 DAY',
@@ -296,7 +296,7 @@ function runMigration(): void
 <p>Un buen zapatero no solo reparará el daño, sino que puede aconsejarte sobre cuidados específicos para cada par.</p>',
                 'featured_image' => 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=1200&q=80',
                 'thumbnail_image' => 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=600&q=80',
-                'author' => 'Ram;Lop',
+                'author' => 'Vunotek',
                 'category_id' => 2,
                 'status' => 'published',
                 'published_at' => 'NOW() - INTERVAL 4 DAY',
@@ -369,7 +369,7 @@ function runMigration(): void
 <p>Experimenta, prueba combinaciones inesperadas, y descubre qué funciona para ti. La moda artesanal te da herramientas de calidad; tú pones la personalidad.</p>',
                 'featured_image' => 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=1200&q=80',
                 'thumbnail_image' => 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=600&q=80',
-                'author' => 'Ram;Lop',
+                'author' => 'Vunotek',
                 'category_id' => 1,
                 'status' => 'published',
                 'published_at' => 'NOW()',

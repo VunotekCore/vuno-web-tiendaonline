@@ -113,7 +113,7 @@ final class SettingController
 
             $public = [
                 'store' => [
-                    'name'        => $settings['store']['name'] ?? 'Ram;Lop',
+                    'name'        => $settings['store']['name'] ?? 'Vunotek',
                     'slogan'      => $settings['store']['slogan'] ?? '',
                     'description' => $settings['store']['description'] ?? '',
                     'logo'        => $settings['store']['logo'] ?? '',
