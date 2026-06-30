@@ -154,7 +154,7 @@ function confirmDelete(item: Review) {
           </tr>
           <tr v-for="item in items" :key="item.id">
             <td>
-              <a :href="'/producto/' + item.productSlug" target="_blank" class="text-[#dae2fd] hover:underline text-sm font-medium">{{ item.productName }}</a>
+              <a :href="'/es/producto/' + item.productSlug" target="_blank" class="text-[#dae2fd] hover:underline text-sm font-medium">{{ item.productName }}</a>
             </td>
             <td class="text-sm text-[#94a3b8]">{{ item.reviewerName || 'Anónimo' }}</td>
             <td><span v-html="starsHtml(item.rating)"></span></td>
@@ -191,7 +191,7 @@ function confirmDelete(item: Review) {
       <div v-for="item in items" :key="item.id" class="glass-card overflow-hidden rounded-xl">
         <div class="px-5 pt-4 pb-3 border-b border-[#dae2fd]/5">
           <div class="flex items-center justify-between gap-2">
-            <a :href="'/producto/' + item.productSlug" target="_blank" class="text-[#dae2fd] hover:underline text-sm font-medium truncate">{{ item.productName }}</a>
+            <a :href="'/es/producto/' + item.productSlug" target="_blank" class="text-[#dae2fd] hover:underline text-sm font-medium truncate">{{ item.productName }}</a>
             <span class="badge shrink-0" :class="item.isApproved ? 'badge-paid' : 'badge-pending'">{{ item.isApproved ? 'APROBADA' : 'PENDIENTE' }}</span>
           </div>
         </div>
