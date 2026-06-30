@@ -55,7 +55,6 @@ const tabs: TabItem[] = [
     ],
   },
   { id: 'policies', label: 'Políticas', icon: 'policy' },
-  { id: 'seo', label: 'SEO', icon: 'travel_explore' },
 ]
 
 const activeTab = ref('group-tienda')
@@ -110,11 +109,6 @@ interface PoliciesSettings {
   shipping_es?: string; shipping_en?: string; returns_es?: string; returns_en?: string
   privacy_es?: string; privacy_en?: string
 }
-interface SeoSettings {
-  global_title?: string; global_description?: string; og_default_image?: string
-  twitter_site?: string; facebook_page_id?: string; google_site_verification?: string
-  bing_site_verification?: string; ga_id?: string; robots_default?: string; theme_color?: string
-}
 interface SizeGuideSettings {
   title_es?: string; title_en?: string; footer_es?: string; footer_en?: string
 }
@@ -142,7 +136,6 @@ const shipping = reactive<ShippingSettings>({ enabled: false })
 const whatsapp = reactive<WhatsappSettings>({ enabled: false })
 const tax = reactive<TaxSettings>({ rate: 0 })
 const policies = reactive<PoliciesSettings>({})
-const seo = reactive<SeoSettings>({})
 const sizeGuide = reactive<SizeGuideSettings>({})
 const transfer = reactive<TransferSettings>({ enabled: true, banks: [] })
 const landing = reactive<LandingSettings>({})
@@ -237,7 +230,6 @@ async function loadSettings() {
   Object.assign(whatsapp, { enabled: false, number: '', message: '', ...(data.whatsapp || {}) })
   Object.assign(tax, data.tax || {})
   Object.assign(policies, data.policies || {})
-  Object.assign(seo, data.seo || {})
   Object.assign(sizeGuide, data.size_guide || {})
   transfer.enabled = data.transfer?.enabled ?? true
   transfer.banks = data.transfer?.banks || [{ bankName: '', accountHolder: '', accountNumber: '', accountType: '', routingNumber: '', instructions: '' }]
@@ -462,7 +454,6 @@ async function save() {
       whatsapp: { text: ['number', 'message'], bool: ['enabled'] },
       tax: { text: ['rate'], bool: [] },
       policies: { text: ['shipping_es', 'shipping_en', 'returns_es', 'returns_en', 'privacy_es', 'privacy_en'], bool: [] },
-      seo: { text: ['global_title', 'global_description', 'og_default_image', 'twitter_site', 'facebook_page_id', 'google_site_verification', 'bing_site_verification', 'ga_id', 'robots_default', 'theme_color'], bool: [] },
       size_guide: { text: ['title_es', 'title_en', 'footer_es', 'footer_en'], bool: [] },
     }
 
@@ -491,7 +482,7 @@ async function save() {
 
       const data: Record<string, any> = {}
       const srcMap: Record<string, any> = {
-        store, receipt, imagekit, stripe, smtp, shipping, whatsapp, tax, policies, seo, size_guide: sizeGuide,
+        store, receipt, imagekit, stripe, smtp, shipping, whatsapp, tax, policies, size_guide: sizeGuide,
       }
       const src = srcMap[section]
       if (!src) continue
@@ -1278,48 +1269,6 @@ const landingFieldLabels: Record<string, string> = {
     </div>
 
     <!-- SEO Tab -->
-    <div v-if="effectiveTab === 'seo'" class="admin-card p-4 md:p-6">
-      <div class="flex items-start justify-between mb-2">
-        <div>
-          <h2 class="text-lg font-semibold text-[#dae2fd] flex items-center gap-2">
-            <VunoIcon icon="travel_explore" :size="24" />
-            SEO — Optimización para Motores de Búsqueda
-          </h2>
-          <p class="text-sm text-[#94a3b8] mt-1">Configuración global de SEO. Fallback si una página no define los suyos.</p>
-        </div>
-        <button v-if="!isEditing('seo')" class="admin-btn admin-btn-edit h-11 px-4 shrink-0" @click="enableEdit('seo')">
-          <VunoIcon icon="edit" :size="16" />
-          EDITAR
-        </button>
-        <span v-else class="badge badge-paid shrink-0 h-fit mt-2">EDITANDO</span>
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="md:col-span-2"><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">TÍTULO GLOBAL (fallback)</label>
-          <input v-model="seo.global_title" class="admin-input" maxlength="200" placeholder="Vunotek | Calzado Artesanal" @input="markDirty('seo')" :disabled="!isEditing('seo')" /></div>
-        <div class="md:col-span-2"><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">DESCRIPCIÓN GLOBAL (fallback)</label>
-          <textarea v-model="seo.global_description" class="admin-textarea h-24" maxlength="500" placeholder="Calzado artesanal para damas con diseño minimalista." @input="markDirty('seo')" :disabled="!isEditing('seo')"></textarea></div>
-        <div class="md:col-span-2"><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">IMAGEN OG POR DEFECTO</label>
-          <input v-model="seo.og_default_image" class="admin-input font-mono text-sm" maxlength="500" placeholder="https://ik.imagekit.io/vunotek/og-default.jpg" @input="markDirty('seo')" :disabled="!isEditing('seo')" /></div>
-        <div><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">TWITTER / X (@handle)</label>
-          <input v-model="seo.twitter_site" class="admin-input" maxlength="100" placeholder="@vunotek" @input="markDirty('seo')" :disabled="!isEditing('seo')" /></div>
-        <div><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">FACEBOOK PAGE ID</label>
-          <input v-model="seo.facebook_page_id" class="admin-input" maxlength="100" @input="markDirty('seo')" :disabled="!isEditing('seo')" /></div>
-        <div><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">GOOGLE SITE VERIFICATION</label>
-          <input v-model="seo.google_site_verification" class="admin-input font-mono text-sm" maxlength="200" @input="markDirty('seo')" :disabled="!isEditing('seo')" /></div>
-        <div><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">BING SITE VERIFICATION</label>
-          <input v-model="seo.bing_site_verification" class="admin-input font-mono text-sm" maxlength="200" @input="markDirty('seo')" :disabled="!isEditing('seo')" /></div>
-        <div><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">GOOGLE ANALYTICS ID</label>
-          <input v-model="seo.ga_id" class="admin-input font-mono text-sm" maxlength="50" placeholder="G-XXXXXXXX" @input="markDirty('seo')" :disabled="!isEditing('seo')" /></div>
-        <div><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">META ROBOTS GLOBAL</label>
-          <select v-model="seo.robots_default" class="admin-select" @change="markDirty('seo')" :disabled="!isEditing('seo')">
-            <option value="index,follow">index, follow</option>
-            <option value="noindex,nofollow">noindex, nofollow</option>
-          </select></div>
-        <div><label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-2">THEME COLOR</label>
-          <input v-model="seo.theme_color" class="admin-input font-mono text-sm" maxlength="20" placeholder="#1A1A1A" @input="markDirty('seo')" :disabled="!isEditing('seo')" /></div>
-      </div>
-    </div>
-
     <!-- ================================================================== -->
     <!-- TAB: Landing — Página Principal                                    -->
     <!-- ================================================================== -->

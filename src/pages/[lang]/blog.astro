@@ -3,6 +3,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import Navbar from "../../components/organisms/Navbar.astro";
 import Footer from "../../components/organisms/Footer.astro";
 import { type Locale, locales } from "../../i18n/utils";
+import { tenant } from "../../config/tenant";
 
 export async function getStaticPaths() {
   return locales.map((lang) => ({ params: { lang } }));
@@ -17,7 +18,7 @@ const blogDescFallback = lang === "es"
   : "Explore the world of Vunotek: trends, care, and the artisanal process behind each design.";
 ---
 
-<BaseLayout title="Blog — Vunotek" lang={lang}>
+<BaseLayout title={`Blog — ${tenant.brand.name}`} lang={lang}>
   <Navbar lang={lang} currentPath={currentPath} />
 
   <main data-lang={lang} class="flex-grow w-full max-w-6xl mx-auto px-6 pt-12 pb-section-gap">

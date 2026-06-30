@@ -7,6 +7,7 @@ import { getProducts, getCategories } from "../../lib/storage";
 import { imgTransform } from "../../lib/images";
 import { t, type Locale, locales } from "../../i18n/utils";
 import { formatPrice } from "../../utils/formatPrice";
+import { tenant } from "../../config/tenant";
 import JSONLDBreadcrumb from "../../components/seo/JSONLDBreadcrumb.astro";
 
 export async function getStaticPaths() {
@@ -51,8 +52,8 @@ const categoryCounts = categories.map(cat => {
 
 const currentPath = Astro.url.pathname;
 const alternateUrls = {
-  es: `${import.meta.env.PROD ? "https://vuno.com" : "http://localhost:4321"}/es/catalogo`,
-  en: `${import.meta.env.PROD ? "https://vuno.com" : "http://localhost:4321"}/en/catalogo`,
+  es: `${import.meta.env.PROD ? tenant.brand.url : "http://localhost:4321"}/es/catalogo`,
+  en: `${import.meta.env.PROD ? tenant.brand.url : "http://localhost:4321"}/en/catalogo`,
 };
 ---
 
@@ -65,8 +66,8 @@ const alternateUrls = {
 >
   <JSONLDBreadcrumb
     items={[
-      { name: lang === 'es' ? 'Inicio' : 'Home', url: `${import.meta.env.PROD ? "https://vuno.com" : "http://localhost:4321"}/${lang}/` },
-      { name: lang === 'es' ? 'Catálogo' : 'Catalog', url: `${import.meta.env.PROD ? "https://vuno.com" : "http://localhost:4321"}/${lang}/catalogo` },
+      { name: lang === 'es' ? 'Inicio' : 'Home', url: `${import.meta.env.PROD ? tenant.brand.url : "http://localhost:4321"}/${lang}/` },
+      { name: lang === 'es' ? 'Catálogo' : 'Catalog', url: `${import.meta.env.PROD ? tenant.brand.url : "http://localhost:4321"}/${lang}/catalogo` },
     ]}
   />
   <Navbar lang={lang} currentPath={currentPath} />

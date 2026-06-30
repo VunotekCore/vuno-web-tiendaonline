@@ -5,6 +5,7 @@ import Footer from "../../components/organisms/Footer.astro";
 import Button from "../../components/atoms/Button.astro";
 import AnimatedReveal from "../../components/atoms/AnimatedReveal.astro";
 import { t, type Locale, locales } from "../../i18n/utils";
+import { tenant } from "../../config/tenant";
 
 export async function getStaticPaths() {
   return locales.map((lang) => ({ params: { lang } }));
@@ -12,7 +13,7 @@ export async function getStaticPaths() {
 
 const { lang } = Astro.params as { lang: Locale };
 const currentPath = Astro.url.pathname;
-const siteUrl = import.meta.env.PROD ? "https://vuno.com" : "http://localhost:4321";
+const siteUrl = import.meta.env.PROD ? tenant.brand.url : "http://localhost:4321";
 const alternateUrls = {
   es: `${siteUrl}/es/carrito`,
   en: `${siteUrl}/en/carrito`,

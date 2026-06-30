@@ -7,18 +7,13 @@ import ProfileEditModal from "../components/organisms/ProfileEditModal.astro";
 import OrderDetailModal from "../components/organisms/OrderDetailModal.astro";
 import SEOMeta from "../components/seo/SEOMeta.astro";
 import JSONLDOrganization from "../components/seo/JSONLDOrganization.astro";
+import { tenant } from "../config/tenant";
 
 interface SEOData {
-  title?: string;
-  description?: string;
   ogImage?: string;
   ogType?: "website" | "product" | "article";
   noindex?: boolean;
   canonical?: string;
-  twitterSite?: string;
-  googleSiteVerification?: string;
-  themeColor?: string;
-  siteName?: string;
 }
 
 interface Props {
@@ -32,7 +27,7 @@ interface Props {
 
 const { title, description, lang = "es", alternateUrls = {}, seo = {}, hideWhatsapp = false } = Astro.props;
 const apiBase = import.meta.env.DEV ? "http://localhost:8000" : "";
-const siteUrl = import.meta.env.PROD ? "https://vuno.com" : "http://localhost:4321";
+const siteUrl = import.meta.env.PROD ? tenant.brand.url : "http://localhost:4321";
 ---
 
 <!doctype html>
@@ -42,23 +37,24 @@ const siteUrl = import.meta.env.PROD ? "https://vuno.com" : "http://localhost:43
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="api-base" content={apiBase} />
     <SEOMeta
-      title={`${title} | ${seo.siteName || "Vunotek"}`}
-      description={seo.description || description}
-      ogImage={seo.ogImage}
+      title={`${title} | ${tenant.brand.name}`}
+      description={description || tenant.seo.defaultDescription}
+      ogImage={seo.ogImage || tenant.seo.ogDefaultImage}
       ogType={seo.ogType}
       noindex={seo.noindex}
       canonical={seo.canonical}
       lang={lang}
       locale={lang === "en" ? "en_US" : "es_NI"}
-      siteName={seo.siteName || "Vunotek"}
-      twitterSite={seo.twitterSite}
-      googleSiteVerification={seo.googleSiteVerification}
-      themeColor={seo.themeColor || "#1A1A1A"}
+      siteName={tenant.brand.name}
+      twitterSite={tenant.seo.twitterSite}
+      googleSiteVerification={tenant.seo.googleSiteVerification}
+      themeColor={tenant.seo.themeColor}
     />
     <JSONLDOrganization
-      siteName={seo.siteName || "Vunotek"}
+      siteName={tenant.brand.name}
       siteUrl={siteUrl}
-      socialUrls={[]}
+      logo={tenant.brand.logo}
+      socialUrls={tenant.social.urls}
     />
     {Object.entries(alternateUrls).map(([locale, url]) => (
       <link rel="alternate" hreflang={locale} href={url} />
@@ -194,55 +190,6 @@ const siteUrl = import.meta.env.PROD ? "https://vuno.com" : "http://localhost:43
         if (value == null || isNaN(value)) value = 0;
         return Number(value).toLocaleString('es-NI', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       };
-
-      // Inyecta nombre/slogan/logo desde la base de datos
-      (function () {
-        fetch("/api/configuracion/public.php")
-          .then(function (r) { return r.json(); })
-          .then(function (data) {
-            var store = data.store || {};
-            var name = store.name || "Vunotek";
-            var slogan = store.slogan || "";
-            var description = store.description || "";
-            var logo = store.logo || "";
-
-            // Título de la página
-            var titleEl = document.querySelector("title");
-            if (titleEl) {
-              titleEl.textContent = titleEl.textContent.replace("Vunotek", name);
-            }
-
-            // Elementos con data-store-name
-            document.querySelectorAll("[data-store-name]").forEach(function (el) {
-              el.textContent = name;
-            });
-
-            // Elementos con data-store-slogan
-            document.querySelectorAll("[data-store-slogan]").forEach(function (el) {
-              el.textContent = slogan;
-            });
-
-            // Elementos con data-store-description
-            document.querySelectorAll("[data-store-description]").forEach(function (el) {
-              el.textContent = description;
-            });
-
-            // Elementos con data-store-logo
-            if (logo) {
-              document.querySelectorAll("[data-store-logo]").forEach(function (el) {
-                if (el.tagName === "IMG") {
-                  el.src = logo;
-                  el.classList.remove("hidden");
-                } else if (el.tagName === "SOURCE") {
-                  el.srcset = logo;
-                }
-              });
-            }
-          })
-          .catch(function () {
-            // Fallback: mantener el HTML estático
-          });
-      })();
 
       // Size guide modal (delegated)
       document.addEventListener('click', function (e) {

@@ -12,6 +12,7 @@ import TestimonialsSection from "../../components/organisms/TestimonialsSection.
 import BlogJournal from "../../components/organisms/BlogJournal.astro";
 import { getProducts, getCategories, getLanding } from "../../lib/storage";
 import { type Locale, locales } from "../../i18n/utils";
+import { tenant } from "../../config/tenant";
 
 export async function getStaticPaths() {
   return locales.map((lang) => ({ params: { lang } }));
@@ -34,14 +35,15 @@ const newArrivals = [...products].sort((a, b) => new Date(b.createdAt).getTime()
 const categoryVitrines = categories;
 const landing = await getLanding();
 
+const siteUrl = import.meta.env.PROD ? tenant.brand.url : "http://localhost:4321";
 const currentPath = Astro.url.pathname;
 const alternateUrls = {
-  es: `${import.meta.env.PROD ? "https://vuno.com" : "http://localhost:4321"}/es/`,
-  en: `${import.meta.env.PROD ? "https://vuno.com" : "http://localhost:4321"}/en/`,
+  es: `${siteUrl}/es/`,
+  en: `${siteUrl}/en/`,
 };
 ---
 
-<BaseLayout title="Architectural Minimalism in Footwear" lang={lang} alternateUrls={alternateUrls}>
+<BaseLayout title={tenant.brand.slogan} lang={lang} alternateUrls={alternateUrls}>
   <Navbar lang={lang} currentPath={currentPath} />
 
   <!-- Storefront Hero — Slideshow -->
