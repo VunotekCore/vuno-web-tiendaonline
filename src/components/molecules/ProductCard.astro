@@ -1,36 +1,76 @@
 ---
+import { imgTransform } from "../../lib/images";
+
 interface Props {
   name: string;
   price: string;
   image: string;
   href: string;
   colors?: string[];
+  productId?: string;
+  productSlug?: string;
+  productPrice?: number;
+  productDisplayPrice?: number;
+  productDisplayCurrency?: string;
+  productDisplaySymbol?: string;
 }
 
-const { name, price, image, href, colors = [] } = Astro.props;
+const { name, price, image, href, colors = [], productId, productSlug, productPrice, productDisplayPrice, productDisplayCurrency, productDisplaySymbol } = Astro.props;
+
+const productJson = productId ? JSON.stringify({
+  id: productId,
+  name,
+  slug: productSlug || '',
+  price: productPrice || 0,
+  currency: productDisplayCurrency || 'USD',
+  display_price: productDisplayPrice,
+  display_currency: productDisplayCurrency,
+  display_symbol: productDisplaySymbol,
+  images: [image],
+  category: '',
+}) : '';
 ---
 
-<a href={href} class="group flex flex-col cursor-pointer">
-  <div class="relative bg-surface-container-lowest aspect-[4/5] overflow-hidden mb-4 flex items-center justify-center">
-    <img
-      src={image}
-      alt={name}
-      class="w-4/5 h-auto object-contain transition-transform duration-500 group-hover:scale-110"
-      loading="lazy"
-    />
+<div class="group flex flex-col cursor-pointer product-card">
+  <div class="relative bg-surface-container-lowest aspect-[4/5] overflow-hidden mb-4">
+    <a href={href} class="block w-full h-full overflow-hidden">
+      <img
+        src={imgTransform(image, 480, 600)}
+        alt={name}
+        width="480"
+        height="600"
+        class="w-full h-full object-cover object-center img-lift transition-transform duration-700 group-hover:scale-105"
+        loading="lazy"
+      />
+    </a>
+    <div class="absolute inset-0 bg-gradient-to-t from-monolith-black/0 via-transparent to-monolith-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+    {
+      productJson && (
+        <button
+          data-toggle-wishlist
+          data-product={productJson}
+          class="absolute top-3 right-3 z-20 w-9 h-9 flex items-center justify-center bg-off-white/80 backdrop-blur-sm rounded-full hover:bg-off-white transition-all hover:scale-110 border border-outline-variant/30"
+          aria-label="Add to wishlist"
+        >
+          <span class="material-symbols-outlined wishlist-icon text-[18px] text-monolith-black" style="font-variation-settings: 'FILL' 0">favorite_border</span>
+        </button>
+      )
+    }
   </div>
-  <h3 class="font-body-md text-body-md text-monolith-black mb-1">{name}</h3>
-  <p class="font-price-display text-price-display text-secondary">{price}</p>
-  {
-    colors.length > 0 && (
-      <div class="flex gap-2 mt-3">
-        {colors.map((color) => (
-          <span
-            class="w-3 h-3 rounded-full border border-surface-variant"
-            style={`background-color: ${color}`}
-          ></span>
-        ))}
-      </div>
-    )
-  }
-</a>
+  <a href={href} class="block">
+    <h3 class="font-body-md text-body-md text-monolith-black mb-1 group-hover:text-clay-accent transition-colors duration-300">{name}</h3>
+    <p class="font-price-display text-price-display text-secondary">{price}</p>
+    {
+      colors.length > 0 && (
+        <div class="flex gap-2 mt-3">
+          {colors.map((color) => (
+            <span
+              class="w-3 h-3 rounded-full border border-surface-variant transition-transform duration-300 group-hover:scale-110"
+              style={`background-color: ${color}`}
+            ></span>
+          ))}
+        </div>
+      )
+    }
+  </a>
+</div>

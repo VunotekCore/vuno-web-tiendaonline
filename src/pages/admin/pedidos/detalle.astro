@@ -1,0 +1,8 @@
+---
+import AdminLayout from "../_layout.astro";
+import PedidoDetailApp from "../../../components/admin/PedidoDetailApp.vue";
+---
+
+<AdminLayout title="Detalle de Pedido" currentPath="/admin/pedidos">
+  <PedidoDetailApp client:only="vue" />
+</AdminLayout>

@@ -1,0 +1,8 @@
+---
+import AdminLayout from "../_layout.astro";
+import ProductoFormApp from "../../../components/admin/ProductoFormApp.vue";
+---
+
+<AdminLayout title="Editar Producto" currentPath="/admin/productos">
+  <ProductoFormApp client:only="vue" />
+</AdminLayout>

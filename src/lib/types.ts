@@ -7,11 +7,23 @@ export interface Product {
   careInstructions?: string;
   price: number;
   currency: string;
+  display_price?: number;
+  display_currency?: string;
+  display_symbol?: string;
+  size_prefix?: string;
   images: string[];
+  imagesByColor?: Record<string, string[]>;
+  isFeatured?: boolean;
   category: string;
+  category_slug?: string;
   colors: ProductColor[];
   sizes: ProductSize[];
+  variants?: Variant[];
+  totalStock?: number;
   createdAt: string;
+  metaTitle?: string;
+  metaDescription?: string;
+  ogImageUrl?: string;
 }
 
 export interface ProductColor {
@@ -24,6 +36,13 @@ export interface ProductSize {
   label: string;
   value: string;
   inStock: boolean;
+  stock: number;
+}
+
+export interface Variant {
+  color_name: string;
+  size_value: string;
+  stock: number;
 }
 
 export interface CartItem {
@@ -40,6 +59,9 @@ export interface Order {
   shipping: number;
   tax: number;
   total: number;
+  display_total?: number;
+  display_currency?: string;
+  display_symbol?: string;
   status: OrderStatus;
   paymentMethod: "stripe" | "transfer";
   paymentStatus: PaymentStatus;
@@ -61,6 +83,31 @@ export interface CustomerInfo {
 
 export type OrderStatus = "pending" | "paid" | "shipped" | "delivered" | "cancelled";
 export type PaymentStatus = "pending" | "completed" | "failed" | "refunded";
+
+export interface BlogPost {
+  id: number
+  slug: string
+  title: string
+  excerpt: string | null
+  thumbnail_image: string | null
+  featured_image: string | null
+  author: string
+  meta_title: string | null
+  meta_description: string | null
+  published_at: string | null
+  updated_at: string
+  category_name: string | null
+  category_slug: string | null
+  content: string
+  title_en?: string | null
+  excerpt_en?: string | null
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  slug: string;
+}
 
 export interface ImageKitResponse {
   fileId: string;

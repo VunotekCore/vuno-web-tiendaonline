@@ -1,0 +1,93 @@
+---
+interface Props {
+  class?: string;
+}
+
+const { class: className = "" } = Astro.props;
+---
+
+<!--
+  Modal y Toast singletons globales.
+  Accesibles vía window.VunoModal.* y window.VunoToast.* desde cualquier página.
+  Lógica en /public/js/modal.js (auto-cargado por este componente).
+-->
+
+<!-- Modal bloqueante (errores, warnings, confirmaciones) -->
+<div
+  id="vunoModal"
+  class={`hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 ${className}`}
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="vunoModalTitle"
+  aria-describedby="vunoModalMessage"
+>
+  <div class="bg-off-white border border-outline-variant shadow-lg rounded-sm p-6 w-full max-w-lg md:max-w-xl transform transition-all max-h-[85dvh] overflow-y-auto">
+    <div class="flex items-start gap-3 mb-4">
+      <div id="vunoModalIcon" class="w-8 h-8 flex-shrink-0 flex items-center justify-center"></div>
+      <div class="flex-1 min-w-0">
+        <h3 id="vunoModalTitle" class="font-headline text-headline-md text-monolith-black break-words"></h3>
+        <p id="vunoModalMessage" class="font-body-md text-body-md text-secondary mt-2 hidden break-words"></p>
+        <div id="vunoModalBody" class="mt-2 hidden"></div>
+      </div>
+      <button
+        type="button"
+        id="vunoModalClose"
+        class="text-secondary hover:text-monolith-black transition-colors flex-shrink-0 -mt-1 -mr-1 p-1"
+        aria-label="Close"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-current"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div id="vunoModalActions" class="flex justify-end gap-3 mt-6">
+      <button
+        type="button"
+        id="vunoModalCancel"
+        class="hidden font-label-caps text-label-caps text-secondary border border-monolith-black/20 rounded-md px-5 h-10 hover:border-monolith-black hover:text-monolith-black transition-all"
+      ></button>
+      <button
+        type="button"
+        id="vunoModalConfirm"
+        class="font-label-caps text-label-caps bg-monolith-black text-off-white rounded-md px-5 h-10 hover:bg-monolith-black/90 transition-all"
+      ></button>
+    </div>
+  </div>
+</div>
+
+<!-- Contenedor de toasts (no bloqueantes, auto-dismiss) -->
+<div
+  id="vunoToastContainer"
+  class="fixed top-4 right-4 z-[110] flex flex-col gap-2 pointer-events-none max-w-sm w-full sm:w-auto"
+  aria-live="polite"
+  aria-atomic="true"
+></div>
+
+<template id="vunoToastTemplate">
+  <div
+    class="vuno-toast pointer-events-auto bg-off-white border border-outline-variant shadow-lg rounded-sm p-4 flex items-start gap-3 transform transition-all duration-300 translate-x-full opacity-0 min-w-[280px] max-w-sm"
+    role="status"
+  >
+    <div class="vuno-toast-icon w-6 h-6 flex-shrink-0 flex items-center justify-center"></div>
+    <div class="flex-1 min-w-0">
+      <p class="vuno-toast-title font-label-caps text-label-caps text-monolith-black break-words"></p>
+      <p class="vuno-toast-message font-body-md text-body-md text-secondary mt-1 hidden break-words"></p>
+    </div>
+    <button
+      type="button"
+      class="vuno-toast-close text-secondary hover:text-monolith-black transition-colors flex-shrink-0 -mt-1 -mr-1 p-1"
+      aria-label="Close"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-current"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+</template>
+
+<script>
+  // Marca de presencia: el script de lógica externa se auto-carga vía DOM si no está.
+  if (!window.__vunoModalLoaded) {
+    window.__vunoModalLoaded = true;
+    const s = document.createElement("script");
+    s.src = "/js/modal.js";
+    s.async = false;
+    document.head.appendChild(s);
+  }
+</script>

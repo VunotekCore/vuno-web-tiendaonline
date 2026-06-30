@@ -1,5 +1,5 @@
 {
-  "name": "ramlop-tienda",
+  "name": "vunotek-tienda",
   "type": "module",
   "version": "0.0.1",
   "private": true,
@@ -13,12 +13,18 @@
     "format": "prettier --write ."
   },
   "dependencies": {
-    "@astrojs/netlify": "^7.0.10",
+    "@astrojs/sitemap": "^3.7.3",
+    "@astrojs/vue": "^6",
+    "@fontsource/hanken-grotesk": "^5.2.8",
+    "@fontsource/inter": "^5.2.8",
+    "@fontsource/jetbrains-mono": "^5.2.8",
+    "@lucide/vue": "^1.22.0",
     "@tailwindcss/vite": "^4.0.0",
     "astro": "^6.3.8",
-    "nodemailer": "^8.0.8",
-    "stripe": "^22.1.1",
-    "tailwindcss": "^4.0.0"
+    "hyperframes": "^0.6.108",
+    "pinia": "^2.2",
+    "tailwindcss": "^4.0.0",
+    "vue": "^3.5"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",

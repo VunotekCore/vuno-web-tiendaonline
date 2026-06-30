@@ -1,0 +1,8 @@
+---
+import AdminLayout from "./_layout.astro";
+import PosApp from "../../components/admin/PosApp.vue";
+---
+
+<AdminLayout title="Mostrador POS" currentPath="/admin/pos">
+  <PosApp client:only="vue" />
+</AdminLayout>

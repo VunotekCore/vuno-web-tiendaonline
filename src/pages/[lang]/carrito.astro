@@ -1,0 +1,244 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Navbar from "../../components/organisms/Navbar.astro";
+import Footer from "../../components/organisms/Footer.astro";
+import Button from "../../components/atoms/Button.astro";
+import AnimatedReveal from "../../components/atoms/AnimatedReveal.astro";
+import { t, type Locale, locales } from "../../i18n/utils";
+import { tenant } from "../../config/tenant";
+
+export async function getStaticPaths() {
+  return locales.map((lang) => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params as { lang: Locale };
+const currentPath = Astro.url.pathname;
+const siteUrl = import.meta.env.PROD ? tenant.brand.url : "http://localhost:4321";
+const alternateUrls = {
+  es: `${siteUrl}/es/carrito`,
+  en: `${siteUrl}/en/carrito`,
+};
+---
+
+<BaseLayout title={lang === "es" ? "Carrito de Compras | Vunotek" : "Shopping Cart | Vunotek"} lang={lang} alternateUrls={alternateUrls} seo={{ noindex: true }}>
+  <Navbar lang={lang} currentPath={currentPath} />
+  <main class="flex-grow w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-section-gap">
+    <AnimatedReveal>
+      <div class="mb-gutter">
+        <h1 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg mb-unit">{t("cart.title", lang)}</h1>
+        <p class="font-body-md text-body-md text-secondary">{t("cart.subtitle", lang)}</p>
+      </div>
+    </AnimatedReveal>
+
+    <div id="cartContainer" class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+      <div class="lg:col-span-8 flex flex-col gap-6" id="cartItems"></div>
+      <div class="lg:col-span-4 mt-8 lg:mt-0">
+        <AnimatedReveal delay={1}>
+          <div class="bg-surface-container-low p-6 flex flex-col h-full">
+            <h2 class="font-headline-md text-headline-md mb-6 border-b border-outline-variant/30 pb-4">{t("cart.summary", lang)}</h2>
+            <div class="space-y-4 mb-8 flex-grow">
+              <div class="flex justify-between">
+                <span class="font-body-md text-body-md text-secondary">{t("cart.subtotal", lang)}</span>
+                <span class="font-price-display text-price-display text-base" id="subtotal">$0.00</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="font-body-md text-body-md text-secondary">{t("cart.shipping", lang)}</span>
+                <span class="font-body-md text-body-md">{t("cart.shippingCalc", lang)}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="font-body-md text-body-md text-secondary">{t("cart.taxes", lang)}</span>
+                <span class="font-body-md text-body-md">{t("cart.taxesCalc", lang)}</span>
+              </div>
+            </div>
+            <div class="border-t border-outline-variant/30 pt-6 mb-8">
+              <div class="flex justify-between items-center mb-6">
+                <span class="font-headline-md text-headline-md">{t("cart.total", lang)}</span>
+                <span class="font-price-display text-price-display text-2xl" id="total">$0.00</span>
+              </div>
+              <Button variant="primary" class="w-full gap-2" href={`/${lang}/checkout`}>
+                {t("cart.checkout", lang)}
+                <span class="material-symbols-outlined text-sm">arrow_forward</span>
+              </Button>
+            </div>
+            <div class="mt-auto text-center">
+              <p class="font-body-md text-body-md text-secondary text-sm flex items-center justify-center gap-1">
+                <span class="material-symbols-outlined text-sm">lock</span> {t("cart.secure", lang)}
+              </p>
+            </div>
+          </div>
+        </AnimatedReveal>
+      </div>
+    </div>
+
+    <div id="emptyCart" class="hidden text-center py-20">
+      <AnimatedReveal>
+        <p class="font-body-lg text-body-lg text-secondary mb-6">{t("cart.empty", lang)}</p>
+        <Button variant="secondary" href={`/${lang}/catalogo`}>{t("cart.explore", lang)}</Button>
+      </AnimatedReveal>
+    </div>
+  </main>
+  <Footer lang={lang} />
+
+  <script is:inline define:vars={{
+    lang,
+    cartI18n: {
+      sizeLabel: lang === "es" ? "Talle" : "Size",
+      remove: t("cart.remove", lang),
+      decreaseAria: t("cart.decrease", lang),
+      increaseAria: t("cart.increase", lang),
+    },
+  }}>
+    // @ts-nocheck
+    const container = document.getElementById("cartItems");
+
+    var stockMap = {};
+
+    function stockKey(id, color, size) {
+      return id + '||' + (color || '') + '||' + (size || '');
+    }
+
+    async function loadStockData() {
+      var items = window.VunoCart.getItems();
+      var seen = {};
+      for (var i = 0; i < items.length; i++) {
+        var pid = items[i].product.id;
+        if (seen[pid]) continue;
+        seen[pid] = true;
+        try {
+          var res = await fetch('/api/productos/get.php?id=' + encodeURIComponent(pid));
+          if (!res.ok) continue;
+          var product = await res.json();
+          if (product.variants) {
+            for (var v = 0; v < product.variants.length; v++) {
+              var key = stockKey(pid, product.variants[v].color_name, product.variants[v].size_value);
+              stockMap[key] = product.variants[v].stock;
+            }
+          }
+        } catch (e) {}
+      }
+    }
+
+    function escapeHtml(str) {
+      if (typeof str !== "string") return str || "";
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+
+    function renderCart() {
+      const items = window.VunoCart.getItems();
+      const empty = document.getElementById("emptyCart");
+      const cartContainer = document.getElementById("cartContainer");
+
+      if (items.length === 0) {
+        cartContainer.classList.add("hidden");
+        empty.classList.remove("hidden");
+        return;
+      }
+
+      cartContainer.classList.remove("hidden");
+      empty.classList.add("hidden");
+
+      container.innerHTML = items.map((item, idx) => {
+        const img = item.product.images && item.product.images.length > 0 ? item.product.images[0] : "";
+        const productId = escapeHtml(item.product.id);
+        const color = escapeHtml(item.selectedColor);
+        const size = escapeHtml(item.selectedSize);
+        return `<div class="flex gap-6 items-start pb-6 border-b border-outline-variant/30 cart-item" style="animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) ${idx * 0.1}s both">
+          <div class="w-32 h-40 bg-surface-container overflow-hidden shrink-0">
+            <img src="${escapeHtml(window.imgTransform(img, 128, 160))}" alt="${escapeHtml(item.product.name)}" class="w-full h-full object-cover" loading="lazy" />
+          </div>
+          <div class="flex-grow flex flex-col justify-between h-full">
+            <div class="flex justify-between items-start">
+              <div>
+                <h3 class="font-headline-md text-headline-md mb-1">${escapeHtml(item.product.name)}</h3>
+                <p class="font-body-md text-body-md text-secondary mb-2">${color} / ${cartI18n.sizeLabel} ${size}</p>
+              </div>
+              <span class="font-price-display text-price-display">${item.product.display_symbol || '$'}${window.formatPrice((item.product.display_price ?? item.product.price) * item.quantity)}</span>
+            </div>
+            <div class="flex justify-between items-end mt-4">
+              <div class="flex items-center border-b border-monolith-black pb-1 w-24 justify-between">
+                <button type="button" class="text-secondary hover:text-primary transition-colors ${item.quantity <= 1 ? 'opacity-30 pointer-events-none' : ''}" data-cart-action="decrease" data-product-id="${productId}" data-color="${color}" data-size="${size}" data-qty="${item.quantity}" aria-label="${escapeHtml(cartI18n.decreaseAria)}">
+                  <span class="material-symbols-outlined text-sm">remove</span>
+                </button>
+                <span class="font-body-md text-body-md" data-qty-display>${item.quantity}</span>
+                <button type="button" class="text-secondary hover:text-primary transition-colors" data-cart-action="increase" data-product-id="${productId}" data-color="${color}" data-size="${size}" data-qty="${item.quantity}" aria-label="${escapeHtml(cartI18n.increaseAria)}">
+                  <span class="material-symbols-outlined text-sm">add</span>
+                </button>
+              </div>
+              <button type="button" class="font-label-caps text-label-caps text-secondary hover:text-error transition-colors" data-cart-action="remove" data-product-id="${productId}" data-color="${color}" data-size="${size}">${escapeHtml(cartI18n.remove)}</button>
+            </div>
+          </div>
+        </div>`;
+      }).join("");
+
+      updateTotals();
+    }
+
+    function updateTotals() {
+      const items = window.VunoCart.getItems();
+      const first = items[0]?.product;
+      if (!first) return;
+      const symbol = first?.display_symbol || '$';
+      const displaySubtotal = items.reduce((sum, item) => {
+        const dp = item.product.display_price ?? item.product.price;
+        return sum + dp * item.quantity;
+      }, 0);
+      document.getElementById("subtotal").textContent = `${symbol}${window.formatPrice(displaySubtotal)}`;
+      document.getElementById("total").textContent = `${symbol}${window.formatPrice(displaySubtotal)}`;
+    }
+
+    var _updating = false;
+
+    container.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-cart-action]");
+      if (!btn) return;
+      const id = btn.dataset.productId;
+      const color = btn.dataset.color;
+      const size = btn.dataset.size;
+      const qty = parseInt(btn.dataset.qty, 10) || 1;
+
+      if (btn.dataset.cartAction === "decrease") {
+        if (qty <= 1) return;
+        const newQty = qty - 1;
+        _updating = true;
+        window.VunoCart.updateQuantity(id, color, size, newQty);
+        _updating = false;
+        const itemEl = btn.closest(".cart-item");
+        const display = itemEl?.querySelector("[data-qty-display]");
+        if (display) display.textContent = newQty;
+        btn.dataset.qty = newQty;
+        const incBtn = itemEl?.querySelector("[data-cart-action='increase']");
+        if (incBtn) incBtn.dataset.qty = newQty;
+        if (newQty <= 1) {
+          btn.classList.add('opacity-30', 'pointer-events-none');
+        }
+        updateTotals();
+      } else if (btn.dataset.cartAction === "increase") {
+        var newQty = qty + 1;
+        var skey = stockKey(id, color, size);
+        var maxStock = stockMap[skey];
+        if (maxStock !== undefined && newQty > maxStock) {
+          if (window.VunoToast) {
+            window.VunoToast.warning(maxStock === 1 ? 'Solo queda 1 unidad' : 'Solo quedan ' + maxStock + ' unidades');
+          }
+          return;
+        }
+        _updating = true;
+        window.VunoCart.updateQuantity(id, color, size, newQty);
+        _updating = false;
+        const itemEl = btn.closest(".cart-item");
+        const display = itemEl?.querySelector("[data-qty-display]");
+        if (display) display.textContent = newQty;
+        btn.dataset.qty = newQty;
+        const decBtn = itemEl?.querySelector("[data-cart-action='decrease']");
+        if (decBtn) decBtn.dataset.qty = newQty;
+        updateTotals();
+      } else if (btn.dataset.cartAction === "remove") {
+        window.VunoCart.removeItem(id, color, size);
+        renderCart();
+      }
+    });
+
+    window.addEventListener("cart:updated", function () { if (!_updating) { loadStockData().then(function() { renderCart(); }); } });
+    (async function() { await loadStockData(); renderCart(); })();
+  </script>
+</BaseLayout>

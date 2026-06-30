@@ -1,0 +1,956 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1080, height=1920" />
+  <title>Vunotek — Tu Sucursal Digital</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Hanken+Grotesk:wght@300;400;500;700&display=swap" rel="stylesheet" />
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0a0a0a; display: flex; justify-content: center; }
+
+    #root {
+      position: relative;
+      width: 1080px;
+      height: 1920px;
+      overflow: hidden;
+      background: #1A1A1A;
+      font-family: 'Hanken Grotesk', sans-serif;
+    }
+
+    /* === Scene base === */
+    .scene {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* === Background texture === */
+    .bg-glow {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(120px);
+      pointer-events: none;
+    }
+    .bg-noise {
+      position: absolute;
+      inset: 0;
+      opacity: 0.04;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 256px 256px;
+      pointer-events: none;
+    }
+    .bg-grid {
+      position: absolute;
+      inset: 0;
+      opacity: 0.035;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px);
+      background-size: 80px 80px;
+      pointer-events: none;
+    }
+
+    /* === Phone mockup === */
+    .phone-mockup {
+      position: absolute;
+      width: 380px;
+      height: 790px;
+      border-radius: 48px;
+      border: 3px solid rgba(255,255,255,0.1);
+      overflow: hidden;
+      box-shadow:
+        0 50px 120px rgba(0,0,0,0.7),
+        0 0 0 1px rgba(255,255,255,0.04),
+        inset 0 0 0 1px rgba(255,255,255,0.02);
+      background: #0d0d0d;
+    }
+    .phone-mockup iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+    .phone-notch {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 160px;
+      height: 32px;
+      background: #1A1A1A;
+      border-radius: 0 0 20px 20px;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .phone-notch-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #2a2a2a;
+    }
+    .phone-notch-camera {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #222;
+      border: 1px solid #333;
+    }
+    .phone-homebar {
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 5px;
+      border-radius: 3px;
+      background: rgba(255,255,255,0.15);
+      z-index: 10;
+    }
+
+    /* === Desktop mockup (POS) === */
+    .desktop-mockup {
+      position: absolute;
+      width: 820px;
+      height: 540px;
+      border-radius: 16px;
+      border: 3px solid rgba(255,255,255,0.1);
+      overflow: hidden;
+      box-shadow:
+        0 50px 120px rgba(0,0,0,0.7),
+        0 0 0 1px rgba(255,255,255,0.04);
+      background: #0d0d0d;
+    }
+    .desktop-mockup iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+    .desktop-topbar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 32px;
+      background: rgba(30,30,30,0.95);
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 8px;
+      backdrop-filter: blur(10px);
+    }
+    .desktop-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .desktop-dot:nth-child(1) { background: #ff5f56; }
+    .desktop-dot:nth-child(2) { background: #ffbd2e; }
+    .desktop-dot:nth-child(3) { background: #27c93f; }
+
+    /* === Text overlays === */
+    .text-overlay {
+      position: absolute;
+      text-align: center;
+      z-index: 20;
+      padding: 0 60px;
+      width: 100%;
+    }
+    .text-overlay h2 {
+      font-family: 'Hanken Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 42px;
+      line-height: 1.2;
+      color: #FFFFFF;
+      text-shadow: 0 4px 24px rgba(0,0,0,0.5);
+    }
+    .text-overlay .highlight {
+      color: #C18C7E;
+    }
+    .text-overlay .emoji-icon {
+      display: inline-block;
+      font-size: 44px;
+      vertical-align: middle;
+      margin-left: 4px;
+    }
+
+    /* === Tag / label === */
+    .scene-tag {
+      position: absolute;
+      top: 100px;
+      z-index: 20;
+      font-family: 'Hanken Grotesk', sans-serif;
+      font-weight: 500;
+      font-size: 14px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.3);
+    }
+
+    /* === Scroll indicator === */
+    .scroll-track {
+      position: absolute;
+      right: 8px;
+      top: 60px;
+      bottom: 60px;
+      width: 3px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 2px;
+      z-index: 5;
+    }
+    .scroll-thumb {
+      width: 100%;
+      height: 60px;
+      background: rgba(193,140,126,0.6);
+      border-radius: 2px;
+    }
+
+    /* === Cursor overlay === */
+    .cursor-dot {
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.8);
+      box-shadow: 0 0 20px rgba(255,255,255,0.3);
+      z-index: 15;
+      pointer-events: none;
+      mix-blend-mode: difference;
+    }
+
+    /* === Highlight ping === */
+    .ping-ring {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: 2px solid #C18C7E;
+      z-index: 12;
+      pointer-events: none;
+    }
+
+    /* === Scene 4: Sync visual === */
+    .sync-ring {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: 2px solid rgba(193,140,126,0.4);
+      z-index: 15;
+      pointer-events: none;
+    }
+    .sync-arrow {
+      position: absolute;
+      width: 40px;
+      height: 2px;
+      background: #C18C7E;
+      z-index: 15;
+    }
+
+    /* === Scene 5: CTA === */
+    .cta-container {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 0 80px;
+      text-align: center;
+    }
+    .cta-brand {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: 96px;
+      color: #FFFFFF;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+    .cta-tagline {
+      font-family: 'Hanken Grotesk', sans-serif;
+      font-weight: 300;
+      font-size: 28px;
+      color: rgba(255,255,255,0.6);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 60px;
+    }
+    .cta-features {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 60px;
+    }
+    .cta-feature {
+      font-family: 'Hanken Grotesk', sans-serif;
+      font-weight: 400;
+      font-size: 22px;
+      color: rgba(255,255,255,0.8);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      justify-content: center;
+    }
+    .cta-feature .bullet {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #C18C7E;
+      flex-shrink: 0;
+    }
+    .cta-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 56px;
+      background: #C18C7E;
+      color: #FFFFFF;
+      font-family: 'Hanken Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 22px;
+      letter-spacing: 0.05em;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 8px 32px rgba(193,140,126,0.35);
+      position: relative;
+    }
+    .cta-arch-line {
+      width: 40px;
+      height: 2px;
+      background: #C18C7E;
+      margin-bottom: 24px;
+    }
+    .cta-sub {
+      font-family: 'Hanken Grotesk', sans-serif;
+      font-weight: 400;
+      font-size: 14px;
+      color: rgba(255,255,255,0.3);
+      margin-top: 24px;
+      letter-spacing: 0.1em;
+    }
+
+    /* === Decorative ghost text === */
+    .ghost-text {
+      position: absolute;
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: 200px;
+      color: rgba(255,255,255,0.03);
+      pointer-events: none;
+      letter-spacing: -0.03em;
+      user-select: none;
+    }
+
+    /* === Corner accents === */
+    .corner-accent {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      border-color: rgba(193,140,126,0.15);
+      border-style: solid;
+      pointer-events: none;
+    }
+    .corner-accent.tl { top: 40px; left: 40px; border-width: 1px 0 0 1px; }
+    .corner-accent.tr { top: 40px; right: 40px; border-width: 1px 1px 0 0; }
+    .corner-accent.bl { bottom: 40px; left: 40px; border-width: 0 0 1px 1px; }
+    .corner-accent.br { bottom: 40px; right: 40px; border-width: 0 1px 1px 0; }
+
+    /* === Receipt upload animation === */
+    .receipt-icon {
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      border-radius: 12px;
+      border: 2px dashed rgba(193,140,126,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 12;
+      backdrop-filter: blur(4px);
+    }
+    .receipt-icon svg {
+      width: 36px;
+      height: 36px;
+    }
+    .checkmark {
+      position: absolute;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: #27c93f;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 13;
+      box-shadow: 0 8px 32px rgba(39,201,63,0.3);
+    }
+    .checkmark svg {
+      width: 28px;
+      height: 28px;
+      stroke: white;
+      stroke-width: 3;
+      fill: none;
+    }
+
+    /* === Toast notification === */
+    .toast-notif {
+      position: absolute;
+      padding: 16px 28px;
+      background: rgba(39,201,63,0.15);
+      border: 1px solid rgba(39,201,63,0.3);
+      backdrop-filter: blur(12px);
+      border-radius: 8px;
+      z-index: 15;
+      font-family: 'Hanken Grotesk', sans-serif;
+      font-weight: 500;
+      font-size: 16px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div
+    id="root"
+    data-composition-id="vunotek-promo"
+    data-width="1080"
+    data-height="1920"
+    data-duration="20"
+    data-fps="60"
+  >
+    <!-- ════════════════════════════════════════════════════════════
+         SCENE 1 — Home page + Bento Grid scroll (0s – 4s)
+         ════════════════════════════════════════════════════════════ -->
+    <section id="s1" class="clip scene" data-start="0" data-duration="4" data-track-index="1">
+      <div class="bg-glow" style="width:700px;height:700px;background:rgba(193,140,126,0.08);top:-100px;right:-200px;"></div>
+      <div class="bg-glow" style="width:500px;height:500px;background:rgba(230,222,213,0.05);bottom:-150px;left:-100px;"></div>
+      <div class="bg-noise"></div>
+      <div class="bg-grid"></div>
+
+      <div class="corner-accent tl"></div>
+      <div class="corner-accent tr"></div>
+      <div class="corner-accent bl"></div>
+      <div class="corner-accent br"></div>
+
+      <span class="scene-tag" style="opacity:0;">Home — Tienda Online</span>
+
+      <!-- Phone mockup -->
+      <div id="s1-phone" class="phone-mockup" style="top:140px;left:350px;">
+        <div class="phone-notch">
+          <div class="phone-notch-camera"></div>
+          <div class="phone-notch-dot"></div>
+        </div>
+        <div class="phone-homebar"></div>
+        <iframe src="http://localhost:4321/es/"></iframe>
+      </div>
+
+      <!-- Scroll indicator -->
+      <div id="s1-scroll-track" class="scroll-track" style="right:380px;top:180px;bottom:180px;">
+        <div id="s1-scroll-thumb" class="scroll-thumb"></div>
+      </div>
+
+      <!-- Highlight overlay for "scrolling" effect -->
+      <div id="s1-highlight" style="position:absolute;width:340px;height:180px;border:2px solid rgba(193,140,126,0.3);border-radius:8px;z-index:8;pointer-events:none;left:370px;top:180px;opacity:0;"></div>
+
+      <!-- Text overlay — bottom -->
+      <div id="s1-text" class="text-overlay" style="bottom:100px;opacity:0;">
+        <h2>¿Pasas horas respondiendo<br/>disponibilidad en <span class="highlight">WhatsApp</span>?</h2>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════════════════════
+         SCENE 2 — Product detail + Add to Cart (4s – 8s)
+         ════════════════════════════════════════════════════════════ -->
+    <section id="s2" class="clip scene" data-start="4" data-duration="4" data-track-index="1">
+      <div class="bg-glow" style="width:600px;height:600px;background:rgba(230,222,213,0.07);top:50%;left:-150px;transform:translateY(-50%);"></div>
+      <div class="bg-glow" style="width:400px;height:400px;background:rgba(193,140,126,0.06);bottom:-100px;right:-100px;"></div>
+      <div class="bg-noise"></div>
+      <div class="bg-grid"></div>
+
+      <div class="corner-accent tl"></div>
+      <div class="corner-accent tr"></div>
+      <div class="corner-accent bl"></div>
+      <div class="corner-accent br"></div>
+
+      <span class="scene-tag" style="opacity:0;">Catálogo — Compra en 1 clic</span>
+
+      <!-- Phone mockup -->
+      <div id="s2-phone" class="phone-mockup" style="top:140px;left:350px;">
+        <div class="phone-notch">
+          <div class="phone-notch-camera"></div>
+          <div class="phone-notch-dot"></div>
+        </div>
+        <div class="phone-homebar"></div>
+        <iframe src="http://localhost:4321/es/producto/stiletto-noir-arquitectonico"></iframe>
+      </div>
+
+      <!-- Click highlight — color swatch -->
+      <div id="s2-ping-color" class="ping-ring" style="top:420px;left:430px;opacity:0;"></div>
+      <!-- Click highlight — size -->
+      <div id="s2-ping-size" class="ping-ring" style="top:490px;left:410px;opacity:0;"></div>
+      <!-- Click highlight — Add to Cart button -->
+      <div id="s2-ping-cart" class="ping-ring" style="top:730px;left:450px;opacity:0;"></div>
+
+      <!-- Cursor -->
+      <div id="s2-cursor" class="cursor-dot" style="opacity:0;"></div>
+
+      <!-- Text overlay -->
+      <div id="s2-text" class="text-overlay" style="bottom:100px;opacity:0;">
+        <h2>Tus clientes compran solos<br/>en tu <span class="highlight">Tienda Online</span></h2>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════════════════════
+         SCENE 3 — Checkout + Receipt upload (8s – 12s)
+         ════════════════════════════════════════════════════════════ -->
+    <section id="s3" class="clip scene" data-start="8" data-duration="4" data-track-index="1">
+      <div class="bg-glow" style="width:600px;height:600px;background:rgba(193,140,126,0.06);top:-50px;right:-150px;"></div>
+      <div class="bg-glow" style="width:400px;height:400px;background:rgba(255,255,255,0.03);bottom:-80px;left:-80px;"></div>
+      <div class="bg-noise"></div>
+      <div class="bg-grid"></div>
+
+      <div class="corner-accent tl"></div>
+      <div class="corner-accent tr"></div>
+      <div class="corner-accent bl"></div>
+      <div class="corner-accent br"></div>
+
+      <span class="scene-tag" style="opacity:0;">Checkout — Pago simplificado</span>
+
+      <!-- Phone mockup -->
+      <div id="s3-phone" class="phone-mockup" style="top:140px;left:350px;">
+        <div class="phone-notch">
+          <div class="phone-notch-camera"></div>
+          <div class="phone-notch-dot"></div>
+        </div>
+        <div class="phone-homebar"></div>
+        <iframe src="http://localhost:4321/es/checkout"></iframe>
+      </div>
+
+      <!-- Form field highlights -->
+      <div id="s3-field-1" class="ping-ring" style="top:260px;left:370px;width:340px;height:50px;border-radius:4px;opacity:0;"></div>
+      <div id="s3-field-2" class="ping-ring" style="top:330px;left:370px;width:340px;height:50px;border-radius:4px;opacity:0;"></div>
+      <div id="s3-field-3" class="ping-ring" style="top:400px;left:370px;width:340px;height:50px;border-radius:4px;opacity:0;"></div>
+
+      <!-- Receipt upload icon -->
+      <div id="s3-receipt" class="receipt-icon" style="top:500px;left:500px;opacity:0;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="rgba(193,140,126,0.8)" stroke-width="1.5">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+          <polyline points="10 9 9 9 8 9"/>
+        </svg>
+      </div>
+
+      <!-- Success checkmark -->
+      <div id="s3-check" class="checkmark" style="top:510px;left:510px;opacity:0;">
+        <svg viewBox="0 0 24 24">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      </div>
+
+      <!-- Text overlay -->
+      <div id="s3-text" class="text-overlay" style="bottom:100px;opacity:0;">
+        <h2>Validación de transferencias<br/>directa <span class="emoji-icon">⚡</span></h2>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════════════════════
+         SCENE 4 — Admin POS + Inventory sync (12s – 16s)
+         ════════════════════════════════════════════════════════════ -->
+    <section id="s4" class="clip scene" data-start="12" data-duration="4" data-track-index="1">
+      <div class="bg-glow" style="width:800px;height:800px;background:rgba(26,26,26,0.3);top:50%;left:50%;transform:translate(-50%,-50%);"></div>
+      <div class="bg-glow" style="width:500px;height:500px;background:rgba(193,140,126,0.04);top:-100px;right:-100px;"></div>
+      <div class="bg-noise"></div>
+      <div class="bg-grid"></div>
+
+      <div class="corner-accent tl"></div>
+      <div class="corner-accent tr"></div>
+      <div class="corner-accent bl"></div>
+      <div class="corner-accent br"></div>
+
+      <span class="scene-tag" style="opacity:0;">POS — Mostrador Físico</span>
+
+      <!-- Desktop mockup -->
+      <div id="s4-desktop" class="desktop-mockup" style="top:320px;left:130px;">
+        <div class="desktop-topbar">
+          <div class="desktop-dot"></div>
+          <div class="desktop-dot"></div>
+          <div class="desktop-dot"></div>
+        </div>
+        <iframe src="http://localhost:4321/admin/pos" style="margin-top:32px;"></iframe>
+      </div>
+
+      <!-- POS sale simulation highlights -->
+      <div id="s4-ping-search" class="ping-ring" style="top:370px;left:190px;width:240px;height:40px;border-radius:4px;opacity:0;"></div>
+      <div id="s4-ping-add" class="ping-ring" style="top:490px;left:180px;opacity:0;"></div>
+      <div id="s4-ping-process" class="ping-ring" style="top:720px;left:700px;opacity:0;"></div>
+
+      <!-- Sync visual: two database nodes -->
+      <div id="s4-sync-1" style="position:absolute;top:560px;left:160px;width:40px;height:40px;border-radius:50%;border:2px solid rgba(193,140,126,0.5);z-index:15;opacity:0;display:flex;align-items:center;justify-content:center;">
+        <span style="font-size:18px;color:#C18C7E;">🔄</span>
+      </div>
+      <div id="s4-sync-2" style="position:absolute;top:560px;left:880px;width:40px;height:40px;border-radius:50%;border:2px solid rgba(193,140,126,0.5);z-index:15;opacity:0;display:flex;align-items:center;justify-content:center;">
+        <span style="font-size:18px;color:#C18C7E;">🔄</span>
+      </div>
+      <!-- Sync line -->
+      <div id="s4-sync-line" style="position:absolute;top:578px;left:200px;width:680px;height:2px;background:linear-gradient(90deg,transparent,#C18C7E,transparent);z-index:14;opacity:0;transform:scaleX(0);transform-origin:left center;"></div>
+
+      <!-- Text overlay -->
+      <div id="s4-text" class="text-overlay" style="bottom:80px;opacity:0;">
+        <h2>Inventario Unificado: vendes en tienda<br/>y la web se actualiza <span class="highlight">al instante</span></h2>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════════════════════
+         SCENE 5 — CTA / Closing (16s – 20s)
+         ════════════════════════════════════════════════════════════ -->
+    <section id="s5" class="clip scene" data-start="16" data-duration="4" data-track-index="1">
+      <div class="bg-glow" style="width:900px;height:900px;background:rgba(193,140,126,0.06);top:50%;left:50%;transform:translate(-50%,-50%);"></div>
+      <div class="bg-glow" style="width:400px;height:400px;background:rgba(255,255,255,0.02);bottom:-50px;right:-50px;"></div>
+      <div class="bg-noise"></div>
+      <div class="bg-grid"></div>
+
+      <div class="corner-accent tl"></div>
+      <div class="corner-accent tr"></div>
+      <div class="corner-accent bl"></div>
+      <div class="corner-accent br"></div>
+
+      <!-- Ghost decorative text -->
+      <div class="ghost-text" style="top:100px;right:-60px;transform:rotate(8deg);">VUNOTEK</div>
+      <div class="ghost-text" style="bottom:200px;left:-80px;transform:rotate(-5deg);font-size:160px;">DIGITAL</div>
+
+      <div class="cta-container">
+        <div id="s5-arch-line" class="cta-arch-line"></div>
+        <h1 id="s5-brand" class="cta-brand">Vunotek</h1>
+        <p id="s5-tagline" class="cta-tagline">Tu Sucursal Digital</p>
+
+        <div id="s5-features" class="cta-features">
+          <div class="cta-feature"><span class="bullet"></span> Incluye Dominio .com + Hosting</div>
+          <div class="cta-feature"><span class="bullet"></span> Sistema de Inventario POS</div>
+        </div>
+
+        <div id="s5-cta-btn" class="cta-button">¡Escríbenos ya!</div>
+        <p id="s5-sub" class="cta-sub">Vunotek — Tienda online lista en 24 horas</p>
+      </div>
+    </section>
+
+  </div><!-- /root -->
+
+  <script>
+    window.__timelines = window.__timelines || {};
+    var tl = gsap.timeline({ paused: true });
+
+    // ───────────────────────────────────────
+    // SCENE 1 — Home scrolldown (0s – 4s)
+    // ───────────────────────────────────────
+    // Entrance: phone + text
+    tl.fromTo("#s1-phone",
+      { scale: 0.85, opacity: 0, y: 40 },
+      { scale: 1, opacity: 1, y: 0, duration: 0.7, ease: "power3.out" },
+      0.3
+    );
+    tl.fromTo("#s1 .scene-tag",
+      { opacity: 0, y: -10 },
+      { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" },
+      0.4
+    );
+    // Scroll simulation: highlight moves down + scroll thumb moves
+    tl.to("#s1-highlight",
+      { opacity: 0.6, duration: 0.3, ease: "power1.out" },
+      1.2
+    );
+    tl.to("#s1-highlight",
+      { y: 380, duration: 1.8, ease: "power2.inOut" },
+      1.5
+    );
+    tl.to("#s1-highlight",
+      { opacity: 0, duration: 0.3 },
+      3.2
+    );
+    tl.to("#s1-scroll-thumb",
+      { y: 340, duration: 2.2, ease: "power2.inOut" },
+      1.3
+    );
+    // Text fade in
+    tl.fromTo("#s1-text",
+      { opacity: 0, y: 30 },
+      { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" },
+      0.7
+    );
+
+    // ───────────────────────────────────────
+    // SCENE 2 — Product detail + Add to Cart (4s – 8s)
+    // ───────────────────────────────────────
+    // Entrance transition
+    tl.fromTo("#s2-phone",
+      { scale: 0.92, opacity: 0, y: 30 },
+      { scale: 1, opacity: 1, y: 0, duration: 0.6, ease: "power3.out" },
+      4.2
+    );
+    tl.fromTo("#s2 .scene-tag",
+      { opacity: 0, y: -10 },
+      { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" },
+      4.3
+    );
+
+    // Color swatch click ping
+    tl.to("#s2-ping-color",
+      { opacity: 0.8, scale: 1.2, duration: 0.25, ease: "power2.out" },
+      4.8
+    );
+    tl.to("#s2-ping-color",
+      { opacity: 0, scale: 0.8, duration: 0.35, ease: "power1.in" },
+      5.05
+    );
+
+    // Move cursor to color swatch
+    tl.set("#s2-cursor", { opacity: 1, x: 0, y: 0 }, 4.7);
+    tl.to("#s2-cursor", { x: 80, y: 60, duration: 0.4, ease: "power2.inOut" }, 4.7);
+
+    // Size click ping
+    tl.to("#s2-ping-size",
+      { opacity: 0.8, scale: 1.2, duration: 0.25, ease: "power2.out" },
+      5.6
+    );
+    tl.to("#s2-ping-size",
+      { opacity: 0, scale: 0.8, duration: 0.35, ease: "power1.in" },
+      5.85
+    );
+    tl.to("#s2-cursor", { x: 60, y: 130, duration: 0.4, ease: "power2.inOut" }, 5.4);
+
+    // Add to Cart button ping
+    tl.to("#s2-ping-cart",
+      { opacity: 0.8, scale: 1.3, duration: 0.25, ease: "back.out(2)" },
+      6.5
+    );
+    tl.to("#s2-ping-cart",
+      { opacity: 0, scale: 0.7, duration: 0.4, ease: "power1.in" },
+      6.75
+    );
+    tl.to("#s2-cursor", { x: 100, y: 370, duration: 0.5, ease: "power2.inOut" }, 6.25);
+    tl.to("#s2-cursor", { opacity: 0, duration: 0.2 }, 7.3);
+
+    // Text
+    tl.fromTo("#s2-text",
+      { opacity: 0, y: 30 },
+      { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" },
+      4.6
+    );
+
+    // ───────────────────────────────────────
+    // SCENE 3 — Checkout + Receipt (8s – 12s)
+    // ───────────────────────────────────────
+    tl.fromTo("#s3-phone",
+      { scale: 0.92, opacity: 0, y: 30 },
+      { scale: 1, opacity: 1, y: 0, duration: 0.6, ease: "power3.out" },
+      8.2
+    );
+    tl.fromTo("#s3 .scene-tag",
+      { opacity: 0, y: -10 },
+      { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" },
+      8.3
+    );
+
+    // Sequential form field highlights
+    tl.to("#s3-field-1",
+      { opacity: 0.5, duration: 0.25, ease: "power1.out" },
+      8.6
+    );
+    tl.to("#s3-field-1",
+      { opacity: 0, duration: 0.25 },
+      8.95
+    );
+    tl.to("#s3-field-2",
+      { opacity: 0.5, duration: 0.25, ease: "power1.out" },
+      9.1
+    );
+    tl.to("#s3-field-2",
+      { opacity: 0, duration: 0.25 },
+      9.45
+    );
+    tl.to("#s3-field-3",
+      { opacity: 0.5, duration: 0.25, ease: "power1.out" },
+      9.6
+    );
+    tl.to("#s3-field-3",
+      { opacity: 0, duration: 0.25 },
+      9.95
+    );
+
+    // Receipt upload animation
+    tl.fromTo("#s3-receipt",
+      { opacity: 0, scale: 0.5, y: 20 },
+      { opacity: 1, scale: 1, y: 0, duration: 0.5, ease: "back.out(1.7)" },
+      10.2
+    );
+    tl.to("#s3-receipt",
+      { y: -20, opacity: 0, duration: 0.4, ease: "power2.in" },
+      10.8
+    );
+    // Success checkmark
+    tl.fromTo("#s3-check",
+      { opacity: 0, scale: 0, rotation: -30 },
+      { opacity: 1, scale: 1, rotation: 0, duration: 0.5, ease: "back.out(2)" },
+      11.1
+    );
+    tl.to("#s3-check",
+      { scale: 1.1, duration: 0.2, ease: "power1.out" },
+      11.6
+    );
+    tl.to("#s3-check",
+      { scale: 1, duration: 0.15, ease: "power1.in" },
+      11.8
+    );
+
+    // Text
+    tl.fromTo("#s3-text",
+      { opacity: 0, y: 30 },
+      { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" },
+      8.6
+    );
+
+    // ───────────────────────────────────────
+    // SCENE 4 — POS + Inventory sync (12s – 16s)
+    // ───────────────────────────────────────
+    tl.fromTo("#s4-desktop",
+      { scale: 0.9, opacity: 0, y: 20 },
+      { scale: 1, opacity: 1, y: 0, duration: 0.6, ease: "power3.out" },
+      12.2
+    );
+    tl.fromTo("#s4 .scene-tag",
+      { opacity: 0, y: -10 },
+      { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" },
+      12.3
+    );
+
+    // Search bar highlight
+    tl.to("#s4-ping-search",
+      { opacity: 0.5, duration: 0.3, ease: "power1.out" },
+      12.6
+    );
+    tl.to("#s4-ping-search",
+      { opacity: 0, duration: 0.3 },
+      13.0
+    );
+
+    // Add product to cart
+    tl.to("#s4-ping-add",
+      { opacity: 0.6, scale: 1.2, duration: 0.25, ease: "back.out(2)" },
+      13.3
+    );
+    tl.to("#s4-ping-add",
+      { opacity: 0, scale: 0.8, duration: 0.35, ease: "power1.in" },
+      13.55
+    );
+
+    // Process sale
+    tl.to("#s4-ping-process",
+      { opacity: 0.6, scale: 1.15, duration: 0.3, ease: "back.out(2)" },
+      14.0
+    );
+    tl.to("#s4-ping-process",
+      { opacity: 0, scale: 0.8, duration: 0.4, ease: "power1.in" },
+      14.3
+    );
+
+    // Sync visual: nodes fade in + connecting line draws
+    tl.to("#s4-sync-1",
+      { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(1.5)" },
+      14.5
+    );
+    tl.to("#s4-sync-2",
+      { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(1.5)" },
+      14.6
+    );
+    tl.to("#s4-sync-line",
+      { opacity: 0.8, scaleX: 1, duration: 0.6, ease: "power2.inOut" },
+      14.5
+    );
+    // Pulse the sync nodes (window: 14.8–16.0 = 1.2s, cycle: 0.6s → 2 pulses)
+    tl.to("#s4-sync-1",
+      { scale: 1.2, duration: 0.3, ease: "power1.inOut", yoyo: true, repeat: 1 },
+      14.8
+    );
+    tl.to("#s4-sync-2",
+      { scale: 1.2, duration: 0.3, ease: "power1.inOut", yoyo: true, repeat: 1 },
+      14.8
+    );
+
+    // Text
+    tl.fromTo("#s4-text",
+      { opacity: 0, y: 30 },
+      { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" },
+      12.6
+    );
+
+    // ───────────────────────────────────────
+    // SCENE 5 — CTA / Closing (16s – 20s)
+    // ───────────────────────────────────────
+    // Arch line draw
+    tl.fromTo("#s5-arch-line",
+      { scaleX: 0, opacity: 0 },
+      { scaleX: 1, opacity: 1, duration: 0.5, ease: "power3.out" },
+      16.2
+    );
+    // Brand name reveal
+    tl.fromTo("#s5-brand",
+      { opacity: 0, y: 30, scale: 0.95 },
+      { opacity: 1, y: 0, scale: 1, duration: 0.7, ease: "power3.out" },
+      16.4
+    );
+    // Tagline
+    tl.fromTo("#s5-tagline",
+      { opacity: 0, y: 15 },
+      { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" },
+      17.0
+    );
+    // Features stagger in
+    tl.fromTo("#s5-features .cta-feature",
+      { opacity: 0, x: -20 },
+      { opacity: 1, x: 0, duration: 0.4, ease: "power2.out", stagger: 0.15 },
+      17.3
+    );
+    // CTA button
+    tl.fromTo("#s5-cta-btn",
+      { opacity: 0, y: 20, scale: 0.9 },
+      { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: "back.out(1.7)" },
+      17.8
+    );
+    // Button bounce: 0.5s cycle, visible from 18.1 to 20 = 1.9s → 3 bounces
+    tl.to("#s5-cta-btn",
+      { y: -8, duration: 0.25, ease: "power2.inOut", yoyo: true, repeat: 2 },
+      18.1
+    );
+    // Subtext
+    tl.fromTo("#s5-sub",
+      { opacity: 0 },
+      { opacity: 1, duration: 0.5, ease: "power1.out" },
+      18.0
+    );
+
+    // Sentinel: ensure timeline extends to full duration
+    tl.set({}, {}, 19.9);
+
+    // Register timeline
+    window.__timelines["vunotek-promo"] = tl;
+  </script>
+</body>
+</html>

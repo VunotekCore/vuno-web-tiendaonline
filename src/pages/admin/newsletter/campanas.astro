@@ -1,0 +1,8 @@
+---
+import AdminLayout from "../_layout.astro";
+import CampanasPage from "../../../components/admin/CampanasPage.vue";
+---
+
+<AdminLayout title="Campañas" currentPath="/admin/newsletter/campanas">
+  <CampanasPage client:only="vue" />
+</AdminLayout>

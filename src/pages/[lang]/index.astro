@@ -1,0 +1,127 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Navbar from "../../components/organisms/Navbar.astro";
+import Footer from "../../components/organisms/Footer.astro";
+import HeroSlideshow from "../../components/organisms/HeroSlideshow.astro";
+import CategoryVitrines from "../../components/organisms/CategoryVitrines.astro";
+import NewArrivalsSection from "../../components/organisms/NewArrivalsSection.astro";
+import BrandValues from "../../components/organisms/BrandValues.astro";
+import ClosingCTA from "../../components/organisms/ClosingCTA.astro";
+import SocialFeed from "../../components/organisms/SocialFeed.astro";
+import TestimonialsSection from "../../components/organisms/TestimonialsSection.astro";
+import BlogJournal from "../../components/organisms/BlogJournal.astro";
+import { getProducts, getCategories, getLanding } from "../../lib/storage";
+import { type Locale, locales } from "../../i18n/utils";
+import { tenant } from "../../config/tenant";
+
+export async function getStaticPaths() {
+  return locales.map((lang) => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params as { lang: Locale };
+const products = await getProducts(lang);
+const allCategories = await getCategories(lang);
+
+const activeCategorySlugs = new Set(products.map(p => p.category_slug).filter(Boolean));
+const categories = allCategories.filter(c => activeCategorySlugs.has(c.slug));
+
+function productForCategory(slug: string) {
+  return products.find(p => p.category_slug === slug);
+}
+
+const featuredProductsList = products.filter(p => p.isFeatured);
+const heroProducts = featuredProductsList.length > 0 ? featuredProductsList.slice(0, 4) : products.slice(0, 4);
+const newArrivals = [...products].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+const categoryVitrines = categories;
+const landing = await getLanding();
+
+const siteUrl = import.meta.env.PROD ? tenant.brand.url : "http://localhost:4321";
+const currentPath = Astro.url.pathname;
+const alternateUrls = {
+  es: `${siteUrl}/es/`,
+  en: `${siteUrl}/en/`,
+};
+---
+
+<BaseLayout title={tenant.brand.slogan} lang={lang} alternateUrls={alternateUrls}>
+  <Navbar lang={lang} currentPath={currentPath} />
+
+  <!-- Storefront Hero — Slideshow -->
+  <HeroSlideshow lang={lang} heroProducts={heroProducts} data={landing?.hero} />
+
+  <!-- New Arrivals -->
+  <NewArrivalsSection lang={lang} products={newArrivals} data={landing?.new_arrivals} />
+
+  <!-- Display Windows — Category Vitrines -->
+  <CategoryVitrines lang={lang} categories={categoryVitrines} productForCategory={productForCategory} data={landing?.categories} />
+
+  <!-- Brand Values -->
+  <BrandValues lang={lang} data={landing?.brand_values} />
+
+  <!-- Closing CTA -->
+  <ClosingCTA lang={lang} data={landing?.closing_cta} />
+
+  <!-- Testimonials -->
+  <TestimonialsSection lang={lang} data={landing?.testimonials} />
+
+  <!-- Blog Journal -->
+  <BlogJournal lang={lang} data={landing?.blog} />
+
+  <!-- Social Media -->
+  <SocialFeed lang={lang} data={landing?.social} />
+
+  <Footer lang={lang} />
+
+
+  <script>
+    (function () {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("revealed");
+              observer.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.1, rootMargin: "0px 0px -40px 0px" }
+      );
+
+      document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
+    })();
+  </script>
+
+  <script>
+    (function () {
+      var lang = window.location.pathname.startsWith("/en/") ? "en" : "es";
+      fetch("/api/configuracion/public.php")
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          var landing = data.landing || {};
+          Object.keys(landing).forEach(function (sectionKey) {
+            var sectionData = landing[sectionKey];
+            if (!sectionData) return;
+            var el = document.querySelector('[data-section="' + sectionKey + '"]');
+            if (!el || !(el instanceof HTMLElement)) return;
+
+            // Hide section if disabled
+            if (sectionData.enabled === false) {
+              el.style.display = "none";
+              return;
+            }
+            el.style.display = "";
+
+            // Update text fields
+            el.querySelectorAll("[data-field]").forEach(function (fieldEl) {
+              var field = fieldEl.getAttribute("data-field");
+              if (!field) return;
+              var value = sectionData[field + "_" + lang];
+              if (!value) value = sectionData[field];
+              if (value) fieldEl.textContent = value;
+            });
+          });
+        })
+        .catch(function () {});
+    })();
+  </script>
+</BaseLayout>

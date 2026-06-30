@@ -1,53 +1,8 @@
 ---
-import AdminLayout from "./layout.astro";
-import { getProducts } from "../../lib/storage";
-
-const products = await getProducts();
+import AdminLayout from "./_layout.astro";
+import ProductosPage from "../../components/admin/ProductosPage.vue";
 ---
 
-<AdminLayout title="Productos">
-  <div class="flex justify-between items-center mb-6">
-    <p class="font-body text-body-md text-secondary">{products.length} productos registrados</p>
-    <a href="/admin/productos/nuevo" class="bg-monolith-black text-off-white font-label-caps text-label-caps h-10 px-6 inline-flex items-center justify-center hover:opacity-90 transition-opacity">
-      + NUEVO PRODUCTO
-    </a>
-  </div>
-  <div class="bg-off-white border border-outline-variant">
-    <div class="overflow-x-auto">
-      <table class="w-full text-left">
-        <thead>
-          <tr class="border-b border-outline-variant font-label-caps text-label-caps text-secondary">
-            <th class="p-4 font-medium">PRODUCTO</th>
-            <th class="p-4 font-medium">PRECIO</th>
-            <th class="p-4 font-medium">CATEGORÍA</th>
-            <th class="p-4 font-medium">STOCK</th>
-            <th class="p-4 font-medium">ACCIONES</th>
-          </tr>
-        </thead>
-        <tbody>
-          {products.map((p) => {
-            const totalStock = p.sizes.reduce((sum, s) => sum + (s.inStock ? 1 : 0), 0);
-            return (
-              <tr class="border-b border-outline-variant/50 hover:bg-surface-container-low transition-colors">
-                <td class="p-4 font-body text-body-md">{p.name}</td>
-                <td class="p-4 font-price-display text-price-display">${p.price.toFixed(2)}</td>
-                <td class="p-4 font-body text-body-md text-secondary">{p.category}</td>
-                <td class="p-4">
-                  <span class={`font-label-caps text-label-caps text-xs px-2 py-1 ${totalStock === 0 ? "bg-error/20 text-error" : "bg-monolith-black/10 text-monolith-black"}`}>
-                    {totalStock === 0 ? "AGOTADO" : `${p.sizes.length} talles`}
-                  </span>
-                </td>
-                <td class="p-4">
-                  <div class="flex gap-3">
-                    <button class="font-label-caps text-label-caps text-secondary hover:text-monolith-black transition-colors">EDIT</button>
-                    <button class="font-label-caps text-label-caps text-secondary hover:text-error transition-colors">DELETE</button>
-                  </div>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
-  </div>
+<AdminLayout title="Productos" currentPath="/admin/productos">
+  <ProductosPage client:only="vue" />
 </AdminLayout>

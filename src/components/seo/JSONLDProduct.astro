@@ -1,0 +1,63 @@
+---
+import { tenant } from "../../config/tenant";
+
+export interface Props {
+  name: string;
+  description: string;
+  image: string[];
+  slug: string;
+  price: number;
+  currency?: string;
+  availability?: "InStock" | "OutOfStock" | "PreOrder";
+  sku?: string;
+  brand?: string;
+  review?: {
+    ratingValue: number;
+    reviewCount: number;
+  };
+}
+
+const {
+  name,
+  description,
+  image,
+  slug,
+  price,
+  currency = "USD",
+  availability = "InStock",
+  sku,
+  brand = "Vunotek",
+  review,
+} = Astro.props;
+
+const siteUrl = import.meta.env.PROD ? tenant.brand.url : "http://localhost:4321";
+const productUrl = `${siteUrl}${slug.startsWith("/") ? slug : "/es/producto/" + slug}`;
+---
+
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": name,
+  "description": description,
+  "image": image,
+  "sku": sku || slug,
+  "brand": {
+    "@type": "Brand",
+    "name": brand
+  },
+  "url": productUrl,
+  "offers": {
+    "@type": "Offer",
+    "price": price,
+    "priceCurrency": currency,
+    "availability": `https://schema.org/${availability}`,
+    "url": productUrl
+  },
+  ...(review && review.reviewCount > 0 ? {
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": review.ratingValue,
+      "reviewCount": review.reviewCount
+    }
+  } : {})
+})}></script>

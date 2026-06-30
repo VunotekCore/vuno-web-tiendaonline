@@ -1,0 +1,32 @@
+---
+interface Props {
+  delay?: 0 | 1 | 2 | 3 | 4 | 5;
+  class?: string;
+  as?: "div" | "section" | "article" | "span";
+}
+
+const { delay = 0, class: className = "", as: Tag = "div" } = Astro.props;
+const revealClass = delay > 0 ? `reveal reveal-delay-${delay}` : "reveal";
+---
+
+<Tag class:list={[revealClass, className]}>
+  <slot />
+</Tag>
+
+<script>
+  (function () {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("revealed");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.1, rootMargin: "0px 0px -40px 0px" }
+    );
+
+    document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
+  })();
+</script>

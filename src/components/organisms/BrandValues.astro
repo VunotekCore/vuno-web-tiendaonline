@@ -1,0 +1,71 @@
+---
+import { imgTransform } from "../../lib/images";
+import { t, type Locale } from "../../i18n/utils";
+import type { LandingSectionData } from "../../lib/storage";
+
+interface Props {
+  lang: Locale;
+  data?: LandingSectionData | null;
+}
+
+const { lang, data } = Astro.props;
+if (data && data.enabled === false) return;
+
+const label = data?.label_es && data?.label_en
+  ? (lang === "es" ? data.label_es : data.label_en)
+  : t("home.brandValues.label", lang);
+const title = data?.title_es && data?.title_en
+  ? (lang === "es" ? data.title_es : data.title_en)
+  : t("home.brandValues.title", lang);
+const paragraph = data?.paragraph_es && data?.paragraph_en
+  ? (lang === "es" ? data.paragraph_es : data.paragraph_en)
+  : t("home.brandValues.paragraph", lang);
+const cta = data?.cta_es && data?.cta_en
+  ? (lang === "es" ? data.cta_es : data.cta_en)
+  : t("home.brandValues.cta", lang);
+const ctaLink = data?.cta_category_slug
+  ? `/${lang}/catalogo?categoria=${data.cta_category_slug}`
+  : (data?.cta_link || `/${lang}/catalogo`);
+const imageUrl = data?.image_url || "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=700&h=900&fit=crop";
+const badgeNumber = data?.badge_number || "100%";
+const badgeText = data?.badge_es && data?.badge_en
+  ? (lang === "es" ? data.badge_es : data.badge_en)
+  : t("home.brandValues.badge_text", lang);
+---
+
+<section class="relative py-section-gap px-margin-mobile md:px-margin-desktop overflow-hidden" data-section="brand_values">
+      <div class="max-w-container-max mx-auto flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
+        <div class="w-full lg:w-1/2 relative reveal">
+          <div class="aspect-[4/5] bg-surface-container overflow-hidden relative">
+            <img
+              src={imgTransform(imageUrl, 700, 900)}
+              alt=""
+              class="w-full h-full object-cover object-center"
+              loading="lazy"
+            />
+            <div class="absolute -bottom-4 -right-4 md:-bottom-5 md:-right-5 lg:-bottom-6 lg:-right-6 bg-off-white p-6 md:p-8 border border-outline-variant shadow-lg max-w-[200px]">
+              <span class="font-headline-lg text-headline-lg text-monolith-black block leading-none">{badgeNumber}</span>
+              <span class="font-body-md text-body-md text-secondary mt-1 block">{badgeText}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="w-full lg:w-1/2 flex flex-col items-start reveal reveal-delay-2">
+          <span class="font-label-caps text-label-caps text-clay-accent tracking-[0.15em] mb-4" data-field="label">{label}</span>
+          <span class="arch-line arch-line-clay mb-6"></span>
+          <h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-monolith-black leading-tight" data-field="title">
+            {title}
+          </h2>
+          <p class="font-body-lg text-body-lg text-secondary max-w-md mt-4" data-field="paragraph">
+            {paragraph}
+          </p>
+          <a
+            href={ctaLink}
+            class="inline-flex items-center justify-center bg-monolith-black text-off-white font-label-caps text-label-caps h-12 px-8 mt-8 hover:bg-surface-tint hover:tracking-[0.15em] transition-all duration-300"
+            data-field="cta"
+          >
+            {cta}
+          </a>
+        </div>
+      </div>
+    </section>

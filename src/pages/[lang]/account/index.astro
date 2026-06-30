@@ -1,0 +1,175 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import Navbar from "../../../components/organisms/Navbar.astro";
+import Footer from "../../../components/organisms/Footer.astro";
+import { t, type Locale, locales } from "../../../i18n/utils";
+
+export async function getStaticPaths() {
+  return locales.map((lang) => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params as { lang: Locale };
+const currentPath = Astro.url.pathname;
+---
+
+<BaseLayout title={lang === "es" ? "Mi Cuenta | Vunotek" : "My Account | Vunotek"} lang={lang}>
+  <Navbar lang={lang} currentPath={currentPath} />
+  <main class="flex-grow w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-section-gap">
+    <div id="notLoggedIn" class="hidden text-center py-20">
+      <p class="font-body text-body-lg text-secondary mb-6">{t("auth.login", lang)}</p>
+      <a href={`/${lang}/login`} class="inline-block bg-monolith-black text-off-white font-label-caps text-label-caps h-12 px-8 leading-[48px] hover:bg-monolith-black/90 transition-all tracking-widest">{t("auth.signIn", lang)}</a>
+    </div>
+
+    <div id="accountContent" class="hidden">
+      <div class="bg-surface-container-lowest border border-outline-variant shadow-sm">
+        <div class="h-[1px] bg-gradient-to-r from-transparent via-monolith-black/15 to-transparent"></div>
+        <div class="p-6 md:p-8">
+          <!-- Header -->
+          <div class="flex items-start justify-between mb-10">
+            <div>
+              <h1 class="font-headline text-headline-lg-mobile md:text-headline-lg">{t("account.title", lang)}</h1>
+              <div class="arch-line mt-3"></div>
+              <p class="font-body text-body-md text-secondary mt-3">{t("account.welcome", lang)}, <span id="customerName" class="text-monolith-black font-medium"></span></p>
+            </div>
+            <button type="button" onclick="window.openProfileEditModal()" class="font-label-caps text-label-caps border border-monolith-black/20 text-monolith-black h-10 px-4 inline-flex items-center hover:bg-monolith-black/5 hover:border-monolith-black transition-all text-sm cursor-pointer flex-shrink-0 ml-4">{t("account.editProfile", lang)}</button>
+          </div>
+
+          <!-- Stats cards -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-12">
+            <div class="bg-off-white border border-outline-variant shadow-sm p-6 relative overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 reveal reveal-delay-1">
+              <span class="material-symbols-outlined text-lg text-monolith-black/20 absolute top-4 right-4">person</span>
+              <p class="font-label-caps text-label-caps text-secondary tracking-widest">{t("account.memberSince", lang)}</p>
+              <div class="arch-line arch-line-clay mt-3 mb-3"></div>
+              <p class="font-headline text-headline-md text-monolith-black tracking-tight" id="customerMemberSince"></p>
+            </div>
+            <div class="bg-off-white border border-outline-variant shadow-sm p-6 relative overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 reveal reveal-delay-2">
+              <span class="material-symbols-outlined text-lg text-monolith-black/20 absolute top-4 right-4">receipt</span>
+              <p class="font-label-caps text-label-caps text-secondary tracking-widest">{t("account.lastOrder", lang)}</p>
+              <div class="arch-line arch-line-clay mt-3 mb-3"></div>
+              <p class="font-headline text-headline-md text-monolith-black tracking-tight" id="customerLastOrder"></p>
+            </div>
+            <div class="bg-off-white border border-outline-variant shadow-sm p-6 relative overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 reveal reveal-delay-3">
+              <span class="material-symbols-outlined text-lg text-monolith-black/20 absolute top-4 right-4">shopping_bag</span>
+              <p class="font-label-caps text-label-caps text-secondary tracking-widest">{t("account.orders", lang)}</p>
+              <div class="arch-line arch-line-clay mt-3 mb-3"></div>
+              <p class="font-headline text-headline-md text-monolith-black tracking-tight" id="customerOrderCount"></p>
+            </div>
+          </div>
+
+          <!-- Recent orders header -->
+          <div class="flex items-center justify-between mb-5">
+            <h2 class="font-headline text-headline-md">{t("account.recentOrders", lang)}</h2>
+            <a href={`/${lang}/account/orders`} class="font-label-caps text-label-caps text-secondary hover:text-monolith-black transition-colors text-sm tracking-widest">{t("account.viewAllOrders", lang)}</a>
+          </div>
+
+          <div id="recentOrders" class="space-y-3"></div>
+          <div id="noOrders" class="hidden text-center py-16">
+            <span class="material-symbols-outlined text-3xl text-monolith-black/15 block mb-3">shopping_bag</span>
+            <p class="font-body text-body-md text-secondary mb-6">{t("account.noOrders", lang)}</p>
+            <a href={`/${lang}/catalogo`} class="inline-block bg-monolith-black text-off-white font-label-caps text-label-caps h-10 px-6 leading-[40px] hover:bg-monolith-black/90 transition-all tracking-widest text-sm">EXPLORAR</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  <Footer lang={lang} />
+
+  <script src="/js/auth.js" is:inline></script>
+  <script>
+    // @ts-nocheck
+    const LANG = document.querySelector("html").getAttribute("lang") || "es";
+    const statusBorderStyles = {
+      pending: "border-l-clay-accent",
+      paid: "border-l-monolith-black",
+      shipped: "border-l-monolith-black/60",
+      delivered: "border-l-green-700",
+      cancelled: "border-l-error",
+    };
+    const statusStyles = {
+      pending: "bg-clay-accent/20 text-clay-accent",
+      paid: "bg-monolith-black text-off-white",
+      shipped: "bg-monolith-black/80 text-off-white",
+      delivered: "bg-monolith-black text-off-white",
+      cancelled: "bg-error/20 text-error",
+    };
+
+    function renderOrderRow(o) {
+      const sym = o.currency === "MXN" ? "MX$" : o.currency === "GTQ" ? "Q" : "$";
+      const total = o.display_total || o.total || 0;
+      const statusClass = statusStyles[o.status] || "";
+      const borderClass = statusBorderStyles[o.status] || "border-l-monolith-black/20";
+      const date = o.createdAt ? new Date(o.createdAt).toLocaleDateString() : "";
+      const itemsCount = o.items?.length || 0;
+      return `<button type="button" onclick="window.openOrderDetail('${o.id}')" class="w-full text-left flex items-center justify-between p-5 bg-off-white border border-outline-variant border-l-[3px] ${borderClass} shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 group cursor-pointer">
+        <div class="flex items-center gap-5 flex-wrap min-w-0">
+          <div>
+            <p class="font-label-caps text-label-caps text-secondary text-xs tracking-widest">#${o.id}</p>
+            <p class="font-body text-body-md text-secondary text-sm mt-0.5">${date}</p>
+          </div>
+          <span class="inline-flex items-center gap-1 font-label-caps text-label-caps text-xs px-2 py-0.5 ${statusClass}">${(o.status || "").toUpperCase()}</span>
+          <span class="font-body text-body-md text-secondary/60 text-xs">${itemsCount} item(s)</span>
+        </div>
+        <div class="flex items-center gap-3 flex-shrink-0 ml-4">
+          <div class="text-right">
+            <p class="font-label-caps text-label-caps text-secondary/50 text-[10px] tracking-widest">TOTAL</p>
+            <p class="font-price-display text-price-display text-monolith-black leading-tight">${sym}${window.formatPrice(total)}</p>
+          </div>
+          <span class="material-symbols-outlined text-lg text-secondary/30 group-hover:text-monolith-black transition-colors">chevron_right</span>
+        </div>
+      </button>`;
+    }
+
+    // Reveal on mount
+    function revealElements() {
+      const els = document.querySelectorAll("#accountContent .reveal");
+      els.forEach(function (el, i) {
+        setTimeout(function () {
+          el.classList.add("revealed");
+        }, 100 + i * 100);
+      });
+    }
+
+    (async function () {
+      if (!window.VunoAuth) {
+        document.getElementById("notLoggedIn").classList.remove("hidden");
+        return;
+      }
+
+      const customer = await window.VunoAuth.verify();
+      if (!customer) {
+        document.getElementById("notLoggedIn").classList.remove("hidden");
+        return;
+      }
+
+      document.getElementById("customerName").textContent = customer.name;
+      document.getElementById("customerMemberSince").textContent = customer.memberSince || "—";
+
+      document.getElementById("accountContent").classList.remove("hidden");
+      revealElements();
+
+      try {
+        const res = await window.VunoAuth.authFetch("/api/customer/orders.php");
+        const data = await res.json();
+        const orders = data.orders || [];
+        document.getElementById("customerOrderCount").textContent = orders.length;
+
+        if (orders.length > 0) {
+          document.getElementById("customerLastOrder").textContent =
+            new Date(orders[0].createdAt).toLocaleDateString();
+        } else {
+          document.getElementById("customerLastOrder").textContent = customer.lastOrderAt || "—";
+        }
+
+        if (orders.length === 0) {
+          document.getElementById("noOrders").classList.remove("hidden");
+          return;
+        }
+
+        const recent = orders.slice(0, 5);
+        document.getElementById("recentOrders").innerHTML = recent.map(renderOrderRow).join("");
+      } catch {
+        document.getElementById("customerOrderCount").textContent = "—";
+      }
+    })();
+  </script>
+</BaseLayout>

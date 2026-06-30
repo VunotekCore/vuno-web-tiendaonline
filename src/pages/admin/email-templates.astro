@@ -1,0 +1,8 @@
+---
+import AdminLayout from "./_layout.astro";
+import EmailTemplatesPage from "../../components/admin/EmailTemplatesPage.vue";
+---
+
+<AdminLayout title="Plantillas Email" currentPath="/admin/email-templates">
+  <EmailTemplatesPage client:only="vue" />
+</AdminLayout>

@@ -1,0 +1,115 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Navbar from "../../components/organisms/Navbar.astro";
+import Footer from "../../components/organisms/Footer.astro";
+import AnimatedReveal from "../../components/atoms/AnimatedReveal.astro";
+import { t, type Locale, locales } from "../../i18n/utils";
+import { tenant } from "../../config/tenant";
+
+export async function getStaticPaths() {
+  return locales.map((lang) => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params as { lang: Locale };
+const currentPath = Astro.url.pathname;
+const siteUrl = import.meta.env.PROD ? tenant.brand.url : "http://localhost:4321";
+const alternateUrls = {
+  es: `${siteUrl}/es/wishlist`,
+  en: `${siteUrl}/en/wishlist`,
+};
+---
+
+<BaseLayout title={lang === "es" ? "Lista de Deseos | Vunotek" : "Wishlist | Vunotek"} lang={lang} alternateUrls={alternateUrls} seo={{ noindex: true }}>
+  <Navbar lang={lang} currentPath={currentPath} />
+  <main class="flex-grow w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-section-gap">
+    <AnimatedReveal>
+      <div class="mb-gutter">
+        <h1 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg mb-unit">{t("wishlist.title", lang)}</h1>
+        <p class="font-body-md text-body-md text-secondary">{t("wishlist.subtitle", lang)}</p>
+      </div>
+    </AnimatedReveal>
+
+    <div id="wishlistContainer" class="hidden">
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-gutter gap-y-12" id="wishlistItems"></div>
+    </div>
+
+    <div id="emptyWishlist" class="text-center py-20">
+      <AnimatedReveal>
+        <span class="material-symbols-outlined text-5xl text-outline mb-4" style="font-variation-settings: 'FILL' 0">favorite_border</span>
+        <p class="font-body-lg text-body-lg text-secondary mb-6">{t("wishlist.empty", lang)}</p>
+        <a href={`/${lang}/catalogo`} class="inline-flex items-center justify-center bg-monolith-black text-off-white font-label-caps text-label-caps h-14 px-10 hover:bg-on-surface hover:tracking-[0.15em] transition-all duration-300">
+          {t("wishlist.explore", lang)}
+        </a>
+      </AnimatedReveal>
+    </div>
+  </main>
+  <Footer lang={lang} />
+
+  <script is:inline define:vars={{ lang, wishlistI18n: { addedToCart: t("wishlist.addedToCart", lang), addToCart: t("wishlist.addToCart", lang) } }}>
+    // @ts-nocheck
+    function renderWishlist() {
+      const items = window.VunoWishlist.getItems();
+      const container = document.getElementById("wishlistContainer");
+      const grid = document.getElementById("wishlistItems");
+      const empty = document.getElementById("emptyWishlist");
+      if (items.length === 0) {
+        container.classList.add("hidden");
+        empty.classList.remove("hidden");
+        return;
+      }
+      container.classList.remove("hidden");
+      empty.classList.add("hidden");
+      grid.innerHTML = items.map((item, idx) => {
+        const img = item.product.images && item.product.images.length > 0 ? item.product.images[0] : "";
+        const slug = item.product.slug || "";
+        const productUrl = slug ? "/" + lang + "/producto/" + slug : "/" + lang + "/catalogo";
+        return `<div class="flex flex-col group product-card" data-product-id="${item.product.id}" style="animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) ${idx * 0.08}s both">
+          <div class="relative bg-surface-container aspect-[4/5] overflow-hidden mb-4">
+            <a href="${productUrl}">
+              <img src="${window.imgTransform(img, 400, 500)}" alt="${escapeHtml(item.product.name)}" class="w-full h-full object-cover img-lift" loading="lazy" />
+            </a>
+            <div class="absolute top-3 right-3 flex flex-col gap-2">
+              <button
+                class="w-9 h-9 flex items-center justify-center bg-off-white/80 backdrop-blur-sm rounded-full hover:bg-off-white hover:scale-110 transition-all border border-outline-variant/30 in-wishlist"
+                aria-label="${lang === "es" ? "Eliminar de lista de deseos" : "Remove from wishlist"}"
+                onclick="window.VunoWishlist.removeItem('${item.product.id}'); renderWishlist();"
+              >
+                <span class="material-symbols-outlined wishlist-icon text-[18px] text-monolith-black" style="font-variation-settings: 'FILL' 1">favorite</span>
+              </button>
+            </div>
+            <button
+              class="absolute bottom-4 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0 bg-off-white/90 backdrop-blur-sm px-4 py-2 font-label-caps text-label-caps text-monolith-black hover:bg-monolith-black hover:text-off-white transition-all border border-outline-variant text-xs whitespace-nowrap hidden md:block"
+              onclick="addFromWishlist('${item.product.id}')"
+            >
+              ${wishlistI18n.addToCart}
+            </button>
+          </div>
+          <a href="${productUrl}" class="flex flex-col gap-1">
+            <h3 class="font-body-md text-body-md text-monolith-black group-hover:text-clay-accent transition-colors duration-300">${escapeHtml(item.product.name)}</h3>
+            <p class="font-price-display text-price-display text-secondary">${item.product.display_symbol || '$'}${window.formatPrice(item.product.display_price ?? parseFloat(item.product.price))}</p>
+          </a>
+        </div>`;
+      }).join("");
+    }
+
+    function addFromWishlist(productId) {
+      const items = window.VunoWishlist.getItems();
+      const item = items.find(function (i) { return i.product.id === productId; });
+      if (!item) return;
+      var slug = item.product.slug;
+      if (slug) {
+        window.location.href = "/" + lang + "/producto/" + slug;
+      } else {
+        window.location.href = "/" + lang + "/catalogo";
+      }
+    }
+
+    function escapeHtml(str) {
+      if (typeof str !== "string") return str || "";
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+
+    renderWishlist();
+    window.addEventListener("wishlist:updated", renderWishlist);
+  </script>
+</BaseLayout>

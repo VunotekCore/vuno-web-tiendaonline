@@ -1,0 +1,181 @@
+---
+import { t, type Locale } from "../../i18n/utils";
+import type { LandingSectionData } from "../../lib/storage";
+import AnimatedReveal from "../atoms/AnimatedReveal.astro";
+
+interface Props {
+  lang: Locale;
+  data?: LandingSectionData | null;
+  variant?: "full" | "compact";
+  theme?: "light" | "dark";
+}
+
+const { lang, data, variant = "full", theme = "light" } = Astro.props;
+
+let title = "";
+let subtitle = "";
+let placeholder = "";
+let cta = "";
+
+if (variant === "full" && theme === "dark") {
+  title = t("home.newsletter.title", lang);
+  subtitle = t("home.newsletter.subtitle", lang);
+  placeholder = t("home.newsletter.placeholder", lang);
+  cta = t("home.newsletter.cta", lang);
+} else if (variant === "full") {
+  if (data && data.enabled === false) return;
+
+  title = data?.title_es && data?.title_en
+    ? (lang === "es" ? data.title_es : data.title_en)
+    : t("home.newsletter.title", lang);
+  subtitle = data?.subtitle_es && data?.subtitle_en
+    ? (lang === "es" ? data.subtitle_es : data.subtitle_en)
+    : t("home.newsletter.subtitle", lang);
+  placeholder = data?.placeholder_es && data?.placeholder_en
+    ? (lang === "es" ? data.placeholder_es : data.placeholder_en)
+    : t("home.newsletter.placeholder", lang);
+  cta = data?.cta_es && data?.cta_en
+    ? (lang === "es" ? data.cta_es : data.cta_en)
+    : t("home.newsletter.cta", lang);
+}
+
+const inputPlaceholder = variant === "compact"
+  ? t("footer.emailPlaceholder", lang)
+  : placeholder;
+const formId = variant === "compact" ? "footerNewsletterForm" : "newsletterForm";
+const isDark = theme === "dark";
+---
+
+{
+  variant === "full" && isDark ? (
+    <div class="flex flex-col space-y-4">
+      <span class="font-label-caps text-label-caps text-off-white uppercase tracking-widest">{title}</span>
+      <p class="font-body-md text-body-md text-off-white/60">{subtitle}</p>
+      <form
+        class="flex flex-row gap-3"
+        id={formId}
+        action="/api/email/newsletter.php"
+        method="POST"
+        data-theme="dark"
+      >
+        <input
+          type="email"
+          name="email"
+          required
+          placeholder={inputPlaceholder}
+          class="flex-1 bg-transparent border-b border-off-white/30 pb-2 text-off-white placeholder:text-off-white/40 focus:outline-none focus:border-off-white transition-colors font-body-md text-body-md"
+        />
+        <button
+          type="submit"
+          class="bg-off-white text-monolith-black font-label-caps text-label-caps h-10 px-5 hover:bg-off-white/90 transition-all whitespace-nowrap shrink-0"
+        >
+          {cta}
+        </button>
+      </form>
+    </div>
+  ) : variant === "full" ? (
+    <section class="py-section-gap px-margin-mobile md:px-margin-desktop bg-surface-container-low">
+      <div class="max-w-2xl mx-auto text-center">
+        <AnimatedReveal>
+          <span class="font-label-caps text-label-caps text-clay-accent tracking-[0.15em]">NEWSLETTER</span>
+          <h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-monolith-black leading-tight mt-4">
+            {title}
+          </h2>
+          <p class="font-body-lg text-body-lg text-secondary max-w-lg mx-auto mt-3">
+            {subtitle}
+          </p>
+        </AnimatedReveal>
+        <form
+          class="flex flex-col sm:flex-row gap-3 max-w-md mx-auto mt-8"
+          id={formId}
+          action="/api/email/newsletter.php"
+          method="POST"
+        >
+          <input
+            type="email"
+            name="email"
+            required
+            placeholder={inputPlaceholder}
+            class="flex-1 bg-transparent border-b border-monolith-black pb-2 text-monolith-black focus:outline-none font-body-md text-body-md"
+          />
+          <button
+            type="submit"
+            class="bg-monolith-black text-off-white font-label-caps text-label-caps h-12 px-8 hover:bg-on-surface hover:tracking-[0.15em] transition-all duration-300 whitespace-nowrap"
+          >
+            {cta}
+          </button>
+        </form>
+      </div>
+    </section>
+  ) : (
+    <form
+      class="relative w-full border-b border-off-white/30 group focus-within:border-off-white transition-colors duration-300"
+      id={formId}
+      action="/api/email/newsletter.php"
+      method="POST"
+    >
+      <input
+        type="email"
+        name="email"
+        required
+        placeholder={inputPlaceholder}
+        class="w-full bg-transparent focus:ring-0 px-0 pr-8 py-2 text-off-white placeholder:text-off-white/40 focus:outline-none"
+      />
+      <button
+        type="submit"
+        class="absolute right-0 top-1/2 -translate-y-1/2 text-off-white/60 hover:text-off-white transition-all group-focus-within:text-off-white"
+        aria-label={t("footer.subscribe", lang)}
+      >
+        <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+      </button>
+    </form>
+  )
+}
+
+<script define:vars={{ lang }}>
+  // @ts-nocheck
+  (function () {
+    var forms = ["newsletterForm", "footerNewsletterForm"];
+    forms.forEach(function (id) {
+      var form = document.getElementById(id);
+      if (!form) return;
+      form.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        var emailInput = this.querySelector('input[name="email"]');
+        if (!emailInput || !emailInput.value) return;
+        var email = emailInput.value.trim();
+        var btn = this.querySelector('button[type="submit"]');
+        var iconSpan = btn ? btn.querySelector('[data-icon]') : null;
+        var originalHTML = btn ? btn.innerHTML : "";
+        if (btn) {
+          btn.disabled = true;
+          if (iconSpan) iconSpan.style.display = "none";
+          if (btn.innerHTML.trim()) btn.innerHTML = "…";
+        }
+        try {
+          var res = await fetch("/api/email/newsletter.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: email }),
+          });
+          var result = await res.json();
+          if (!res.ok) throw new Error(result.error || "Error");
+          if (window.VunoToast) {
+            var cleanMsg = result.message ? result.message.replace(/<[^>]+>/g, '') : 'Revisa tu bandeja de entrada';
+            VunoToast.success('¡Suscrito!', cleanMsg);
+          }
+          emailInput.value = "";
+        } catch (err) {
+          if (window.VunoToast) {
+            VunoToast.error('Error', err instanceof Error ? err.message : 'Error');
+          }
+        } finally {
+          if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalHTML;
+          }
+        }
+      });
+    });
+  })();
+</script>

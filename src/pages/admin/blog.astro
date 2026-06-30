@@ -1,0 +1,8 @@
+---
+import AdminLayout from "./_layout.astro";
+import BlogPage from "../../components/admin/BlogPage.vue";
+---
+
+<AdminLayout title="Blog" currentPath="/admin/blog">
+  <BlogPage client:only="vue" />
+</AdminLayout>

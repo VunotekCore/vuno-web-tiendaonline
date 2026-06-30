@@ -1,0 +1,8 @@
+---
+import AdminLayout from "./_layout.astro";
+import ClientesPage from "../../components/admin/ClientesPage.vue";
+---
+
+<AdminLayout title="Clientes" currentPath="/admin/clientes">
+  <ClientesPage client:only="vue" />
+</AdminLayout>

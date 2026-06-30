@@ -1,0 +1,15 @@
+parameters:
+    scanFiles:
+        - php/config.php
+        - php/includes/storage.php
+        - php/includes/helpers.php
+        - php/includes/auth.php
+        - php/includes/stripe.php
+        - php/includes/email.php
+        - php/includes/imagekit.php
+        - php/includes/currency.php
+    level: 9
+    paths:
+        - php/config
+        - php/App
+    treatPhpDocTypesAsCertain: false

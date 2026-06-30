@@ -1,0 +1,208 @@
+---
+import { imgTransform } from "../../lib/images";
+import { t, type Locale } from "../../i18n/utils";
+import type { LandingSectionData } from "../../lib/storage";
+
+interface HeroProduct {
+  name: string;
+  slug: string;
+  images: string[];
+}
+
+interface Props {
+  lang: Locale;
+  heroProducts: HeroProduct[];
+  data?: LandingSectionData | null;
+}
+
+const { lang, heroProducts, data } = Astro.props;
+if (data && data.enabled === false) return;
+const slidesData = heroProducts.map((p) => ({ url: `/${lang}/producto/${p.slug}` }));
+
+const label = data?.label_es && data?.label_en
+  ? (lang === "es" ? data.label_es : data.label_en)
+  : t("home.hero.label", lang);
+const title = data?.title_es && data?.title_en
+  ? (lang === "es" ? data.title_es : data.title_en)
+  : t("home.hero.title", lang);
+const subtitle = data?.subtitle_es && data?.subtitle_en
+  ? (lang === "es" ? data.subtitle_es : data.subtitle_en)
+  : t("home.hero.subtitle", lang);
+const cta = data?.cta_es && data?.cta_en
+  ? (lang === "es" ? data.cta_es : data.cta_en)
+  : t("home.hero.cta", lang);
+const ctaLink = data?.cta_category_slug
+  ? `/${lang}/catalogo?categoria=${data.cta_category_slug}`
+  : (data?.cta_link || `/${lang}/catalogo`);
+---
+
+<section
+  class="relative w-full min-h-[90vh] flex flex-col md:flex-row bg-monolith-black overflow-hidden"
+  id="heroSlideshow"
+  data-section="hero"
+  data-slides={JSON.stringify(slidesData)}
+>
+  <div class="noise-overlay opacity-[0.06]"></div>
+
+  <!-- Image Panel -->
+  <div class="relative md:w-[55%] overflow-hidden h-[55vh] md:h-[90vh]" id="heroImageContainer">
+    {heroProducts.length > 0 && heroProducts.map((p, i) => (
+      <div
+        class="hero-slide-wrap absolute inset-0 bg-monolith-black transition-opacity duration-1000"
+        style={`opacity: ${i === 0 ? 1 : 0}`}
+      >
+        <img
+          src={imgTransform(p.images[0], 800, 1200, 'cm-pad_resize,bg-1A1A1A')}
+          alt={p.name}
+          class="w-full h-full object-cover object-center block"
+          loading={i === 0 ? "eager" : "lazy"}
+        />
+      </div>
+    ))}
+    <div class="absolute inset-0 bg-gradient-to-r from-monolith-black/70 via-monolith-black/20 to-transparent pointer-events-none z-10"></div>
+
+    <!-- Dot navigation -->
+    {heroProducts.length > 1 && (
+      <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-3 z-20" id="heroDots">
+        {heroProducts.map((_, i) => (
+          <button
+            class="hero-dot w-2 h-2 rounded-full transition-all duration-300"
+            style={`background-color: ${i === 0 ? '#C18C7E' : 'rgba(255,255,255,0.35)'}`}
+            data-index={i}
+            aria-label={`Slide ${i + 1}`}
+          ></button>
+        ))}
+      </div>
+    )}
+  </div>
+
+  <!-- Text Panel -->
+  <div class="relative md:w-[45%] flex flex-col justify-center px-margin-mobile md:px-16 py-10 md:py-16 lg:py-0 z-10">
+    <span class="font-label-caps text-label-caps text-clay-accent tracking-[0.15em] mb-6 animate-slideUp" data-field="label">
+      {label}
+    </span>
+    <h1 class="font-headline-xl text-headline-xl text-off-white leading-[1.05] mb-6 animate-slideUp" style="animation-delay: 0.15s" data-field="title">
+      {title}
+    </h1>
+    <p class="font-body-lg text-body-lg text-off-white/60 max-w-md mb-10 animate-slideUp" style="animation-delay: 0.3s" data-field="subtitle">
+      {subtitle}
+    </p>
+    <div class="flex flex-col sm:flex-row gap-4 animate-slideUp" style="animation-delay: 0.45s">
+      <a
+        href={ctaLink}
+        class="inline-flex items-center justify-center bg-off-white text-monolith-black font-label-caps text-label-caps h-14 px-10 hover:bg-off-white/90 hover:tracking-[0.15em] transition-all duration-300"
+        data-field="cta"
+      >
+        {cta}
+      </a>
+      {heroProducts.length > 0 && (
+        <a
+          href={`/${lang}/producto/${heroProducts[0].slug}`}
+          class="inline-flex items-center justify-center border border-off-white/30 text-off-white font-label-caps text-label-caps h-14 px-10 hover:border-off-white/60 hover:tracking-[0.15em] transition-all duration-300"
+          id="heroCta"
+        >
+          {lang === "es" ? "VER VITRINA" : "VIEW DISPLAY"}
+        </a>
+      )}
+    </div>
+  </div>
+
+  <!-- Scroll indicator -->
+  <div class="hidden md:flex absolute bottom-12 left-[55%] translate-x-[-55px] z-10 flex-col items-center gap-2" aria-hidden="true">
+    <span class="font-label-caps text-label-caps text-off-white/40 tracking-[0.2em] text-[10px]">
+      {lang === "es" ? "EXPLORA" : "DISCOVER"}
+    </span>
+    <span class="block w-px h-8 bg-gradient-to-b from-clay-accent to-transparent"></span>
+    <span class="scroll-chevron block w-3 h-3 border-r-2 border-b-2 border-clay-accent rotate-45 -mt-[6px]"></span>
+  </div>
+</section>
+
+<style>
+  @keyframes heroEntrance {
+    from { transform: scale(1.04); opacity: 0.6; }
+    to   { transform: scale(1);    opacity: 1; }
+  }
+
+  .hero-slide-wrap.is-active img {
+    animation: heroEntrance 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  }
+</style>
+
+<script>
+(function () {
+  const wraps  = document.querySelectorAll<HTMLElement>(".hero-slide-wrap");
+  const dots   = document.querySelectorAll<HTMLElement>(".hero-dot");
+  const cta    = document.getElementById("heroCta") as HTMLAnchorElement | null;
+  const section = document.getElementById("heroSlideshow");
+
+  if (wraps.length < 1) return;
+
+  let current = 0;
+  let paused  = false;
+  let timer: ReturnType<typeof setInterval> | undefined;
+
+  const slidesData: Array<{ url: string }> = JSON.parse(
+    section?.getAttribute("data-slides") || "[]"
+  );
+
+  function activateSlide(idx: number) {
+    wraps.forEach((w, i) => {
+      const img = w.querySelector<HTMLImageElement>("img");
+      if (i === idx) {
+        w.style.opacity = "1";
+        // Remove and re-add the class to restart the CSS animation
+        w.classList.remove("is-active");
+        // Force reflow so the browser registers the removal
+        void w.offsetWidth;
+        w.classList.add("is-active");
+        if (img) {
+          img.style.animation = "none";
+          void img.offsetWidth;  // reflow
+          img.style.animation = "";
+        }
+      } else {
+        w.style.opacity = "0";
+        w.classList.remove("is-active");
+        if (img) {
+          img.style.animation = "none";
+          img.style.transform = "";
+        }
+      }
+    });
+
+    dots.forEach((d, i) => {
+      d.style.backgroundColor = i === idx ? "#C18C7E" : "rgba(255,255,255,0.35)";
+      d.style.transform = i === idx ? "scale(1.4)" : "scale(1)";
+    });
+
+    if (cta && slidesData[idx]) {
+      cta.href = slidesData[idx].url;
+    }
+
+    current = idx;
+  }
+
+  function next() {
+    if (!paused) activateSlide((current + 1) % wraps.length);
+  }
+
+  function start() { stop(); timer = setInterval(next, 5000); }
+  function stop()  { if (timer !== undefined) { clearInterval(timer); timer = undefined; } }
+
+  dots.forEach((d) => {
+    d.addEventListener("click", function (this: HTMLElement) {
+      activateSlide(parseInt(this.getAttribute("data-index") || "0"));
+      start();
+    });
+  });
+
+  if (section) {
+    section.addEventListener("mouseenter", () => { paused = true;  stop();  });
+    section.addEventListener("mouseleave", () => { paused = false; start(); });
+  }
+
+  // Initialise first slide
+  activateSlide(0);
+  start();
+})();
+</script>
