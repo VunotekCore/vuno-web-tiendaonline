@@ -9,11 +9,11 @@ interface Props {
 
 const { variant = "primary", class: className = "", href, id, disabled } = Astro.props;
 const Tag = href ? "a" : "button";
-const baseStyles = "inline-flex items-center justify-center font-label-caps text-label-caps min-h-[56px] transition-colors duration-300";
+const baseStyles = "inline-flex items-center justify-center font-label-caps text-label-caps min-h-[56px] transition-all duration-300 magnetic-btn";
 
 const variantStyles = {
-  primary: "bg-monolith-black text-off-white hover:bg-on-surface",
-  secondary: "border border-monolith-black text-monolith-black hover:bg-monolith-black hover:text-off-white",
+  primary: "bg-monolith-black text-off-white hover:bg-on-surface hover:tracking-[0.15em]",
+  secondary: "border border-monolith-black text-monolith-black hover:bg-monolith-black hover:text-off-white hover:tracking-[0.15em]",
   ghost: "bg-transparent text-monolith-black hover:opacity-70",
 };
 ---

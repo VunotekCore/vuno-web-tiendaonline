@@ -1,0 +1,8 @@
+---
+import AdminLayout from "../_layout.astro";
+import BlogCategoriasPage from "../../../components/admin/BlogCategoriasPage.vue";
+---
+
+<AdminLayout title="Categorías del Blog" currentPath="/admin/blog/categorias">
+  <BlogCategoriasPage client:only="vue" />
+</AdminLayout>

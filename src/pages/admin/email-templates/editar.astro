@@ -1,0 +1,8 @@
+---
+import AdminLayout from "../_layout.astro";
+import EmailTemplateForm from "../../../components/admin/EmailTemplateForm.vue";
+---
+
+<AdminLayout title="Editar Plantilla Email" currentPath="/admin/email-templates">
+  <EmailTemplateForm client:only="vue" templateId={Astro.url.searchParams.get('id') || undefined} />
+</AdminLayout>

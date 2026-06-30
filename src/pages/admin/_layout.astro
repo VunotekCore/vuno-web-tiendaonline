@@ -1,0 +1,117 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import "../../styles/base.css";
+import "../../styles/admin.css";
+import Modal from "../../components/molecules/Modal.astro";
+import SidebarApp from "../../components/admin/SidebarApp.vue";
+
+
+interface Props {
+  title: string;
+  currentPath?: string;
+}
+
+const { title, currentPath = "" } = Astro.props;
+
+interface NavItem {
+  href: string;
+  label: string;
+  icon: string;
+  class?: string;
+  children?: { href: string; label: string; icon?: string; class?: string }[];
+}
+
+const navItems: NavItem[] = [
+  { href: "/admin/pos/dashboard", label: "Dashboard Vendor", icon: "shopping_bag", class: "nav-admin-hide" },
+  { href: "/admin", label: "Dashboard", icon: "dashboard", class: "nav-cashier-hide" },
+  { href: "/admin/pos", label: "POS", icon: "point_of_sale" },
+  { href: "/admin/productos", label: "Productos", icon: "inventory_2", class: "nav-cashier-hide" },
+  { href: "/admin/resenas", label: "Reseñas", icon: "reviews", class: "nav-cashier-hide" },
+  { href: "/admin/clientes", label: "Clientes", icon: "group", class: "nav-cashier-hide" },
+  {
+    href: "/admin/blog",
+    label: "Blog",
+    icon: "article",
+    class: "nav-cashier-hide",
+    children: [
+      { href: "/admin/blog/categorias", label: "Categorías", icon: "category", class: "nav-cashier-hide" },
+    ],
+  },
+  { href: "/admin/suscriptores", label: "Suscriptores", icon: "contacts", class: "nav-cashier-hide" },
+  { href: "/admin/newsletter/campanas", label: "Campañas", icon: "campaign", class: "nav-cashier-hide" },
+  { href: "/admin/pedidos", label: "Pedidos", icon: "receipt_long" },
+  {
+    href: "/admin/configuracion",
+    label: "Configuración",
+    icon: "settings",
+    class: "nav-cashier-hide",
+    children: [
+      { href: "/admin/categorias", label: "Categorías", icon: "category", class: "nav-cashier-hide" },
+      { href: "/admin/cupones", label: "Cupones", icon: "confirmation_number", class: "nav-cashier-hide" },
+      { href: "/admin/email-templates", label: "Plantillas Email", icon: "mail", class: "nav-cashier-hide" },
+      { href: "/admin/seguridad", label: "Seguridad", icon: "security", class: "nav-cashier-hide" },
+    ],
+  },
+  { href: "/admin/usuarios", label: "Usuarios", icon: "group", class: "nav-superadmin nav-cashier-hide" },
+];
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title} | VUNOTEK</title>
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#0b1326" />
+    <link rel="icon" type="image/x-icon" href="/favicon/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <ClientRouter fallback="swap" />
+
+  </head>
+  <body class="bg-[#0a1022] text-[#dae2fd] antialiased min-h-screen flex">
+    <a href="#admin-main" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[200] focus:px-4 focus:py-2 focus:bg-[#42b883] focus:text-white focus:outline-none focus:ring-2 focus:ring-white" aria-label="Saltar al contenido principal">Saltar al contenido</a>
+
+    <SidebarApp client:load navItems={navItems} currentPath={currentPath} />
+
+    <!-- Main content -->
+    <main id="admin-main" class="flex-1 flex flex-col min-h-screen min-w-0 pt-14 lg:pt-0 ml-0 lg:ml-64 relative">
+      <div class="noise-overlay opacity-[0.025]"></div>
+      <div class="border-b border-[#1e293b] bg-[#111d2e]">
+        <div class="px-4 md:px-6 py-4">
+          <h1 class="font-headline text-headline-md text-[#dae2fd]">{title}</h1>
+        </div>
+      </div>
+
+      <div class="px-4 md:px-8 py-8 flex-grow">
+        <slot />
+      </div>
+    </main>
+
+    <Modal />
+
+    <script is:inline>
+      // @ts-nocheck
+      // Auth guard — runs before Vue hydrate
+      (async function () {
+        try {
+          const res = await fetch("/api/admin/verify.php");
+          const data = await res.json();
+          if (!data.valid) {
+            window.location.href = "/admin/login";
+            return;
+          }
+          window.__csrfToken = data.csrf_token || '';
+          window.adminRole = data.role;
+        } catch {
+          window.location.href = "/admin/login";
+        }
+      })();
+    </script>
+  </body>
+</html>

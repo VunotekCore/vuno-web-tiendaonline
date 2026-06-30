@@ -1,0 +1,8 @@
+---
+import AdminLayout from "./_layout.astro";
+import SuscriptoresPage from "../../components/admin/SuscriptoresPage.vue";
+---
+
+<AdminLayout title="Suscriptores" currentPath="/admin/suscriptores">
+  <SuscriptoresPage client:only="vue" />
+</AdminLayout>

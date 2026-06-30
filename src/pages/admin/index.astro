@@ -1,0 +1,8 @@
+---
+import AdminLayout from "./_layout.astro";
+import DashboardApp from "../../components/admin/DashboardApp.vue";
+---
+
+<AdminLayout title="Dashboard" currentPath="/admin">
+  <DashboardApp client:only="vue" />
+</AdminLayout>

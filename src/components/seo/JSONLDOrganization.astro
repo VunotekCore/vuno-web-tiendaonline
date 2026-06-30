@@ -1,0 +1,45 @@
+---
+export interface Props {
+  siteName?: string;
+  siteUrl?: string;
+  logo?: string;
+  socialUrls?: string[];
+}
+
+const {
+  siteName = "Vunotek",
+  siteUrl = import.meta.env.PROD ? "https://vuno.com" : "http://localhost:4321",
+  logo,
+  socialUrls = [],
+} = Astro.props;
+
+const sameAs = socialUrls.filter(Boolean);
+---
+
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": siteName,
+  "url": siteUrl,
+  ...(logo ? { "logo": logo } : {}),
+  ...(sameAs.length ? { "sameAs": sameAs } : {}),
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "contactType": "customer service"
+  }
+})}></script>
+
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": siteName,
+  "url": siteUrl,
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": {
+      "@type": "EntryPoint",
+      "urlTemplate": `${siteUrl}/es/catalogo?q={search_term_string}`
+    },
+    "query-input": "required name=search_term_string"
+  }
+})}></script>

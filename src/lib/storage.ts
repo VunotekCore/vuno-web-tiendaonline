@@ -1,81 +1,164 @@
-import type { Product, Order } from "./types";
-import productsData from "../data/products.json";
-import ordersData from "../data/orders.json";
+import type { Product, Order, Category, BlogPost } from "./types";
+import type { Locale } from "../i18n/utils";
 
-let productsCache: Product[] | null = null;
-let ordersCache: Order[] | null = null;
-
-export async function getProducts(): Promise<Product[]> {
-  if (productsCache) return productsCache;
-  productsCache = productsData as Product[];
-  return productsCache;
+export interface SocialPlatformConfig {
+  enabled: boolean;
+  url: string;
+  image_url?: string;
 }
 
-export async function getProductBySlug(slug: string): Promise<Product | null> {
-  const products = await getProducts();
-  return products.find((p) => p.slug === slug) || null;
+export interface SocialImageItem {
+  image_url: string;
+  platform: string;
+}
+
+export interface LandingSectionData {
+  label_es?: string;
+  label_en?: string;
+  title_es?: string;
+  title_en?: string;
+  subtitle_es?: string;
+  subtitle_en?: string;
+  paragraph_es?: string;
+  paragraph_en?: string;
+  cta_es?: string;
+  cta_en?: string;
+  cta_link?: string;
+  cta_category_slug?: string;
+  image_url?: string;
+  badge_number?: string;
+  badge_es?: string;
+  badge_en?: string;
+  enabled?: boolean;
+  facebook_url?: string;
+  instagram_url?: string;
+  tiktok_url?: string;
+  placeholder_es?: string;
+  placeholder_en?: string;
+  items?: TestimonialItem[];
+  platforms?: Record<string, SocialPlatformConfig>;
+  images?: SocialImageItem[];
+}
+
+export interface TestimonialItem {
+  name: string;
+  text: string;
+  rating: number;
+}
+
+export interface LandingData {
+  hero: LandingSectionData;
+  new_arrivals: LandingSectionData;
+  categories: LandingSectionData;
+  brand_values: LandingSectionData;
+  closing_cta: LandingSectionData;
+  social: LandingSectionData;
+  newsletter: LandingSectionData;
+  testimonials: LandingSectionData;
+  blog: LandingSectionData;
+}
+
+const API_BASE = import.meta.env.PUBLIC_API_URL
+  || (import.meta.env.SSR ? "http://127.0.0.1:8000/api" : "/api");
+
+export async function getCategories(lang?: Locale): Promise<Category[]> {
+  try {
+    const url = lang ? `${API_BASE}/categorias/list.php?lang=${lang}` : `${API_BASE}/categorias/list.php`;
+    const res = await fetch(url);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.items || data;
+  } catch {
+    return [];
+  }
+}
+
+export async function getProducts(lang?: Locale): Promise<Product[]> {
+  try {
+    const url = lang ? `${API_BASE}/productos/list.php?lang=${lang}` : `${API_BASE}/productos/list.php`;
+    const res = await fetch(url);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.items || data;
+  } catch {
+    return [];
+  }
+}
+
+export async function getProductBySlug(slug: string, lang?: Locale): Promise<Product | null> {
+  try {
+    const url = lang
+      ? `${API_BASE}/productos/list.php?lang=${lang}`
+      : `${API_BASE}/productos/list.php`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = await res.json();
+    const products: Product[] = data.items || data;
+    return products.find((p) => p.slug === slug) || null;
+  } catch {
+    return null;
+  }
 }
 
 export async function getProductById(id: string): Promise<Product | null> {
-  const products = await getProducts();
-  return products.find((p) => p.id === id) || null;
+  const res = await fetch(`${API_BASE}/productos/get.php?id=${encodeURIComponent(id)}`);
+  if (!res.ok) return null;
+  return res.json();
 }
 
 export async function saveProduct(product: Product): Promise<void> {
-  const products = await getProducts();
-  const idx = products.findIndex((p) => p.id === product.id);
-
-  if (idx >= 0) {
-    products[idx] = product;
-  } else {
-    products.push(product);
-  }
-
-  try {
-    const fs = await import("node:fs/promises");
-    const path = await import("node:path");
-    const filePath = path.resolve("src/data/products.json");
-    await fs.writeFile(filePath, JSON.stringify(products, null, 2), "utf-8");
-  } catch {
-    console.warn("Cannot persist products.json (read-only filesystem)");
-  }
-  productsCache = products;
+  await fetch(`${API_BASE}/productos/create.php`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(product),
+  });
 }
 
 export async function deleteProduct(id: string): Promise<void> {
-  const products = await getProducts();
-  const filtered = products.filter((p) => p.id !== id);
+  await fetch(`${API_BASE}/productos/delete.php`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id }),
+  });
+}
 
+export async function getBlogPosts(lang?: Locale): Promise<BlogPost[]> {
   try {
-    const fs = await import("node:fs/promises");
-    const path = await import("node:path");
-    const filePath = path.resolve("src/data/products.json");
-    await fs.writeFile(filePath, JSON.stringify(filtered, null, 2), "utf-8");
+    const url = lang
+      ? `${API_BASE}/blog/list.php?limit=50&status=published&lang=${lang}`
+      : `${API_BASE}/blog/list.php?limit=50&status=published`
+    const res = await fetch(url)
+    if (!res.ok) return []
+    const data = await res.json()
+    return data.items || []
   } catch {
-    console.warn("Cannot persist products.json (read-only filesystem)");
+    return []
   }
-  productsCache = filtered;
 }
 
 export async function getOrders(): Promise<Order[]> {
-  if (ordersCache) return ordersCache;
-  ordersCache = ordersData as Order[];
-  return ordersCache;
+  const res = await fetch(`${API_BASE}/pedidos/list.php`);
+  if (!res.ok) return [];
+  return res.json();
 }
 
 export async function saveOrder(order: Order): Promise<void> {
-  const orders = await getOrders();
-  orders.push(order);
+  await fetch(`${API_BASE}/pedidos/create.php`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(order),
+  });
+}
 
+export async function getLanding(): Promise<LandingData | null> {
   try {
-    const fs = await import("node:fs/promises");
-    const path = await import("node:path");
-    const filePath = path.resolve("src/data/orders.json");
-    await fs.writeFile(filePath, JSON.stringify(orders, null, 2), "utf-8");
+    const res = await fetch(`${API_BASE}/configuracion/public.php`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.landing || null;
   } catch {
-    console.warn("Cannot persist orders.json (read-only filesystem)");
+    return null;
   }
-  ordersCache = orders;
 }
 
 export async function updateOrderStatus(
@@ -83,21 +166,9 @@ export async function updateOrderStatus(
   status: Order["status"],
   paymentStatus?: Order["paymentStatus"]
 ): Promise<void> {
-  const orders = await getOrders();
-  const order = orders.find((o) => o.id === orderId);
-
-  if (!order) throw new Error(`Order ${orderId} not found`);
-
-  order.status = status;
-  if (paymentStatus) order.paymentStatus = paymentStatus;
-
-  try {
-    const fs = await import("node:fs/promises");
-    const path = await import("node:path");
-    const filePath = path.resolve("src/data/orders.json");
-    await fs.writeFile(filePath, JSON.stringify(orders, null, 2), "utf-8");
-  } catch {
-    console.warn("Cannot persist orders.json (read-only filesystem)");
-  }
-  ordersCache = orders;
+  await fetch(`${API_BASE}/pedidos/update-status.php`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id: orderId, status, paymentStatus }),
+  });
 }

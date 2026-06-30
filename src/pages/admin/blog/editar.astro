@@ -1,0 +1,10 @@
+---
+import AdminLayout from "../_layout.astro";
+import BlogFormApp from "../../../components/admin/BlogFormApp.vue";
+---
+
+<AdminLayout title="Editar Post" currentPath="/admin/blog">
+  <link rel="stylesheet" href="/quill/quill.snow.css" />
+  <script src="/quill/quill.min.js" is:inline></script>
+  <BlogFormApp client:only="vue" postId={Astro.url.searchParams.get('id') || undefined} />
+</AdminLayout>

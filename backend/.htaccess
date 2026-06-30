@@ -1,0 +1,27 @@
+# Block direct web access to sensitive files
+<Files "encryption.key">
+  Deny from all
+</Files>
+<Files ".env">
+  Deny from all
+</Files>
+<Files "composer.json">
+  Deny from all
+</Files>
+<Files "composer.lock">
+  Deny from all
+</Files>
+
+# Disable directory listing
+Options -Indexes
+
+# Block access to vendor directory
+RedirectMatch 403 ^/vendor/.*$
+
+# Deny access to dot-files and backups
+<FilesMatch "^\.">
+  Deny from all
+</FilesMatch>
+<FilesMatch "\.(bak|old|sql|md|log|swp|save)$">
+  Deny from all
+</FilesMatch>

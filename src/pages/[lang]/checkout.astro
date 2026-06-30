@@ -1,0 +1,931 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Navbar from "../../components/organisms/Navbar.astro";
+import Footer from "../../components/organisms/Footer.astro";
+import Button from "../../components/atoms/Button.astro";
+import AnimatedReveal from "../../components/atoms/AnimatedReveal.astro";
+import { t, type Locale, locales } from "../../i18n/utils";
+import { tenant } from "../../config/tenant";
+
+export async function getStaticPaths() {
+  return locales.map((lang) => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params as { lang: Locale };
+const currentPath = Astro.url.pathname;
+const siteUrl = import.meta.env.PROD ? tenant.brand.url : "http://localhost:4321";
+const alternateUrls = {
+  es: `${siteUrl}/es/checkout`,
+  en: `${siteUrl}/en/checkout`,
+};
+
+const i18n = {
+  title: t("checkout.title", lang),
+  empty: t("checkout.empty", lang),
+  explore: t("checkout.explore", lang),
+  shipping: t("checkout.shipping", lang),
+  fullName: t("checkout.fullName", lang),
+  email: t("checkout.email", lang),
+  address: t("checkout.address", lang),
+  city: t("checkout.city", lang),
+  zip: t("checkout.zip", lang),
+  payment: t("checkout.payment", lang),
+  noPayment: t("checkout.noPayment", lang),
+  card: t("checkout.card", lang),
+  cardDesc: t("checkout.cardDesc", lang),
+  transfer: t("checkout.transfer", lang),
+  transferDesc: t("checkout.transferDesc", lang),
+  receipt: t("checkout.receipt", lang),
+  receiptSelect: t("checkout.receipt.select", lang),
+  receiptHint: t("checkout.receipt.hint", lang),
+  placeOrder: t("checkout.placeOrder", lang),
+  processing: t("checkout.processing", lang),
+  orderSummary: t("checkout.orderSummary", lang),
+  shippingFree: t("checkout.shippingFree", lang),
+  couponCode: t("checkout.couponCode", lang),
+  couponApply: t("checkout.couponApply", lang),
+  couponEnter: t("checkout.couponEnter", lang),
+  couponValidating: t("checkout.couponValidating", lang),
+  couponApplied: t("checkout.couponApplied", lang),
+  couponInvalid: t("checkout.couponInvalid", lang),
+  couponError: t("checkout.couponError", lang),
+  discount: t("checkout.discount", lang),
+  fillFields: t("checkout.fillFields", lang),
+  cartEmpty: t("checkout.cartEmpty", lang),
+  orderPlaced: t("checkout.orderPlaced", lang),
+  orderPlacedTitle: t("checkout.orderPlacedTitle", lang),
+  orderPlacedStripe: t("checkout.orderPlacedStripe", lang),
+  uploading: t("checkout.uploading", lang),
+  receiptReceived: t("checkout.receiptReceived", lang),
+  receiptFailed: t("checkout.receiptFailed", lang),
+  noBanks: t("checkout.noBanks", lang),
+  bankDetails: t("checkout.bankDetails", lang),
+};
+
+const steps = [
+  { key: "shipping", label: t("checkout.step1", lang) || "ENVÍO" },
+  { key: "payment", label: t("checkout.step2", lang) || "PAGO" },
+  { key: "confirm", label: t("checkout.step3", lang) || "CONFIRMAR" },
+];
+---
+
+<BaseLayout title={lang === "es" ? "Checkout | Vunotek" : "Checkout | Vunotek"} lang={lang} alternateUrls={alternateUrls} seo={{ noindex: true }}>
+  <Navbar lang={lang} currentPath={currentPath} />
+  <main class="flex-grow w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-section-gap">
+    <AnimatedReveal>
+      <h1 class="font-headline text-headline-lg-mobile md:text-headline-lg mb-12">{t("checkout.title", lang)}</h1>
+    </AnimatedReveal>
+
+    <div id="emptyCart" class="hidden text-center py-20">
+      <p class="font-body text-body-lg text-secondary mb-6">{t("checkout.empty", lang)}</p>
+      <Button variant="secondary" href={`/${lang}/catalogo`}>{t("checkout.explore", lang)}</Button>
+    </div>
+
+    <div id="checkoutForm" class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+      <div class="lg:col-span-7 flex flex-col gap-8">
+        <AnimatedReveal>
+          <div>
+            <h2 class="font-headline text-headline-md mb-6 flex items-center gap-3">
+              <span class="w-8 h-8 bg-monolith-black text-off-white flex items-center justify-center font-label-caps text-label-caps text-xs">01</span>
+              {t("checkout.shipping", lang)}
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="md:col-span-2">
+                <label class="font-label-caps text-label-caps text-secondary block mb-2 tracking-widest">{t("checkout.fullName", lang)}</label>
+                <input id="customerName" type="text" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
+              </div>
+              <div class="md:col-span-2">
+                <label class="font-label-caps text-label-caps text-secondary block mb-2 tracking-widest">{t("checkout.email", lang)}</label>
+                <input id="customerEmail" type="email" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
+              </div>
+              <div class="md:col-span-2">
+                <label class="font-label-caps text-label-caps text-secondary block mb-2 tracking-widest">{t("checkout.address", lang)}</label>
+                <input id="customerAddress" type="text" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
+              </div>
+              <div>
+                <label class="font-label-caps text-label-caps text-secondary block mb-2 tracking-widest">{t("checkout.city", lang)}</label>
+                <input id="customerCity" type="text" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
+              </div>
+              <div>
+                <label class="font-label-caps text-label-caps text-secondary block mb-2 tracking-widest">{t("checkout.zip", lang)}</label>
+                <input id="customerZip" type="text" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
+              </div>
+            </div>
+          </div>
+        </AnimatedReveal>
+
+        <AnimatedReveal delay={2}>
+          <div id="paymentSection">
+            <h2 class="font-headline text-headline-md mb-6 flex items-center gap-3">
+              <span class="w-8 h-8 bg-monolith-black text-off-white flex items-center justify-center font-label-caps text-label-caps text-xs">02</span>
+              {t("checkout.payment", lang)}
+            </h2>
+            <div id="noPaymentMethods" class="hidden font-body text-body-md text-error bg-error/10 p-3 text-center">{t("checkout.noPayment", lang)}</div>
+            <div id="paymentError" class="hidden font-body text-body-md text-error bg-error/10 p-3 mb-4 text-center"></div>
+            <div id="cardErrors" class="hidden font-body text-body-md text-error bg-error/10 p-3 mb-4 text-center"></div>
+            <div id="paymentMethods" class="flex flex-col gap-4">
+              <div id="stripeOption" class="hidden">
+                <label class="flex items-center gap-4 p-4 border border-outline-variant cursor-pointer hover:border-monolith-black transition-colors has-checked:border-monolith-black has-checked:bg-monolith-black/5">
+                  <input type="radio" name="payment" value="stripe" class="accent-monolith-black" />
+                  <div>
+                    <span class="font-label-caps text-label-caps text-monolith-black block tracking-widest">{t("checkout.card", lang)}</span>
+                    <span class="font-body text-body-md text-secondary">{t("checkout.cardDesc", lang)}</span>
+                  </div>
+                </label>
+                <div id="stripeCardElement" class="hidden pl-14 pr-4 pb-4 border-l-2 border-monolith-black">
+                  <div id="cardElement" class="py-3 px-4 border border-outline-variant bg-white rounded"></div>
+                </div>
+              </div>
+              <div id="transferOption" class="hidden">
+                <label class="flex items-center gap-4 p-4 border border-outline-variant cursor-pointer hover:border-monolith-black transition-colors has-checked:border-monolith-black has-checked:bg-monolith-black/5">
+                  <input type="radio" name="payment" value="transfer" class="accent-monolith-black" />
+                  <div>
+                    <span class="font-label-caps text-label-caps text-monolith-black block tracking-widest">{t("checkout.transfer", lang)}</span>
+                    <span class="font-body text-body-md text-secondary">{t("checkout.transferDesc", lang)}</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+          </div>
+        </AnimatedReveal>
+
+        <AnimatedReveal delay={3}>
+          <div id="orderButtonContainer">
+            <Button variant="primary" class="w-full" id="placeOrderBtn">
+              {i18n.placeOrder}
+            </Button>
+          </div>
+        </AnimatedReveal>
+      </div>
+
+      <div class="lg:col-span-4 lg:col-start-9">
+        <AnimatedReveal delay={2}>
+          <div class="bg-surface-container-low p-6 sticky top-[100px]">
+            <h2 class="font-headline text-headline-md mb-6 border-b border-outline-variant/30 pb-4">{i18n.orderSummary}</h2>
+            <div id="orderItems" class="mb-6 space-y-4"></div>
+            <div class="space-y-4 mb-8">
+              <div class="flex justify-between">
+                <span class="font-body text-body-md text-secondary">{t("cart.subtotal", lang)}</span>
+                <span class="font-price-display text-price-display text-base" id="summarySubtotal">$0.00</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="font-body text-body-md text-secondary">{t("cart.shipping", lang)}</span>
+                <span class="font-body text-body-md" id="shippingCost">{t("checkout.shippingFree", lang)}</span>
+              </div>
+
+              <div class="border-t border-outline-variant/30 pt-4">
+                <div class="flex gap-2">
+                  <input type="text" id="couponInput" class="flex-1 bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none text-sm uppercase font-mono" placeholder={t("checkout.couponCode", lang)} />
+                  <button id="couponApplyBtn" class="font-label-caps text-label-caps bg-monolith-black text-off-white h-10 px-4 hover:bg-monolith-black/90 transition-all shrink-0 text-xs">{t("checkout.couponApply", lang)}</button>
+                </div>
+                <div id="couponMessage" class="font-body text-body-md text-xs mt-2"></div>
+                <div id="couponDiscountRow" class="hidden flex justify-between items-center mt-2">
+                  <div class="flex items-center gap-2">
+                    <span class="font-body text-body-md text-clay-accent">{t("checkout.discount", lang)}</span>
+                    <button id="couponRemoveBtn" class="material-symbols-outlined text-sm text-secondary hover:text-error cursor-pointer transition-colors" title="Remove coupon">close</button>
+                  </div>
+                  <span class="font-price-display text-price-display text-base text-clay-accent" id="summaryDiscount">-$0.00</span>
+                </div>
+              </div>
+
+              <div id="summaryTaxRow" class="hidden flex justify-between items-center">
+                <span class="font-body text-body-md text-secondary">{t("cart.taxes", lang)}</span>
+                <span class="font-price-display text-price-display text-base" id="summaryTax">$0.00</span>
+              </div>
+
+              <div class="border-t border-outline-variant/30 pt-4">
+                <div class="flex justify-between">
+                  <span class="font-headline text-headline-md">{t("cart.total", lang)}</span>
+                  <span class="font-price-display text-price-display text-2xl" id="summaryTotal">$0.00</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </AnimatedReveal>
+      </div>
+    </div>
+  </main>
+  <Footer lang={lang} />
+
+  <div id="successModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+    <div class="bg-off-white border border-outline-variant shadow-lg p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto relative">
+      <button id="successModalClose" class="absolute top-4 right-4 text-secondary hover:text-monolith-black transition-colors cursor-pointer">
+        <span class="material-symbols-outlined text-lg">close</span>
+      </button>
+      <div class="flex items-center gap-3 mb-4">
+        <span class="material-symbols-outlined text-3xl text-green-600">check_circle</span>
+        <h3 class="font-headline text-headline-md" id="successTitle"></h3>
+      </div>
+      <p class="font-body text-body-md text-secondary mb-2" id="successMessage"></p>
+      <p class="font-body text-body-md text-sm text-secondary mb-4" id="successOrderId"></p>
+      <div id="createAccountBanner" class="hidden mb-4">
+        <div id="regStep1">
+          <div class="bg-white shadow-[0_4px_20px_-4px_rgba(0,0,0,0.15)] border border-monolith-black/10 p-5">
+            <p class="font-body text-body-md text-sm text-monolith-black font-semibold mb-4">¿Quieres crear una cuenta para rastrear tu pedido?</p>
+            <div class="flex gap-3">
+              <button id="regStep1Yes" class="font-label-caps text-label-caps bg-monolith-black text-off-white px-5 h-10 inline-flex items-center hover:bg-monolith-black/90 transition-all flex-1 justify-center">SÍ, CREAR CUENTA</button>
+              <button id="regStep1No" class="font-label-caps text-label-caps border border-monolith-black/30 text-monolith-black/60 px-5 h-10 inline-flex items-center hover:border-monolith-black hover:text-monolith-black transition-all flex-1 justify-center">NO, CONTINUAR COMPRANDO</button>
+            </div>
+          </div>
+        </div>
+        <div id="regStep2" class="hidden">
+          <div class="bg-white shadow-[0_4px_20px_-4px_rgba(0,0,0,0.15)] border border-monolith-black/10 p-5">
+            <p class="font-body text-body-md text-sm text-monolith-black font-semibold mb-3">Crea tu cuenta</p>
+            <input id="regPasswordInline" type="password" placeholder="Contraseña (mín. 6 caracteres)" minlength="6" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black text-sm focus:border-monolith-black focus:outline-none transition-colors mb-3" />
+            <button id="registerFromCheckoutBtn" class="font-label-caps text-label-caps bg-monolith-black text-off-white w-full h-10 inline-flex items-center justify-center hover:bg-monolith-black/90 transition-all gap-2">
+              <span id="registerBtnText">CREAR CUENTA</span>
+              <span id="registerBtnSpinner" class="material-symbols-outlined text-sm animate-spin" style="display:none;font-variation-settings:'FILL' 0">refresh</span>
+            </button>
+            <div id="registerCheckoutFeedback" class="hidden font-body text-body-md text-xs mt-2"></div>
+            <button id="regStep2Back" class="font-body text-body-md text-xs text-secondary mt-3 hover:text-monolith-black transition-colors">↩ Volver</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="transferModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+    <div class="bg-off-white border border-outline-variant shadow-lg p-6 w-full max-w-lg">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="material-symbols-outlined text-3xl text-monolith-black">account_balance</span>
+        <h3 class="font-headline text-headline-md">Transferencia Bancaria</h3>
+      </div>
+      <p class="font-label-caps text-label-caps text-monolith-black mb-3 tracking-widest">Selecciona tu banco</p>
+      <div id="transferBankOptions" class="mb-4"></div>
+      <p class="font-label-caps text-label-caps text-secondary mb-3 tracking-widest">Adjunta el comprobante de pago</p>
+      <div id="transferModalReceiptZone" class="border-2 border-dashed border-outline-variant p-6 text-center cursor-pointer hover:border-monolith-black transition-colors bg-white mb-2">
+        <span class="material-symbols-outlined text-3xl text-secondary mb-1 block">receipt_long</span>
+        <p class="font-body text-body-md text-secondary text-sm mb-1">Selecciona el comprobante</p>
+        <p class="font-body text-body-md text-secondary text-xs">JPG, PNG, WebP o PDF</p>
+        <input type="file" id="transferModalReceiptInput" accept="image/jpeg,image/png,image/webp,application/pdf" class="hidden" />
+      </div>
+      <div id="transferModalReceiptPreview" class="hidden flex items-center gap-3 p-3 bg-white border border-outline-variant">
+        <span class="material-symbols-outlined text-2xl text-secondary">description</span>
+        <span id="transferModalReceiptFileName" class="font-body text-body-md text-monolith-black flex-1 truncate"></span>
+        <button type="button" id="transferModalReceiptRemove" class="text-error hover:text-error/80 transition-colors">
+          <span class="material-symbols-outlined text-lg">close</span>
+        </button>
+      </div>
+      <div id="transferModalReceiptMsg" class="hidden font-body text-body-md text-xs mt-2 flex items-center gap-2">
+        <span id="transferModalSpinner" class="material-symbols-outlined text-sm animate-spin hidden" style="font-variation-settings:'FILL' 0">refresh</span>
+        <span id="transferModalMsgText"></span>
+      </div>
+      <div class="flex justify-end gap-3 mt-6">
+        <button id="transferModalCancelBtn" class="font-label-caps text-label-caps border border-monolith-black text-monolith-black px-6 h-10 inline-flex items-center hover:bg-monolith-black/5 transition-all">Cancelar</button>
+        <button id="transferModalConfirmBtn" disabled class="font-label-caps text-label-caps bg-monolith-black text-off-white px-6 h-10 inline-flex items-center hover:bg-monolith-black/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-monolith-black">CONFIRMAR PEDIDO</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="processingModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div class="flex flex-col items-center gap-4">
+      <span class="material-symbols-outlined text-5xl text-white animate-spin" style="font-variation-settings:'FILL' 0">refresh</span>
+      <p class="font-body text-body-md text-white text-sm" id="processingModalText">Procesando pedido...</p>
+    </div>
+  </div>
+
+  <script src="/js/cart.js" is:inline></script>
+  <script src="https://js.stripe.com/v3/"></script>
+  <script set:html={`window.checkoutI18n = ${JSON.stringify(i18n)}; window.CHECKOUT_LANG = '${lang}';`} is:inline></script>
+  <script>
+    // @ts-nocheck
+    const LANG = window.CHECKOUT_LANG;
+    let stripe = null;
+    let elements = null;
+    let card = null;
+    let settings = null;
+    let banks = [];
+    const checkoutI18n = window.checkoutI18n;
+    let pendingOrder = null;
+    let appliedCoupon = null;
+    let couponDiscount = 0;
+    let shippingCost = 0;
+    let shippingLabel = '';
+    let taxRate = 0;
+
+    function getCustomerEmail() {
+      return document.getElementById("customerEmail").value.trim();
+    }
+
+    async function calculateShipping() {
+      const items = window.VunoCart.getItems();
+      if (items.length === 0) {
+        shippingCost = 0;
+        shippingLabel = '';
+        return;
+      }
+      const subtotal = window.VunoCart.getSubtotal();
+      try {
+        const res = await fetch("/api/shipping/calculate.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ subtotal }),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          shippingCost = data.shipping || 0;
+          shippingLabel = data.label || checkoutI18n.shippingFree;
+        } else {
+          shippingCost = 0;
+          shippingLabel = checkoutI18n.shippingFree;
+        }
+      } catch {
+        shippingCost = 0;
+        shippingLabel = checkoutI18n.shippingFree;
+      }
+      const shippingEl = document.getElementById("shippingCost");
+      if (shippingEl) {
+        const items = window.VunoCart.getItems();
+        const symbol = getDisplaySymbol(items);
+        if (shippingCost > 0) {
+          const rate = items[0]?.product?.display_price && items[0]?.product?.price
+            ? (items[0].product.display_price / items[0].product.price)
+            : 1;
+          shippingEl.textContent = symbol + window.formatPrice(shippingCost * rate);
+        } else {
+          shippingEl.textContent = checkoutI18n.shippingFree;
+        }
+      }
+      renderSummaryTotal();
+    }
+
+    async function applyCoupon() {
+      const input = document.getElementById("couponInput");
+      const code = input.value.trim().toUpperCase();
+      const msg = document.getElementById("couponMessage");
+      const discountRow = document.getElementById("couponDiscountRow");
+      const discountEl = document.getElementById("summaryDiscount");
+      const applyBtn = document.getElementById("couponApplyBtn");
+      if (!code) {
+        msg.className = "font-body text-body-md text-xs mt-2 text-error";
+        msg.textContent = checkoutI18n.couponEnter;
+        return;
+      }
+      const subtotal = window.VunoCart.getSubtotal();
+      const email = getCustomerEmail();
+      applyBtn.disabled = true;
+      applyBtn.textContent = "...";
+      msg.className = "font-body text-body-md text-xs mt-2 text-secondary";
+      msg.textContent = checkoutI18n.couponValidating;
+      try {
+        const res = await fetch("/api/cupones/validate.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code, subtotal, email }),
+        });
+        const data = await res.json();
+        if (data.valid) {
+          appliedCoupon = { code, discount: data.discount, couponId: data.coupon.id };
+          couponDiscount = data.discount;
+          msg.className = "font-body text-body-md text-xs mt-2 text-green-700";
+          const symbol = getDisplaySymbol(window.VunoCart.getItems());
+          const rate = window.VunoCart.getItems().length > 0
+            ? (window.VunoCart.getItems()[0].product.display_price && window.VunoCart.getItems()[0].product.price
+              ? window.VunoCart.getItems()[0].product.display_price / window.VunoCart.getItems()[0].product.price
+              : 1)
+            : 1;
+          const displayDiscount = data.discount * rate;
+          msg.textContent = checkoutI18n.couponApplied + " " + (data.coupon.discount_type === "percentage" ? data.coupon.discount_value + "%" : symbol + window.formatPrice(displayDiscount));
+          discountRow.classList.remove("hidden");
+          discountEl.textContent = "-" + symbol + window.formatPrice(displayDiscount);
+          renderSummaryTotal();
+        } else {
+          appliedCoupon = null;
+          couponDiscount = 0;
+          discountRow.classList.add("hidden");
+          msg.className = "font-body text-body-md text-xs mt-2 text-error";
+          msg.textContent = data.error || checkoutI18n.couponInvalid;
+        }
+      } catch (err) {
+        appliedCoupon = null;
+        couponDiscount = 0;
+        discountRow.classList.add("hidden");
+        msg.className = "font-body text-body-md text-xs mt-2 text-error";
+        msg.textContent = checkoutI18n.couponError;
+      }
+      applyBtn.disabled = false;
+      applyBtn.textContent = checkoutI18n.couponApply;
+    }
+
+    function removeCoupon() {
+      appliedCoupon = null;
+      couponDiscount = 0;
+      document.getElementById("couponDiscountRow").classList.add("hidden");
+      document.getElementById("couponMessage").className = "font-body text-body-md text-xs mt-2";
+      document.getElementById("couponMessage").textContent = "";
+      document.getElementById("couponInput").value = "";
+      renderSummaryTotal();
+    }
+
+    function renderSummaryTotal() {
+      const items = window.VunoCart.getItems();
+      const symbol = getDisplaySymbol(items);
+      const displaySubtotal = getDisplaySubtotal(items);
+      const rate = items[0]?.product?.display_price && items[0]?.product?.price
+        ? (items[0].product.display_price / items[0].product.price)
+        : 1;
+      const displayDiscount = couponDiscount * rate;
+      const displayShipping = shippingCost * rate;
+      const displayTax = Math.max(0, (displaySubtotal - displayDiscount) * taxRate);
+      const total = Math.max(0, displaySubtotal - displayDiscount + displayShipping + displayTax);
+      document.getElementById("summaryTotal").textContent = symbol + window.formatPrice(total);
+      const taxRow = document.getElementById("summaryTaxRow");
+      const taxEl = document.getElementById("summaryTax");
+      if (taxRate > 0) {
+        taxRow.classList.remove("hidden");
+        taxEl.textContent = symbol + window.formatPrice(displayTax);
+      } else {
+        taxRow.classList.add("hidden");
+      }
+    }
+
+    let selectedBankId = null;
+    let transferModalReceiptFile = null;
+
+    function renderBankOptions() {
+      const container = document.getElementById("transferBankOptions");
+      if (!banks.length) {
+        container.innerHTML = '<p class="font-body text-body-md text-secondary">' + checkoutI18n.noBanks + '</p>';
+        return;
+      }
+      banks.forEach((b, i) => {
+        const checked = i === 0 ? 'checked' : '';
+        container.innerHTML += `<label class="flex items-center gap-3 p-3 mb-2 border border-outline-variant cursor-pointer hover:border-monolith-black transition-colors has-checked:border-monolith-black has-checked:bg-monolith-black/5">
+          <input type="radio" name="selectedBank" value="${b.id}" class="accent-monolith-black" ${checked} />
+          <div class="flex-1">
+            <p class="font-body text-body-md text-sm text-monolith-black font-semibold">${b.bankName || ''}</p>
+            <p class="font-body text-body-md text-xs text-secondary">${b.accountHolder || ''} · ${b.accountNumber || ''}</p>
+          </div>
+        </label>`;
+      });
+      const firstRadio = container.querySelector('input[name="selectedBank"]:checked');
+      selectedBankId = firstRadio ? parseInt(firstRadio.value) : (banks[0]?.id || null);
+      container.querySelectorAll('input[name="selectedBank"]').forEach(r => {
+        r.addEventListener('change', () => { selectedBankId = parseInt(r.value); updateConfirmBtn(); });
+      });
+      updateConfirmBtn();
+    }
+
+    function updateConfirmBtn() {
+      const btn = document.getElementById("transferModalConfirmBtn");
+      btn.disabled = !selectedBankId || !transferModalReceiptFile;
+    }
+
+    async function loadSettings() {
+      try {
+        const res = await fetch("/api/configuracion/public.php");
+        settings = await res.json();
+      } catch {
+        settings = null;
+      }
+      const stripeEnabled = settings?.stripe?.enabled === true;
+      const transferEnabled = settings?.transfer?.enabled === true;
+      const stripeOption = document.getElementById("stripeOption");
+      const transferOption = document.getElementById("transferOption");
+      const paymentMethods = document.getElementById("paymentMethods");
+      const noPaymentMethods = document.getElementById("noPaymentMethods");
+      const placeOrderBtn = document.getElementById("placeOrderBtn");
+      if (stripeEnabled) stripeOption.classList.remove("hidden");
+      if (transferEnabled) transferOption.classList.remove("hidden");
+      if (!stripeEnabled && !transferEnabled) {
+        paymentMethods.classList.add("hidden");
+        noPaymentMethods.classList.remove("hidden");
+        placeOrderBtn.disabled = true;
+        placeOrderBtn.style.opacity = "0.5";
+        return;
+      }
+      const radios = document.querySelectorAll('input[name="payment"]');
+      if (stripeEnabled) {
+        document.querySelector('#stripeOption input[type="radio"]').checked = true;
+      } else {
+        document.querySelector('#transferOption input[type="radio"]').checked = true;
+      }
+      banks = settings?.transfer?.banks || [];
+      taxRate = (parseFloat(settings?.tax?.rate) || 0) / 100;
+      const publishableKey = settings?.stripe?.publishableKey;
+      if (publishableKey && stripeEnabled) {
+        stripe = Stripe(publishableKey);
+        mountCardElement();
+      }
+    }
+
+    document.getElementById("transferModalReceiptZone").addEventListener("click", () => document.getElementById("transferModalReceiptInput").click());
+    document.getElementById("transferModalReceiptInput").addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      transferModalReceiptFile = file;
+      document.getElementById("transferModalReceiptFileName").textContent = file.name;
+      document.getElementById("transferModalReceiptPreview").classList.remove("hidden");
+      document.getElementById("transferModalReceiptZone").classList.add("hidden");
+      updateConfirmBtn();
+    });
+    document.getElementById("transferModalReceiptRemove").addEventListener("click", () => {
+      transferModalReceiptFile = null;
+      document.getElementById("transferModalReceiptInput").value = "";
+      document.getElementById("transferModalReceiptPreview").classList.add("hidden");
+      document.getElementById("transferModalReceiptZone").classList.remove("hidden");
+      updateConfirmBtn();
+    });
+
+    function showModalReceiptMsg(text, isError) {
+      const el = document.getElementById("transferModalReceiptMsg");
+      const spinner = document.getElementById("transferModalSpinner");
+      const textEl = document.getElementById("transferModalMsgText");
+      el.classList.remove("hidden");
+      textEl.textContent = text;
+      el.className = "font-body text-body-md text-xs mt-2 flex items-center gap-2 " + (isError ? "text-error" : "text-green-700");
+      spinner.classList.toggle("hidden", isError);
+    }
+
+    function getDisplaySymbol(items) {
+      return items[0]?.product?.display_symbol || "$";
+    }
+
+    function getDisplaySubtotal(items) {
+      return items.reduce((sum, item) => {
+        const dp = item.product.display_price ?? item.product.price;
+        return sum + dp * item.quantity;
+      }, 0);
+    }
+
+    function renderSummary() {
+      const items = window.VunoCart.getItems();
+      const empty = document.getElementById("emptyCart");
+      const form = document.getElementById("checkoutForm");
+      if (items.length === 0) {
+        form.classList.add("hidden");
+        empty.classList.remove("hidden");
+        return;
+      }
+      form.classList.remove("hidden");
+      empty.classList.add("hidden");
+      const itemsContainer = document.getElementById("orderItems");
+      const symbol = getDisplaySymbol(items);
+      itemsContainer.innerHTML = items.map(item => {
+        const displayPrice = item.product.display_price ?? item.product.price;
+        return `
+        <div class="flex justify-between items-center">
+          <div class="flex gap-3 items-center">
+            <div class="w-12 h-12 bg-surface-container overflow-hidden shrink-0">
+              <img src="${window.imgTransform(item.product.images[0], 60, 75)}" alt="${item.product.name}" class="w-full h-full object-cover" />
+            </div>
+            <div>
+              <p class="font-body text-body-md text-monolith-black text-sm">${item.product.name}</p>
+              <p class="font-body text-body-md text-secondary text-xs">Qty: ${item.quantity} / ${item.selectedSize}</p>
+            </div>
+          </div>
+          <span class="font-price-display text-price-display text-sm">${symbol}${window.formatPrice(displayPrice * item.quantity)}</span>
+        </div>
+      `}).join("");
+      const displaySubtotal = getDisplaySubtotal(items);
+      document.getElementById("summarySubtotal").textContent = `${symbol}${window.formatPrice(displaySubtotal)}`;
+      calculateShipping();
+    }
+
+    document.querySelectorAll('input[name="payment"]').forEach(radio => {
+      radio.addEventListener("change", () => {
+        const isStripe = radio.value === "stripe";
+        document.getElementById("stripeCardElement").classList.toggle("hidden", !isStripe);
+        const btn = document.getElementById("placeOrderBtn");
+        if (radio.value === "transfer") {
+          btn.textContent = "PROCESAR COMPRA";
+        } else {
+          btn.textContent = checkoutI18n.placeOrder;
+        }
+      });
+    });
+
+    function mountCardElement() {
+      if (!stripe || card) return;
+      elements = stripe.elements();
+      card = elements.create("card", {
+        style: {
+          base: {
+            fontSize: "16px",
+            fontFamily: '"Inter", sans-serif',
+            color: "#1A1A1A",
+            "::placeholder": { color: "#9A9A9A" },
+          },
+        },
+      });
+      card.mount("#cardElement");
+      card.addEventListener("change", (event) => {
+        const el = document.getElementById("cardErrors");
+        if (event.error) {
+          el.textContent = event.error.message;
+          el.classList.remove("hidden");
+        } else {
+          el.classList.add("hidden");
+        }
+      });
+    }
+
+    function buildOrderObject(payment) {
+      const items = window.VunoCart.getItems();
+      const name = document.getElementById("customerName").value.trim();
+      const email = document.getElementById("customerEmail").value.trim();
+      const address = document.getElementById("customerAddress").value.trim();
+      const city = document.getElementById("customerCity").value.trim();
+      const zip = document.getElementById("customerZip").value.trim();
+      const subtotal = window.VunoCart.getSubtotal(); // USD
+      const tax = Math.max(0, Math.round((subtotal - couponDiscount) * taxRate * 100) / 100);
+      const total = Math.max(0, subtotal - couponDiscount + shippingCost + tax); // USD
+      const firstItem = items[0]?.product;
+      const displayCurrency = firstItem?.display_currency || "USD";
+      const displaySymbol = firstItem?.display_symbol || "$";
+      const rate = firstItem?.display_price && firstItem?.price
+        ? (firstItem.display_price / firstItem.price)
+        : 1;
+      const customerId = window.VunoAuth?.isLoggedIn() ? window.VunoAuth.getCustomer()?.id : null;
+      const order = {
+        id: "RL-" + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 5).toUpperCase(),
+        items: items,
+        subtotal: subtotal,
+        shipping: shippingCost,
+        tax: tax,
+        discountTotal: couponDiscount,
+        total: total,
+        currency: displayCurrency,
+        exchange_rate: rate,
+        status: "pending",
+        paymentMethod: payment,
+        paymentStatus: "pending",
+        customer: { name, email, address, city, zip },
+        customerId: customerId,
+        createdAt: new Date().toISOString()
+      };
+      if (appliedCoupon) {
+        order.couponCode = appliedCoupon.code;
+      }
+      return order;
+    }
+
+    function showErrorMsg(msg) {
+      document.getElementById("paymentError").textContent = msg;
+      document.getElementById("paymentError").classList.remove("hidden");
+    }
+
+    function showOrderSuccessModal(order) {
+      document.getElementById("successTitle").textContent = checkoutI18n.orderPlacedTitle;
+      document.getElementById("successMessage").textContent = order.transferReceipt ? checkoutI18n.orderPlaced : checkoutI18n.orderPlacedStripe;
+      document.getElementById("successOrderId").textContent = "Orden: " + order.id;
+      const banner = document.getElementById("createAccountBanner");
+      if (banner && !window.VunoAuth?.isLoggedIn()) {
+        document.getElementById("regStep1").classList.remove("hidden");
+        document.getElementById("regStep2").classList.add("hidden");
+        document.getElementById("registerCheckoutFeedback").classList.add("hidden");
+        document.getElementById("regPasswordInline").value = "";
+        document.getElementById("registerBtnText").textContent = "CREAR CUENTA";
+        document.getElementById("registerBtnText").style.display = "";
+        document.getElementById("registerBtnSpinner").style.display = "none";
+        document.getElementById("registerFromCheckoutBtn").disabled = false;
+        banner.classList.remove("hidden");
+      }
+      document.getElementById("successModal").classList.remove("hidden");
+    }
+
+    function successModalClose() {
+      document.getElementById("successModal").classList.add("hidden");
+      window.location.href = "/" + LANG + "/catalogo";
+    }
+
+    document.getElementById("successModalClose").addEventListener("click", successModalClose);
+
+    document.getElementById("regStep1Yes").addEventListener("click", () => {
+      document.getElementById("regStep1").classList.add("hidden");
+      document.getElementById("regStep2").classList.remove("hidden");
+      document.getElementById("registerBtnText").style.display = "";
+      document.getElementById("registerBtnSpinner").style.display = "none";
+      document.getElementById("registerFromCheckoutBtn").disabled = false;
+      document.getElementById("registerCheckoutFeedback").classList.add("hidden");
+      document.getElementById("regPasswordInline").focus();
+    });
+    document.getElementById("regStep1No").addEventListener("click", successModalClose);
+    document.getElementById("regStep2Back").addEventListener("click", () => {
+      document.getElementById("regStep2").classList.add("hidden");
+      document.getElementById("regStep1").classList.remove("hidden");
+    });
+
+    document.getElementById("registerFromCheckoutBtn").addEventListener("click", async function () {
+      if (this.disabled) return;
+      const password = document.getElementById("regPasswordInline").value;
+      if (!password || password.length < 6) {
+        const fb = document.getElementById("registerCheckoutFeedback");
+        fb.className = "font-body text-body-md text-xs mt-2 text-error";
+        fb.textContent = "La contraseña debe tener al menos 6 caracteres";
+        fb.classList.remove("hidden");
+        return;
+      }
+      const name = document.getElementById("customerName").value.trim();
+      const email = document.getElementById("customerEmail").value.trim();
+      this.disabled = true;
+      document.getElementById("registerBtnText").style.display = "none";
+      document.getElementById("registerBtnSpinner").style.display = "inline-block";
+      try {
+        await window.VunoAuth.register(name, email, password);
+        document.getElementById("createAccountBanner").classList.add("hidden");
+        window.VunoToast?.success("¡Bienvenido!", "Tu cuenta ha sido creada exitosamente.");
+        window.location.href = "/" + LANG + "/catalogo";
+      } catch (err) {
+        const msg = err.message || "";
+        const fb = document.getElementById("registerCheckoutFeedback");
+        if (msg.toLowerCase().includes("already registered") || msg.toLowerCase().includes("ya existe")) {
+          fb.className = "font-body text-body-md text-xs mt-2 text-error";
+          fb.innerHTML = 'Ya tienes una cuenta. <a href="/' + LANG + '/login?email=' + encodeURIComponent(email) + '" class="underline hover:no-underline font-medium">Inicia sesión</a> para rastrear tus pedidos.';
+        } else {
+          fb.className = "font-body text-body-md text-xs mt-2 text-error";
+          fb.textContent = msg || "Error al crear la cuenta. Intenta de nuevo.";
+        }
+        fb.classList.remove("hidden");
+        document.getElementById("registerBtnSpinner").style.display = "none";
+        document.getElementById("registerBtnText").style.display = "";
+        this.disabled = false;
+      }
+    });
+
+    let submitting = false;
+
+    document.getElementById("placeOrderBtn").addEventListener("click", async function () {
+      if (submitting) return;
+      submitting = true;
+      const items = window.VunoCart.getItems();
+      if (items.length === 0) {
+        submitting = false;
+        showErrorMsg(checkoutI18n.cartEmpty);
+        return;
+      }
+      const name = document.getElementById("customerName").value.trim();
+      const email = document.getElementById("customerEmail").value.trim();
+      const address = document.getElementById("customerAddress").value.trim();
+      const city = document.getElementById("customerCity").value.trim();
+      const zip = document.getElementById("customerZip").value.trim();
+      const payment = document.querySelector('input[name="payment"]:checked').value;
+      if (!name || !email || !address || !city || !zip) {
+        submitting = false;
+        document.getElementById("paymentError").textContent = checkoutI18n.fillFields;
+        document.getElementById("paymentError").classList.remove("hidden");
+        return;
+      }
+      this.disabled = true;
+      this.textContent = checkoutI18n.processing;
+      const order = buildOrderObject(payment);
+      const subtotal = order.subtotal;
+      if (payment === "stripe") {
+        document.getElementById("processingModal").classList.remove("hidden");
+        try {
+          const createRes = await fetch("/api/pedidos/create.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(order)
+          });
+          if (!createRes.ok) {
+            const createErr = await createRes.json();
+            throw new Error(createErr.error || "Failed to create order");
+          }
+          const piRes = await fetch("/api/stripe/create-payment-intent.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ items, customerEmail: email, total: order.total })
+          });
+          const piData = await piRes.json();
+          if (!piRes.ok) throw new Error(piData.error);
+          const { error, paymentIntent } = await stripe.confirmCardPayment(piData.clientSecret, {
+            payment_method: { card: card },
+          });
+          if (error) {
+            throw new Error(error.message);
+          }
+          if (paymentIntent.status === "succeeded") {
+            const confirmRes = await fetch("/api/pedidos/confirm-payment.php", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ id: order.id, stripePaymentIntentId: paymentIntent.id })
+            });
+            if (!confirmRes.ok) {
+              console.warn("Payment confirmed but status update failed, webhook will reconcile");
+            }
+            order.status = "paid";
+            order.paymentStatus = "completed";
+            order.stripePaymentIntentId = paymentIntent.id;
+            localStorage.setItem("vuno_cart_backup", JSON.stringify(window.VunoCart.getItems()));
+            window.VunoCart.clear();
+            localStorage.removeItem("vuno_cart_backup");
+            localStorage.setItem("vuno_last_order_" + order.id, JSON.stringify(order));
+            document.getElementById("processingModal").classList.add("hidden");
+            showOrderSuccessModal(order);
+          } else {
+            throw new Error("Payment was not successful: " + paymentIntent.status);
+          }
+        } catch (err) {
+          document.getElementById("processingModal").classList.add("hidden");
+          window.VunoModal.alert({
+            type: "error",
+            title: "Error en el pago",
+            message: err.message,
+            buttonText: "INTENTAR DE NUEVO",
+            onClose: function () { window.location.reload(); }
+          });
+          this.disabled = false;
+          this.textContent = checkoutI18n.placeOrder;
+          submitting = false;
+        }
+      } else {
+        pendingOrder = order;
+        this.disabled = false;
+        this.textContent = "PROCESAR COMPRA";
+        submitting = false;
+        document.getElementById("transferBankOptions").innerHTML = "";
+        renderBankOptions();
+        document.getElementById("transferModalReceiptMsg").classList.add("hidden");
+        document.getElementById("transferModalReceiptZone").classList.remove("hidden");
+        document.getElementById("transferModalReceiptPreview").classList.add("hidden");
+        transferModalReceiptFile = null;
+        document.getElementById("transferModalReceiptInput").value = "";
+        updateConfirmBtn();
+        document.getElementById("transferModal").classList.remove("hidden");
+      }
+    });
+
+    document.getElementById("transferModalCancelBtn").addEventListener("click", () => {
+      document.getElementById("transferModal").classList.add("hidden");
+    });
+
+    document.getElementById("transferModalConfirmBtn").addEventListener("click", async function () {
+      const btn = this;
+      if (btn.disabled) return;
+      btn.disabled = true;
+      if (!selectedBankId) {
+        showModalReceiptMsg("Debes seleccionar un banco", true);
+        btn.disabled = false;
+        return;
+      }
+      if (!transferModalReceiptFile) {
+        showModalReceiptMsg("Debes adjuntar el comprobante de pago", true);
+        btn.disabled = false;
+        return;
+      }
+      try {
+        document.getElementById("processingModal").classList.remove("hidden");
+        const formData = new FormData();
+        formData.append("file", transferModalReceiptFile);
+        formData.append("folder", "receipts");
+        const uploadRes = await fetch("/api/imagekit/upload.php", { method: "POST", body: formData });
+        const uploadData = await uploadRes.json();
+        if (!uploadRes.ok || !uploadData.url) {
+          throw new Error(uploadData?.error || checkoutI18n.receiptFailed);
+        }
+        pendingOrder.transferReceipt = uploadData.url;
+        pendingOrder.selectedBankId = selectedBankId;
+        const createRes = await fetch("/api/pedidos/create.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(pendingOrder)
+        });
+        if (!createRes.ok) {
+          const createErr = await createRes.json();
+          throw new Error(createErr.error || "Failed to save order");
+        }
+        localStorage.setItem("vuno_cart_backup", JSON.stringify(window.VunoCart.getItems()));
+        window.VunoCart.clear();
+        localStorage.removeItem("vuno_cart_backup");
+        localStorage.setItem("vuno_last_order_" + pendingOrder.id, JSON.stringify(pendingOrder));
+        document.getElementById("transferModal").classList.add("hidden");
+        document.getElementById("processingModal").classList.add("hidden");
+        showOrderSuccessModal(pendingOrder);
+      } catch (err) {
+        document.getElementById("processingModal").classList.add("hidden");
+        showModalReceiptMsg(err.message, true);
+        btn.disabled = false;
+      }
+    });
+
+    document.getElementById("couponApplyBtn").addEventListener("click", applyCoupon);
+    document.getElementById("couponRemoveBtn").addEventListener("click", removeCoupon);
+    document.getElementById("couponInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        applyCoupon();
+      }
+    });
+
+    async function loadAuth() {
+      if (!window.VunoAuth) return;
+      const customer = await window.VunoAuth.verify();
+      if (customer) {
+        document.getElementById("customerName").value = customer.name;
+        document.getElementById("customerEmail").value = customer.email;
+        document.getElementById("customerName").setAttribute("readonly", "readonly");
+        document.getElementById("customerEmail").setAttribute("readonly", "readonly");
+      }
+    }
+
+    loadSettings().then(() => {
+      renderSummary();
+      loadAuth();
+      const checked = document.querySelector('input[name="payment"]:checked');
+      if (checked) {
+        checked.dispatchEvent(new Event("change"));
+      }
+    });
+  </script>
+</BaseLayout>

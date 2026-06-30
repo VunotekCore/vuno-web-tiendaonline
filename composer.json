@@ -1,0 +1,11 @@
+{
+    "require": {
+        "php": ">=8.1",
+        "spomky-labs/otphp": "^11.4",
+        "stripe/stripe-php": "^16.0",
+        "phpmailer/phpmailer": "^6.9"
+    },
+    "require-dev": {
+        "phpstan/phpstan": "^2.2"
+    }
+}

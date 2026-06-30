@@ -1,0 +1,8 @@
+---
+import AdminLayout from "../_layout.astro";
+import PosDashboard from "../../../components/admin/PosDashboard.vue";
+---
+
+<AdminLayout title="Dashboard Mostrador" currentPath="/admin/pos/dashboard">
+  <PosDashboard client:only="vue" />
+</AdminLayout>

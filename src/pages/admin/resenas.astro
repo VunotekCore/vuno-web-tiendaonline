@@ -1,0 +1,8 @@
+---
+import AdminLayout from "./_layout.astro";
+import ResenasPage from "../../components/admin/ResenasPage.vue";
+---
+
+<AdminLayout title="Reseñas" currentPath="/admin/resenas">
+  <ResenasPage client:only="vue" />
+</AdminLayout>

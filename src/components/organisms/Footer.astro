@@ -1,35 +1,92 @@
-<footer class="bg-surface-container w-full mt-section-gap border-t border-outline-variant">
-  <div class="grid grid-cols-1 md:grid-cols-4 gap-gutter px-margin-mobile md:px-margin-desktop py-section-gap w-full max-w-container-max mx-auto text-secondary font-body-md text-body-md">
-    <div class="md:col-span-1 flex flex-col mb-8 md:mb-0">
-      <span class="font-headline-md text-headline-md text-monolith-black mb-6">Ram;Lop</span>
-      <p class="text-sm max-w-xs">Footwear designed for the modern structuralist. Form, function, and absolute minimal execution.</p>
-    </div>
+---
+import type { Locale } from "../../i18n/utils";
+import { t } from "../../i18n/utils";
+import NewsletterSection from "./NewsletterSection.astro";
 
-    <div class="md:col-span-2 grid grid-cols-2 gap-8">
-      <div class="flex flex-col space-y-4">
-        <a href="#" class="hover:text-monolith-black transition-colors">Sustainability</a>
-        <a href="#" class="hover:text-monolith-black transition-colors">Shipping &amp; Returns</a>
-        <a href="#" class="hover:text-monolith-black transition-colors">Boutique Locator</a>
-      </div>
-      <div class="flex flex-col space-y-4">
-        <a href="#" class="hover:text-monolith-black transition-colors">Contact Us</a>
-        <a href="#" class="hover:text-monolith-black transition-colors">Size Guide</a>
-        <a href="#" class="hover:text-monolith-black transition-colors">Privacy Policy</a>
-      </div>
-    </div>
+interface Props {
+  lang?: Locale;
+}
 
-    <div class="md:col-span-1 flex flex-col mt-8 md:mt-0">
-      <span class="font-label-caps text-label-caps text-monolith-black mb-4 uppercase">Join the Atelier</span>
-      <div class="relative w-full border-b border-monolith-black mb-4">
-        <input type="email" placeholder="Email Address" class="w-full bg-transparent focus:ring-0 px-0 py-2 text-monolith-black placeholder:text-secondary focus:outline-none" />
-        <button class="absolute right-0 top-1/2 -translate-y-1/2 text-monolith-black hover:opacity-70 transition-opacity" aria-label="Subscribe">
-          <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
-        </button>
-      </div>
-    </div>
+const { lang = "es" } = Astro.props;
+const year = new Date().getFullYear();
+---
 
-    <div class="md:col-span-4 mt-16 pt-8 border-t border-outline-variant/30 text-xs">
-      &copy; 2024 Ram;Lop. Architectural Minimalism in Footwear.
+<footer class="bg-monolith-black w-full mt-16 overflow-hidden">
+  <div class="noise-overlay opacity-[0.08]"></div>
+  <div class="max-w-6xl mx-auto px-6 py-16 relative z-10">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+
+      <!-- Col 1: Brand -->
+      <div class="flex flex-col items-center md:items-start">
+        <img data-store-logo alt="" class="h-8 w-auto hidden object-contain brightness-0 invert mb-2" />
+        <span data-store-name class="font-headline-md text-headline-md text-off-white mb-1"></span>
+        <span data-store-slogan class="font-body text-sm text-off-white/60 block mb-2 text-center md:text-left"></span>
+        <p data-store-description class="text-sm text-off-white/40 leading-relaxed max-w-xs text-center md:text-left"></p>
+      </div>
+
+      <!-- Col 2: Shop -->
+      <div>
+        <h4 class="font-label-caps text-label-caps text-off-white/40 mb-4 tracking-widest">{t("footer.shop", lang)}</h4>
+        <div class="flex flex-col space-y-2.5">
+          <a href={`/${lang}/catalogo`} class="text-sm text-off-white/60 hover:text-off-white transition-colors duration-300">{t("footer.catalog", lang)}</a>
+          <a href={`/${lang}/catalogo`} class="text-sm text-off-white/60 hover:text-off-white transition-colors duration-300">Heels</a>
+          <a href={`/${lang}/catalogo`} class="text-sm text-off-white/60 hover:text-off-white transition-colors duration-300">Sandals</a>
+          <a href={`/${lang}/catalogo`} class="text-sm text-off-white/60 hover:text-off-white transition-colors duration-300">Boots</a>
+          <a href={`/${lang}/catalogo`} class="text-sm text-off-white/60 hover:text-off-white transition-colors duration-300">Flats</a>
+        </div>
+      </div>
+
+      <!-- Col 3: Help -->
+      <div>
+        <h4 class="font-label-caps text-label-caps text-off-white/40 mb-4 tracking-widest">{t("footer.help", lang)}</h4>
+        <div class="flex flex-col space-y-2.5">
+          <a href="javascript:void(0)" data-contact class="text-sm text-off-white/60 hover:text-off-white transition-colors duration-300">{t("footer.contact", lang)}</a>
+          <a href="javascript:void(0)" data-size-guide class="text-sm text-off-white/60 hover:text-off-white transition-colors duration-300">{t("footer.sizeGuide", lang)}</a>
+          <a href="javascript:void(0)" data-shipping class="text-sm text-off-white/60 hover:text-off-white transition-colors duration-300">{t("footer.shipping", lang)}</a>
+          <a href="javascript:void(0)" data-returns class="text-sm text-off-white/60 hover:text-off-white transition-colors duration-300">{t("footer.returns", lang)}</a>
+          <a href="javascript:void(0)" data-privacy class="text-sm text-off-white/60 hover:text-off-white transition-colors duration-300">{t("footer.privacy", lang)}</a>
+        </div>
+      </div>
+
+      <!-- Col 4: Connect (Newsletter + Social) -->
+      <div>
+        <h4 class="font-label-caps text-label-caps text-off-white/40 mb-4 tracking-widest">{t("footer.connect", lang)}</h4>
+        <NewsletterSection lang={lang} variant="compact" theme="dark" />
+        <div id="footerSocial" class="flex items-center gap-4 mt-5">
+          <a href="#" target="_blank" rel="noopener noreferrer" class="text-off-white/30 hover:text-off-white transition-colors duration-300" data-social="instagram" aria-label="Instagram">
+            <span class="material-symbols-outlined text-lg">camera_alt</span>
+          </a>
+          <a href="#" target="_blank" rel="noopener noreferrer" class="text-off-white/30 hover:text-off-white transition-colors duration-300" data-social="facebook" aria-label="Facebook">
+            <span class="material-symbols-outlined text-lg">globe</span>
+          </a>
+          <a href="#" target="_blank" rel="noopener noreferrer" class="text-off-white/30 hover:text-off-white transition-colors duration-300" data-social="tiktok" aria-label="TikTok">
+            <span class="material-symbols-outlined text-lg">music_note</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Bottom bar -->
+      <div class="md:col-span-4 mt-12 pt-6 border-t border-off-white/10 flex flex-col md:flex-row justify-between items-center gap-2 text-xs text-off-white/40">
+        <p>&copy; {year} <span data-store-name></span>. {t("footer.copyright", lang)}</p>
+      </div>
     </div>
   </div>
 </footer>
+
+<script is:inline>
+  // @ts-nocheck
+  (function () {
+    fetch("/api/configuracion/public.php")
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        var social = data.landing && data.landing.social;
+        if (!social) return;
+        document.querySelectorAll("[data-social]").forEach(function (el) {
+          var platform = el.getAttribute("data-social");
+          var url = social[platform + "_url"];
+          if (url) el.href = url;
+        });
+      })
+      .catch(function () {});
+  })();
+</script>

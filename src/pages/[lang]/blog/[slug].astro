@@ -1,0 +1,126 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro'
+import Navbar from '../../../components/organisms/Navbar.astro'
+import Footer from '../../../components/organisms/Footer.astro'
+import JSONLDBreadcrumb from '../../../components/seo/JSONLDBreadcrumb.astro'
+import JSONLDArticle from '../../../components/seo/JSONLDArticle.astro'
+import { getBlogPosts } from '../../../lib/storage'
+import { type Locale } from '../../../i18n/utils'
+import { tenant } from '../../../config/tenant'
+
+export async function getStaticPaths() {
+  const [esPosts, enPosts] = await Promise.all([
+    getBlogPosts('es'),
+    getBlogPosts('en'),
+  ])
+  const paths = []
+  for (const p of esPosts) {
+    paths.push({ params: { lang: 'es' as Locale, slug: p.slug } })
+  }
+  for (const p of enPosts) {
+    paths.push({ params: { lang: 'en' as Locale, slug: p.slug } })
+  }
+  return paths
+}
+
+const { lang, slug } = Astro.params as { lang: Locale; slug: string }
+
+const allPosts = await getBlogPosts(lang)
+const post = allPosts.find((p) => p.slug === slug) || null
+
+if (!post) return Astro.redirect('/404')
+
+const siteUrl = import.meta.env.PROD ? tenant.brand.url : 'http://localhost:4321'
+const currentPath = Astro.url.pathname
+const alternateUrls = {
+  es: `${siteUrl}/es/blog/${slug}`,
+  en: `${siteUrl}/en/blog/${slug}`,
+}
+
+const title = lang === 'en' ? (post.title_en || post.title) : post.title
+const excerpt = lang === 'en' ? (post.excerpt_en || post.excerpt) : post.excerpt
+const canonical = `${siteUrl}/${lang}/blog/${slug}`
+const ogImage = post.featured_image || post.thumbnail_image
+
+const formattedDate = post.published_at
+  ? new Date(post.published_at).toLocaleDateString(lang === 'es' ? 'es-ES' : 'en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    })
+  : ''
+---
+
+<BaseLayout
+  title={post.meta_title || title}
+  description={post.meta_description || excerpt || ''}
+  lang={lang}
+  alternateUrls={alternateUrls}
+  seo={{
+    ogImage: ogImage || undefined,
+    ogType: 'article',
+    canonical,
+  }}
+>
+  <JSONLDBreadcrumb
+    items={[
+      { name: lang === 'es' ? 'Inicio' : 'Home', url: `${siteUrl}/${lang}/` },
+      { name: lang === 'es' ? 'Blog' : 'Blog', url: `${siteUrl}/${lang}/blog` },
+      { name: title, url: canonical },
+    ]}
+  />
+  <JSONLDArticle
+    headline={title}
+    description={excerpt || ''}
+    image={ogImage || ''}
+    slug={slug}
+    datePublished={post.published_at || post.updated_at}
+    author={post.author || 'Vunotek'}
+  />
+  <Navbar lang={lang} currentPath={currentPath} />
+
+  <main class="flex-grow w-full max-w-2xl mx-auto px-6 pt-12 pb-section-gap">
+    {post.featured_image && (
+      <div class="aspect-[4/3] overflow-hidden rounded-sm mb-8">
+        <img
+          src={post.featured_image}
+          alt={title}
+          class="w-full h-full object-cover"
+          width="1200"
+          height="900"
+          loading="eager"
+        />
+      </div>
+    )}
+
+    {post.category_name && (
+      <div class="font-label-caps text-label-caps text-clay-accent">{post.category_name}</div>
+    )}
+
+    <h1 class="font-headline text-headline-md text-monolith-black mt-2 mb-3" style="font-size:2.25rem">{title}</h1>
+
+    <div class="flex items-center gap-4 font-body text-body-md text-secondary mb-8">
+      <span>{post.author}</span>
+      <span>·</span>
+      <time datetime={post.published_at || post.updated_at}>{formattedDate}</time>
+    </div>
+
+    {excerpt && (
+      <p class="font-body text-body-md text-secondary mb-8 leading-relaxed">{excerpt}</p>
+    )}
+
+    <div class="prose max-w-none">
+      {post.content}
+    </div>
+
+    <div class="border-t border-outline-variant mt-12 pt-8">
+      <a href={`/${lang}/blog`} class="inline-flex items-center gap-2 font-label-caps text-label-caps text-secondary hover:text-monolith-black transition-colors">
+        <span class="material-symbols-outlined text-lg">arrow_back</span>
+        {lang === 'es' ? 'VOLVER AL BLOG' : 'BACK TO BLOG'}
+      </a>
+    </div>
+  </main>
+
+  <Footer lang={lang} />
+</BaseLayout>
+---

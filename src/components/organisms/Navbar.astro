@@ -1,77 +1,418 @@
 ---
-const navLinks = [
-  { label: "SANDALS", href: "/catalogo" },
-  { label: "HEELS", href: "/catalogo" },
-  { label: "NEW ARRIVALS", href: "/" },
-  { label: "BOOTS", href: "/catalogo" },
-  { label: "FLATS", href: "/catalogo" },
-];
+import type { Locale } from '../../i18n/utils'
+import { t } from '../../i18n/utils'
+import { getCategories, getProducts } from '../../lib/storage'
+
+interface Props {
+  lang: Locale
+  currentPath: string
+}
+
+const { lang, currentPath } = Astro.props
+const otherLang: Locale = lang === 'es' ? 'en' : 'es'
+const langSwitchPath = currentPath.replace(`/${lang}/`, `/${otherLang}/`)
+
+const allCategories = await getCategories(lang)
+const products = await getProducts(lang)
+const activeSlugs = new Set(products.map((p) => (p.category || '').toLowerCase()))
+const categories = allCategories.filter((c) => activeSlugs.has(c.slug))
+const visibleCategories = categories.slice(0, 5)
+const overflowCategories = categories.slice(5)
 ---
 
-<nav class="bg-background sticky top-0 z-50 transition-all duration-300" id="topNav">
-  <div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop py-6 max-w-container-max mx-auto bg-sand-nude">
-    <button class="md:hidden text-primary hover:opacity-70 transition-opacity" aria-label="Menu">
+<nav
+  class="bg-background/90 backdrop-blur-md sticky top-0 z-50 transition-all duration-300"
+  id="topNav"
+>
+  <div
+    class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop py-5 max-w-container-max mx-auto"
+  >
+    <button
+      id="mobileMenuBtn"
+      class="md:hidden text-primary hover:opacity-70 transition-opacity"
+      aria-label={t('nav.menu', lang)}
+    >
       <span class="material-symbols-outlined" data-icon="menu">menu</span>
     </button>
 
-    <div class="hidden md:flex items-center space-x-gutter font-label-caps text-label-caps">
-      {navLinks.map((link) => (
-        <a
-          href={link.href}
-          class="text-secondary hover:text-primary transition-colors hover:opacity-70"
-        >
-          {link.label}
-        </a>
-      ))}
+    <div class="hidden md:flex items-center gap-8 font-label-caps text-label-caps">
+      {
+        visibleCategories.map((cat) => (
+          <a
+            href={`/${lang}/catalogo?categoria=${cat.slug}`}
+            class="text-secondary hover:text-primary transition-all hover:tracking-[0.15em] relative after:absolute after:bottom-[-2px] after:left-0 after:w-0 after:h-[1px] after:bg-monolith-black after:transition-all after:duration-300 hover:after:w-full"
+          >
+            {cat.name}
+          </a>
+        ))
+      }
+      {
+        overflowCategories.length > 0 && (
+          <div class="relative group/catdrop">
+            <button class="text-secondary hover:text-primary transition-all hover:tracking-[0.15em] flex items-center gap-1 cursor-pointer after:absolute after:bottom-[-2px] after:left-0 after:w-0 after:h-[1px] after:bg-monolith-black after:transition-all after:duration-300 hover:after:w-full relative">
+              {lang === 'es' ? 'CATEGORÍAS' : 'CATEGORIES'}
+              <span class="material-symbols-outlined text-sm transition-transform group-hover/catdrop:rotate-180">
+                expand_more
+              </span>
+            </button>
+            <div class="absolute top-full left-0 mt-2 bg-off-white border border-outline-variant shadow-lg min-w-[180px] opacity-0 invisible group-hover/catdrop:opacity-100 group-hover/catdrop:visible transition-all duration-200 z-50">
+              {overflowCategories.map((cat) => (
+                <a
+                  href={`/${lang}/catalogo?categoria=${cat.slug}`}
+                  class="block px-4 py-2.5 font-body-md text-body-md text-secondary hover:bg-surface-variant hover:text-monolith-black transition-colors"
+                >
+                  {cat.name}
+                </a>
+              ))}
+            </div>
+          </div>
+        )
+      }
     </div>
 
-    <a
-      href="/"
-      class="font-headline-md text-headline-md tracking-tighter text-monolith-black hover:opacity-70 transition-opacity absolute left-1/2 -translate-x-1/2 md:static md:transform-none"
+    <div
+      class="inline-flex flex-col items-center absolute left-1/2 -translate-x-1/2 md:static md:transform-none"
     >
-      Ram;Lop
-    </a>
-
-    <div class="flex items-center space-x-unit md:space-x-gutter text-primary">
-      <a href="/carrito" class="hover:opacity-70 transition-opacity relative p-2" aria-label="Carrito">
-        <span class="material-symbols-outlined" data-icon="shopping_bag">shopping_bag</span>
-        <span id="cartBadge" class="absolute top-0 right-0 w-4 h-4 bg-monolith-black text-off-white text-[9px] font-bold rounded-full flex items-center justify-center hidden">0</span>
-      </a>
-      <button class="hover:opacity-70 transition-opacity p-2" aria-label="Perfil">
-        <span class="material-symbols-outlined" data-icon="person">person</span>
-      </button>
+      <div class="flex items-center justify-center relative">
+        <img
+          data-store-logo
+          alt=""
+          class="h-8 w-auto object-contain max-sm:block md:absolute md:right-full md:mr-2 md:top-1/2 md:-translate-y-1/2 hidden"
+        />
+        <a
+          href={`/${lang}/`}
+          class="font-headline-md text-headline-md tracking-tight text-monolith-black hover:opacity-70 transition-opacity"
+          ><span data-store-name class="max-sm:hidden"></span></a
+        >
+      </div>
+      <span
+        data-store-slogan
+        class="hidden md:block font-body text-[11px] text-secondary/70 tracking-[0.15em] leading-tight"
+      ></span>
     </div>
+
+    <div class="flex items-center gap-1 md:gap-4 text-primary">
+      <a
+        href={langSwitchPath}
+        class="hover:opacity-70 transition-opacity p-2 font-label-caps text-label-caps text-secondary hidden md:block"
+        aria-label={t('nav.lang', lang)}
+      >
+        {t('nav.langSwitch', lang)}
+      </a>
+      <a
+        href={`/${lang}/wishlist`}
+        class="hover:opacity-70 transition-opacity relative p-2"
+        aria-label={t('nav.wishlist', lang)}
+      >
+        <span class="material-symbols-outlined" data-icon="favorite">favorite</span>
+        <span
+          id="wishlistBadge"
+          class="absolute top-0 right-0 w-4 h-4 bg-monolith-black text-off-white text-[9px] font-bold rounded-full flex items-center justify-center hidden"
+          >0</span
+        >
+      </a>
+      <a
+        href={`/${lang}/carrito`}
+        class="hover:opacity-70 transition-opacity relative p-2"
+        aria-label={t('nav.cart', lang)}
+      >
+        <span class="material-symbols-outlined" data-icon="shopping_bag">shopping_bag</span>
+        <span
+          id="cartBadge"
+          class="absolute top-0 right-0 w-4 h-4 bg-monolith-black text-off-white text-[9px] font-bold rounded-full flex items-center justify-center hidden"
+          >0</span
+        >
+      </a>
+      <div class="relative">
+        <button
+          id="profileBtn"
+          class="hover:opacity-70 transition-opacity p-2"
+          aria-label={t('nav.profile', lang)}
+        >
+          <span class="material-symbols-outlined" data-icon="person">person</span>
+        </button>
+        <div
+          id="profileDropdown"
+          class="absolute top-full right-0 mt-2 bg-off-white border border-outline-variant shadow-lg min-w-[180px] opacity-0 invisible transition-all duration-200 z-50"
+        >
+          <div id="profileDropdownGuest">
+            <a
+              href={`/${lang}/login`}
+              class="block px-4 py-2.5 font-body-md text-body-md text-secondary hover:bg-surface-variant hover:text-monolith-black transition-colors"
+              >{t('auth.login', lang)}</a
+            >
+            <a
+              href={`/${lang}/register`}
+              class="block px-4 py-2.5 font-body-md text-body-md text-secondary hover:bg-surface-variant hover:text-monolith-black transition-colors"
+              >{t('auth.register', lang)}</a
+            >
+          </div>
+          <div id="profileDropdownLoggedIn" class="hidden">
+            <a
+              href={`/${lang}/account`}
+              class="block px-4 py-2.5 font-body-md text-body-md text-secondary hover:bg-surface-variant hover:text-monolith-black transition-colors"
+              >{t('account.dashboard', lang)}</a
+            >
+            <a
+              href={`/${lang}/account/orders`}
+              class="block px-4 py-2.5 font-body-md text-body-md text-secondary hover:bg-surface-variant hover:text-monolith-black transition-colors"
+              >{t('account.orders', lang)}</a
+            >
+            <a
+              href={`/${lang}/account/addresses`}
+              class="block px-4 py-2.5 font-body-md text-body-md text-secondary hover:bg-surface-variant hover:text-monolith-black transition-colors"
+              >{t('account.addresses', lang)}</a
+            >
+            <button
+              type="button"
+              onclick="window.openProfileEditModal()"
+              class="w-full text-left block px-4 py-2.5 font-body-md text-body-md text-secondary hover:bg-surface-variant hover:text-monolith-black transition-colors cursor-pointer"
+              >{t('account.profile', lang)}</button
+            >
+            <hr class="border-outline-variant/50 mx-2" />
+            <button
+              id="profileLogoutBtn"
+              class="w-full text-left block px-4 py-2.5 font-body-md text-body-md text-error hover:bg-error/5 transition-colors"
+              >{t('auth.logout', lang)}</button
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="h-[1px] w-full bg-gradient-to-r from-transparent via-outline-variant to-transparent opacity-0 transition-opacity duration-300"
+    id="navBorder"
+  >
   </div>
 </nav>
 
+<!-- Mobile menu overlay -->
+<div id="mobileMenu" class="fixed inset-0 z-50 md:hidden hidden">
+  <div id="mobileMenuBackdrop" class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+  <div class="absolute top-0 right-0 h-full w-80 max-w-[85vw] bg-off-white shadow-xl flex flex-col">
+    <div class="flex items-center justify-between px-5 py-5 border-b border-outline-variant">
+      <span class="font-label-caps text-label-caps text-secondary tracking-widest">NAVEGACIÓN</span>
+      <button
+        id="mobileMenuClose"
+        class="text-secondary hover:text-monolith-black transition-colors p-1"
+        aria-label="Cerrar menú"
+      >
+        <span class="material-symbols-outlined text-2xl">close</span>
+      </button>
+    </div>
+    <div class="flex-1 overflow-y-auto px-5 py-6">
+      <p class="font-label-caps text-label-caps text-secondary tracking-widest mb-3">
+        {t('nav.shop', lang)}
+      </p>
+      <div class="flex flex-col gap-1">
+        {
+          categories.map((cat) => (
+            <a
+              href={`/${lang}/catalogo?categoria=${cat.slug}`}
+              class="block py-2.5 px-3 -mx-3 font-body-md text-body-md text-secondary hover:text-monolith-black hover:bg-surface-variant transition-colors rounded-sm"
+            >
+              {cat.name}
+            </a>
+          ))
+        }
+      </div>
+      <div class="mt-6 pt-6 border-t border-outline-variant">
+        <a
+          href={langSwitchPath}
+          class="flex items-center gap-3 py-2.5 font-body-md text-body-md text-secondary hover:text-monolith-black transition-colors"
+        >
+          <span class="material-symbols-outlined text-lg">language</span>
+          {t('nav.langSwitch', lang)}
+        </a>
+      </div>
+    </div>
+    <div class="px-5 py-4 border-t border-outline-variant">
+      <div id="mobileProfileGuest">
+        <a
+          href={`/${lang}/login`}
+          class="block w-full text-center font-label-caps text-label-caps bg-monolith-black text-off-white rounded-sm px-6 h-10 leading-10 hover:bg-monolith-black/90 transition-colors"
+          >{t('auth.login', lang)}</a
+        >
+        <a
+          href={`/${lang}/register`}
+          class="block w-full text-center font-label-caps text-label-caps text-monolith-black mt-2 hover:text-secondary transition-colors"
+          >{t('auth.register', lang)}</a
+        >
+      </div>
+      <div id="mobileProfileLoggedIn" class="hidden">
+        <a
+          href={`/${lang}/account`}
+          class="block py-2.5 font-body-md text-body-md text-secondary hover:text-monolith-black transition-colors"
+          >{t('account.dashboard', lang)}</a
+        >
+        <a
+          href={`/${lang}/account/orders`}
+          class="block py-2.5 font-body-md text-body-md text-secondary hover:text-monolith-black transition-colors"
+          >{t('account.orders', lang)}</a
+        >
+        <a
+          href={`/${lang}/account/addresses`}
+          class="block py-2.5 font-body-md text-body-md text-secondary hover:text-monolith-black transition-colors"
+          >{t('account.addresses', lang)}</a
+        >
+        <button
+          id="mobileLogoutBtn"
+          class="block w-full text-center py-2.5 font-body-md text-body-md text-error hover:text-error/80 transition-colors cursor-pointer"
+          >{t('auth.logout', lang)}</button
+        >
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
-  // @ts-nocheck
   function updateCartBadge() {
-    const badge = document.getElementById("cartBadge");
-    if (!badge) return;
-    const count = window.RamLopCart?.getCount() || 0;
+    const badge = document.getElementById('cartBadge')
+    if (!badge) return
+    const count = window.VunoCart?.getCount() || 0
     if (count > 0) {
-      badge.textContent = count > 9 ? "9+" : count;
-      badge.classList.remove("hidden");
+      badge.textContent = count > 9 ? '9+' : String(count)
+      badge.classList.remove('hidden')
     } else {
-      badge.classList.add("hidden");
+      badge.classList.add('hidden')
     }
   }
 
-  document.addEventListener("cart:updated", updateCartBadge);
-  document.addEventListener("DOMContentLoaded", updateCartBadge);
-  setTimeout(updateCartBadge, 100);
-
-  // Tonal shift on scroll
-  window.addEventListener("scroll", () => {
-    const nav = document.getElementById("topNav");
-    if (!nav) return;
-    if (window.scrollY > 50) {
-      nav.classList.add("bg-surface-container-low");
-      nav.classList.remove("bg-background");
+  function updateWishlistBadge() {
+    const badge = document.getElementById('wishlistBadge')
+    if (!badge) return
+    const count = window.VunoWishlist?.getCount() || 0
+    if (count > 0) {
+      badge.textContent = count > 9 ? '9+' : String(count)
+      badge.classList.remove('hidden')
     } else {
-      nav.classList.add("bg-background");
-      nav.classList.remove("bg-surface-container-low");
+      badge.classList.add('hidden')
     }
-  });
+  }
+
+  window.addEventListener('cart:updated', updateCartBadge)
+  window.addEventListener('wishlist:updated', updateWishlistBadge)
+  document.addEventListener('DOMContentLoaded', function () {
+    updateCartBadge()
+    updateWishlistBadge()
+  })
+  setTimeout(function () {
+    updateCartBadge()
+    updateWishlistBadge()
+  }, 100)
+
+  // Profile dropdown — click toggle
+  let profileOpen = false
+
+  document.getElementById('profileBtn')?.addEventListener('click', function (e) {
+    e.stopPropagation()
+    const dd = document.getElementById('profileDropdown')
+    if (!dd) return
+    profileOpen = !profileOpen
+    if (profileOpen) {
+      dd.classList.remove('opacity-0', 'invisible')
+      dd.classList.add('opacity-100', 'visible')
+    } else {
+      dd.classList.remove('opacity-100', 'visible')
+      dd.classList.add('opacity-0', 'invisible')
+    }
+  })
+
+  document.addEventListener('click', function (e) {
+    if (!(e.target instanceof Element)) return
+    if (profileOpen && !e.target.closest('#profileBtn') && !e.target.closest('#profileDropdown')) {
+      profileOpen = false
+      const dd = document.getElementById('profileDropdown')
+      if (dd) {
+        dd.classList.remove('opacity-100', 'visible')
+        dd.classList.add('opacity-0', 'invisible')
+      }
+    }
+  })
+
+  // Mobile menu toggle
+  function openMobileMenu() {
+    const menu = document.getElementById('mobileMenu')
+    if (menu) menu.classList.remove('hidden')
+  }
+
+  function closeMobileMenu() {
+    const menu = document.getElementById('mobileMenu')
+    if (menu) menu.classList.add('hidden')
+  }
+
+  document.getElementById('mobileMenuBtn')?.addEventListener('click', openMobileMenu)
+  document.getElementById('mobileMenuClose')?.addEventListener('click', closeMobileMenu)
+  document.getElementById('mobileMenuBackdrop')?.addEventListener('click', closeMobileMenu)
+
+  // Close mobile menu on Escape
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeMobileMenu()
+  })
+
+  // Profile auth update (desktop + mobile)
+  function updateProfileDropdown() {
+    const isLoggedIn = window.VunoAuth?.isLoggedIn()
+    // Desktop
+    const guest = document.getElementById('profileDropdownGuest')
+    const loggedIn = document.getElementById('profileDropdownLoggedIn')
+    if (guest && loggedIn) {
+      if (isLoggedIn) {
+        guest.classList.add('hidden')
+        loggedIn.classList.remove('hidden')
+      } else {
+        guest.classList.remove('hidden')
+        loggedIn.classList.add('hidden')
+      }
+    }
+    // Mobile
+    const mobileGuest = document.getElementById('mobileProfileGuest')
+    const mobileLoggedIn = document.getElementById('mobileProfileLoggedIn')
+    if (mobileGuest && mobileLoggedIn) {
+      if (isLoggedIn) {
+        mobileGuest.classList.add('hidden')
+        mobileLoggedIn.classList.remove('hidden')
+      } else {
+        mobileGuest.classList.remove('hidden')
+        mobileLoggedIn.classList.add('hidden')
+      }
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    updateProfileDropdown()
+    if (window.VunoAuth) {
+      window.VunoAuth.verify().then(updateProfileDropdown)
+    }
+  })
+  window.addEventListener('auth:changed', updateProfileDropdown)
+
+  // Logout handler (desktop + mobile)
+  document.addEventListener('click', function (e) {
+    if (!(e.target instanceof Element)) return
+    const btn = e.target.closest('#profileLogoutBtn, #mobileLogoutBtn')
+    if (btn && window.VunoAuth) {
+      window.VunoAuth.logout().then(() => {
+        window.location.reload()
+      })
+    }
+  })
+
+  window.addEventListener('scroll', () => {
+    const nav = document.getElementById('topNav')
+    const border = document.getElementById('navBorder')
+    if (!nav || !border) return
+    if (window.scrollY > 50) {
+      nav.classList.add('bg-background/95', 'shadow-sm', 'backdrop-blur-md')
+      nav.classList.remove('bg-background/90')
+      border.classList.remove('opacity-0')
+      border.classList.add('opacity-100')
+    } else {
+      nav.classList.remove('bg-background/95', 'shadow-sm', 'backdrop-blur-md')
+      nav.classList.add('bg-background/90')
+      border.classList.remove('opacity-100')
+      border.classList.add('opacity-0')
+    }
+  })
 </script>

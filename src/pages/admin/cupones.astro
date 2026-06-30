@@ -1,0 +1,8 @@
+---
+import AdminLayout from "./_layout.astro";
+import CuponesPage from "../../components/admin/CuponesPage.vue";
+---
+
+<AdminLayout title="Cupones" currentPath="/admin/cupones">
+  <CuponesPage client:only="vue" />
+</AdminLayout>

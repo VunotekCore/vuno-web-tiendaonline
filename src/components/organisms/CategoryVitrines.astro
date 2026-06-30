@@ -1,0 +1,183 @@
+---
+import { imgTransform } from "../../lib/images";
+import { t, type Locale } from "../../i18n/utils";
+import type { LandingSectionData } from "../../lib/storage";
+
+interface VitrineCategory {
+  name: string;
+  slug: string;
+}
+
+interface Props {
+  lang: Locale;
+  categories: VitrineCategory[];
+  productForCategory: (slug: string) => { images: string[] } | undefined;
+  data?: LandingSectionData | null;
+}
+
+const { lang, categories, productForCategory, data } = Astro.props;
+if (data && data.enabled === false) return;
+
+const label = data?.label_es && data?.label_en
+  ? (lang === "es" ? data.label_es : data.label_en)
+  : t("home.categories.label", lang);
+const title = data?.title_es && data?.title_en
+  ? (lang === "es" ? data.title_es : data.title_en)
+  : t("home.categories.title", lang);
+const ctaLink = data?.cta_category_slug
+  ? `/${lang}/catalogo?categoria=${data.cta_category_slug}`
+  : (data?.cta_link || `/${lang}/catalogo`);
+---
+
+<section class="py-section-gap px-margin-mobile md:px-margin-desktop" data-section="categories">
+  <div class="max-w-container-max mx-auto">
+  <div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-4">
+    <div>
+      <span class="font-label-caps text-label-caps text-clay-accent tracking-[0.15em]" data-field="label">{label}</span>
+      <h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-monolith-black leading-tight mt-2" data-field="title">
+        {title}
+      </h2>
+    </div>
+    <a href={ctaLink} class="font-label-caps text-label-caps text-monolith-black border-b border-monolith-black pb-0.5 hover:text-secondary hover:border-secondary transition-all duration-300 whitespace-nowrap">
+      {lang === "es" ? "VER TODO" : "VIEW ALL"}
+    </a>
+  </div>
+
+  <div class="relative group/carousel">
+    <button class="carousel-arrow carousel-prev opacity-0 pointer-events-none" aria-label={lang === "es" ? "Anterior" : "Previous"}>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+
+    <div class="carousel-track flex overflow-x-auto snap-x snap-mandatory scroll-smooth hide-scrollbar gap-gutter pb-2">
+      {categories.map((cat, i) => {
+        const catProduct = productForCategory(cat.slug);
+        const imgUrl = catProduct?.images[0] || "";
+        return (
+          <div class="snap-start shrink-0 w-[80vw] md:w-[38vw] lg:w-[30vw] xl:w-[calc(25%-1rem)]">
+            <a
+              href={`/${lang}/catalogo?categoria=${cat.slug}`}
+              class="group relative aspect-[3/4] bg-surface-container overflow-hidden block"
+            >
+              {imgUrl && (
+                <img
+                  src={imgTransform(imgUrl, 500, 650)}
+                  alt={cat.name}
+                  class="w-full h-full object-cover object-center transition-all duration-700 group-hover:scale-105"
+                  loading={i < 4 ? "eager" : "lazy"}
+                />
+              )}
+              <div class="absolute inset-0 bg-gradient-to-t from-monolith-black/70 via-monolith-black/10 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-500"></div>
+              <div class="absolute bottom-0 left-0 right-0 p-6 md:p-8">
+                <span class="font-label-caps text-label-caps text-clay-accent tracking-widest mb-2 block">{lang === "es" ? "COLECCIÓN" : "COLLECTION"}</span>
+                <h3 class="font-headline-sm text-headline-sm text-off-white">{cat.name}</h3>
+              </div>
+              <div class="absolute top-4 right-4 w-8 h-8 border border-off-white/30 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
+                <span class="material-symbols-outlined text-off-white text-sm">arrow_outward</span>
+              </div>
+            </a>
+          </div>
+        );
+      })}
+    </div>
+
+    <button class="carousel-arrow carousel-next" aria-label={lang === "es" ? "Siguiente" : "Next"}>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+  </div>
+  </div>
+</section>
+
+<style>
+  .carousel-track {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .carousel-track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .carousel-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 9999px;
+    background: rgba(26, 26, 26, 0.6);
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+  }
+  .carousel-arrow:hover {
+    background: rgba(26, 26, 26, 0.8);
+  }
+
+  .carousel-prev {
+    left: -1rem;
+  }
+  @media (min-width: 768px) {
+    .carousel-prev {
+      left: -1.25rem;
+    }
+  }
+
+  .carousel-next {
+    right: -1rem;
+  }
+  @media (min-width: 768px) {
+    .carousel-next {
+      right: -1.25rem;
+    }
+  }
+</style>
+
+<script>
+  (function () {
+    const track = document.querySelector<HTMLElement>(".carousel-track");
+    if (!track) return;
+    const container = track.parentElement;
+    if (!container) return;
+    const prev = container.querySelector<HTMLElement>(".carousel-prev");
+    const next = container.querySelector<HTMLElement>(".carousel-next");
+    if (!prev || !next) return;
+
+    const $track = track;
+    const $prev = prev;
+    const $next = next;
+
+    const SCROLL_THRESHOLD = 20;
+
+    function updateArrows() {
+      const maxScroll = $track.scrollWidth - $track.clientWidth;
+      const atStart = $track.scrollLeft <= SCROLL_THRESHOLD;
+      const atEnd = $track.scrollLeft >= maxScroll - SCROLL_THRESHOLD;
+
+      $prev.classList.toggle("opacity-0", atStart);
+      $prev.classList.toggle("pointer-events-none", atStart);
+      $next.classList.toggle("opacity-0", atEnd);
+      $next.classList.toggle("pointer-events-none", atEnd);
+    }
+
+    function getCardWidth() {
+      const card = $track.querySelector<HTMLElement>(".snap-start");
+      return card ? card.offsetWidth + 16 : 300;
+    }
+
+    $prev.addEventListener("click", function () {
+      $track.scrollBy({ left: -getCardWidth(), behavior: "smooth" });
+    });
+
+    $next.addEventListener("click", function () {
+      $track.scrollBy({ left: getCardWidth(), behavior: "smooth" });
+    });
+
+    $track.addEventListener("scroll", updateArrows);
+    window.addEventListener("resize", updateArrows);
+    updateArrows();
+  })();
+</script>

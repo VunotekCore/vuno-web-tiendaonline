@@ -1,0 +1,63 @@
+---
+import { tenant } from "../../config/tenant";
+
+export interface Props {
+  title: string;
+  description?: string;
+  ogImage?: string;
+  ogType?: "website" | "product" | "article";
+  noindex?: boolean;
+  canonical?: string;
+  lang?: string;
+  locale?: string;
+  siteName?: string;
+  twitterSite?: string;
+  googleSiteVerification?: string;
+  themeColor?: string;
+}
+
+const {
+  title,
+  description,
+  ogImage,
+  ogType = "website",
+  noindex = false,
+  canonical,
+  lang = "es",
+  locale = lang === "en" ? "en_US" : "es_NI",
+  siteName = "Vunotek",
+  twitterSite,
+  googleSiteVerification,
+  themeColor,
+} = Astro.props;
+
+const siteUrl = import.meta.env.PROD ? tenant.brand.url : "http://localhost:4321";
+const finalCanonical = canonical || Astro.url;
+const ogImageUrl = ogImage || `${siteUrl}/og-default.jpg`;
+---
+
+<title>{title}</title>
+{description && <meta name="description" content={description} />}
+<link rel="canonical" href={finalCanonical} />
+
+{noindex && <meta name="robots" content="noindex, nofollow" />}
+
+{googleSiteVerification && <meta name="google-site-verification" content={googleSiteVerification} />}
+
+{themeColor && <meta name="theme-color" content={themeColor} />}
+
+<meta property="og:title" content={title} />
+{description && <meta property="og:description" content={description} />}
+<meta property="og:url" content={finalCanonical} />
+<meta property="og:type" content={ogType} />
+<meta property="og:site_name" content={siteName} />
+<meta property="og:locale" content={locale} />
+<meta property="og:image" content={ogImageUrl} />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={title} />
+{description && <meta name="twitter:description" content={description} />}
+<meta name="twitter:image" content={ogImageUrl} />
+{twitterSite && <meta name="twitter:site" content={twitterSite} />}

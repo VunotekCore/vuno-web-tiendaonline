@@ -108,3 +108,17 @@ Thumbs.db
 
 #html-design - design assets (not in repo)
 html-designs/
+
+# PHP dependencies
+vendor/
+
+# Agent / IDE system files (opencode skills, not part of project)
+.agents/
+skills-lock.json
+
+# Encryption key (auto-generated, do not version)
+backend/encryption.key
+
+# Database config & installer lock (per-environment)
+backend/database/config.php
+backend/.installer-lock

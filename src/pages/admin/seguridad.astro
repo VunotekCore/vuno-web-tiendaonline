@@ -1,0 +1,8 @@
+---
+import AdminLayout from "./_layout.astro";
+import SeguridadApp from "../../components/admin/SeguridadApp.vue";
+---
+
+<AdminLayout title="Seguridad" currentPath="/admin/seguridad">
+  <SeguridadApp client:only="vue" />
+</AdminLayout>

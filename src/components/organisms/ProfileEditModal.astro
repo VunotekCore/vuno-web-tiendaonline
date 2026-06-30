@@ -1,0 +1,229 @@
+---
+interface Props {
+  lang: string;
+}
+
+const { lang } = Astro.props;
+const t = (key: string) => key; // placeholder — runtime i18n via data attributes
+---
+
+<!-- Profile Edit Modal -->
+<div
+  id="profileEditModal"
+  class="hidden fixed inset-0 z-[90] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="profileEditTitle"
+>
+  <div class="bg-off-white border border-outline-variant shadow-lg rounded-sm p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+    <div class="flex items-center justify-between mb-6">
+      <h3 id="profileEditTitle" class="font-headline text-headline-md text-monolith-black">
+        {lang === "es" ? "Editar Perfil" : "Edit Profile"}
+      </h3>
+      <button type="button" id="profileEditClose" class="text-secondary hover:text-monolith-black transition-colors p-1 -mr-1" aria-label="Close">
+        <span class="material-symbols-outlined text-xl">close</span>
+      </button>
+    </div>
+
+    <div id="profileEditMsg" class="hidden font-body text-body-md p-3 mb-4 text-sm"></div>
+
+    <form id="profileEditForm" class="mb-8">
+      <h4 class="font-headline text-headline-sm mb-4">{lang === "es" ? "Información Personal" : "Personal Info"}</h4>
+      <div class="flex flex-col gap-5">
+        <div>
+          <label class="font-label-caps text-label-caps text-secondary block mb-2 tracking-widest">{lang === "es" ? "NOMBRE" : "NAME"}</label>
+          <input id="profileEditName" type="text" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
+        </div>
+        <div>
+          <label class="font-label-caps text-label-caps text-secondary block mb-2 tracking-widest">{lang === "es" ? "CORREO ELECTRÓNICO" : "EMAIL"}</label>
+          <input id="profileEditEmail" type="email" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
+        </div>
+        <button type="submit" class="w-full bg-monolith-black text-off-white font-label-caps text-label-caps h-11 inline-flex items-center justify-center hover:bg-monolith-black/90 transition-all tracking-widest text-sm">
+          {lang === "es" ? "GUARDAR CAMBIOS" : "SAVE CHANGES"}
+        </button>
+      </div>
+    </form>
+
+    <form id="profileEditPasswordForm">
+      <h4 class="font-headline text-headline-sm mb-4">{lang === "es" ? "Cambiar Contraseña" : "Change Password"}</h4>
+      <div class="flex flex-col gap-5">
+        <div>
+          <label class="font-label-caps text-label-caps text-secondary block mb-2 tracking-widest">{lang === "es" ? "CONTRASEÑA ACTUAL" : "CURRENT PASSWORD"}</label>
+          <input id="profileEditCurrentPassword" type="password" required class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
+        </div>
+        <div>
+          <label class="font-label-caps text-label-caps text-secondary block mb-2 tracking-widest">{lang === "es" ? "NUEVA CONTRASEÑA" : "NEW PASSWORD"}</label>
+          <input id="profileEditNewPassword" type="password" required minlength="6" class="w-full bg-transparent border-b border-outline pb-2 text-monolith-black focus:border-monolith-black focus:outline-none transition-colors" />
+        </div>
+        <button type="submit" class="w-full bg-monolith-black text-off-white font-label-caps text-label-caps h-11 inline-flex items-center justify-center hover:bg-monolith-black/90 transition-all tracking-widest text-sm">
+          {lang === "es" ? "GUARDAR CAMBIOS" : "SAVE CHANGES"}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  // @ts-nocheck
+  var LANG = document.documentElement.lang || "es";
+
+  function showProfileEditMsg(text, isError) {
+    var el = document.getElementById("profileEditMsg");
+    el.textContent = text;
+    el.className = "font-body text-body-md p-3 mb-4 text-sm " + (isError ? "bg-red-100 text-error" : "bg-green-100 text-green-800");
+    el.classList.remove("hidden");
+  }
+
+  function openProfileEditModal() {
+    var modal = document.getElementById("profileEditModal");
+    if (!modal) return;
+    var customer = window.VunoAuth && window.VunoAuth.getCustomer();
+    if (!customer) {
+      var btn = document.getElementById("profileEditForm") && document.getElementById("profileEditForm").querySelector("button[type=submit]");
+      if (btn) { btn.disabled = true; btn.textContent = "..."; }
+    }
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+    document.body.style.overflow = "hidden";
+
+    // Load customer data
+    if (window.VunoAuth) {
+      window.VunoAuth.verify().then(function (c) {
+        if (c) {
+          document.getElementById("profileEditName").value = c.name || "";
+          document.getElementById("profileEditEmail").value = c.email || "";
+        }
+      }).catch(function () {});
+    }
+  }
+
+  function closeProfileEditModal() {
+    var modal = document.getElementById("profileEditModal");
+    if (!modal) return;
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+    document.body.style.overflow = "";
+  }
+
+  // Expose globally so Navbar and other pages can call it
+  window.openProfileEditModal = openProfileEditModal;
+  window.closeProfileEditModal = closeProfileEditModal;
+
+  // Backdrop click
+  document.addEventListener("click", function (e) {
+    var modal = document.getElementById("profileEditModal");
+    if (!modal || modal.classList.contains("hidden")) return;
+    if (e.target === modal) closeProfileEditModal();
+  });
+
+  // Close button
+  document.addEventListener("click", function (e) {
+    var btn = e.target.closest("#profileEditClose");
+    if (!btn) return;
+    closeProfileEditModal();
+  });
+
+  // Escape key
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") closeProfileEditModal();
+  });
+
+  // Profile form submit
+  document.addEventListener("submit", function (e) {
+    var form = e.target;
+    if (form.id !== "profileEditForm") return;
+    e.preventDefault();
+    var msg = document.getElementById("profileEditMsg");
+    msg.classList.add("hidden");
+    var name = document.getElementById("profileEditName").value.trim();
+    var email = document.getElementById("profileEditEmail").value.trim();
+    var btn = form.querySelector("button[type=submit]");
+    btn.disabled = true;
+    btn.textContent = "...";
+
+    if (!window.VunoAuth) {
+      showProfileEditMsg("Session not available", true);
+      btn.disabled = false;
+      btn.textContent = LANG === "es" ? "GUARDAR CAMBIOS" : "SAVE CHANGES";
+      return;
+    }
+
+    window.VunoAuth.authFetch("/api/customer/update.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: name, email: email })
+    })
+      .then(function (res) {
+        return res.json().then(function (data) { return { ok: res.ok, data: data }; });
+      })
+      .then(function (res) {
+        if (!res.ok) throw new Error(res.data.error || "Error");
+        window.VunoAuth.verify(); // refresh cached customer
+        if (window.VunoToast) {
+          window.VunoToast.success(LANG === "es" ? "Perfil actualizado" : "Profile updated", "");
+        }
+        showProfileEditMsg(LANG === "es" ? "Perfil actualizado correctamente" : "Profile updated successfully", false);
+        setTimeout(function () {
+          msg.classList.add("hidden");
+          closeProfileEditModal();
+        }, 1200);
+      })
+      .catch(function (err) {
+        showProfileEditMsg(err.message || "Error", true);
+      })
+      .finally(function () {
+        btn.disabled = false;
+        btn.textContent = LANG === "es" ? "GUARDAR CAMBIOS" : "SAVE CHANGES";
+      });
+  });
+
+  // Password form submit
+  document.addEventListener("submit", function (e) {
+    var form = e.target;
+    if (form.id !== "profileEditPasswordForm") return;
+    e.preventDefault();
+    var msg = document.getElementById("profileEditMsg");
+    msg.classList.add("hidden");
+    var currentPassword = document.getElementById("profileEditCurrentPassword").value;
+    var newPassword = document.getElementById("profileEditNewPassword").value;
+    var btn = form.querySelector("button[type=submit]");
+    btn.disabled = true;
+    btn.textContent = "...";
+
+    if (!window.VunoAuth) {
+      showProfileEditMsg("Session not available", true);
+      btn.disabled = false;
+      btn.textContent = LANG === "es" ? "GUARDAR CAMBIOS" : "SAVE CHANGES";
+      return;
+    }
+
+    window.VunoAuth.authFetch("/api/customer/update.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ currentPassword: currentPassword, newPassword: newPassword })
+    })
+      .then(function (res) {
+        return res.json().then(function (data) { return { ok: res.ok, data: data }; });
+      })
+      .then(function (res) {
+        if (!res.ok) throw new Error(res.data.error || "Error");
+        document.getElementById("profileEditCurrentPassword").value = "";
+        document.getElementById("profileEditNewPassword").value = "";
+        if (window.VunoToast) {
+          window.VunoToast.success(LANG === "es" ? "Contraseña cambiada" : "Password changed", "");
+        }
+        showProfileEditMsg(LANG === "es" ? "Contraseña cambiada correctamente" : "Password changed successfully", false);
+        setTimeout(function () {
+          msg.classList.add("hidden");
+          closeProfileEditModal();
+        }, 1200);
+      })
+      .catch(function (err) {
+        showProfileEditMsg(err.message || "Error", true);
+      })
+      .finally(function () {
+        btn.disabled = false;
+        btn.textContent = LANG === "es" ? "GUARDAR CAMBIOS" : "SAVE CHANGES";
+      });
+  });
+</script>
