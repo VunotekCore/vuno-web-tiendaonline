@@ -75,7 +75,7 @@ if (file_exists($localDb)) {
 if (!defined('DB_HOST')) define('DB_HOST', env('DB_HOST', 'localhost'));
 if (!defined('DB_PORT')) define('DB_PORT', env('DB_PORT', '3306'));
 if (!defined('DB_NAME')) define('DB_NAME', env('DB_NAME', 'vuno_ramlop_ecommerce'));
-if (!defined('DB_USER')) define('DB_USER', env('DB_USER', 'dail'));
+if (!defined('DB_USER')) define('DB_USER', env('DB_USER', 'root'));
 if (!defined('DB_PASS')) define('DB_PASS', env('DB_PASS', ''));
 
 // --- Database Connection ---
