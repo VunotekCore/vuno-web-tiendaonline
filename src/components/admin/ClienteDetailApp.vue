@@ -251,7 +251,7 @@ function formatPrice(val: number | null | undefined, symbol = '$') {
       </div>
       <div v-if="customer.wishlist?.length" class="px-6 py-4 space-y-2">
         <div v-for="(w, i) in customer.wishlist" :key="i" class="flex items-center justify-between border-b border-[#1e293b] pb-2 last:border-0">
-          <a :href="'/producto/' + w.slug" class="text-sm text-[#dae2fd] hover:text-[#42b883] transition-colors" target="_blank">{{ w.name }}</a>
+          <a :href="'/es/producto/' + w.slug" class="text-sm text-[#dae2fd] hover:text-[#42b883] transition-colors" target="_blank">{{ w.name }}</a>
           <span class="text-sm font-medium">{{ formatPrice(w.price, w.currency === 'NIO' ? 'C$' : '$') }}</span>
         </div>
       </div>
