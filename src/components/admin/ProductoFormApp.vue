@@ -666,7 +666,7 @@ const remainingImages = computed(() => MAX_IMAGES - totalImages.value)
                 @click="colorHexInput = h" />
             </div>
           </div>
-          <button type="button" class="h-9 px-4 bg-[#42b883] text-white text-xs font-semibold tracking-widest rounded-sm hover:bg-[#42b883]/90 transition-all disabled:opacity-40" @click="addColor">AGREGAR</button>
+          <button type="button" class="admin-btn admin-btn-primary h-9 px-4 text-xs tracking-widest disabled:opacity-40" @click="addColor">AGREGAR</button>
         </div>
       </div>
 
@@ -699,7 +699,7 @@ const remainingImages = computed(() => MAX_IMAGES - totalImages.value)
             <label class="block text-[10px] font-semibold tracking-widest text-[#94a3b8] mb-1 uppercase">HASTA</label>
             <input v-model.number="sizeTo" type="number" min="1" max="99" class="w-16 h-9 px-2 bg-[#1e293b] border border-[#1e293b] text-[#dae2fd] text-sm text-center focus:border-[#42b883] focus:outline-none rounded-sm" />
           </div>
-          <button type="button" class="h-9 px-4 bg-[#42b883] text-white text-xs font-semibold tracking-widest rounded-sm hover:bg-[#42b883]/90 transition-all" @click="addSizeRange">AGREGAR RANGO</button>
+          <button type="button" class="admin-btn admin-btn-primary h-9 px-4 text-xs tracking-widest" @click="addSizeRange">AGREGAR RANGO</button>
         </div>
         <div class="flex flex-wrap items-center gap-3 mt-3">
           <label class="text-[10px] font-semibold tracking-widest text-[#94a3b8] uppercase">PREFIJO</label>
@@ -814,7 +814,7 @@ const remainingImages = computed(() => MAX_IMAGES - totalImages.value)
     <div class="mt-8 pt-6 border-t border-[#1e293b] flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-4">
       <a href="/admin/productos" class="font-label-caps text-label-caps text-center sm:text-left text-[#94a3b8] hover:text-[#dae2fd] transition-colors py-3 sm:py-0">CANCELAR</a>
       <button type="submit" :disabled="submitting"
-        class="bg-[#42b883] text-white font-label-caps text-label-caps h-12 px-8 inline-flex items-center justify-center gap-1.5 rounded-md hover:bg-[#42b883]/90 hover:shadow-sm transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed w-full sm:w-auto">
+        class="admin-btn admin-btn-primary font-label-caps text-label-caps h-12 px-8 gap-1.5 hover:shadow-sm duration-200 disabled:opacity-40 disabled:cursor-not-allowed w-full sm:w-auto">
         <VunoIcon :icon="submitting ? 'progress_activity' : 'save'" :size="20" :class="{ 'animate-spin': submitting }" />
         {{ submitting ? 'GUARDANDO...' : (isEdit ? 'GUARDAR CAMBIOS' : 'GUARDAR PRODUCTO') }}
       </button>

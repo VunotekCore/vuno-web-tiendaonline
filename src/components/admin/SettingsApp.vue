@@ -573,7 +573,7 @@ const landingFieldLabels: Record<string, string> = {
         <button v-for="t in tabs" :key="t.id" role="tab"
                 :aria-selected="activeTab === t.id"
                 :class="activeTab === t.id
-                  ? 'bg-[#42b883] text-white'
+                  ? 'admin-btn-primary'
                   : 'text-[#94a3b8] hover:bg-white/5 hover:text-[#dae2fd]'"
                 class="px-3 py-3 text-xs font-semibold tracking-widest rounded-sm transition-all flex items-center justify-center gap-1.5"
                 @click="activeTab = t.id; if (t.children?.length) activeChildTab = t.children[0].id">
@@ -588,7 +588,7 @@ const landingFieldLabels: Record<string, string> = {
       <div class="grid grid-cols-3 gap-2 border-b border-[#1e293b] pb-3">
         <button v-for="child in (tabs.find(t => t.id === 'group-pagos')?.children || [])" :key="child.id"
                 :class="activeChildTab === child.id
-                  ? 'bg-[#42b883] text-white'
+                  ? 'admin-btn-primary'
                   : 'text-[#94a3b8] hover:bg-white/10 hover:text-[#dae2fd] border border-[#1e293b]'"
                 class="xs:px-2 sm:px-3 xs:text-[11px] py-2 text-xs font-semibold tracking-widest rounded-sm transition-all flex items-center justify-center gap-1.5"
                 @click="activeChildTab = child.id">
@@ -603,7 +603,7 @@ const landingFieldLabels: Record<string, string> = {
       <div class="grid grid-cols-3 gap-2 border-b border-[#1e293b] pb-3">
         <button v-for="child in (tabs.find(t => t.id === 'group-servicios')?.children || [])" :key="child.id"
                 :class="activeChildTab === child.id
-                  ? 'bg-[#42b883] text-white'
+                  ? 'admin-btn-primary'
                   : 'text-[#94a3b8] hover:bg-white/10 hover:text-[#dae2fd] border border-[#1e293b]'"
                 class="xs:px-2 sm:px-3 xs:text-[11px] py-2 text-xs font-semibold tracking-widest rounded-sm transition-all flex items-center justify-center gap-1.5"
                 @click="activeChildTab = child.id">
@@ -618,7 +618,7 @@ const landingFieldLabels: Record<string, string> = {
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 border-b border-[#1e293b] pb-3">
         <button v-for="child in (tabs.find(t => t.id === 'group-landing')?.children || [])" :key="child.id"
                 :class="activeChildTab === child.id
-                  ? 'bg-[#42b883] text-white shadow-sm shadow-[#42b883]/20'
+                  ? 'admin-btn-primary shadow-sm shadow-[#42b883]/20'
                   : 'text-[#94a3b8] hover:bg-white/10 hover:text-[#dae2fd] border border-[#1e293b]'"
                 class="xs:px-2 sm:px-3 xs:text-[11px] py-2 text-xs font-semibold tracking-widest rounded-sm transition-all flex items-center justify-center gap-1.5"
                 @click="activeChildTab = child.id">
@@ -633,7 +633,7 @@ const landingFieldLabels: Record<string, string> = {
       <div class="grid grid-cols-3 sm:grid-cols-5 gap-2 border-b border-[#1e293b] pb-3">
         <button v-for="child in (tabs.find(t => t.id === 'group-tienda')?.children || [])" :key="child.id"
                 :class="activeChildTab === child.id
-                  ? 'bg-[#42b883] text-white shadow-sm shadow-[#42b883]/20'
+                  ? 'admin-btn-primary shadow-sm shadow-[#42b883]/20'
                   : 'text-[#94a3b8] hover:bg-white/10 hover:text-[#dae2fd] border border-[#1e293b]'"
                 class="xs:px-2 sm:px-3 xs:text-[11px] py-2 text-xs font-semibold tracking-widest rounded-sm transition-all flex items-center justify-center gap-1.5"
                 @click="activeChildTab = child.id">

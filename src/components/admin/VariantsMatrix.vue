@@ -397,7 +397,7 @@ defineExpose({
       <input type="number" min="0" step="1" v-model.number="fillValue"
         class="w-16 h-8 px-2 text-center font-price-display text-base bg-[#1e293b] border border-[#1e293b] rounded-sm text-[#dae2fd] focus:border-[#42b883] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
       <span class="font-label-caps text-label-caps text-[#94a3b8] text-sm">und a cada talle</span>
-      <button type="button" class="font-label-caps text-label-caps text-white bg-[#42b883] border border-[#42b883] px-3 h-8 hover:bg-[#42b883]/90 transition-all" @click="applyFill">APLICAR</button>
+      <button type="button" class="admin-btn admin-btn-primary font-label-caps text-label-caps px-3 h-8" @click="applyFill">APLICAR</button>
       <button type="button" class="font-label-caps text-label-caps text-[#94a3b8] hover:text-[#dae2fd] transition-colors" @click="hideFillPrompt">CANCELAR</button>
     </div>
   </div>

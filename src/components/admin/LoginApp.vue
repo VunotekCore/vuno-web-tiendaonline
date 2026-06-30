@@ -264,7 +264,7 @@ async function backToLogin() {
 
             <button
               type="submit"
-              class="w-full text-sm font-semibold tracking-wider uppercase bg-[#42b883] text-white rounded-sm px-6 h-12 hover:bg-[#42b883]/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              class="w-full admin-btn admin-btn-primary text-sm font-semibold tracking-wider uppercase px-6 h-12 disabled:opacity-50 disabled:cursor-not-allowed justify-center gap-2"
               :disabled="loading"
             >
               <VunoIcon v-if="loading" icon="progress_activity" :size="18" class="animate-spin" />
@@ -310,9 +310,9 @@ async function backToLogin() {
 
           <button
             type="submit"
-            class="w-full text-sm font-semibold tracking-wider uppercase bg-[#42b883] text-white rounded-sm px-6 h-12 hover:bg-[#42b883]/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            :disabled="totpLoading"
-          >
+              class="w-full admin-btn admin-btn-primary text-sm font-semibold tracking-wider uppercase px-6 h-12 disabled:opacity-50 disabled:cursor-not-allowed justify-center gap-2"
+              :disabled="totpLoading"
+            >
             <VunoIcon v-if="totpLoading" icon="progress_activity" :size="18" class="animate-spin" />
             <template v-else>
               Verificar identidad

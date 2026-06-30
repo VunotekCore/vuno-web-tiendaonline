@@ -275,8 +275,8 @@ function countClass(len: number, max: number) {
               VISTA PREVIA
             </button>
             <div class="flex items-stretch gap-0.5 border border-[#1e293b] rounded-sm overflow-hidden text-xs font-medium flex-1 sm:flex-none">
-              <button type="button" class="flex-1 px-3 h-8 transition-colors text-center" :class="isVisualMode ? 'bg-[#42b883] text-white' : 'text-[#94a3b8] hover:text-[#dae2fd]'" @click="setMode(true)">Visual</button>
-              <button type="button" class="flex-1 px-3 h-8 transition-colors text-center" :class="!isVisualMode ? 'bg-[#42b883] text-white' : 'text-[#94a3b8] hover:text-[#dae2fd]'" @click="setMode(false)">HTML</button>
+              <button type="button" class="flex-1 px-3 h-8 transition-colors text-center" :class="isVisualMode ? 'admin-btn-primary' : 'text-[#94a3b8] hover:text-[#dae2fd]'" @click="setMode(true)">Visual</button>
+              <button type="button" class="flex-1 px-3 h-8 transition-colors text-center" :class="!isVisualMode ? 'admin-btn-primary' : 'text-[#94a3b8] hover:text-[#dae2fd]'" @click="setMode(false)">HTML</button>
             </div>
           </div>
         </div>

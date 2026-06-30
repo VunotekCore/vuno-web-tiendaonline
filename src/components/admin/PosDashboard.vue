@@ -129,7 +129,7 @@ onMounted(async () => {
     <!-- Stats cards -->
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-6">
       <div v-for="card in cards" :key="card.label"
-           class="admin-card p-4 sm:p-5 flex flex-col gap-2"
+           class="glass-card p-4 sm:p-5 flex flex-col gap-2"
            :class="card.danger ? 'border-[#DC2626]/30' : ''">
         <div class="flex items-center justify-between">
           <span class="text-xs font-semibold tracking-widest"
@@ -152,8 +152,8 @@ onMounted(async () => {
     <!-- Two-column layout -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
       <!-- Recent orders -->
-      <div class="lg:col-span-2 admin-card">
-        <div class="px-4 sm:px-6 py-3 sm:py-4 border-b border-[#1e293b]/50">
+      <div class="lg:col-span-2 glass-card overflow-hidden rounded-xl">
+        <div class="px-4 sm:px-6 py-3 sm:py-4 border-b border-[#dae2fd]/5">
           <h2 class="text-lg font-semibold text-[#dae2fd]">Últimas Ventas POS</h2>
         </div>
         <div class="p-3 sm:p-4">
@@ -179,8 +179,8 @@ onMounted(async () => {
       </div>
 
       <!-- Payment method breakdown -->
-      <div class="admin-card">
-        <div class="px-4 sm:px-6 py-3 sm:py-4 border-b border-[#1e293b]/50">
+      <div class="glass-card overflow-hidden rounded-xl">
+        <div class="px-4 sm:px-6 py-3 sm:py-4 border-b border-[#dae2fd]/5">
           <h2 class="text-lg font-semibold text-[#dae2fd]">Hoy por Método</h2>
         </div>
         <div class="p-3 sm:p-4">
@@ -197,7 +197,7 @@ onMounted(async () => {
               </div>
               <div class="flex items-center gap-2">
                 <div class="flex-1 h-1.5 sm:h-2 bg-[#1e293b] rounded-sm overflow-hidden">
-                  <div class="h-full bg-[#42b883] rounded-sm transition-all"
+                  <div class="h-full bg-[#00A8FF] rounded-sm transition-all"
                        :style="{ width: ((pm.count || 0) / (data.payment_methods?.reduce((s, p) => s + (p.count || 0), 0) || 1) * 100) + '%' }"></div>
                 </div>
                 <span class="text-[10px] sm:text-xs font-semibold tracking-widest text-[#94a3b8] w-12 text-right tabular-nums">{{ pm.count }} · {{ Math.round((pm.count || 0) / (data.payment_methods?.reduce((s, p) => s + (p.count || 0), 0) || 1) * 100) }}%</span>

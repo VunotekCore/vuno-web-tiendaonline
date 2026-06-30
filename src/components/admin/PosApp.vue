@@ -334,8 +334,8 @@ onMounted(() => {
               <VunoIcon icon="search" :size="20" class="absolute left-0 top-1/2 -translate-y-1/2 text-[#94a3b8]" />
               <input id="posSearch" v-model="searchText" type="text" placeholder="Buscar producto..."
                      class="w-full bg-transparent border-b border-[#1e293b] pb-3 pl-8 pr-8 text-[#dae2fd]
-                            focus:border-[#42b883] focus:outline-none placeholder:text-[#94a3b8]
-                            text-base sm:text-lg" autocomplete="off" />
+             focus:border-[#00A8FF] focus:outline-none placeholder:text-[#94a3b8]
+                             text-base sm:text-lg" autocomplete="off" />
               <kbd class="absolute right-0 top-1/2 -translate-y-1/2 text-xs text-[#94a3b8]/40 border border-[#1e293b]/30
                           rounded-sm px-1.5 py-0.5 font-mono hidden sm:inline">/</kbd>
             </div>
@@ -351,13 +351,13 @@ onMounted(() => {
           </div>
 
           <div id="productGrid"
-               class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 max-h-[calc(100dvh-340px)] lg:max-h-[calc(100vh-260px)] overflow-y-auto pr-2 mt-4">
+               class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3 max-h-[calc(100dvh-340px)] lg:max-h-[calc(100vh-280px)] overflow-y-auto pr-2 mt-4">
             <div v-if="filteredProducts.length === 0" class="col-span-full text-center py-12 text-[#94a3b8]">
               Sin resultados
             </div>
             <button v-for="p in filteredProducts" :key="p.id"
                     @click="showProductDetail(p.id)"
-                    class="text-left admin-card overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group w-full"
+                     class="text-left glass-card overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group w-full"
                     :class="(p.totalStock || 0) <= 0 ? 'opacity-40' : ''"
                     :disabled="(p.totalStock || 0) <= 0">
               <div class="flex gap-2 sm:gap-3 p-2 sm:p-3">
@@ -367,7 +367,7 @@ onMounted(() => {
                   <VunoIcon icon="inventory_2" :size="24" class="text-[#94a3b8]/30" />
                 </div>
                 <div class="flex-1 min-w-0">
-                  <h4 class="text-sm sm:text-base font-semibold truncate text-[#dae2fd] group-hover:text-[#42b883] transition-colors">{{ esc(p.name) }}</h4>
+                  <h4 class="text-sm sm:text-base font-semibold truncate text-[#dae2fd] group-hover:text-[#00A8FF] transition-colors">{{ esc(p.name) }}</h4>
                   <p class="text-sm font-semibold text-[#dae2fd] mt-0.5">{{ p.display_symbol || currencySymbol }}{{ formatPrice(parseFloat(String(p.display_price ?? p.price)) || 0) }}</p>
                   <p class="text-xs text-[#94a3b8] mt-1">
                     <span :class="(p.totalStock || 0) <= 0 ? 'text-[#DC2626]' : (p.totalStock || 0) <= (p.lowStockThreshold || 5) ? 'text-[#B8956A]' : ''">
@@ -417,9 +417,9 @@ onMounted(() => {
                     <button v-for="c in selectedProduct.colors" :key="c.name"
                             @click="selectColor(c.name)"
                             class="px-4 py-2.5 text-sm border rounded-sm transition-all duration-150 cursor-pointer"
-                            :class="selectedColor === c.name
-                              ? 'bg-[#42b883] text-white border-[#42b883]'
-                              : 'bg-transparent text-[#dae2fd] border-[#1e293b] hover:border-[#42b883]'"
+                              :class="selectedColor === c.name
+                                ? 'admin-btn-primary'
+                                : 'bg-transparent text-[#dae2fd] border-[#dae2fd]/10 hover:border-[#00A8FF]'"
                             :disabled="(colorMap[c.name]?.stock || 0) <= 0"
                             :style="{ opacity: (colorMap[c.name]?.stock || 0) <= 0 ? 0.3 : 1 }">
                       <span class="font-medium">{{ esc(c.name) }}</span>
@@ -440,9 +440,9 @@ onMounted(() => {
                   <button v-for="(stock, size) in (colorMap[selectedColor]?.sizes || {})" :key="size"
                           @click="selectSize(size)"
                           class="px-4 py-2.5 text-sm border rounded-sm transition-all duration-150 cursor-pointer"
-                          :class="selectedSize === size
-                            ? 'bg-[#42b883] text-white border-[#42b883]'
-                            : 'bg-transparent text-[#dae2fd] border-[#1e293b] hover:border-[#42b883]'"
+                              :class="selectedSize === size
+                                 ? 'admin-btn-primary'
+                                 : 'bg-transparent text-[#dae2fd] border-[#dae2fd]/10 hover:border-[#00A8FF]'"
                           :disabled="stock <= 0"
                           :style="{ opacity: stock <= 0 ? 0.3 : 1 }">
                     <span class="font-medium">{{ esc(size) }}</span>
@@ -455,7 +455,7 @@ onMounted(() => {
               </div>
 
               <!-- Add to cart -->
-              <div v-if="selectedVariant" class="pt-4 border-t border-[#1e293b] space-y-3">
+              <div v-if="selectedVariant" class="pt-4 border-t border-[#dae2fd]/8 space-y-3">
                 <div class="flex items-center justify-between">
                   <span class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase">STOCK DISPONIBLE</span>
                   <span class="text-sm font-semibold"
@@ -467,11 +467,11 @@ onMounted(() => {
                   <span class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase shrink-0">CANTIDAD</span>
                   <div class="flex items-center gap-1">
                     <button @click="changeAddQty(-1)"
-                            class="w-9 h-9 flex items-center justify-center border border-[#1e293b] rounded-sm text-sm hover:bg-white/5 transition-colors"
+                            class="touch-target w-9 h-9 flex items-center justify-center border border-[#dae2fd]/10 rounded-sm text-sm hover:bg-white/5 transition-colors"
                             :class="addQty <= 1 ? 'opacity-30' : ''">−</button>
                     <span class="w-10 text-center font-semibold text-[#dae2fd] tabular-nums">{{ addQty }}</span>
                     <button @click="changeAddQty(1)"
-                            class="w-9 h-9 flex items-center justify-center border border-[#1e293b] rounded-sm text-sm hover:bg-white/5 transition-colors"
+                            class="touch-target w-9 h-9 flex items-center justify-center border border-[#dae2fd]/10 rounded-sm text-sm hover:bg-white/5 transition-colors"
                             :class="addQty >= (selectedVariant.stock || 0) ? 'opacity-30' : ''">+</button>
                   </div>
                 </div>
@@ -487,9 +487,10 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- DESKTOP CART (2/5) — lg:block only -->
-      <div class="hidden lg:block lg:col-span-2 admin-card p-5 flex flex-col h-fit sticky top-0">
-        <div class="flex items-center justify-between mb-4">
+      <!-- DESKTOP CART (2/5) — glass-card -->
+      <div class="hidden lg:block lg:col-span-2 glass-card overflow-hidden rounded-xl sticky top-0">
+        <!-- HEADER -->
+        <div class="flex items-center justify-between px-5 pt-5 pb-4 border-b border-[#dae2fd]/5">
           <h2 class="text-lg font-semibold text-[#dae2fd] flex items-center gap-2">
             <VunoIcon icon="shopping_cart" :size="24" />
             Venta
@@ -497,92 +498,94 @@ onMounted(() => {
           <span v-if="hasItems" class="text-xs font-semibold tracking-widest bg-[#42b883] text-white px-2 py-0.5 rounded-sm">{{ totalQty }}</span>
         </div>
 
-        <div v-if="!hasItems" class="text-center py-8 text-[#94a3b8]">
-          <VunoIcon icon="add_shopping_cart" :size="36" class="block mb-2" />
-          Carrito vacío<br />
-          <span class="text-sm">Seleccioná un producto de la izquierda</span>
-        </div>
+        <!-- BODY -->
+        <div class="px-5 py-4 space-y-5">
+          <div v-if="!hasItems" class="text-center py-8 text-[#94a3b8]">
+            <VunoIcon icon="add_shopping_cart" :size="36" class="block mb-2" />
+            Carrito vacío<br />
+            <span class="text-sm">Seleccioná un producto de la izquierda</span>
+          </div>
 
-        <div v-else class="space-y-3 divide-y divide-[#1e293b]/50 max-h-[360px] overflow-y-auto">
-          <div v-for="(item, idx) in cart" :key="item.variant_id"
-               class="flex items-start gap-3 py-3 first:pt-0">
-            <div class="flex-1 min-w-0">
-              <p class="text-sm font-semibold truncate text-[#dae2fd]">{{ esc(item.product_name) }}</p>
-              <p class="text-xs text-[#94a3b8]">{{ esc(item.color_name) }} / {{ esc(item.size_label) }}</p>
-              <p class="text-sm font-semibold text-[#dae2fd]">{{ currencySymbol }}{{ formatPrice(item.price * item.quantity * exchangeRate) }}</p>
+          <div v-else class="space-y-3 divide-y divide-[#dae2fd]/8 max-h-[40vh] overflow-y-auto" id="cartItems">
+            <div v-for="(item, idx) in cart" :key="item.variant_id"
+                 class="flex items-start gap-3 py-3 first:pt-0">
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold truncate text-[#dae2fd]">{{ esc(item.product_name) }}</p>
+                <p class="text-xs text-[#94a3b8]">{{ esc(item.color_name) }} / {{ esc(item.size_label) }}</p>
+                <p class="text-sm font-semibold text-[#dae2fd]">{{ currencySymbol }}{{ formatPrice(item.price * item.quantity * exchangeRate) }}</p>
+              </div>
+              <div class="flex items-center gap-0.5 shrink-0">
+                <button @click="updateQty(idx, -1)" class="touch-target w-9 h-9 sm:w-8 sm:h-8 flex items-center justify-center border border-[#dae2fd]/10 rounded-sm hover:bg-white/5 text-sm"
+                        :class="item.quantity <= 1 ? 'opacity-30' : ''">−</button>
+                <span class="w-8 text-center font-semibold text-[#dae2fd] tabular-nums">{{ item.quantity }}</span>
+                <button @click="updateQty(idx, 1)" class="touch-target w-9 h-9 sm:w-8 sm:h-8 flex items-center justify-center border border-[#dae2fd]/10 rounded-sm hover:bg-white/5 text-sm">+</button>
+                <button @click="removeItem(idx)" class="ml-1 text-[#DC2626]/60 hover:text-[#DC2626]" aria-label="Eliminar item">
+                  <VunoIcon icon="delete" :size="20" />
+                </button>
+              </div>
             </div>
-            <div class="flex items-center gap-0.5 shrink-0">
-              <button @click="updateQty(idx, -1)" class="w-8 h-8 flex items-center justify-center border border-[#1e293b] rounded-sm hover:bg-white/5 text-sm"
-                      :class="item.quantity <= 1 ? 'opacity-30' : ''">−</button>
-              <span class="w-8 text-center font-semibold text-[#dae2fd] tabular-nums">{{ item.quantity }}</span>
-              <button @click="updateQty(idx, 1)" class="w-8 h-8 flex items-center justify-center border border-[#1e293b] rounded-sm hover:bg-white/5 text-sm">+</button>
-              <button @click="removeItem(idx)" class="ml-1 text-[#DC2626]/60 hover:text-[#DC2626]" aria-label="Eliminar item">
-                <VunoIcon icon="delete" :size="20" />
+          </div>
+
+          <div v-if="hasItems" class="space-y-2">
+            <div class="flex justify-between text-sm">
+              <span class="text-[#94a3b8]">Subtotal</span>
+              <span class="font-semibold text-[#dae2fd]">{{ currencySymbol }}{{ formatPrice(subtotal) }}</span>
+            </div>
+            <div class="flex justify-between text-xs text-[#94a3b8]">
+              <span>IVA</span>
+              <span class="font-semibold">{{ currencySymbol }}{{ formatPrice(taxAmount) }}</span>
+            </div>
+            <div class="flex justify-between font-semibold text-lg border-t border-[#dae2fd]/8 pt-2">
+              <span class="text-[#dae2fd]">Total</span>
+              <span class="text-[#dae2fd]">{{ currencySymbol }}{{ formatPrice(grandTotal) }}</span>
+            </div>
+          </div>
+
+          <div class="space-y-3">
+            <div>
+              <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-1">CLIENTE</label>
+              <input v-model="customerName" type="text" placeholder="Nombre del cliente"
+                     class="w-full bg-[#1e293b]/50 border border-[#dae2fd]/10 rounded-sm px-3 py-2.5 text-[#dae2fd]
+                            focus:border-[#00A8FF] focus:outline-none placeholder:text-[#94a3b8]/50 text-sm" />
+            </div>
+            <div>
+              <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-1">CORREO</label>
+              <input v-model="customerEmail" type="email" placeholder="correo@ejemplo.com"
+                     class="w-full bg-[#1e293b]/50 border border-[#dae2fd]/10 rounded-sm px-3 py-2.5 text-[#dae2fd]
+                            focus:border-[#00A8FF] focus:outline-none placeholder:text-[#94a3b8]/50 text-sm" />
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block">MÉTODO DE PAGO</label>
+            <div class="grid grid-cols-3 gap-2">
+              <button v-for="pm in [{ code: 'pos_cash', label: 'Efectivo', icon: 'payments' }, { code: 'pos_card', label: 'Tarjeta', icon: 'credit_card' }, { code: 'pos_transfer', label: 'Transferencia', icon: 'account_balance' }]"
+                      :key="pm.code"
+                      @click="paymentMethod = pm.code"
+                      class="min-h-[44px] px-4 rounded-sm flex items-center justify-center gap-2 text-xs font-semibold tracking-widest transition-all duration-150"
+                      :class="paymentMethod === pm.code
+                         ? 'admin-btn-primary'
+                         : 'bg-transparent border border-[#dae2fd]/10 text-[#dae2fd] hover:border-[#00A8FF]'">
+                <VunoIcon :icon="pm.icon" :size="20" />
+                <span class="hidden lg:inline">{{ pm.label }}</span>
               </button>
             </div>
           </div>
         </div>
 
-        <!-- Summary -->
-        <div v-if="hasItems" class="mt-3 pt-3 border-t border-[#1e293b] space-y-2">
-          <div class="flex justify-between text-sm">
-            <span class="text-[#94a3b8]">Subtotal</span>
-            <span class="font-semibold text-[#dae2fd]">{{ currencySymbol }}{{ formatPrice(subtotal) }}</span>
-          </div>
-          <div class="flex justify-between text-xs text-[#94a3b8]">
-            <span>IVA</span>
-            <span class="font-semibold">{{ currencySymbol }}{{ formatPrice(taxAmount) }}</span>
-          </div>
-          <div class="flex justify-between font-semibold text-lg border-t border-[#1e293b]/50 pt-2">
-            <span class="text-[#dae2fd]">Total</span>
-            <span class="text-[#dae2fd]">{{ currencySymbol }}{{ formatPrice(grandTotal) }}</span>
-          </div>
+        <!-- FOOTER -->
+        <div class="px-5 pb-5 pt-4 border-t border-[#dae2fd]/5">
+          <button @click="processSale" :disabled="!hasItems"
+                  class="w-full admin-btn admin-btn-primary min-h-[48px] disabled:opacity-40 disabled:cursor-not-allowed">
+            <VunoIcon icon="point_of_sale" :size="24" />
+            <span>Procesar Venta</span>
+          </button>
         </div>
-
-        <!-- Customer -->
-        <div class="mt-3 space-y-3">
-          <div>
-            <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-1">CLIENTE</label>
-            <input v-model="customerName" type="text" placeholder="Nombre del cliente"
-                   class="w-full bg-transparent border-b border-[#1e293b] pb-2 text-[#dae2fd]
-                          focus:border-[#42b883] focus:outline-none placeholder:text-[#94a3b8]/50 text-sm" />
-          </div>
-          <div>
-            <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-1">CORREO</label>
-            <input v-model="customerEmail" type="email" placeholder="correo@ejemplo.com"
-                   class="w-full bg-transparent border-b border-[#1e293b] pb-2 text-[#dae2fd]
-                          focus:border-[#42b883] focus:outline-none placeholder:text-[#94a3b8]/50 text-sm" />
-          </div>
-        </div>
-
-        <!-- Payment method -->
-        <div class="mt-3 space-y-2">
-          <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block">MÉTODO DE PAGO</label>
-          <div class="grid grid-cols-3 gap-2">
-            <button v-for="pm in [{ code: 'pos_cash', label: 'Efectivo', icon: 'payments' }, { code: 'pos_card', label: 'Tarjeta', icon: 'credit_card' }, { code: 'pos_transfer', label: 'Transferencia', icon: 'account_balance' }]"
-                    :key="pm.code"
-                    @click="paymentMethod = pm.code"
-                    class="min-h-[44px] px-4 rounded-sm flex items-center justify-center gap-2 text-xs font-semibold tracking-widest transition-all duration-150"
-                    :class="paymentMethod === pm.code
-                      ? 'bg-[#42b883] text-white'
-                      : 'bg-transparent border border-[#1e293b] text-[#dae2fd] hover:border-[#42b883]'">
-              <VunoIcon :icon="pm.icon" :size="20" />
-              <span class="hidden xl:inline">{{ pm.label }}</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Process button -->
-        <button @click="processSale" :disabled="!hasItems"
-                class="mt-4 w-full admin-btn admin-btn-primary min-h-[48px] disabled:opacity-40 disabled:cursor-not-allowed">
-          <VunoIcon icon="point_of_sale" :size="24" />
-          <span>Procesar Venta</span>
-        </button>
       </div>
     </div>
 
     <!-- MOBILE CART BAR -->
-    <div class="lg:hidden fixed bottom-0 left-0 right-0 z-50 admin-card px-4 py-3 flex items-center gap-3"
+    <div class="lg:hidden fixed bottom-0 left-0 right-0 z-50 glass-card px-4 py-3 flex items-center gap-3"
          :class="hasItems ? 'translate-y-0' : 'translate-y-full'"
          style="transition: transform 0.3s ease-out">
       <div class="flex items-center gap-2 shrink-0">
@@ -596,7 +599,7 @@ onMounted(() => {
         </div>
       </div>
       <button @click="openCartOverlay" :disabled="!hasItems"
-              class="bg-[#42b883] text-white text-xs font-semibold tracking-widest min-h-[40px] px-4 rounded-sm flex items-center gap-1.5 hover:bg-[#42b883]/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+              class="admin-btn admin-btn-primary text-xs tracking-widest min-h-[40px] px-4 gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed">
         <VunoIcon icon="point_of_sale" :size="20" />
         <span class="hidden sm:inline">Ver carrito</span>
         <span class="inline sm:hidden">Ir</span>
@@ -608,7 +611,7 @@ onMounted(() => {
       <div v-if="cartOverlay" class="lg:hidden fixed inset-0 z-[60] transition-opacity duration-300"
            :class="cartOverlay ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'">
         <div class="absolute inset-0 bg-black/40" @click="closeCartOverlay"></div>
-        <div class="absolute bottom-0 left-0 right-0 admin-card-lg rounded-t-lg max-h-[85dvh] overflow-y-auto px-5 py-6 shadow-2xl"
+        <div class="absolute bottom-0 left-0 right-0 glass-card rounded-t-xl max-h-[85dvh] overflow-y-auto px-5 py-6 shadow-2xl"
              style="transform: translateY(0); transition: transform 0.3s ease-out">
           <!-- Header -->
           <div class="flex items-center justify-between mb-5">
@@ -621,7 +624,7 @@ onMounted(() => {
 
           <!-- Cart items -->
           <div v-if="!hasItems" class="text-center py-8 text-[#94a3b8]">Carrito vacío</div>
-          <div v-else class="space-y-3 divide-y divide-[#1e293b]/50 max-h-[40vh] overflow-y-auto">
+          <div v-else class="space-y-3 divide-y divide-[#dae2fd]/8 max-h-[40vh] overflow-y-auto">
             <div v-for="(item, idx) in cart" :key="item.variant_id"
                  class="flex items-start gap-3 py-3 first:pt-0">
               <div class="flex-1 min-w-0">
@@ -630,10 +633,10 @@ onMounted(() => {
                 <p class="text-sm font-semibold text-[#dae2fd]">{{ currencySymbol }}{{ formatPrice(item.price * item.quantity * exchangeRate) }}</p>
               </div>
               <div class="flex items-center gap-0.5 shrink-0">
-                <button @click="updateQty(idx, -1)" class="w-8 h-8 flex items-center justify-center border border-[#1e293b] rounded-sm hover:bg-white/5 text-sm"
+                <button @click="updateQty(idx, -1)" class="touch-target w-9 h-9 flex items-center justify-center border border-[#dae2fd]/10 rounded-sm hover:bg-white/5 text-sm"
                         :class="item.quantity <= 1 ? 'opacity-30' : ''">−</button>
                 <span class="w-8 text-center font-semibold text-[#dae2fd] tabular-nums">{{ item.quantity }}</span>
-                <button @click="updateQty(idx, 1)" class="w-8 h-8 flex items-center justify-center border border-[#1e293b] rounded-sm hover:bg-white/5 text-sm">+</button>
+                <button @click="updateQty(idx, 1)" class="touch-target w-9 h-9 flex items-center justify-center border border-[#dae2fd]/10 rounded-sm hover:bg-white/5 text-sm">+</button>
                 <button @click="removeItem(idx)" class="ml-1 text-[#DC2626]/60 hover:text-[#DC2626]" aria-label="Eliminar item">
                   <VunoIcon icon="delete" :size="20" />
                 </button>
@@ -642,7 +645,7 @@ onMounted(() => {
           </div>
 
           <!-- Summary -->
-          <div v-if="hasItems" class="mt-3 pt-3 border-t border-[#1e293b] space-y-2">
+          <div v-if="hasItems" class="mt-3 pt-3 border-t border-[#dae2fd]/8 space-y-2">
             <div class="flex justify-between text-sm">
               <span class="text-[#94a3b8]">Subtotal</span>
               <span class="font-semibold text-[#dae2fd]">{{ currencySymbol }}{{ formatPrice(subtotal) }}</span>
@@ -651,7 +654,7 @@ onMounted(() => {
               <span>IVA</span>
               <span class="font-semibold">{{ currencySymbol }}{{ formatPrice(taxAmount) }}</span>
             </div>
-            <div class="flex justify-between font-semibold text-lg border-t border-[#1e293b]/50 pt-2">
+            <div class="flex justify-between font-semibold text-lg border-t border-[#dae2fd]/8 pt-2">
               <span class="text-[#dae2fd]">Total</span>
               <span class="text-[#dae2fd]">{{ currencySymbol }}{{ formatPrice(grandTotal) }}</span>
             </div>
@@ -662,14 +665,14 @@ onMounted(() => {
             <div>
               <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-1">CLIENTE</label>
               <input v-model="customerName" type="text" placeholder="Nombre del cliente"
-                     class="w-full bg-transparent border-b border-[#1e293b] pb-2 text-[#dae2fd]
-                            focus:border-[#42b883] focus:outline-none placeholder:text-[#94a3b8]/50 text-sm" />
+                     class="w-full bg-[#1e293b]/50 border border-[#dae2fd]/10 rounded-sm px-3 py-2.5 text-[#dae2fd]
+                            focus:border-[#00A8FF] focus:outline-none placeholder:text-[#94a3b8]/50 text-sm" />
             </div>
             <div>
               <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-1">CORREO</label>
               <input v-model="customerEmail" type="email" placeholder="correo@ejemplo.com"
-                     class="w-full bg-transparent border-b border-[#1e293b] pb-2 text-[#dae2fd]
-                            focus:border-[#42b883] focus:outline-none placeholder:text-[#94a3b8]/50 text-sm" />
+                     class="w-full bg-[#1e293b]/50 border border-[#dae2fd]/10 rounded-sm px-3 py-2.5 text-[#dae2fd]
+                            focus:border-[#00A8FF] focus:outline-none placeholder:text-[#94a3b8]/50 text-sm" />
             </div>
           </div>
 
@@ -682,8 +685,8 @@ onMounted(() => {
                       @click="paymentMethod = pm.code"
                       class="min-h-[44px] px-4 rounded-sm flex items-center justify-center gap-2 text-xs font-semibold tracking-widest transition-all duration-150"
                       :class="paymentMethod === pm.code
-                        ? 'bg-[#42b883] text-white'
-                        : 'bg-transparent border border-[#1e293b] text-[#dae2fd] hover:border-[#42b883]'">
+                         ? 'admin-btn-primary'
+                         : 'bg-transparent border border-[#dae2fd]/10 text-[#dae2fd] hover:border-[#00A8FF]'">
                 <VunoIcon :icon="pm.icon" :size="20" />
                 <span class="hidden sm:inline">{{ pm.label }}</span>
               </button>

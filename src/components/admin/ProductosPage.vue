@@ -175,14 +175,16 @@ async function confirmDelete() {
               <span class="badge" :class="stockBadge(p.totalStock)">{{ p.totalStock === 0 ? 'AGOTADO' : p.totalStock + ' uds.' }}</span>
             </td>
             <td v-if="editMode" class="text-right whitespace-nowrap">
-              <a :href="'/admin/productos/editar?id=' + encodeURIComponent(p.id)" class="admin-btn admin-btn-edit admin-btn-xs">
-                <VunoIcon icon="edit" :size="14" />
-                EDIT
-              </a>
-              <button class="admin-btn admin-btn-danger admin-btn-xs" @click="openDelete(p)">
-                <VunoIcon icon="delete" :size="14" />
-                DELETE
-              </button>
+              <div class="flex gap-2 justify-end">
+                <a :href="'/admin/productos/editar?id=' + encodeURIComponent(p.id)" class="admin-btn admin-btn-edit admin-btn-xs">
+                  <VunoIcon icon="edit" :size="14" />
+                  EDIT
+                </a>
+                <button class="admin-btn admin-btn-danger admin-btn-xs" @click="openDelete(p)">
+                  <VunoIcon icon="delete" :size="14" />
+                  DELETE
+                </button>
+              </div>
             </td>
           </tr>
         </tbody>
