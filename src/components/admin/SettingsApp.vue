@@ -352,7 +352,6 @@ async function addCurrency() {
     })
     showCurrencyModal.value = false
     toast.success(`Moneda ${newCurrency.code} agregada`)
-    await loadCurrencies()
     newCurrency.code = ''; newCurrency.name = ''; newCurrency.symbol = ''; newCurrency.rate = 1.0; newCurrency.decimals = 2
   } catch (err: any) {
     currencyModalError.value = err.message
@@ -365,7 +364,6 @@ async function deleteCurrency(code: string) {
   try {
     await api.post('/api/monedas/delete.php', { code })
     toast.success(`Moneda ${code} desactivada`)
-    await loadCurrencies()
   } catch (err: any) { toast.error(err.message) }
 }
 
@@ -387,7 +385,6 @@ async function changeStoreCurrency(code: string) {
   try {
     await api.post('/api/monedas/update-rate.php', { code, exchange_rate: 1.0, set_as_store: true })
     storeCurrency.value = code
-    await loadCurrencies()
     toast.success(`Moneda cambiada a ${code}`)
   } catch (err: any) { toast.error(err.message) }
 }

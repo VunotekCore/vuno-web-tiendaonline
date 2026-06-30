@@ -626,11 +626,10 @@ final class OrderModel
             $stmt3->execute([$monthStart, $monthEnd]);
             $monthlyOrderCount = (int) $stmt3->fetchColumn();
 
-            /** @var mixed $envCode */
-            $envCode = \env('STORE_CURRENCY', 'NIO');
-            $storeCurrencyCode = is_string($envCode) ? $envCode : 'NIO';
-            $storeCurrency = $this->getCurrencyModel()->getByCode($storeCurrencyCode);
-            $storeCurrency = $storeCurrency ?? ['code' => 'NIO', 'symbol' => 'C$', 'exchange_rate' => 37.0];
+            $storeCurrency = $this->getCurrencyModel()->getStoreCurrency();
+            if ($storeCurrency === null) {
+                $storeCurrency = ['code' => 'NIO', 'symbol' => 'C$', 'exchange_rate' => 37.0];
+            }
             $storeRate = (float) ($storeCurrency['exchange_rate'] ?? 37.0);
             $storeSymbol = $storeCurrency['symbol'] ?? 'C$';
             $displayMonthlyRevenue = round($monthlyRevenue * $storeRate, 2);
@@ -645,14 +644,13 @@ final class OrderModel
                 'name' => is_string($p['name'] ?? null) ? $p['name'] : '',
             ], $lowStockRows);
 
-            $recentItems = array_map(function (array $r) use ($storeSymbol): array {
-                $rate = (float) ($r['exchange_rate'] ?? 37.0);
+            $recentItems = array_map(function (array $r) use ($storeSymbol, $storeRate): array {
                 $total = (float) ($r['total'] ?? 0);
                 return [
                     'id' => is_string($r['order_number'] ?? null) ? $r['order_number'] : '',
                     'customerName' => is_string($r['customer_name'] ?? null) ? $r['customer_name'] : '',
                     'total' => $total,
-                    'displayTotal' => round($total * $rate, 2),
+                    'displayTotal' => round($total * $storeRate, 2),
                     'displaySymbol' => $storeSymbol,
                     'status' => $r['status_code'] ?? '',
                     'createdAt' => date('c', strtotime(is_string($r['created_at'] ?? null) ? $r['created_at'] : 'now') ?: null),
