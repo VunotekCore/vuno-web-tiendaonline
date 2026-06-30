@@ -311,7 +311,7 @@ final class ProductModel
     public function getVariantMatrix(string $productId): array
     {
         $stmt = $this->db->prepare(
-            'SELECT pv.id, pc.name AS color_name, ps.value AS size_value, pv.stock, pv.price_override
+            'SELECT pv.id, pc.name AS color_name, pc.hex AS color_hex, ps.value AS size_value, pv.stock, pv.price_override
              FROM product_variants pv
              JOIN product_colors pc ON pc.id = pv.color_id
              JOIN product_sizes ps ON ps.id = pv.size_id
@@ -329,7 +329,7 @@ final class ProductModel
         if ($ids === []) return [];
         $placeholders = implode(',', array_fill(0, count($ids), '?'));
         $stmt = $this->db->prepare(
-            "SELECT pv.product_id, pv.id, pc.name AS color_name, ps.value AS size_value, pv.stock, pv.price_override
+            "SELECT pv.product_id, pv.id, pc.name AS color_name, pc.hex AS color_hex, ps.value AS size_value, pv.stock, pv.price_override
              FROM product_variants pv
              JOIN product_colors pc ON pc.id = pv.color_id
              JOIN product_sizes ps ON ps.id = pv.size_id

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useApi } from './useApi'
 import { useToast } from './useToast'
 import VariantsMatrix from './VariantsMatrix.vue'
@@ -40,12 +40,37 @@ const colors = ref<{ name: string; hex: string }[]>([
   { name: 'Nude', hex: '#E6DED5' },
   { name: 'Arcilla', hex: '#C18C7E' },
 ])
-const sizes = ref<string[]>(['36', '37', '38', '39', '40', '41'])
-const sizePrefix = ref('EU')
+const sizes = ref<string[]>(['5', '6', '7', '8', '9', '10', '11'])
+const sizePrefix = ref('US')
 
 const colorNameInput = ref('')
-const colorHexInput = ref('#1A1A1A')
-const sizeInputVal = ref('')
+const colorHexInput = ref('#C18C7E')
+const colorSuggestions = ['#C18C7E', '#E6DED5', '#1A1A1A', '#FFFFFF', '#DC2626', '#2563EB', '#D97706', '#7C3AED']
+
+const sizeType = ref('US Women')
+const sizeFrom = ref(5)
+const sizeTo = ref(11)
+
+const sizePresets: Record<string, { prefix: string; from: number; to: number }> = {
+  'Mujer': { prefix: 'EU', from: 35, to: 41 },
+  'Hombre': { prefix: 'EU', from: 39, to: 46 },
+  'Niño': { prefix: 'EU', from: 28, to: 34 },
+  'Niña': { prefix: 'EU', from: 28, to: 34 },
+  'Unisex': { prefix: 'EU', from: 35, to: 41 },
+  'US Women': { prefix: 'US', from: 5, to: 11 },
+  'US Men': { prefix: 'US', from: 6, to: 13 },
+  'UK': { prefix: 'UK', from: 2, to: 8 },
+  'BR': { prefix: 'BR', from: 33, to: 39 },
+}
+
+watch(sizeType, (type) => {
+  const preset = sizePresets[type]
+  if (preset) {
+    sizeFrom.value = preset.from
+    sizeTo.value = preset.to
+    sizePrefix.value = preset.prefix
+  }
+})
 
 const categories = ref<{ name: string }[]>([])
 const loadingCategories = ref(false)
@@ -62,10 +87,10 @@ interface UploadedImage {
 }
 
 const MAX_IMAGES = 20
-const MIN_IMG_W = 800
-const MIN_IMG_H = 1000
-const MIN_RATIO = 0.76
-const MAX_RATIO = 0.84
+const MIN_IMG_W = 200
+const MIN_IMG_H = 200
+const MIN_RATIO = 0.4
+const MAX_RATIO = 2.5
 
 const uploadedImages = ref<UploadedImage[]>([])
 const fileInput = ref<HTMLInputElement | null>(null)
@@ -117,11 +142,21 @@ async function loadProduct() {
     const colorMap: Record<string, string> = {}
     const loadedSizes: string[] = []
 
-    ;(p.variants || []).forEach((v: any) => {
-      if (!colorMap[v.color_name]) {
-        colorMap[v.color_name] = v.color_hex || '#000000'
-        loadedColors.push({ name: v.color_name, hex: v.color_hex || '#000000' })
+    // Try API colors first (they have proper hex), fall back to extracting from variants
+    if (p.colors && p.colors.length) {
+      for (const c of p.colors) {
+        loadedColors.push({ name: c.name, hex: c.hex || '#C18C7E' })
+        colorMap[c.name] = c.hex || '#C18C7E'
       }
+    } else {
+      ;(p.variants || []).forEach((v: any) => {
+        if (!colorMap[v.color_name]) {
+          colorMap[v.color_name] = v.color_hex || '#C18C7E'
+          loadedColors.push({ name: v.color_name, hex: v.color_hex || '#C18C7E' })
+        }
+      })
+    }
+    ;(p.variants || []).forEach((v: any) => {
       if (!loadedSizes.includes(v.size_value)) {
         loadedSizes.push(v.size_value)
       }
@@ -211,6 +246,8 @@ function addColor() {
     if (img.colorName === name) img.colorName = null
   }
   colorNameInput.value = ''
+  const usedHexes = new Set(colors.value.map(c => c.hex))
+  colorHexInput.value = colorSuggestions.find(h => !usedHexes.has(h)) || colorSuggestions[0]
 }
 
 function removeColor(name: string) {
@@ -222,27 +259,32 @@ function removeColor(name: string) {
   colors.value.splice(idx, 1)
 }
 
-function addSize() {
-  const val = sizeInputVal.value.trim()
-  if (!val) {
-    toast.warning('Valor requerido', 'Ingresá un número de talle.')
+function addSizeRange() {
+  const from = sizeFrom.value
+  const to = sizeTo.value
+  if (from > to) {
+    toast.warning('Rango inválido', 'El valor "Desde" debe ser menor o igual a "Hasta".')
     return
   }
-  if (sizes.value.includes(val)) return
-  sizes.value.push(val)
+  const added: string[] = []
+  for (let i = from; i <= to; i++) {
+    const str = String(i)
+    if (!sizes.value.includes(str)) {
+      sizes.value.push(str)
+      added.push(str)
+    }
+  }
+  if (added.length === 0) {
+    toast.info('Sin cambios', 'Los talles del rango ya están agregados.')
+    return
+  }
   sizes.value.sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-  sizeInputVal.value = ''
 }
 
 function removeSize(val: string) {
   const idx = sizes.value.indexOf(val)
   if (idx === -1) return
   sizes.value.splice(idx, 1)
-}
-
-function setSizePreset(values: string[], prefix: string) {
-  sizes.value = [...values].sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-  if (prefix) sizePrefix.value = prefix
 }
 
 function escHtml(s: string): string {
@@ -492,46 +534,55 @@ const remainingImages = computed(() => MAX_IMAGES - totalImages.value)
     </div>
 
     <!-- Tab: Info -->
-    <div v-show="activeTab === 'info'" id="tab-panel-info" role="tabpanel" class="max-w-2xl admin-card p-4 md:p-6">
-      <h2 class="text-lg font-semibold text-[#dae2fd] mb-6 flex items-center gap-2">
-        <VunoIcon icon="description" :size="24" />
-        Información del Producto
-      </h2>
-      <div class="space-y-6">
-        <div>
-          <label for="fieldName" class="block text-xs font-semibold tracking-widest text-[#94a3b8] mb-2 uppercase">NOMBRE DEL PRODUCTO *</label>
-          <div class="relative">
-            <input id="fieldName" v-model="nameField" type="text" required maxlength="255"
-              class="w-full bg-transparent border-b border-[#1e293b] pb-2 pr-16 text-[#dae2fd] focus:border-[#42b883] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#42b883] focus-visible:ring-offset-1 text-lg transition-colors" />
-            <span class="absolute right-0 bottom-2 text-xs text-[#94a3b8] pointer-events-none">{{ nameField.length }}/255</span>
+    <div v-show="activeTab === 'info'" id="tab-panel-info" role="tabpanel" class="max-w-4xl glass-card overflow-hidden rounded-xl">
+      <div class="px-4 md:px-6 pt-5 pb-4 border-b border-[#dae2fd]/5">
+        <h2 class="text-lg font-semibold text-[#dae2fd] flex items-center gap-2">
+          <VunoIcon icon="description" :size="24" />
+          Información del Producto
+        </h2>
+      </div>
+      <div class="px-4 md:px-6 py-4">
+        <div class="space-y-6 lg:space-y-0 lg:grid lg:grid-cols-3 lg:gap-6">
+          <div class="lg:col-span-2 space-y-6">
+            <div>
+              <label for="fieldName" class="block text-xs font-semibold tracking-widest text-[#94a3b8] mb-2 uppercase">NOMBRE DEL PRODUCTO *</label>
+              <div class="relative">
+                <input id="fieldName" v-model="nameField" type="text" required maxlength="255"
+                  class="w-full bg-[#1e293b]/50 border border-[#dae2fd]/10 rounded-sm px-3 py-2.5 pr-16 text-[#dae2fd] placeholder-[#94a3b8]/50 focus:border-[#42b883] focus:ring-1 focus:ring-[#42b883]/30 focus:outline-none text-lg transition-colors" />
+                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#94a3b8] pointer-events-none">{{ nameField.length }}/255</span>
+              </div>
+              <div v-if="computedSlug" class="text-sm text-[#94a3b8] mt-1.5">
+                <span class="text-[#42b883]">/producto/</span><span>{{ computedSlug }}</span>
+              </div>
+            </div>
+            <div>
+              <label for="fieldDescription" class="block text-xs font-semibold tracking-widest text-[#94a3b8] mb-2 uppercase">DESCRIPCIÓN</label>
+              <div class="relative">
+                <textarea id="fieldDescription" v-model="descriptionField"
+                  class="w-full bg-[#1e293b]/50 border border-[#dae2fd]/10 rounded-sm px-3 py-2.5 pb-8 text-[#dae2fd] placeholder-[#94a3b8]/50 focus:border-[#42b883] focus:ring-1 focus:ring-[#42b883]/30 focus:outline-none resize-none h-32"></textarea>
+                <span class="absolute right-3 bottom-2 text-xs text-[#94a3b8] pointer-events-none">{{ descriptionField.length }} caracteres</span>
+              </div>
+            </div>
           </div>
-          <div v-if="computedSlug" class="text-sm text-[#94a3b8] mt-1">
-            <span class="text-[#42b883]">/producto/</span><span>{{ computedSlug }}</span>
+          <div class="flex flex-col">
+            <label for="fieldDetails" class="block text-xs font-semibold tracking-widest text-[#94a3b8] mb-2 uppercase">DETALLES (uno por línea)</label>
+            <textarea id="fieldDetails" v-model="detailsField"
+              class="w-full bg-[#1e293b]/50 border border-[#dae2fd]/10 rounded-sm px-3 py-2.5 text-[#dae2fd] placeholder-[#94a3b8]/50 focus:border-[#42b883] focus:ring-1 focus:ring-[#42b883]/30 focus:outline-none resize-none min-h-[128px] lg:flex-1 lg:min-h-0"
+              placeholder="Ej:&#10;Piel genuina italiana&#10;Suela antideslizante&#10;Tacón de acero inoxidable"></textarea>
           </div>
-        </div>
-        <div>
-          <label for="fieldDescription" class="block text-xs font-semibold tracking-widest text-[#94a3b8] mb-2 uppercase">DESCRIPCIÓN</label>
-          <div class="relative">
-            <textarea id="fieldDescription" v-model="descriptionField"
-              class="w-full bg-transparent border border-[#1e293b] p-3 pb-8 text-[#dae2fd] focus:border-[#42b883] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#42b883] focus-visible:ring-offset-1 resize-none h-32"></textarea>
-            <span class="absolute right-2 bottom-2 text-xs text-[#94a3b8] pointer-events-none">{{ descriptionField.length }} caracteres</span>
-          </div>
-        </div>
-        <div>
-          <label for="fieldDetails" class="block text-xs font-semibold tracking-widest text-[#94a3b8] mb-2 uppercase">DETALLES (uno por línea)</label>
-          <textarea id="fieldDetails" v-model="detailsField"
-            class="w-full bg-transparent border border-[#1e293b] p-3 text-[#dae2fd] focus:border-[#42b883] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#42b883] focus-visible:ring-offset-1 resize-none h-24"
-            placeholder="Ej:&#10;Piel genuina italiana&#10;Suela antideslizante&#10;Tacón de acero inoxidable"></textarea>
         </div>
       </div>
     </div>
 
     <!-- Tab: Pricing -->
-    <div v-show="activeTab === 'pricing'" id="tab-panel-pricing" role="tabpanel" class="max-w-2xl admin-card p-4 md:p-6">
-      <h2 class="text-lg font-semibold text-[#dae2fd] mb-6 flex items-center gap-2">
-        <VunoIcon icon="sell" :size="24" />
-        Precio y Categoría
-      </h2>
+    <div v-show="activeTab === 'pricing'" id="tab-panel-pricing" role="tabpanel" class="max-w-2xl glass-card overflow-hidden rounded-xl">
+      <div class="px-4 md:px-6 pt-5 pb-4 border-b border-[#dae2fd]/5">
+        <h2 class="text-lg font-semibold text-[#dae2fd] flex items-center gap-2">
+          <VunoIcon icon="sell" :size="24" />
+          Precio y Categoría
+        </h2>
+      </div>
+      <div class="px-4 md:px-6 py-4">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label for="fieldPrice" class="block text-xs font-semibold tracking-widest text-[#94a3b8] mb-2 uppercase">PRECIO (USD)</label>
@@ -553,10 +604,18 @@ const remainingImages = computed(() => MAX_IMAGES - totalImages.value)
           <span class="text-sm text-[#94a3b8] group-hover:text-[#dae2fd] transition-colors">Destacado — mostrar en la portada (hero slideshow)</span>
         </label>
       </div>
+      </div>
     </div>
 
     <!-- Tab: Variants -->
-    <div v-show="activeTab === 'variants'" id="tab-panel-variants" role="tabpanel" class="admin-card p-6">
+    <div v-show="activeTab === 'variants'" id="tab-panel-variants" role="tabpanel" class="glass-card overflow-hidden rounded-xl">
+      <div class="px-4 md:px-6 pt-5 pb-4 border-b border-[#dae2fd]/5">
+        <h2 class="text-lg font-semibold text-[#dae2fd] flex items-center gap-2">
+          <VunoIcon icon="palette" :size="24" />
+          Variantes
+        </h2>
+      </div>
+      <div class="px-4 md:px-6 py-4">
       <details class="mb-6 group">
         <summary class="cursor-pointer text-xs font-semibold tracking-widest text-[#94a3b8] hover:text-[#dae2fd] transition-colors flex items-center gap-1.5">
           <VunoIcon icon="help" :size="20" class="group-open:rotate-90 transition-transform" />
@@ -597,7 +656,15 @@ const remainingImages = computed(() => MAX_IMAGES - totalImages.value)
           </div>
           <div>
             <label class="block text-[10px] font-semibold tracking-widest text-[#94a3b8] mb-1 uppercase">COLOR</label>
-            <input v-model="colorHexInput" type="color" class="w-9 h-9 p-0.5 bg-[#1e293b] border border-[#1e293b] cursor-pointer rounded-sm" />
+            <div class="flex items-center gap-1.5">
+              <input v-model="colorHexInput" type="color"
+                class="w-9 h-9 p-0.5 bg-[#1e293b] border border-[#1e293b] cursor-pointer rounded-sm" />
+              <span class="text-[10px] text-[#94a3b8] font-mono w-16 truncate">{{ colorHexInput }}</span>
+              <span v-for="h in colorSuggestions" :key="h"
+                class="w-4 h-4 rounded-full border border-[#1e293b] cursor-pointer shrink-0 hover:scale-110 transition-transform"
+                :style="{ backgroundColor: h }"
+                @click="colorHexInput = h" />
+            </div>
           </div>
           <button type="button" class="h-9 px-4 bg-[#42b883] text-white text-xs font-semibold tracking-widest rounded-sm hover:bg-[#42b883]/90 transition-all disabled:opacity-40" @click="addColor">AGREGAR</button>
         </div>
@@ -610,13 +677,6 @@ const remainingImages = computed(() => MAX_IMAGES - totalImages.value)
           Talles disponibles
         </h4>
         <div class="flex flex-wrap gap-2 mb-3">
-          <button type="button" class="size-preset h-8 px-3 bg-[#1e293b] text-[#94a3b8] text-xs font-semibold tracking-widest rounded-sm hover:bg-[#1e293b]/80 hover:text-[#dae2fd] transition-all border border-[#1e293b]" @click="setSizePreset(['35','36','37','38','39','40','41'], 'EU')">Mujer 35-41</button>
-          <button type="button" class="size-preset h-8 px-3 bg-[#1e293b] text-[#94a3b8] text-xs font-semibold tracking-widest rounded-sm hover:bg-[#1e293b]/80 hover:text-[#dae2fd] transition-all border border-[#1e293b]" @click="setSizePreset(['39','40','41','42','43','44','45','46'], 'EU')">Hombre 39-46</button>
-          <button type="button" class="size-preset h-8 px-3 bg-[#1e293b] text-[#94a3b8] text-xs font-semibold tracking-widest rounded-sm hover:bg-[#1e293b]/80 hover:text-[#dae2fd] transition-all border border-[#1e293b]" @click="setSizePreset(['28','29','30','31','32','33','34'], 'EU')">Niño 28-34</button>
-          <button type="button" class="size-preset h-8 px-3 bg-[#1e293b] text-[#94a3b8] text-xs font-semibold tracking-widest rounded-sm hover:bg-[#1e293b]/80 hover:text-[#dae2fd] transition-all border border-[#1e293b]" @click="setSizePreset(['5','6','7','8','9','10','11'], 'US')">US Women 5-11</button>
-          <button type="button" class="size-preset h-8 px-3 bg-[#1e293b] text-[#94a3b8] text-xs font-semibold tracking-widest rounded-sm hover:bg-[#1e293b]/80 hover:text-[#dae2fd] transition-all border border-[#1e293b]" @click="setSizePreset(['33','34','35','36','37','38','39'], 'BR')">BR 33-39</button>
-        </div>
-        <div class="flex flex-wrap gap-2 mb-3">
           <span v-for="s in sizes" :key="s"
             class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#1e293b] border border-[#1e293b] rounded-sm text-xs">
             {{ sizePrefix }} {{ s }}
@@ -627,16 +687,23 @@ const remainingImages = computed(() => MAX_IMAGES - totalImages.value)
         </div>
         <div class="flex flex-wrap items-end gap-3">
           <div>
-            <label class="block text-[10px] font-semibold tracking-widest text-[#94a3b8] mb-1 uppercase">PREFIJO</label>
-            <input v-model="sizePrefix" type="text" maxlength="10" class="w-14 h-9 px-2 bg-[#1e293b] border border-[#1e293b] text-[#dae2fd] text-sm text-center focus:border-[#42b883] focus:outline-none rounded-sm" />
+            <label class="block text-[10px] font-semibold tracking-widest text-[#94a3b8] mb-1 uppercase">TIPO</label>
+            <input v-model="sizeType" type="text" placeholder="Ej: US Women, UK, Mujer..."
+              class="h-9 px-3 bg-[#1e293b] border border-[#1e293b] text-[#dae2fd] text-sm placeholder:text-[#4a5568] focus:border-[#42b883] focus:outline-none rounded-sm w-36" />
           </div>
           <div>
-            <label class="block text-[10px] font-semibold tracking-widest text-[#94a3b8] mb-1 uppercase">AGREGAR TALLE</label>
-            <input v-model="sizeInputVal" type="text" placeholder="Ej: 37"
-              class="w-20 h-9 px-3 bg-[#1e293b] border border-[#1e293b] text-[#dae2fd] text-sm focus:border-[#42b883] focus:outline-none rounded-sm"
-              @keydown.enter.prevent="addSize" />
+            <label class="block text-[10px] font-semibold tracking-widest text-[#94a3b8] mb-1 uppercase">DESDE</label>
+            <input v-model.number="sizeFrom" type="number" min="1" max="99" class="w-16 h-9 px-2 bg-[#1e293b] border border-[#1e293b] text-[#dae2fd] text-sm text-center focus:border-[#42b883] focus:outline-none rounded-sm" />
           </div>
-          <button type="button" class="h-9 px-4 bg-[#42b883] text-white text-xs font-semibold tracking-widest rounded-sm hover:bg-[#42b883]/90 transition-all disabled:opacity-40" @click="addSize">AGREGAR</button>
+          <div>
+            <label class="block text-[10px] font-semibold tracking-widest text-[#94a3b8] mb-1 uppercase">HASTA</label>
+            <input v-model.number="sizeTo" type="number" min="1" max="99" class="w-16 h-9 px-2 bg-[#1e293b] border border-[#1e293b] text-[#dae2fd] text-sm text-center focus:border-[#42b883] focus:outline-none rounded-sm" />
+          </div>
+          <button type="button" class="h-9 px-4 bg-[#42b883] text-white text-xs font-semibold tracking-widest rounded-sm hover:bg-[#42b883]/90 transition-all" @click="addSizeRange">AGREGAR RANGO</button>
+        </div>
+        <div class="flex flex-wrap items-center gap-3 mt-3">
+          <label class="text-[10px] font-semibold tracking-widest text-[#94a3b8] uppercase">PREFIJO</label>
+          <input v-model="sizePrefix" type="text" maxlength="10" class="w-14 h-7 px-2 bg-[#1e293b] border border-[#1e293b] text-[#dae2fd] text-xs text-center focus:border-[#42b883] focus:outline-none rounded-sm" />
         </div>
       </div>
 
@@ -647,14 +714,18 @@ const remainingImages = computed(() => MAX_IMAGES - totalImages.value)
         :low-stock-threshold="5"
         :size-prefix="sizePrefix"
       />
+      </div>
     </div>
 
     <!-- Tab: Images -->
-    <div v-show="activeTab === 'images'" id="tab-panel-images" role="tabpanel" class="max-w-2xl admin-card p-4 md:p-6">
-      <h2 class="text-lg font-semibold text-[#dae2fd] mb-6 flex items-center gap-2">
-        <VunoIcon icon="photo_library" :size="24" />
-        Imágenes del Producto
-      </h2>
+    <div v-show="activeTab === 'images'" id="tab-panel-images" role="tabpanel" class="max-w-2xl glass-card overflow-hidden rounded-xl">
+      <div class="px-4 md:px-6 pt-5 pb-4 border-b border-[#dae2fd]/5">
+        <h2 class="text-lg font-semibold text-[#dae2fd] flex items-center gap-2">
+          <VunoIcon icon="photo_library" :size="24" />
+          Imágenes del Producto
+        </h2>
+      </div>
+      <div class="px-4 md:px-6 py-4">
       <div
         class="border-2 border-dashed border-[#1e293b] rounded-sm p-8 text-center cursor-pointer hover:border-[#42b883] transition-colors bg-[#111d2e] mb-4"
         tabindex="0" role="button" aria-label="Seleccionar imágenes para subir"
@@ -696,21 +767,25 @@ const remainingImages = computed(() => MAX_IMAGES - totalImages.value)
           </div>
           <div class="px-2 py-1.5">
             <p class="text-xs truncate text-[#94a3b8] mb-1">{{ img.name }}</p>
-            <select v-model="img.colorName" class="w-full text-xs bg-transparent border border-[#1e293b] rounded-sm px-1 py-0.5 text-[#dae2fd] focus:border-[#42b883] focus:outline-none">
-              <option :value="null">Todas</option>
-              <option v-for="c in colors" :key="c.name" :value="c.name">{{ c.name }}</option>
+            <select v-model="img.colorName" class="w-full text-xs bg-[#162240] border border-[#1e293b] rounded-sm px-1 py-0.5 text-[#dae2fd] focus:border-[#42b883] focus:outline-none">
+              <option :value="null" style="background:#162240;color:#dae2fd">Todas</option>
+              <option v-for="c in colors" :key="c.name" :value="c.name" style="background:#162240;color:#dae2fd">{{ c.name }}</option>
             </select>
           </div>
         </div>
       </div>
+      </div>
     </div>
 
     <!-- Tab: SEO -->
-    <div v-show="activeTab === 'seo'" id="tab-panel-seo" role="tabpanel" class="max-w-2xl admin-card p-4 md:p-6">
-      <h2 class="text-lg font-semibold text-[#dae2fd] mb-6 flex items-center gap-2">
-        <VunoIcon icon="travel_explore" :size="24" />
-        SEO & Open Graph
-      </h2>
+    <div v-show="activeTab === 'seo'" id="tab-panel-seo" role="tabpanel" class="max-w-2xl glass-card overflow-hidden rounded-xl">
+      <div class="px-4 md:px-6 pt-5 pb-4 border-b border-[#dae2fd]/5">
+        <h2 class="text-lg font-semibold text-[#dae2fd] flex items-center gap-2">
+          <VunoIcon icon="travel_explore" :size="24" />
+          SEO & Open Graph
+        </h2>
+      </div>
+      <div class="px-4 md:px-6 py-4">
       <div class="space-y-6">
         <div>
           <label for="fieldMetaTitle" class="block text-xs font-semibold tracking-widest text-[#94a3b8] mb-2 uppercase">META TITLE</label>
@@ -731,6 +806,7 @@ const remainingImages = computed(() => MAX_IMAGES - totalImages.value)
             placeholder="https://ik.imagekit.io/..." />
           <p class="text-xs text-[#94a3b8] mt-1">URL de la imagen para compartir en redes. Si se deja vacío, se usa la imagen principal del producto.</p>
         </div>
+      </div>
       </div>
     </div>
 

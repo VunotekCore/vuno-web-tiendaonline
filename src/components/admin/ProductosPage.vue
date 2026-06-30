@@ -131,12 +131,12 @@ async function confirmDelete() {
           </select>
           <span class="text-sm text-[#94a3b8] whitespace-nowrap">{{ total }} producto{{ total !== 1 ? 's' : '' }}</span>
         </div>
-        <div class="flex flex-wrap gap-2">
-          <button class="admin-btn admin-btn-edit w-full sm:w-auto justify-center" @click="editMode = !editMode">
+        <div class="flex flex-col md:flex-row md:flex-wrap gap-2 w-full md:w-auto">
+          <button class="admin-btn admin-btn-edit w-full md:w-auto justify-center" @click="editMode = !editMode">
             <VunoIcon :icon="editMode ? 'edit_off' : 'edit'" :size="16" />
             {{ editMode ? 'SALIR' : 'EDITAR' }}
           </button>
-          <a v-if="editMode" href="/admin/productos/nuevo" class="admin-btn admin-btn-primary w-full sm:w-auto justify-center">
+          <a v-if="editMode" href="/admin/productos/nuevo" class="admin-btn admin-btn-primary w-full md:w-auto justify-center">
             <VunoIcon icon="add" :size="20" />
             NUEVO PRODUCTO
           </a>
@@ -175,7 +175,7 @@ async function confirmDelete() {
               <span class="badge" :class="stockBadge(p.totalStock)">{{ p.totalStock === 0 ? 'AGOTADO' : p.totalStock + ' uds.' }}</span>
             </td>
             <td v-if="editMode" class="text-right whitespace-nowrap">
-              <a :href="'/admin/productos/editar?id=' + encodeURIComponent(p.id)" class="admin-btn admin-btn-ghost admin-btn-xs">
+              <a :href="'/admin/productos/editar?id=' + encodeURIComponent(p.id)" class="admin-btn admin-btn-edit admin-btn-xs">
                 <VunoIcon icon="edit" :size="14" />
                 EDIT
               </a>
@@ -198,25 +198,30 @@ async function confirmDelete() {
         <p class="empty-state-desc">No hay productos en el catálogo.</p>
       </div>
       <div v-for="p in items" :key="p.id" class="glass-card overflow-hidden rounded-xl">
+        <!-- Header -->
         <div class="px-5 pt-4 pb-3 border-b border-[#dae2fd]/5">
           <div class="flex items-center justify-between gap-2">
             <span class="font-medium text-[#dae2fd] text-sm truncate">{{ p.name }}</span>
             <span class="badge shrink-0" :class="stockBadge(p.totalStock)">{{ p.totalStock === 0 ? 'AGOTADO' : p.totalStock + ' uds.' }}</span>
           </div>
         </div>
+        <!-- Body -->
         <div class="px-5 py-3 flex items-center justify-between">
           <div class="flex items-center gap-4 text-sm">
             <span class="text-[#dae2fd] font-medium">{{ formatPrice(p.display_price ?? p.price, p.display_symbol) }}</span>
             <span class="text-[#94a3b8]">{{ p.category || '—' }}</span>
           </div>
-          <div v-if="editMode" class="flex gap-1 shrink-0">
-            <a :href="'/admin/productos/editar?id=' + encodeURIComponent(p.id)" class="admin-btn admin-btn-ghost admin-btn-xs">
-              <VunoIcon icon="edit" :size="14" />
-            </a>
-            <button class="admin-btn admin-btn-danger admin-btn-xs" @click="openDelete(p)">
-              <VunoIcon icon="delete" :size="14" />
-            </button>
-          </div>
+        </div>
+        <!-- Footer -->
+        <div v-if="editMode" class="px-5 pb-4 pt-3 border-t border-[#dae2fd]/5 flex flex-col gap-2">
+          <a :href="'/admin/productos/editar?id=' + encodeURIComponent(p.id)" class="admin-btn admin-btn-edit w-full justify-center touch-target">
+            <VunoIcon icon="edit" :size="16" />
+            EDITAR
+          </a>
+          <button class="admin-btn admin-btn-danger w-full justify-center touch-target" @click="openDelete(p)">
+            <VunoIcon icon="delete" :size="16" />
+            ELIMINAR
+          </button>
         </div>
       </div>
     </div>
