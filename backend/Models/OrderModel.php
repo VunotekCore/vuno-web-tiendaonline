@@ -178,6 +178,7 @@ final class OrderModel
         }
 
         $baseOrder = [
+            'db_id' => $orderDbId,
             'id' => is_string($row['order_number'] ?? null) ? $row['order_number'] : '',
             'items' => $items,
             'subtotal' => is_numeric($row['subtotal'] ?? null) ? (float) $row['subtotal'] : 0,
@@ -383,19 +384,13 @@ final class OrderModel
      */
     public function updateStatus(array $order, string $status, ?string $paymentStatus, ?string $stripePaymentIntentId): void
     {
-        $orderNumber = is_string($order['id'] ?? null) ? $order['id'] : '';
-
-        $stmt = $this->db->prepare('SELECT id, status_id FROM orders WHERE order_number = ?');
-        $stmt->execute([$orderNumber]);
-        /** @var ?array<string, mixed> $dbOrder */
-        $dbOrder = $stmt->fetch();
-        if ($dbOrder === false || $dbOrder === null) {
-            throw new \RuntimeException('Order not found: ' . $orderNumber);
+        $dbId = is_numeric($order['db_id'] ?? null) ? (int) $order['db_id'] : 0;
+        if ($dbId === 0) {
+            throw new \RuntimeException('Order not found (no db_id)');
         }
 
         $newStatusId = $this->resolveStatusId($status);
-        $oldStatusId = is_numeric($dbOrder['status_id'] ?? null) ? (int) $dbOrder['status_id'] : 0;
-        $dbId = is_numeric($dbOrder['id'] ?? null) ? (int) $dbOrder['id'] : 0;
+        $oldStatusId = $this->resolveStatusId(is_string($order['status'] ?? null) ? $order['status'] : 'unknown');
 
         $this->db->beginTransaction();
         try {

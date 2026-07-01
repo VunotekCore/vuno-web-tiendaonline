@@ -492,6 +492,16 @@ final class OrderController
                 'to_status' => $status,
             ]);
 
+            // Send response to admin client FIRST
+            http_response_code(200);
+            echo json_encode(['success' => true], \JSON_UNESCAPED_UNICODE);
+
+            // Flush response to client, then send email in background
+            if (function_exists('fastcgi_finish_request')) {
+                session_write_close();
+                fastcgi_finish_request();
+            }
+
             if ($status !== $oldStatus && in_array($status, ['paid', 'shipped', 'delivered'], true)) {
                 try {
                     $bankAccounts = $this->getSettings()->getBankAccounts();
@@ -501,7 +511,7 @@ final class OrderController
                 }
             }
 
-            $this->jsonResponse(['success' => true]);
+            exit;
         } catch (\Exception $e) {
             $this->jsonError($e->getMessage(), 404);
         }
@@ -566,6 +576,25 @@ final class OrderController
         $stmt->execute([$transferReceipt, $id]);
 
         $this->jsonResponse(['success' => true, 'id' => $id]);
+    }
+
+    // =========================================================================
+    //  Dashboard Stats
+    // =========================================================================
+
+    public function stats(): void
+    {
+        try {
+            \startAdminSession();
+            if (!\isAdminLoggedIn()) {
+                $this->jsonError('Unauthorized', 401);
+            }
+
+            $data = $this->model->getDashboardStats();
+            $this->jsonResponse($data);
+        } catch (\Throwable $e) {
+            $this->jsonError('Error loading dashboard stats: ' . $e->getMessage(), 500);
+        }
     }
 
     // =========================================================================

@@ -6,6 +6,7 @@ namespace App\Models;
 final class SettingModel
 {
     private ?SizeGuideModel $sizeGuideModel = null;
+    private ?array $allCache = null;
 
     public function __construct(private \PDO $db) {}
 
@@ -20,12 +21,16 @@ final class SettingModel
     /**
      * Get all settings grouped by section, with decryption, boolean coercion,
      * JSON decoding, legacy migration, and bank account injection.
-     * Does NOT cache within the request (unlike legacy getSettings()).
+     * Cached within the request via $allCache.
      *
      * @return array<string, array<string, mixed>>
      */
     public function getAll(): array
     {
+        if ($this->allCache !== null) {
+            return $this->allCache;
+        }
+
         $rows = $this->db->query(
             'SELECT section, `key`, `value` FROM settings ORDER BY section, `key`'
         )->fetchAll();
@@ -47,6 +52,7 @@ final class SettingModel
         $this->migrateLegacySections($settings);
         $this->injectBankAccounts($settings);
 
+        $this->allCache = $settings;
         return $settings;
     }
 
