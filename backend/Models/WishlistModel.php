@@ -12,7 +12,8 @@ final class WishlistModel
     {
         $stmt = $this->db->prepare(
             'SELECT wi.product_id, wi.variant_id, wi.created_at,
-                    p.name, p.slug, p.price, p.currency
+                    p.name, p.slug, p.price, p.currency,
+                    (SELECT pi.url FROM product_images pi WHERE pi.product_id = p.id ORDER BY pi.sort_order LIMIT 1) AS image_url
              FROM wishlist_items wi
              JOIN products p ON p.id = wi.product_id
              WHERE wi.customer_id = ? AND p.deleted_at IS NULL
@@ -28,6 +29,7 @@ final class WishlistModel
             $createdRaw = isset($r['created_at']) && \is_string($r['created_at']) ? $r['created_at'] : '';
             /** @var int|false $createdTs */
             $createdTs = $createdRaw !== '' ? \strtotime($createdRaw) : false;
+            $imageUrl = isset($r['image_url']) && \is_string($r['image_url']) ? $r['image_url'] : '';
             return [
                 'productId' => $r['product_id'] ?? '',
                 'variantId' => $r['variant_id'] ?? null,
@@ -35,6 +37,8 @@ final class WishlistModel
                 'slug'      => $r['slug'] ?? '',
                 'price'     => $price,
                 'currency'  => $currency !== '' ? $currency : 'USD',
+                'images'    => $imageUrl !== '' ? [$imageUrl] : [],
+                'category'  => '',
                 'createdAt' => $createdTs !== false ? \date('c', $createdTs) : \date('c'),
             ];
         }, $rows);

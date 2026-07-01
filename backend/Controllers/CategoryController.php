@@ -62,89 +62,105 @@ final class CategoryController
 
     public function list(): void
     {
-        $result = $this->model->getAll(
-            $this->queryInt('limit'),
-            $this->queryInt('offset'),
-            $this->queryString('search') ?: null,
-        );
-        $this->jsonResponse($result);
+        try {
+            $result = $this->model->getAll(
+                $this->queryInt('limit'),
+                $this->queryInt('offset'),
+                $this->queryString('search') ?: null,
+            );
+            $this->jsonResponse($result);
+        } catch (\Throwable $e) {
+            $this->jsonError('Error listing categories: ' . $e->getMessage(), 500);
+        }
     }
 
     public function create(): void
     {
-        /** @var mixed $method */
-        $method = $_SERVER['REQUEST_METHOD'] ?? '';
-        if (!is_string($method) || $method !== 'POST') {
-            $this->jsonError('Method not allowed', 405);
-        }
+        try {
+            /** @var mixed $method */
+            $method = $_SERVER['REQUEST_METHOD'] ?? '';
+            if (!is_string($method) || $method !== 'POST') {
+                $this->jsonError('Method not allowed', 405);
+            }
 
-        $body = $this->input();
-        $name = $this->str($body, 'name');
-        if ($name === '') {
-            $this->jsonError('Name is required');
-        }
-        if (strlen($name) > 100) {
-            $this->jsonError('Name must be 100 characters or less');
-        }
+            $body = $this->input();
+            $name = $this->str($body, 'name');
+            if ($name === '') {
+                $this->jsonError('Name is required');
+            }
+            if (strlen($name) > 100) {
+                $this->jsonError('Name must be 100 characters or less');
+            }
 
-        $slug = Str::slugify($name);
-        $id = 'cat-' . $slug;
-        $category = ['id' => $id, 'name' => $name, 'slug' => $slug];
+            $slug = Str::slugify($name);
+            $id = 'cat-' . $slug;
+            $category = ['id' => $id, 'name' => $name, 'slug' => $slug];
 
-        $this->model->save($category);
-        $this->getAuth()->logAction('create', 'category', $id, 'Created category: ' . $name);
-        $this->jsonResponse($category, 201);
+            $this->model->save($category);
+            $this->getAuth()->logAction('create', 'category', $id, 'Created category: ' . $name);
+            $this->jsonResponse($category, 201);
+        } catch (\Throwable $e) {
+            $this->jsonError('Error creating category: ' . $e->getMessage(), 500);
+        }
     }
 
     public function update(): void
     {
-        /** @var mixed $method */
-        $method = $_SERVER['REQUEST_METHOD'] ?? '';
-        if (!is_string($method) || $method !== 'POST') {
-            $this->jsonError('Method not allowed', 405);
-        }
+        try {
+            /** @var mixed $method */
+            $method = $_SERVER['REQUEST_METHOD'] ?? '';
+            if (!is_string($method) || $method !== 'POST') {
+                $this->jsonError('Method not allowed', 405);
+            }
 
-        $body = $this->input();
-        $id = $this->str($body, 'id');
-        $name = $this->str($body, 'name');
-        if ($id === '' || $name === '') {
-            $this->jsonError('ID and name are required');
-        }
-        if (strlen($name) > 100) {
-            $this->jsonError('Name must be 100 characters or less');
-        }
+            $body = $this->input();
+            $id = $this->str($body, 'id');
+            $name = $this->str($body, 'name');
+            if ($id === '' || $name === '') {
+                $this->jsonError('ID and name are required');
+            }
+            if (strlen($name) > 100) {
+                $this->jsonError('Name must be 100 characters or less');
+            }
 
-        $existing = $this->model->getById($id);
-        if ($existing === null) {
-            $this->jsonError('Category not found', 404);
-        }
+            $existing = $this->model->getById($id);
+            if ($existing === null) {
+                $this->jsonError('Category not found', 404);
+            }
 
-        $existing['name'] = $name;
-        $existing['slug'] = Str::slugify($name);
-        $this->model->save($existing);
-        $this->getAuth()->logAction('update', 'category', $id, 'Updated category: ' . $name, [
-            'from' => $this->str($body, 'name', $id),
-            'to' => $name,
-        ]);
-        $this->jsonResponse($existing);
+            $existing['name'] = $name;
+            $existing['slug'] = Str::slugify($name);
+            $this->model->save($existing);
+            $this->getAuth()->logAction('update', 'category', $id, 'Updated category: ' . $name, [
+                'from' => $this->str($body, 'name', $id),
+                'to' => $name,
+            ]);
+            $this->jsonResponse($existing);
+        } catch (\Throwable $e) {
+            $this->jsonError('Error updating category: ' . $e->getMessage(), 500);
+        }
     }
 
     public function delete(): void
     {
-        /** @var mixed $method */
-        $method = $_SERVER['REQUEST_METHOD'] ?? '';
-        if (!is_string($method) || $method !== 'POST') {
-            $this->jsonError('Method not allowed', 405);
-        }
+        try {
+            /** @var mixed $method */
+            $method = $_SERVER['REQUEST_METHOD'] ?? '';
+            if (!is_string($method) || $method !== 'POST') {
+                $this->jsonError('Method not allowed', 405);
+            }
 
-        $body = $this->input();
-        $id = $this->str($body, 'id');
-        if ($id === '') {
-            $this->jsonError('ID is required');
-        }
+            $body = $this->input();
+            $id = $this->str($body, 'id');
+            if ($id === '') {
+                $this->jsonError('ID is required');
+            }
 
-        $this->model->delete($id);
-        $this->getAuth()->logAction('delete', 'category', $id, 'Deleted category: ' . ($this->str($body, 'name') ?: $id));
-        $this->jsonResponse(['success' => true]);
+            $this->model->delete($id);
+            $this->getAuth()->logAction('delete', 'category', $id, 'Deleted category: ' . ($this->str($body, 'name') ?: $id));
+            $this->jsonResponse(['success' => true]);
+        } catch (\Throwable $e) {
+            $this->jsonError('Error deleting category: ' . $e->getMessage(), 500);
+        }
     }
 }

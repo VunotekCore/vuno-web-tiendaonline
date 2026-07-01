@@ -20,11 +20,11 @@ final class StripeService
         }
     }
 
-    public function createPaymentIntent(array $items, string $customerEmail = '', ?float $total = null): array
+    public function createPaymentIntent(array $items, string $customerEmail = ''): array
     {
         $client = $this->getClient();
 
-        $amount = (int) round(($total !== null ? $total : Str::calculateSubtotal($items)) * 100);
+        $amount = (int) round(Str::calculateSubtotal($items) * 100);
         if ($amount <= 0) {
             throw new \InvalidArgumentException('Invalid amount');
         }

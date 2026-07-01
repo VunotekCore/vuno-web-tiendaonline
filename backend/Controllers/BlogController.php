@@ -88,52 +88,60 @@ final class BlogController
 
     public function list(): void
     {
-        if (!$this->isGet()) {
-            $this->jsonError('Method not allowed', 405);
-        }
-
-        $page = max(1, $this->queryInt('page', 1));
-        $limit = min(50, max(1, $this->queryInt('limit', 10)));
-        $categoryId = max(0, $this->queryInt('category_id'));
-        $lang = $this->queryString('lang') ?: null;
-
-        $status = 'published';
-        $rawStatus = $this->queryString('status');
-        if ($rawStatus !== '') {
-            // Only admin can filter by status
-            if ($this->getAuth()->isLoggedIn()) {
-                $status = $rawStatus;
+        try {
+            if (!$this->isGet()) {
+                $this->jsonError('Method not allowed', 405);
             }
-        }
 
-        $result = $this->postModel->getPosts($page, $limit, $status, $categoryId, $lang);
-        $this->jsonResponse($result);
+            $page = max(1, $this->queryInt('page', 1));
+            $limit = min(50, max(1, $this->queryInt('limit', 10)));
+            $categoryId = max(0, $this->queryInt('category_id'));
+            $lang = $this->queryString('lang') ?: null;
+
+            $status = 'published';
+            $rawStatus = $this->queryString('status');
+            if ($rawStatus !== '') {
+                // Only admin can filter by status
+                if ($this->getAuth()->isLoggedIn()) {
+                    $status = $rawStatus;
+                }
+            }
+
+            $result = $this->postModel->getPosts($page, $limit, $status, $categoryId, $lang);
+            $this->jsonResponse($result);
+        } catch (\Throwable $e) {
+            $this->jsonError('Error listing posts: ' . $e->getMessage(), 500);
+        }
     }
 
     public function get(): void
     {
-        if (!$this->isGet()) {
-            $this->jsonError('Method not allowed', 405);
+        try {
+            if (!$this->isGet()) {
+                $this->jsonError('Method not allowed', 405);
+            }
+
+            $slug = $this->queryString('slug');
+            $id = $this->queryInt('id');
+            $lang = $this->queryString('lang') ?: null;
+
+            $post = null;
+            if ($slug !== '') {
+                $post = $this->postModel->getPostBySlug($slug, $lang);
+            } elseif ($id > 0) {
+                $post = $this->postModel->getPostById($id, $lang);
+            } else {
+                $this->jsonError('Provide id or slug parameter');
+            }
+
+            if ($post === null || ($post['status'] ?? '') !== 'published') {
+                $this->jsonError('Post not found', 404);
+            }
+
+            $this->jsonResponse($post);
+        } catch (\Throwable $e) {
+            $this->jsonError('Error getting post: ' . $e->getMessage(), 500);
         }
-
-        $slug = $this->queryString('slug');
-        $id = $this->queryInt('id');
-        $lang = $this->queryString('lang') ?: null;
-
-        $post = null;
-        if ($slug !== '') {
-            $post = $this->postModel->getPostBySlug($slug, $lang);
-        } elseif ($id > 0) {
-            $post = $this->postModel->getPostById($id, $lang);
-        } else {
-            $this->jsonError('Provide id or slug parameter');
-        }
-
-        if ($post === null || ($post['status'] ?? '') !== 'published') {
-            $this->jsonError('Post not found', 404);
-        }
-
-        $this->jsonResponse($post);
     }
 
     public function create(): void
@@ -239,12 +247,16 @@ final class BlogController
 
     public function categories(): void
     {
-        if (!$this->isGet()) {
-            $this->jsonError('Method not allowed', 405);
-        }
+        try {
+            if (!$this->isGet()) {
+                $this->jsonError('Method not allowed', 405);
+            }
 
-        $lang = $this->queryString('lang') ?: null;
-        $this->jsonResponse($this->categoryModel->getAll($lang));
+            $lang = $this->queryString('lang') ?: null;
+            $this->jsonResponse($this->categoryModel->getAll($lang));
+        } catch (\Throwable $e) {
+            $this->jsonError('Error listing categories: ' . $e->getMessage(), 500);
+        }
     }
 
     public function createCategory(): void

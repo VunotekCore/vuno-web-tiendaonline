@@ -215,6 +215,47 @@ final class CustomerModel
         )->execute($params);
     }
 
+    // =========================================================================
+    //  Login Rate Limiting
+    // =========================================================================
+
+    public function ensureLoginAttemptsTable(): void
+    {
+        $this->db->exec(
+            'CREATE TABLE IF NOT EXISTS customer_login_attempts (
+                id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                ip_address  VARCHAR(45) NOT NULL,
+                attempted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                success     BOOLEAN DEFAULT FALSE,
+                INDEX idx_ip_time (ip_address, attempted_at)
+            ) ENGINE=InnoDB'
+        );
+    }
+
+    public function getFailedLoginAttemptCount(string $ip, int $windowSeconds): int
+    {
+        $since = \date('Y-m-d H:i:s', \time() - $windowSeconds);
+        $stmt = $this->db->prepare(
+            'SELECT COUNT(*) FROM customer_login_attempts
+             WHERE ip_address = ? AND success = 0 AND attempted_at >= ?'
+        );
+        $stmt->execute([$ip, $since]);
+        return (int) $stmt->fetchColumn();
+    }
+
+    public function recordLoginAttempt(string $ip, bool $success): void
+    {
+        $this->db->prepare(
+            'INSERT INTO customer_login_attempts (ip_address, success) VALUES (?, ?)'
+        )->execute([$ip, $success ? 1 : 0]);
+    }
+
+    public function clearLoginAttempts(string $ip): void
+    {
+        $this->db->prepare('DELETE FROM customer_login_attempts WHERE ip_address = ?')
+            ->execute([$ip]);
+    }
+
     public function delete(int $id): void
     {
         $this->db->beginTransaction();

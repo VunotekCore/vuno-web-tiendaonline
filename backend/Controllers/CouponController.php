@@ -84,239 +84,264 @@ final class CouponController
 
     public function list(): void
     {
-        $result = $this->model->getAll(
-            $this->queryInt('limit'),
-            $this->queryInt('offset'),
-            $this->queryString('search') ?: null,
-        );
-        $this->jsonResponse($result);
+        try {
+            $result = $this->model->getAll(
+                $this->queryInt('limit'),
+                $this->queryInt('offset'),
+                $this->queryString('search') ?: null,
+            );
+            $this->jsonResponse($result);
+        } catch (\Throwable $e) {
+            $this->jsonError('Error listing coupons: ' . $e->getMessage(), 500);
+        }
     }
 
     public function listActive(): void
     {
-        if (!$this->isPost() && $_SERVER['REQUEST_METHOD'] !== 'GET') {
-            $this->jsonError('Method not allowed', 405);
+        try {
+            if (!$this->isPost() && $_SERVER['REQUEST_METHOD'] !== 'GET') {
+                $this->jsonError('Method not allowed', 405);
+            }
+            $coupons = $this->model->getActiveCoupons();
+            $this->jsonResponse($coupons);
+        } catch (\Throwable $e) {
+            $this->jsonError('Error listing active coupons: ' . $e->getMessage(), 500);
         }
-        $coupons = $this->model->getActiveCoupons();
-        $this->jsonResponse($coupons);
     }
 
     public function get(): void
     {
-        $id = $this->queryInt('id');
-        if ($id === null || $id === 0) {
-            $this->jsonError('Coupon ID is required');
+        try {
+            $id = $this->queryInt('id');
+            if ($id === null || $id === 0) {
+                $this->jsonError('Coupon ID is required');
+            }
+            $coupon = $this->model->getById($id);
+            if ($coupon === null) {
+                $this->jsonError('Coupon not found', 404);
+            }
+            $this->jsonResponse($coupon);
+        } catch (\Throwable $e) {
+            $this->jsonError('Error getting coupon: ' . $e->getMessage(), 500);
         }
-        $coupon = $this->model->getById($id);
-        if ($coupon === null) {
-            $this->jsonError('Coupon not found', 404);
-        }
-        $this->jsonResponse($coupon);
     }
 
     public function create(): void
     {
-        if (!$this->isPost()) {
-            $this->jsonError('Method not allowed', 405);
-        }
+        try {
+            if (!$this->isPost()) {
+                $this->jsonError('Method not allowed', 405);
+            }
 
-        $body = $this->input();
-        $rawCode = $this->str($body, 'code');
-        $discountType = $this->str($body, 'discount_type');
+            $body = $this->input();
+            $rawCode = $this->str($body, 'code');
+            $discountType = $this->str($body, 'discount_type');
 
-        if ($rawCode === '' || $discountType === '') {
-            $this->jsonError('Code and discount_type are required');
-        }
+            if ($rawCode === '' || $discountType === '') {
+                $this->jsonError('Code and discount_type are required');
+            }
 
-        $code = strtoupper(trim($rawCode));
-        if (strlen($code) > 50) {
-            $this->jsonError('Code must be 50 characters or less');
-        }
-        if (!in_array($discountType, ['percentage', 'fixed'], true)) {
-            $this->jsonError('Invalid discount type');
-        }
+            $code = strtoupper(trim($rawCode));
+            if (strlen($code) > 50) {
+                $this->jsonError('Code must be 50 characters or less');
+            }
+            if (!in_array($discountType, ['percentage', 'fixed'], true)) {
+                $this->jsonError('Invalid discount type');
+            }
 
-        $description = $this->str($body, 'description');
-        if (strlen($description) > 255) {
-            $this->jsonError('Description must be 255 characters or less');
-        }
+            $description = $this->str($body, 'description');
+            if (strlen($description) > 255) {
+                $this->jsonError('Description must be 255 characters or less');
+            }
 
-        $discountValue = $this->flt($body, 'discount_value');
-        if ($discountType === 'percentage' && $discountValue > 100) {
-            $this->jsonError('Percentage discount cannot exceed 100%');
-        }
+            $discountValue = $this->flt($body, 'discount_value');
+            if ($discountType === 'percentage' && $discountValue > 100) {
+                $this->jsonError('Percentage discount cannot exceed 100%');
+            }
 
-        $maxUses = $this->int($body, 'max_uses');
-        if ($maxUses < 0) {
-            $this->jsonError('Max uses must be a positive number');
-        }
-        $maxUsesPerCustomer = $this->int($body, 'max_uses_per_customer');
-        if ($maxUsesPerCustomer < 0) {
-            $this->jsonError('Max uses per customer must be a positive number');
-        }
+            $maxUses = $this->int($body, 'max_uses');
+            if ($maxUses < 0) {
+                $this->jsonError('Max uses must be a positive number');
+            }
+            $maxUsesPerCustomer = $this->int($body, 'max_uses_per_customer');
+            if ($maxUsesPerCustomer < 0) {
+                $this->jsonError('Max uses per customer must be a positive number');
+            }
 
-        $startsAt = $this->str($body, 'starts_at');
-        $expiresAt = $this->str($body, 'expires_at');
-        if ($startsAt !== '' && $expiresAt !== '' && $expiresAt <= $startsAt) {
-            $this->jsonError('Expiry date must be after the start date');
+            $startsAt = $this->str($body, 'starts_at');
+            $expiresAt = $this->str($body, 'expires_at');
+            if ($startsAt !== '' && $expiresAt !== '' && $expiresAt <= $startsAt) {
+                $this->jsonError('Expiry date must be after the start date');
+            }
+
+            $existing = $this->model->getByCode($code);
+            if ($existing !== null) {
+                $this->jsonError('A coupon with this code already exists');
+            }
+
+            $coupon = [
+                'code' => $code,
+                'description' => $description,
+                'discount_type' => $discountType,
+                'discount_value' => $discountValue,
+                'min_order_amount' => $this->valOrNull($body, 'min_order_amount'),
+                'max_uses' => $maxUses > 0 ? $maxUses : null,
+                'max_uses_per_customer' => $maxUsesPerCustomer > 0 ? $maxUsesPerCustomer : null,
+                'is_active' => (bool) ($body['is_active'] ?? true),
+                'starts_at' => $startsAt !== '' ? $startsAt : null,
+                'expires_at' => $expiresAt !== '' ? $expiresAt : null,
+            ];
+
+            $id = $this->model->insertCoupon($coupon);
+            $coupon['id'] = $id;
+            $this->getAuth()->logAction('create', 'coupon', (string) $id, 'Created coupon: ' . $code);
+            $this->jsonResponse($coupon, 201);
+        } catch (\Throwable $e) {
+            $this->jsonError('Error creating coupon: ' . $e->getMessage(), 500);
         }
-
-        $existing = $this->model->getByCode($code);
-        if ($existing !== null) {
-            $this->jsonError('A coupon with this code already exists');
-        }
-
-        $coupon = [
-            'code' => $code,
-            'description' => $description,
-            'discount_type' => $discountType,
-            'discount_value' => $discountValue,
-            'min_order_amount' => $this->valOrNull($body, 'min_order_amount'),
-            'max_uses' => $maxUses > 0 ? $maxUses : null,
-            'max_uses_per_customer' => $maxUsesPerCustomer > 0 ? $maxUsesPerCustomer : null,
-            'is_active' => (bool) ($body['is_active'] ?? true),
-            'starts_at' => $startsAt !== '' ? $startsAt : null,
-            'expires_at' => $expiresAt !== '' ? $expiresAt : null,
-        ];
-
-        $id = $this->model->insertCoupon($coupon);
-        $coupon['id'] = $id;
-        $this->getAuth()->logAction('create', 'coupon', (string) $id, 'Created coupon: ' . $code);
-        $this->jsonResponse($coupon, 201);
     }
 
     public function update(): void
     {
-        if (!$this->isPost()) {
-            $this->jsonError('Method not allowed', 405);
+        try {
+            if (!$this->isPost()) {
+                $this->jsonError('Method not allowed', 405);
+            }
+
+            $body = $this->input();
+            $id = $this->int($body, 'id');
+            if ($id === 0) {
+                $this->jsonError('Coupon ID is required');
+            }
+
+            $existing = $this->model->getById($id);
+            if ($existing === null) {
+                $this->jsonError('Coupon not found', 404);
+            }
+
+            $rawCode = $this->str($body, 'code');
+            $code = $rawCode !== '' ? strtoupper(trim($rawCode)) : (string) ($existing['code'] ?? '');
+            if (strlen($code) > 50) {
+                $this->jsonError('Code must be 50 characters or less');
+            }
+
+            $discountType = $this->str($body, 'discount_type') ?: (string) ($existing['discount_type'] ?? 'percentage');
+            if (!in_array($discountType, ['percentage', 'fixed'], true)) {
+                $this->jsonError('Invalid discount type');
+            }
+
+            $description = array_key_exists('description', $body)
+                ? $this->str($body, 'description')
+                : (string) ($existing['description'] ?? '');
+            if (strlen($description) > 255) {
+                $this->jsonError('Description must be 255 characters or less');
+            }
+
+            $discountValue = array_key_exists('discount_value', $body)
+                ? $this->flt($body, 'discount_value')
+                : (float) ($existing['discount_value'] ?? 0);
+            if ($discountType === 'percentage' && $discountValue > 100) {
+                $this->jsonError('Percentage discount cannot exceed 100%');
+            }
+
+            $maxUses = array_key_exists('max_uses', $body)
+                ? $this->int($body, 'max_uses')
+                : (int) ($existing['max_uses'] ?? 0);
+            if ($maxUses < 0) {
+                $this->jsonError('Max uses must be a positive number');
+            }
+
+            $maxUsesPerCustomer = array_key_exists('max_uses_per_customer', $body)
+                ? $this->int($body, 'max_uses_per_customer')
+                : (int) ($existing['max_uses_per_customer'] ?? 0);
+            if ($maxUsesPerCustomer < 0) {
+                $this->jsonError('Max uses per customer must be a positive number');
+            }
+
+            $minOrderAmount = array_key_exists('min_order_amount', $body)
+                ? $this->valOrNull($body, 'min_order_amount')
+                : ($existing['min_order_amount'] ?? null);
+
+            $startsAt = array_key_exists('starts_at', $body)
+                ? $this->str($body, 'starts_at')
+                : (string) ($existing['starts_at'] ?? '');
+            $expiresAt = array_key_exists('expires_at', $body)
+                ? $this->str($body, 'expires_at')
+                : (string) ($existing['expires_at'] ?? '');
+            if ($startsAt !== '' && $expiresAt !== '' && $expiresAt <= $startsAt) {
+                $this->jsonError('Expiry date must be after the start date');
+            }
+
+            $data = [
+                'id' => $id,
+                'code' => $code,
+                'description' => $description,
+                'discount_type' => $discountType,
+                'discount_value' => $discountValue,
+                'min_order_amount' => $minOrderAmount,
+                'max_uses' => $maxUses > 0 ? $maxUses : null,
+                'max_uses_per_customer' => $maxUsesPerCustomer > 0 ? $maxUsesPerCustomer : null,
+                'is_active' => array_key_exists('is_active', $body)
+                    ? (bool) $body['is_active']
+                    : (bool) ($existing['is_active'] ?? true),
+                'starts_at' => $startsAt !== '' ? $startsAt : null,
+                'expires_at' => $expiresAt !== '' ? $expiresAt : null,
+            ];
+
+            $this->model->updateCoupon($data);
+            $this->getAuth()->logAction('update', 'coupon', (string) $id, 'Updated coupon: ' . $code);
+            $this->jsonResponse($data);
+        } catch (\Throwable $e) {
+            $this->jsonError('Error updating coupon: ' . $e->getMessage(), 500);
         }
-
-        $body = $this->input();
-        $id = $this->int($body, 'id');
-        if ($id === 0) {
-            $this->jsonError('Coupon ID is required');
-        }
-
-        $existing = $this->model->getById($id);
-        if ($existing === null) {
-            $this->jsonError('Coupon not found', 404);
-        }
-
-        $rawCode = $this->str($body, 'code');
-        $code = $rawCode !== '' ? strtoupper(trim($rawCode)) : (string) ($existing['code'] ?? '');
-        if (strlen($code) > 50) {
-            $this->jsonError('Code must be 50 characters or less');
-        }
-
-        $discountType = $this->str($body, 'discount_type') ?: (string) ($existing['discount_type'] ?? 'percentage');
-        if (!in_array($discountType, ['percentage', 'fixed'], true)) {
-            $this->jsonError('Invalid discount type');
-        }
-
-        $description = array_key_exists('description', $body)
-            ? $this->str($body, 'description')
-            : (string) ($existing['description'] ?? '');
-        if (strlen($description) > 255) {
-            $this->jsonError('Description must be 255 characters or less');
-        }
-
-        $discountValue = array_key_exists('discount_value', $body)
-            ? $this->flt($body, 'discount_value')
-            : (float) ($existing['discount_value'] ?? 0);
-        if ($discountType === 'percentage' && $discountValue > 100) {
-            $this->jsonError('Percentage discount cannot exceed 100%');
-        }
-
-        $maxUses = array_key_exists('max_uses', $body)
-            ? $this->int($body, 'max_uses')
-            : (int) ($existing['max_uses'] ?? 0);
-        if ($maxUses < 0) {
-            $this->jsonError('Max uses must be a positive number');
-        }
-
-        $maxUsesPerCustomer = array_key_exists('max_uses_per_customer', $body)
-            ? $this->int($body, 'max_uses_per_customer')
-            : (int) ($existing['max_uses_per_customer'] ?? 0);
-        if ($maxUsesPerCustomer < 0) {
-            $this->jsonError('Max uses per customer must be a positive number');
-        }
-
-        $minOrderAmount = array_key_exists('min_order_amount', $body)
-            ? $this->valOrNull($body, 'min_order_amount')
-            : ($existing['min_order_amount'] ?? null);
-
-        $startsAt = array_key_exists('starts_at', $body)
-            ? $this->str($body, 'starts_at')
-            : (string) ($existing['starts_at'] ?? '');
-        $expiresAt = array_key_exists('expires_at', $body)
-            ? $this->str($body, 'expires_at')
-            : (string) ($existing['expires_at'] ?? '');
-        if ($startsAt !== '' && $expiresAt !== '' && $expiresAt <= $startsAt) {
-            $this->jsonError('Expiry date must be after the start date');
-        }
-
-        $data = [
-            'id' => $id,
-            'code' => $code,
-            'description' => $description,
-            'discount_type' => $discountType,
-            'discount_value' => $discountValue,
-            'min_order_amount' => $minOrderAmount,
-            'max_uses' => $maxUses > 0 ? $maxUses : null,
-            'max_uses_per_customer' => $maxUsesPerCustomer > 0 ? $maxUsesPerCustomer : null,
-            'is_active' => array_key_exists('is_active', $body)
-                ? (bool) $body['is_active']
-                : (bool) ($existing['is_active'] ?? true),
-            'starts_at' => $startsAt !== '' ? $startsAt : null,
-            'expires_at' => $expiresAt !== '' ? $expiresAt : null,
-        ];
-
-        $this->model->updateCoupon($data);
-        $this->getAuth()->logAction('update', 'coupon', (string) $id, 'Updated coupon: ' . $code);
-        $this->jsonResponse($data);
     }
 
     public function delete(): void
     {
-        if (!$this->isPost()) {
-            $this->jsonError('Method not allowed', 405);
-        }
+        try {
+            if (!$this->isPost()) {
+                $this->jsonError('Method not allowed', 405);
+            }
 
-        $body = $this->input();
-        $id = $this->int($body, 'id');
-        if ($id === 0) {
-            $this->jsonError('Coupon ID is required');
-        }
+            $body = $this->input();
+            $id = $this->int($body, 'id');
+            if ($id === 0) {
+                $this->jsonError('Coupon ID is required');
+            }
 
-        $code = $this->str($body, 'code', (string) $id);
-        $this->model->deleteCoupon($id);
-        $this->getAuth()->logAction('delete', 'coupon', (string) $id, 'Deleted coupon: ' . $code);
-        $this->jsonResponse(['success' => true]);
+            $code = $this->str($body, 'code', (string) $id);
+            $this->model->deleteCoupon($id);
+            $this->getAuth()->logAction('delete', 'coupon', (string) $id, 'Deleted coupon: ' . $code);
+            $this->jsonResponse(['success' => true]);
+        } catch (\Throwable $e) {
+            $this->jsonError('Error deleting coupon: ' . $e->getMessage(), 500);
+        }
     }
 
     public function validate(): void
     {
-        /** @var mixed $method */
-        $method = $_SERVER['REQUEST_METHOD'] ?? '';
-        if (!is_string($method) || $method !== 'POST') {
-            $this->jsonError('Method not allowed', 405);
-        }
+        try {
+            /** @var mixed $method */
+            $method = $_SERVER['REQUEST_METHOD'] ?? '';
+            if (!is_string($method) || $method !== 'POST') {
+                $this->jsonError('Method not allowed', 405);
+            }
 
-        $body = $this->input();
-        $rawCode = $this->str($body, 'code');
-        if ($rawCode === '') {
-            $this->jsonError('Coupon code is required');
-        }
+            $body = $this->input();
+            $rawCode = $this->str($body, 'code');
+            if ($rawCode === '') {
+                $this->jsonError('Coupon code is required');
+            }
 
-        $code = strtoupper(trim($rawCode));
-        $subtotal = $this->flt($body, 'subtotal');
-        $customerEmail = $this->str($body, 'email') ?: null;
+            $code = strtoupper(trim($rawCode));
+            $subtotal = $this->flt($body, 'subtotal');
+            $customerEmail = $this->str($body, 'email') ?: null;
 
-        $coupon = $this->model->getByCode($code);
-        if ($coupon === null) {
-            $this->jsonResponse(['valid' => false, 'error' => 'Coupon not found']);
-            return;
-        }
+            $coupon = $this->model->getByCode($code);
+            if ($coupon === null) {
+                $this->jsonResponse(['valid' => false, 'error' => 'Coupon not found']);
+                return;
+            }
 
         $now = date('Y-m-d H:i:s');
 
@@ -385,6 +410,9 @@ final class CouponController
             'coupon' => $coupon,
             'discount' => $discount,
         ]);
+        } catch (\Throwable $e) {
+            $this->jsonError('Error validating coupon: ' . $e->getMessage(), 500);
+        }
     }
 
     /**

@@ -9,8 +9,7 @@ use App\Models\SettingModel;
 setCorsHeaders();
 startAdminSession();
 if (!isAdminLoggedIn()) {
-    jsonResponse(['error' => 'Unauthorized'], 401);
-    exit;
+    jsonError('Unauthorized', 401);
 }
 
 $db = \App\Config\Database::getConnection();

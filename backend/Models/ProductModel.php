@@ -362,13 +362,13 @@ final class ProductModel
     }
 
     /** @return ?int */
-    public function findCategoryIdByName(string $name): ?int
+    public function findCategoryIdByName(string $name): ?string
     {
         $stmt = $this->db->prepare('SELECT id FROM categories WHERE name = ? OR slug = ? LIMIT 1');
         $stmt->execute([$name, Str::slugify($name)]);
-        /** @var int|false */
+        /** @var string|false $id */
         $id = $stmt->fetchColumn();
-        return $id !== false ? (int) $id : null;
+        return $id !== false ? $id : null;
     }
 
     /** @return array{id: int, name: string} */
@@ -387,6 +387,67 @@ final class ProductModel
             // Translation table not available
         }
         return null;
+    }
+
+    /**
+     * Optimized summary query for admin list — 2 SQL queries instead of 13.
+     * @return array{items: array<int, array<string, mixed>>, total: int}
+     */
+    public function findSummary(?int $limit, ?int $offset, ?string $search, ?string $category): array
+    {
+        $where = 'p.deleted_at IS NULL';
+        $params = [];
+
+        if ($category) {
+            $where .= ' AND (c.name = ? OR c.slug = ?)';
+            $params[] = $category;
+            $params[] = $category;
+        }
+        if ($search) {
+            $where .= ' AND p.name LIKE ?';
+            $params[] = '%' . $search . '%';
+        }
+
+        $stmt = $this->db->prepare(
+            "SELECT COUNT(DISTINCT p.id) FROM products p
+             LEFT JOIN product_categories pc ON pc.product_id = p.id
+             LEFT JOIN categories c ON c.id = pc.category_id
+             WHERE {$where}"
+        );
+        $stmt->execute($params);
+        $total = (int) $stmt->fetchColumn();
+
+        $itemSql = "SELECT p.id, p.name, p.price, p.is_featured, p.created_at,
+                           COALESCE(v.totalStock, 0) AS totalStock,
+                           c.name AS category,
+                           c.slug AS category_slug
+                    FROM products p
+                    LEFT JOIN product_categories pc ON pc.product_id = p.id
+                    LEFT JOIN categories c ON c.id = pc.category_id
+                    LEFT JOIN (
+                        SELECT product_id, SUM(stock) AS totalStock
+                        FROM product_variants WHERE is_active = 1
+                        GROUP BY product_id
+                    ) v ON v.product_id = p.id
+                    WHERE {$where}
+                    ORDER BY p.created_at DESC";
+
+        $itemParams = $params;
+        if ($limit !== null) {
+            $itemSql .= ' LIMIT ?';
+            $itemParams[] = $limit;
+        }
+        if ($offset !== null) {
+            $itemSql .= ' OFFSET ?';
+            $itemParams[] = $offset;
+        }
+
+        $stmt = $this->db->prepare($itemSql);
+        $stmt->execute($itemParams);
+        /** @var array<int, array<string, mixed>> $items */
+        $items = $stmt->fetchAll();
+
+        return ['items' => $items, 'total' => $total];
     }
 
     /** @return array<array{id: int, file_id: string}> */
@@ -413,8 +474,8 @@ final class ProductModel
     public function insertProduct(array $data): void
     {
         $stmt = $this->db->prepare(
-            'INSERT INTO products (id, name, slug, description, price, currency, low_stock_threshold, is_featured, meta_title, meta_description, og_image_url, created_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+            'INSERT INTO products (id, name, slug, description, price, currency, size_prefix, low_stock_threshold, is_featured, meta_title, meta_description, og_image_url, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
         );
         $stmt->execute([
             $data['id'],
@@ -423,6 +484,7 @@ final class ProductModel
             $data['description'] ?? '',
             $data['price'],
             $data['currency'] ?? 'USD',
+            $data['size_prefix'] ?? 'US',
             $data['lowStockThreshold'] ?? 5,
             $data['isFeatured'] ? 1 : 0,
             $data['metaTitle'] ?? '',
@@ -436,7 +498,7 @@ final class ProductModel
     public function updateProduct(array $data): void
     {
         $stmt = $this->db->prepare(
-            'UPDATE products SET name = ?, slug = ?, description = ?, price = ?, currency = ?,
+            'UPDATE products SET name = ?, slug = ?, description = ?, price = ?, currency = ?, size_prefix = ?,
              low_stock_threshold = ?, is_featured = ?,
              meta_title = ?, meta_description = ?, og_image_url = ?
              WHERE id = ?'
@@ -447,6 +509,7 @@ final class ProductModel
             $data['description'] ?? '',
             $data['price'],
             $data['currency'] ?? 'USD',
+            $data['size_prefix'] ?? 'US',
             $data['lowStockThreshold'] ?? 5,
             $data['isFeatured'] ? 1 : 0,
             $data['metaTitle'] ?? '',
@@ -454,6 +517,20 @@ final class ProductModel
             $data['ogImageUrl'] ?? '',
             $data['id'],
         ]);
+    }
+
+    public function getVariantStock(string $productId, string $color, string $size): ?int
+    {
+        $stmt = $this->db->prepare(
+            'SELECT pv.stock FROM product_variants pv
+             JOIN product_colors pc ON pc.id = pv.color_id
+             JOIN product_sizes ps ON ps.id = pv.size_id
+             WHERE pv.product_id = ? AND pc.name = ? AND ps.value = ? AND pv.is_active = 1
+             LIMIT 1'
+        );
+        $stmt->execute([$productId, $color, $size]);
+        $stock = $stmt->fetchColumn();
+        return $stock !== false ? (int) $stock : null;
     }
 
     public function softDelete(string $id): void
@@ -495,8 +572,13 @@ final class ProductModel
         $colorIdMap = [];
         if (!empty($colors)) {
             $stmt = $this->db->prepare('INSERT INTO product_colors (product_id, name, hex, sort_order) VALUES (?, ?, ?, ?)');
-            foreach (array_values($colors) as $i => $c) {
-                $stmt->execute([$productId, $c['name'], $c['hex'] ?? '#000000', $i]);
+            $deduped = [];
+            foreach ($colors as $c) {
+                $deduped[$c['name']] = $c;
+            }
+            foreach (array_values($deduped) as $i => $c) {
+                $hex = $c['hex'] ?? '#1A1A1A';
+                $stmt->execute([$productId, $c['name'], $hex, $i]);
                 $colorIdMap[$c['name']] = (int) $this->db->lastInsertId();
             }
         }
@@ -513,7 +595,11 @@ final class ProductModel
         $sizeIdMap = [];
         if (!empty($sizes)) {
             $stmt = $this->db->prepare('INSERT INTO product_sizes (product_id, label, value, sort_order) VALUES (?, ?, ?, ?)');
-            foreach (array_values($sizes) as $i => $s) {
+            $deduped = [];
+            foreach ($sizes as $s) {
+                $deduped[$s['value']] = $s;
+            }
+            foreach (array_values($deduped) as $i => $s) {
                 $stmt->execute([$productId, $s['label'], $s['value'], $i]);
                 $sizeIdMap[$s['value']] = (int) $this->db->lastInsertId();
             }

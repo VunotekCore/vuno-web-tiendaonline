@@ -32,14 +32,13 @@ final class StripeController
         $input = json_decode((string) file_get_contents('php://input'), true);
         $items = is_array($input) ? ($input['items'] ?? []) : [];
         $customerEmail = is_string($input['customerEmail'] ?? null) ? $input['customerEmail'] : '';
-        $total = isset($input['total']) && is_numeric($input['total']) ? (float) $input['total'] : null;
 
         if ($items === []) {
             $this->jsonError('No items provided');
         }
 
         try {
-            $result = $this->stripe->createPaymentIntent($items, $customerEmail, $total);
+            $result = $this->stripe->createPaymentIntent($items, $customerEmail);
             $this->jsonResponse([
                 'clientSecret' => $result['clientSecret'],
                 'id' => $result['id'],

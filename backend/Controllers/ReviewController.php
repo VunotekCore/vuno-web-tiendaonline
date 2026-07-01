@@ -79,18 +79,22 @@ final class ReviewController
      */
     public function list(): void
     {
-        $productId = $this->queryString('product_id');
-        if ($productId === '') {
-            $this->jsonError('product_id is required');
+        try {
+            $productId = $this->queryString('product_id');
+            if ($productId === '') {
+                $this->jsonError('product_id is required');
+            }
+
+            $reviews = $this->model->getProductReviews($productId, true);
+            $stats = $this->model->getStats($productId);
+
+            $this->jsonResponse([
+                'reviews' => $reviews,
+                'stats' => $stats,
+            ]);
+        } catch (\Throwable $e) {
+            $this->jsonError('Error loading reviews: ' . $e->getMessage(), 500);
         }
-
-        $reviews = $this->model->getProductReviews($productId, true);
-        $stats = $this->model->getStats($productId);
-
-        $this->jsonResponse([
-            'reviews' => $reviews,
-            'stats' => $stats,
-        ]);
     }
 
     /**
@@ -98,31 +102,35 @@ final class ReviewController
      */
     public function create(): void
     {
-        if (!$this->isPost()) {
-            $this->jsonError('Method not allowed', 405);
+        try {
+            if (!$this->isPost()) {
+                $this->jsonError('Method not allowed', 405);
+            }
+
+            $body = $this->input();
+            $productId = $this->str($body, 'product_id');
+            $rating = $this->int($body, 'rating');
+
+            if ($productId === '' || $rating === 0) {
+                $this->jsonError('product_id and rating are required');
+            }
+            if ($rating < 1 || $rating > 5) {
+                $this->jsonError('Rating must be between 1 and 5');
+            }
+
+            $id = $this->model->insertReview([
+                'product_id' => $productId,
+                'reviewer_name' => $this->str($body, 'reviewer_name'),
+                'reviewer_email' => $this->str($body, 'reviewer_email'),
+                'rating' => $rating,
+                'title' => $this->str($body, 'title'),
+                'comment' => $this->str($body, 'comment'),
+            ]);
+
+            $this->jsonResponse(['success' => true, 'id' => $id]);
+        } catch (\Throwable $e) {
+            $this->jsonError('Error creating review: ' . $e->getMessage(), 500);
         }
-
-        $body = $this->input();
-        $productId = $this->str($body, 'product_id');
-        $rating = $this->int($body, 'rating');
-
-        if ($productId === '' || $rating === 0) {
-            $this->jsonError('product_id and rating are required');
-        }
-        if ($rating < 1 || $rating > 5) {
-            $this->jsonError('Rating must be between 1 and 5');
-        }
-
-        $id = $this->model->insertReview([
-            'product_id' => $productId,
-            'reviewer_name' => $this->str($body, 'reviewer_name'),
-            'reviewer_email' => $this->str($body, 'reviewer_email'),
-            'rating' => $rating,
-            'title' => $this->str($body, 'title'),
-            'comment' => $this->str($body, 'comment'),
-        ]);
-
-        $this->jsonResponse(['success' => true, 'id' => $id]);
     }
 
     /**
@@ -130,13 +138,17 @@ final class ReviewController
      */
     public function adminList(): void
     {
-        $result = $this->model->getAll(
-            $this->queryInt('limit'),
-            $this->queryInt('offset'),
-            $this->queryString('status') ?: null,
-            $this->queryString('search') ?: null,
-        );
-        $this->jsonResponse($result);
+        try {
+            $result = $this->model->getAll(
+                $this->queryInt('limit'),
+                $this->queryInt('offset'),
+                $this->queryString('status') ?: null,
+                $this->queryString('search') ?: null,
+            );
+            $this->jsonResponse($result);
+        } catch (\Throwable $e) {
+            $this->jsonError('Error loading reviews: ' . $e->getMessage(), 500);
+        }
     }
 
     /**
@@ -144,19 +156,23 @@ final class ReviewController
      */
     public function approve(): void
     {
-        if (!$this->isPost()) {
-            $this->jsonError('Method not allowed', 405);
-        }
+        try {
+            if (!$this->isPost()) {
+                $this->jsonError('Method not allowed', 405);
+            }
 
-        $body = $this->input();
-        $id = $this->int($body, 'id');
-        if ($id === 0) {
-            $this->jsonError('Review ID is required');
-        }
+            $body = $this->input();
+            $id = $this->int($body, 'id');
+            if ($id === 0) {
+                $this->jsonError('Review ID is required');
+            }
 
-        $this->model->approveReview($id);
-        $this->getAuth()->logAction('approve', 'review', (string) $id, 'Approved review');
-        $this->jsonResponse(['success' => true]);
+            $this->model->approveReview($id);
+            $this->getAuth()->logAction('approve', 'review', (string) $id, 'Approved review');
+            $this->jsonResponse(['success' => true]);
+        } catch (\Throwable $e) {
+            $this->jsonError('Error approving review: ' . $e->getMessage(), 500);
+        }
     }
 
     /**
@@ -164,18 +180,22 @@ final class ReviewController
      */
     public function delete(): void
     {
-        if (!$this->isPost()) {
-            $this->jsonError('Method not allowed', 405);
-        }
+        try {
+            if (!$this->isPost()) {
+                $this->jsonError('Method not allowed', 405);
+            }
 
-        $body = $this->input();
-        $id = $this->int($body, 'id');
-        if ($id === 0) {
-            $this->jsonError('Review ID is required');
-        }
+            $body = $this->input();
+            $id = $this->int($body, 'id');
+            if ($id === 0) {
+                $this->jsonError('Review ID is required');
+            }
 
-        $this->model->deleteReview($id);
-        $this->getAuth()->logAction('delete', 'review', (string) $id, 'Deleted review');
-        $this->jsonResponse(['success' => true]);
+            $this->model->deleteReview($id);
+            $this->getAuth()->logAction('delete', 'review', (string) $id, 'Deleted review');
+            $this->jsonResponse(['success' => true]);
+        } catch (\Throwable $e) {
+            $this->jsonError('Error deleting review: ' . $e->getMessage(), 500);
+        }
     }
 }

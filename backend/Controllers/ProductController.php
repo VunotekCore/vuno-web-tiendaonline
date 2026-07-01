@@ -8,6 +8,7 @@ use App\Models\ProductModel;
 use App\Models\UserModel;
 use App\Services\AuthService;
 use App\Services\ImageKitService;
+use App\Services\ProductAssembler;
 use App\Traits\ApiResponse;
 use App\Utils\Str;
 
@@ -17,6 +18,7 @@ final class ProductController
 
     private ?AuthService $auth = null;
     private ?CurrencyModel $currencyModel = null;
+    private ?ProductAssembler $assembler = null;
 
     public function __construct(
         private ProductModel $model,
@@ -31,6 +33,14 @@ final class ProductController
             $this->auth = new AuthService(new UserModel(\App\Config\Database::getConnection()));
         }
         return $this->auth;
+    }
+
+    private function getAssembler(): ProductAssembler
+    {
+        if ($this->assembler === null) {
+            $this->assembler = new ProductAssembler($this->model, $this->getCurrencyModel());
+        }
+        return $this->assembler;
     }
 
     private function getCurrencyModel(): CurrencyModel
@@ -190,7 +200,7 @@ final class ProductController
             }
 
             foreach ($productIds as $pid) {
-                $product = $this->buildProductFromBatches(
+                $product = $this->getAssembler()->buildFromBatches(
                     $pid, $rawRows, $detailsBatch, $imagesBatch, $colorsBatch,
                     $sizesBatch, $variantsBatch, $matrixBatch, $catIdBatch,
                     $categoryMap, $categorySlugMap, $catTranslationMap, $productTranslations, $langVal,
@@ -202,6 +212,27 @@ final class ProductController
         }
 
         $this->jsonResponse(['items' => $items, 'total' => $total]);
+    }
+
+    public function listSummary(): void
+    {
+        $search = $this->queryString('search');
+        $category = $this->queryString('category');
+        $limit = $this->queryInt('limit');
+        $offset = $this->queryInt('offset');
+
+        $result = $this->model->findSummary(
+            $limit,
+            $offset,
+            $search !== '' ? $search : null,
+            $category !== '' ? $category : null,
+        );
+
+        foreach ($result['items'] as $k => $v) {
+            $result['items'][$k] = $this->getCurrencyModel()->addDisplayPricesToProduct($v);
+        }
+
+        $this->jsonResponse($result);
     }
 
     public function get(): void
@@ -225,7 +256,7 @@ final class ProductController
 
         /** @var string $productId */
         $productId = is_string($row['id'] ?? null) ? $row['id'] : '';
-        $this->jsonResponse($this->buildProduct($productId, $langVal));
+        $this->jsonResponse($this->getAssembler()->buildSingle($productId, $langVal));
     }
 
     public function create(): void
@@ -264,7 +295,7 @@ final class ProductController
             'details' => $this->val($body, 'details'),
             'price' => $price,
             'currency' => $this->str($body, 'currency', 'USD'),
-            'size_prefix' => $this->str($body, 'size_prefix', 'EU'),
+            'size_prefix' => $this->str($body, 'size_prefix', 'US'),
             'images' => $images,
             'category' => $this->str($body, 'category', 'Heels'),
             'colors' => $this->arr($body, 'colors'),
@@ -302,7 +333,7 @@ final class ProductController
 
         /** @var string $existingId */
         $existingId = is_string($existing['id'] ?? null) ? $existing['id'] : '';
-        $existingFull = $this->buildProduct($existingId);
+        $existingFull = $this->getAssembler()->buildSingle($existingId);
 
         /** @var string $existingName */
         $existingName = is_string($existing['name'] ?? null) ? $existing['name'] : '';
@@ -368,6 +399,10 @@ final class ProductController
             'createdAt' => $existingCreatedAt,
         ];
 
+        if (!$this->productHasChanges($product, $existing, $existingFull)) {
+            $this->jsonResponse(['noChanges' => true, 'product' => $product]);
+        }
+
         $this->saveProduct($product);
 
         $changes = [];
@@ -413,310 +448,46 @@ final class ProductController
     //  Private helpers
     // =========================================================================
 
-    /**
-     * Build full product response from raw DB row.
-     * @return array<string, mixed>
-     */
-    private function buildProduct(string $id, ?string $lang = null): array
-    {
-        $row = $this->model->findRawById($id);
-        if (!$row) {
-            return [];
-        }
 
-        $description = is_string($row['description'] ?? null) ? $row['description'] : '';
-        $detailsArr = array_column($this->model->getDetails($id), 'detail_text');
-
-        // Apply translations if lang is provided and not Spanish
-        if ($lang !== null && $lang !== 'es') {
-            $trans = $this->model->getTranslation($id, $lang);
-            if ($trans !== null) {
-                if ($trans['name'] !== '') {
-                    $row['name'] = $trans['name'];
-                }
-                if ($trans['description'] !== null && $trans['description'] !== '') {
-                    $description = $trans['description'];
-                }
-                if ($trans['details'] !== null && $trans['details'] !== '') {
-                    $parsed = json_decode($trans['details'], true);
-                    if (is_array($parsed)) {
-                        $detailsArr = $parsed;
-                    }
-                }
-            }
-        }
-
-        // Images
-        $imageRows = $this->model->getImages($id);
-        $images = [];
-        $imageDetails = [];
-        $imagesByColor = [];
-        foreach ($imageRows as $r) {
-            $colorName = $r['color_id'] !== null ? $this->getColorNameFromId($id, $r['color_id']) : null;
-            $url = $r['url'];
-            if ($colorName !== null) {
-                $imagesByColor[$colorName][] = $url;
-            } else {
-                $images[] = $url;
-            }
-            $imageDetails[] = [
-                'id' => $r['id'],
-                'url' => $url,
-                'fileId' => $r['file_id'] ?? '',
-                'colorName' => $colorName,
-            ];
-        }
-
-        // Category
-        $catIds = $this->model->getCategoryIds($id);
-        $category = '';
-        $categorySlug = '';
-        if (isset($catIds[0])) {
-            $catId = $catIds[0]['category_id'];
-            if ($lang !== null && $lang !== 'es') {
-                $catTrans = $this->model->getCategoryTranslation($catId, $lang);
-                $category = $catTrans !== null ? $catTrans['name'] : '';
-            }
-            if ($category === '') {
-                $catRow = $this->model->getCategoryById($catId);
-                $category = $catRow !== null ? $catRow['name'] : '';
-                $categorySlug = $catRow !== null ? $catRow['slug'] : '';
-            }
-        }
-
-        // Colors
-        $colorRows = $this->model->getColors($id);
-        $colorsArr = array_map(fn(array $c): array => [
-            'name' => $c['name'],
-            'hex' => $c['hex'],
-        ], $colorRows);
-
-        // Sizes + variants
-        $sizeRows = $this->model->getSizes($id);
-        $variantRows = $this->model->getVariants($id);
-
-        $sizeStockMap = [];
-        $totalStock = 0;
-        foreach ($variantRows as $v) {
-            $sizeId = $v['size_id'];
-            $stock = $v['stock'];
-            $sizeStockMap[$sizeId] = ($sizeStockMap[$sizeId] ?? 0) + $stock;
-            $totalStock += $stock;
-        }
-
-        $sizesArr = array_map(function (array $s) use ($sizeStockMap): array {
-            $stock = $sizeStockMap[$s['id']] ?? 0;
-            return [
-                'label' => $s['label'],
-                'value' => $s['value'],
-                'inStock' => $stock > 0,
-                'stock' => $stock,
-            ];
-        }, $sizeRows);
-
-        $variantMatrix = $this->model->getVariantMatrix($id);
-
-        $result = [
-            'id' => $row['id'],
-            'name' => $row['name'],
-            'slug' => $row['slug'],
-            'description' => $description,
-            'details' => $detailsArr !== [] ? $detailsArr : null,
-            'price' => is_numeric($row['price'] ?? null) ? (float) $row['price'] : 0,
-            'currency' => is_string($row['currency'] ?? null) && $row['currency'] !== '' ? $row['currency'] : 'USD',
-            'size_prefix' => $row['size_prefix'] ?? 'EU',
-            'images' => $images,
-            'imageDetails' => $imageDetails,
-            'imagesByColor' => $imagesByColor,
-            'category' => $category,
-            'category_slug' => $categorySlug,
-            'colors' => $colorsArr,
-            'sizes' => $sizesArr,
-            'variants' => $variantMatrix,
-            'totalStock' => $totalStock,
-            'lowStockThreshold' => is_numeric($row['low_stock_threshold'] ?? null) ? (int) $row['low_stock_threshold'] : 5,
-            'createdAt' => date('c', strtotime(is_string($row['created_at'] ?? null) ? $row['created_at'] : 'now') ?: null),
-            'isFeatured' => (bool) ($row['is_featured'] ?? false),
-            'metaTitle' => $row['meta_title'] ?? '',
-            'metaDescription' => $row['meta_description'] ?? '',
-            'ogImageUrl' => $row['og_image_url'] ?? '',
-        ];
-
-        $result = $this->getCurrencyModel()->addDisplayPricesToProduct($result);
-        return $result;
-    }
 
     /**
-     * Build a single product response from pre-fetched batch data.
-     * @param array<string, array<string, mixed>> $rawRows
-     * @param array<string, array<string>> $detailsBatch
-     * @param array<string, array<array{id: int, url: string, file_id: ?string, color_id: ?int, sort_order: int, is_primary: int}>> $imagesBatch
-     * @param array<string, array<array{id: int, name: string, hex: string, sort_order: int}>> $colorsBatch
-     * @param array<string, array<array{id: int, label: string, value: string, sort_order: int}>> $sizesBatch
-     * @param array<string, array<array{color_id: int, size_id: int, stock: int}>> $variantsBatch
-     * @param array<string, array<array{id: int, color_name: string, size_value: string, stock: int, price_override: ?float}>> $matrixBatch
-     * @param array<string, array<int>> $catIdBatch
-     * @param array<string, string> $categoryMap
-     * @param array<string, string> $categorySlugMap
-     * @param array<string, string> $catTranslationMap
-     * @param array<string, array{name: string, description: ?string, details: ?string}> $translations
-     * @return ?array<string, mixed>
+     * @param array<string, mixed> $product
+     * @param array<string, mixed> $existing
+     * @param array<string, mixed> $existingFull
      */
-    private function buildProductFromBatches(
-        string $pid,
-        array &$rawRows,
-        array &$detailsBatch,
-        array &$imagesBatch,
-        array &$colorsBatch,
-        array &$sizesBatch,
-        array &$variantsBatch,
-        array &$matrixBatch,
-        array &$catIdBatch,
-        array &$categoryMap,
-        array &$categorySlugMap,
-        array &$catTranslationMap,
-        array &$translations,
-        ?string $lang,
-    ): ?array {
-        $row = $rawRows[$pid] ?? null;
-        if (!$row) {
-            return null;
-        }
-
-        $description = is_string($row['description'] ?? null) ? $row['description'] : '';
-        $detailsArr = $detailsBatch[$pid] ?? [];
-
-        // Apply translations if lang is provided and not Spanish
-        if ($lang !== null && $lang !== 'es') {
-            $trans = $translations[$pid] ?? null;
-            if ($trans !== null) {
-                if ($trans['name'] !== '') {
-                    $row['name'] = $trans['name'];
-                }
-                if ($trans['description'] !== null && $trans['description'] !== '') {
-                    $description = $trans['description'];
-                }
-                if ($trans['details'] !== null && $trans['details'] !== '') {
-                    $parsed = json_decode($trans['details'], true);
-                    if (is_array($parsed)) {
-                        $detailsArr = $parsed;
-                    }
-                }
-            }
-        }
-
-        // Images — use pre-fetched colors to resolve color_id → name
-        $imageRows = $imagesBatch[$pid] ?? [];
-        $colorRows = $colorsBatch[$pid] ?? [];
-        $colorNameMap = [];
-        foreach ($colorRows as $c) {
-            $colorNameMap[$c['id']] = $c['name'];
-        }
-        $images = [];
-        $imageDetails = [];
-        $imagesByColor = [];
-        foreach ($imageRows as $r) {
-            $colorName = $r['color_id'] !== null ? ($colorNameMap[$r['color_id']] ?? null) : null;
-            $url = $r['url'];
-            if ($colorName !== null) {
-                $imagesByColor[$colorName][] = $url;
-            } else {
-                $images[] = $url;
-            }
-            $imageDetails[] = [
-                'id' => $r['id'],
-                'url' => $url,
-                'fileId' => $r['file_id'] ?? '',
-                'colorName' => $colorName,
-            ];
-        }
-
-        // Category
-        $prodCatIds = $catIdBatch[$pid] ?? [];
-        $category = '';
-        $categorySlug = '';
-        if (isset($prodCatIds[0])) {
-            $catId = $prodCatIds[0];
-            if ($lang !== null && $lang !== 'es' && isset($catTranslationMap[$catId])) {
-                $category = $catTranslationMap[$catId];
-            }
-            if ($category === '' && isset($categoryMap[$catId])) {
-                $category = $categoryMap[$catId];
-            }
-            if (isset($categorySlugMap[$catId])) {
-                $categorySlug = $categorySlugMap[$catId];
-            }
-        }
-
-        // Colors
-        $colorsArr = array_map(fn(array $c): array => [
-            'name' => $c['name'],
-            'hex' => $c['hex'],
-        ], $colorRows);
-
-        // Sizes + variants
-        $sizeRows = $sizesBatch[$pid] ?? [];
-        $variantRows = $variantsBatch[$pid] ?? [];
-
-        $sizeStockMap = [];
-        $totalStock = 0;
-        foreach ($variantRows as $v) {
-            $sizeId = $v['size_id'];
-            $stock = $v['stock'];
-            $sizeStockMap[$sizeId] = ($sizeStockMap[$sizeId] ?? 0) + $stock;
-            $totalStock += $stock;
-        }
-
-        $sizesArr = array_map(function (array $s) use ($sizeStockMap): array {
-            $stock = $sizeStockMap[$s['id']] ?? 0;
-            return [
-                'label' => $s['label'],
-                'value' => $s['value'],
-                'inStock' => $stock > 0,
-                'stock' => $stock,
-            ];
-        }, $sizeRows);
-
-        $variantMatrix = $matrixBatch[$pid] ?? [];
-
-        $result = [
-            'id' => $row['id'],
-            'name' => $row['name'],
-            'slug' => $row['slug'],
-            'description' => $description,
-            'details' => $detailsArr !== [] ? $detailsArr : null,
-            'price' => is_numeric($row['price'] ?? null) ? (float) $row['price'] : 0,
-            'currency' => is_string($row['currency'] ?? null) && $row['currency'] !== '' ? $row['currency'] : 'USD',
-            'size_prefix' => $row['size_prefix'] ?? 'EU',
-            'images' => $images,
-            'imageDetails' => $imageDetails,
-            'imagesByColor' => $imagesByColor,
-            'category' => $category,
-            'category_slug' => $categorySlug,
-            'colors' => $colorsArr,
-            'sizes' => $sizesArr,
-            'variants' => $variantMatrix,
-            'totalStock' => $totalStock,
-            'lowStockThreshold' => is_numeric($row['low_stock_threshold'] ?? null) ? (int) $row['low_stock_threshold'] : 5,
-            'createdAt' => date('c', strtotime(is_string($row['created_at'] ?? null) ? $row['created_at'] : 'now') ?: null),
-            'isFeatured' => (bool) ($row['is_featured'] ?? false),
-            'metaTitle' => $row['meta_title'] ?? '',
-            'metaDescription' => $row['meta_description'] ?? '',
-            'ogImageUrl' => $row['og_image_url'] ?? '',
-        ];
-
-        return $this->getCurrencyModel()->addDisplayPricesToProduct($result);
-    }
-
-    private function getColorNameFromId(string $productId, int $colorId): ?string
+    private function productHasChanges(array $product, array $existing, array $existingFull): bool
     {
-        $colors = $this->model->getColors($productId);
-        foreach ($colors as $c) {
-            if ($c['id'] === $colorId) {
-                return $c['name'];
-            }
+        $scalar = [
+            'name', 'slug', 'description', 'price', 'isFeatured', 'lowStockThreshold',
+            'metaTitle', 'metaDescription', 'ogImageUrl',
+        ];
+        foreach ($scalar as $k) {
+            $old = $existingFull[$k] ?? null;
+            $new = $product[$k] ?? null;
+            if ($old !== $new) return true;
         }
-        return null;
+
+        if (json_encode($product['details'] ?? null) !== json_encode($existingFull['details'] ?? null)) return true;
+        if (($product['category'] ?? '') !== ($existingFull['category'] ?? '')) return true;
+        if (json_encode($product['colors'] ?? []) !== json_encode($existingFull['colors'] ?? [])) return true;
+        if (json_encode($product['sizes'] ?? []) !== json_encode($existingFull['sizes'] ?? [])) return true;
+
+        $newStocks = $product['stocks'] ?? [];
+        $oldStocks = [];
+        foreach ($existingFull['variants'] ?? [] as $v) {
+            $oldStocks[($v['color_name'] ?? '') . '_' . ($v['size_value'] ?? '')] = (int) ($v['stock'] ?? 0);
+        }
+        if (json_encode($newStocks) !== json_encode($oldStocks)) return true;
+
+        $existingImageDetails = $existingFull['imageDetails'] ?? [];
+        $normalizedOld = array_map(fn(array $i): array => [
+            'url' => $i['url'] ?? '',
+            'fileId' => $i['fileId'] ?? '',
+            'colorName' => $i['colorName'] ?? null,
+        ], $existingImageDetails);
+        if (json_encode($product['images'] ?? []) !== json_encode($normalizedOld)) return true;
+
+        return false;
     }
 
     /** @param array<string, mixed> $product */

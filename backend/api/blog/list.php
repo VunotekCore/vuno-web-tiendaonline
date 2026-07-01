@@ -7,7 +7,10 @@ use App\Models\BlogPostModel;
 
 require_once __DIR__ . '/../../bootstrap.php';
 setCorsHeaders();
-\startAdminSession();
+// Only start session if a session cookie is present (avoids overhead for public requests)
+if (isset($_COOKIE[session_name()]) && $_COOKIE[session_name()] !== '') {
+    \startAdminSession();
+}
 
 $controller = new BlogController(
     new BlogPostModel(\App\Config\Database::getConnection()),

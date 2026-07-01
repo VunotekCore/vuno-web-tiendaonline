@@ -176,47 +176,68 @@ final class CustomerController
     /** @return never */
     public function login(): void
     {
-        $raw = \file_get_contents('php://input');
-        /** @var array<string, mixed>|null $input */
-        $input = $raw !== false ? \json_decode($raw, true) : null;
-        if (!\is_array($input)) {
-            $this->jsonError('Invalid request body', 400);
+        try {
+            $ip = isset($_SERVER['REMOTE_ADDR']) && \is_string($_SERVER['REMOTE_ADDR'])
+                ? $_SERVER['REMOTE_ADDR'] : '0.0.0.0';
+
+            // Rate limiting
+            $this->customerModel->ensureLoginAttemptsTable();
+            $failedAttempts = $this->customerModel->getFailedLoginAttemptCount($ip, 900);
+            if ($failedAttempts >= 5) {
+                \http_response_code(429);
+                \header('Retry-After: 900');
+                $this->jsonError('Too many login attempts. Try again in 15 minutes.', 429);
+            }
+
+            $raw = \file_get_contents('php://input');
+            /** @var array<string, mixed>|null $input */
+            $input = $raw !== false ? \json_decode($raw, true) : null;
+            if (!\is_array($input)) {
+                $this->jsonError('Invalid request body', 400);
+            }
+
+            $email = isset($input['email']) && \is_string($input['email']) ? \strtolower(\trim($input['email'])) : '';
+            $password = isset($input['password']) && \is_string($input['password']) ? $input['password'] : '';
+
+            if ($email === '' || $password === '') {
+                $this->jsonError('Email and password are required', 400);
+            }
+
+            $customer = $this->customerModel->findByEmail($email);
+            if ($customer === null) {
+                $this->customerModel->recordLoginAttempt($ip, false);
+                $this->jsonError('Invalid email or password', 401);
+            }
+
+            $hash = isset($customer['password_hash']) && \is_string($customer['password_hash']) ? $customer['password_hash'] : '';
+            if (!\password_verify($password, $hash)) {
+                $this->customerModel->recordLoginAttempt($ip, false);
+                $this->jsonError('Invalid email or password', 401);
+            }
+
+            $this->customerModel->recordLoginAttempt($ip, true);
+            $this->customerModel->clearLoginAttempts($ip);
+
+            /** @var mixed $customerIdRaw */
+            $customerIdRaw = $customer['id'] ?? null;
+            $customerId = \is_numeric($customerIdRaw) ? (int) $customerIdRaw : 0;
+            /** @var mixed $customerName */
+            $customerName = $customer['name'] ?? null;
+            $name = \is_string($customerName) ? $customerName : '';
+            $token = $this->createCustomerToken($customerId, $email);
+
+            $this->jsonResponse([
+                'success'  => true,
+                'token'    => $token,
+                'customer' => [
+                    'id'    => $customerId,
+                    'name'  => $name,
+                    'email' => $email,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            $this->jsonError('Login failed: ' . $e->getMessage(), 500);
         }
-
-        $email = isset($input['email']) && \is_string($input['email']) ? \strtolower(\trim($input['email'])) : '';
-        $password = isset($input['password']) && \is_string($input['password']) ? $input['password'] : '';
-
-        if ($email === '' || $password === '') {
-            $this->jsonError('Email and password are required', 400);
-        }
-
-        $customer = $this->customerModel->findByEmail($email);
-        if ($customer === null) {
-            $this->jsonError('Invalid email or password', 401);
-        }
-
-        $hash = isset($customer['password_hash']) && \is_string($customer['password_hash']) ? $customer['password_hash'] : '';
-        if (!\password_verify($password, $hash)) {
-            $this->jsonError('Invalid email or password', 401);
-        }
-
-        /** @var mixed $customerIdRaw */
-        $customerIdRaw = $customer['id'] ?? null;
-        $customerId = \is_numeric($customerIdRaw) ? (int) $customerIdRaw : 0;
-        /** @var mixed $customerName */
-        $customerName = $customer['name'] ?? null;
-        $name = \is_string($customerName) ? $customerName : '';
-        $token = $this->createCustomerToken($customerId, $email);
-
-        $this->jsonResponse([
-            'success'  => true,
-            'token'    => $token,
-            'customer' => [
-                'id'    => $customerId,
-                'name'  => $name,
-                'email' => $email,
-            ],
-        ]);
     }
 
     // =========================================================================

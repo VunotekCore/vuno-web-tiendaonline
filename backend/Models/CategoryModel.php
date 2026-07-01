@@ -8,7 +8,7 @@ final class CategoryModel
     public function __construct(private \PDO $db) {}
 
     /**
-     * @return array{items: array<int, array{id: int, name: string, slug: string}>, total: int}
+     * @return array{items: array<int, array{id: int|string, name: string, slug: string, productCount: int}>, total: int}
      */
     public function getAll(?int $limit, ?int $offset, ?string $search = null): array
     {
@@ -24,7 +24,12 @@ final class CategoryModel
         /** @var int $total */
         $total = ($countStmt !== false) ? (int) $countStmt->fetchColumn() : 0;
 
-        $sql = 'SELECT * FROM categories WHERE ' . $where . ' ORDER BY sort_order, name';
+        $sql = 'SELECT c.*, COUNT(pc.product_id) AS productCount'
+            . ' FROM categories c'
+            . ' LEFT JOIN product_categories pc ON pc.category_id = c.id'
+            . ' WHERE ' . $where
+            . ' GROUP BY c.id'
+            . ' ORDER BY c.sort_order, c.name';
         if ($limit !== null) {
             $sql .= ' LIMIT ?';
             $params[] = $limit;
@@ -41,12 +46,13 @@ final class CategoryModel
         $transMap = [];
 
         $items = array_map(function (array $r) use ($transMap): array {
-            /** @var int $id */
+            /** @var int|string $id */
             $id = $r['id'];
             return [
                 'id' => $id,
                 'name' => $transMap[$id] ?? $r['name'],
                 'slug' => $r['slug'],
+                'productCount' => (int) ($r['productCount'] ?? 0),
             ];
         }, $rows);
 

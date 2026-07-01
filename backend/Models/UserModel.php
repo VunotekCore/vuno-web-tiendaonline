@@ -19,6 +19,7 @@ final class UserModel
                     ar.code AS role_code, ar.name AS role_name
              FROM admin_users au
              JOIN admin_roles ar ON ar.id = au.role_id
+             WHERE au.is_active = 1
              ORDER BY au.created_at ASC'
         );
         /** @var array<int, array<string, mixed>> $rows */
@@ -86,7 +87,7 @@ final class UserModel
 
     public function delete(int $id): bool
     {
-        $stmt = $this->db->prepare('DELETE FROM admin_users WHERE id = ?');
+        $stmt = $this->db->prepare('UPDATE admin_users SET is_active = 0 WHERE id = ?');
         $stmt->execute([$id]);
         return $stmt->rowCount() > 0;
     }

@@ -252,6 +252,10 @@ final class AuthController
 
         $userId = $this->queryInt('id');
         if ($userId <= 0) {
+            $input = json_decode((string) file_get_contents('php://input'), true);
+            $userId = is_array($input) && isset($input['user_id']) ? (int) $input['user_id'] : 0;
+        }
+        if ($userId <= 0) {
             $this->jsonError('user_id is required');
         }
 
@@ -268,6 +272,40 @@ final class AuthController
 
         $this->auth->logAction('delete', 'admin_user', (string) $userId, 'Deleted user');
         $this->jsonResponse(['success' => true]);
+    }
+
+    // =========================================================================
+    //  Users CRUD Router (combined endpoint)
+    // =========================================================================
+
+    /** @return never */
+    public function handleUsers(): void
+    {
+        $method = $_SERVER['REQUEST_METHOD'] ?? '';
+        if (!is_string($method)) {
+            $this->jsonError('Method not allowed', 405);
+        }
+
+        if ($method === 'GET') {
+            $this->listUsers();
+        } elseif ($method === 'POST') {
+            $data = json_decode((string) file_get_contents('php://input'), true);
+            $input = is_array($data) ? $data : [];
+            $action = isset($input['action']) && is_string($input['action']) ? $input['action'] : '';
+            if ($action === 'create') {
+                $this->createUser();
+            } elseif ($action === 'delete') {
+                $this->deleteUser();
+            } else {
+                $this->updateUser();
+            }
+        } elseif ($method === 'PUT') {
+            $this->updateUser();
+        } elseif ($method === 'DELETE') {
+            $this->deleteUser();
+        } else {
+            $this->jsonError('Method not allowed', 405);
+        }
     }
 
     // =========================================================================

@@ -6,10 +6,6 @@ use App\Models\OrderModel;
 
 require_once __DIR__ . '/../../bootstrap.php';
 setCorsHeaders();
-\startAdminSession();
-if (!\isAdminLoggedIn()) {
-    \jsonError('Unauthorized', 401);
-}
 
-$stats = (new OrderModel(\App\Config\Database::getConnection()))->getDashboardStats();
-\jsonResponse($stats);
+$controller = new OrderController(new OrderModel(\App\Config\Database::getConnection()));
+$controller->stats();
