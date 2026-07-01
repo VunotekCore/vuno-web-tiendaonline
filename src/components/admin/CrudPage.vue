@@ -147,6 +147,7 @@ async function save() {
       toast.success(`${props.config.entityLabel} creado`)
     }
     closeModal()
+    disableEdit()
     await loadData()
   } catch (e: any) {
     toast.error(e.message || 'Error al guardar')
@@ -230,7 +231,7 @@ loadData()
             </td>
             <td class="text-right whitespace-nowrap">
               <div v-if="editMode" class="flex gap-1 justify-end flex-nowrap">
-                <button class="admin-btn admin-btn-ghost admin-btn-xs" @click="openEdit(item)" title="Editar">
+                <button class="admin-btn admin-btn-edit admin-btn-xs" @click="openEdit(item)" title="Editar">
                   <VunoIcon icon="edit" :size="14" />
                 </button>
                 <button class="admin-btn admin-btn-danger admin-btn-xs" @click="remove(item)" title="Eliminar">

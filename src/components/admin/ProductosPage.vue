@@ -50,7 +50,7 @@ onMounted(async () => {
 
 async function loadCategories() {
   try {
-    const data = await api.get<{ items: { name: string }[] }>('/api/categorias/list.php')
+    const data = await api.get<{ items: { name: string }[] }>('/api/categorias/list.php?limit=100')
     categories.value = data.items || []
   } catch {
     categories.value = []
@@ -65,7 +65,7 @@ async function loadData() {
     qs.set('offset', String((currentPage.value - 1) * perPage))
     if (search.value.trim()) qs.set('search', search.value.trim())
     if (categoryFilter.value) qs.set('category', categoryFilter.value)
-    const data = await api.get<{ items: Product[]; total: number }>(`/api/productos/list.php?${qs}`)
+    const data = await api.get<{ items: Product[]; total: number }>(`/api/productos/list-summary.php?${qs}`)
     items.value = data.items || []
     total.value = data.total || items.value.length
   } catch { items.value = []; total.value = 0 } finally { loading.value = false }

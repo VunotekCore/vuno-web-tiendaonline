@@ -34,6 +34,17 @@ const formName = ref('')
 const formPassword = ref('')
 const formRole = ref('')
 const saving = ref(false)
+const formOrig = ref({ email: '', name: '', password: '', role: '' })
+
+const hasChanges = computed(() => {
+  if (!editingItem.value) return true
+  return (
+    formEmail.value !== formOrig.value.email ||
+    formName.value !== formOrig.value.name ||
+    formPassword.value !== '' ||
+    formRole.value !== formOrig.value.role
+  )
+})
 
 onMounted(async () => {
   try {
@@ -59,6 +70,7 @@ function openCreate() {
   formName.value = ''
   formPassword.value = ''
   formRole.value = roles.value[0]?.code || ''
+  formOrig.value = { email: '', name: '', password: '', role: '' }
   modalVisible.value = true
 }
 
@@ -68,6 +80,7 @@ function openEdit(item: User) {
   formName.value = item.name || ''
   formPassword.value = ''
   formRole.value = item.role
+  formOrig.value = { email: item.email, name: item.name || '', password: '', role: item.role }
   modalVisible.value = true
 }
 
@@ -77,6 +90,11 @@ function closeModal() {
 }
 
 async function save() {
+  if (editingItem.value && !hasChanges.value) {
+    toast.info('Sin cambios que guardar')
+    closeModal()
+    return
+  }
   saving.value = true
   try {
     if (editingItem.value) {
@@ -110,7 +128,7 @@ async function remove(item: User) {
   const confirmed = await (window as any).VunoModal.confirm(`¿Eliminar usuario "${item.email}"?`)
   if (!confirmed) return
   try {
-    await api.del(`/api/admin/users.php?id=${item.id}`)
+    await api.post('/api/admin/users.php', { action: 'delete', user_id: item.id })
     toast.success('Usuario eliminado')
     await loadData()
   } catch (e: any) {
@@ -191,7 +209,7 @@ async function changeRole(userId: number, role: string) {
             <td class="text-sm text-[#94a3b8]">{{ new Date(item.createdAt).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' }) }}</td>
             <td class="text-right">
               <div class="flex gap-1 flex-nowrap justify-end whitespace-nowrap">
-                <button v-if="editMode" class="admin-btn admin-btn-ghost admin-btn-xs" @click="openEdit(item)" title="Editar">
+                <button v-if="editMode" class="admin-btn admin-btn-edit admin-btn-xs" @click="openEdit(item)" title="Editar">
                   <VunoIcon icon="edit" :size="14" />
                 </button>
                 <button
@@ -240,7 +258,7 @@ async function changeRole(userId: number, role: string) {
         <div class="px-5 py-3 flex items-center justify-between border-t border-[#dae2fd]/5">
           <span class="text-xs text-[#94a3b8]">{{ new Date(item.createdAt).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' }) }}</span>
           <div class="flex gap-2">
-            <button v-if="editMode" class="admin-btn admin-btn-ghost admin-btn-xs" @click="openEdit(item)">
+            <button v-if="editMode" class="admin-btn admin-btn-edit admin-btn-xs" @click="openEdit(item)">
               <VunoIcon icon="edit" :size="14" />
             </button>
             <button

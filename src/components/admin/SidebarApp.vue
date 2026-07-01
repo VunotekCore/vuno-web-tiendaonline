@@ -30,14 +30,6 @@ onMounted(async () => {
   let resolvedRole = (window as any).adminRole || ''
 
   if (!resolvedRole) {
-    for (let i = 0; i < 20; i++) {
-      await new Promise(r => setTimeout(r, 50))
-      resolvedRole = (window as any).adminRole || ''
-      if (resolvedRole) break
-    }
-  }
-
-  if (!resolvedRole) {
     try {
       const res = await fetch('/api/admin/verify.php', { credentials: 'include' })
       const data = await res.json()

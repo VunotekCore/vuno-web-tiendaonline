@@ -2,13 +2,13 @@
 import type { Locale } from "../../i18n/utils";
 import { t } from "../../i18n/utils";
 import NewsletterSection from "./NewsletterSection.astro";
+import VunotekLogoMarca from "../atoms/VunotekLogoMarca.astro";
 
 interface Props {
   lang?: Locale;
 }
 
 const { lang = "es" } = Astro.props;
-const year = new Date().getFullYear();
 ---
 
 <footer class="bg-monolith-black w-full mt-16 overflow-hidden">
@@ -66,8 +66,12 @@ const year = new Date().getFullYear();
       </div>
 
       <!-- Bottom bar -->
-      <div class="md:col-span-4 mt-12 pt-6 border-t border-off-white/10 flex flex-col md:flex-row justify-between items-center gap-2 text-xs text-off-white/40">
-        <p>&copy; {year} <span data-store-name></span>. {t("footer.copyright", lang)}</p>
+      <div class="md:col-span-4 mt-12 pt-6 border-t border-off-white/10 text-center text-xs text-off-white/40">
+        <p class="flex items-center justify-center gap-2">
+          &copy; <span id="footer-year"></span>
+          <VunotekLogoMarca height={20} text="VUNO-ECOMERCE" accentColor="#00ABFF" />
+          <span class="text-off-white/50">ENGINEERING PRECISION FOR MODERN BUSINESS</span>
+        </p>
       </div>
     </div>
   </div>
@@ -76,16 +80,33 @@ const year = new Date().getFullYear();
 <script is:inline>
   // @ts-nocheck
   (function () {
+    document.getElementById("footer-year").textContent = new Date().getFullYear();
     fetch("/api/configuracion/public.php")
       .then(function (r) { return r.json(); })
       .then(function (data) {
         var social = data.landing && data.landing.social;
-        if (!social) return;
-        document.querySelectorAll("[data-social]").forEach(function (el) {
-          var platform = el.getAttribute("data-social");
-          var url = social[platform + "_url"];
-          if (url) el.href = url;
-        });
+        if (social) {
+          document.querySelectorAll("[data-social]").forEach(function (el) {
+            var platform = el.getAttribute("data-social");
+            var url = social[platform + "_url"];
+            if (url) el.href = url;
+          });
+        }
+        var store = data.store;
+        if (store) {
+          document.querySelectorAll("[data-store-name]").forEach(function (el) {
+            el.textContent = store.name || '';
+          });
+          var sloganEl = document.querySelector("[data-store-slogan]");
+          if (sloganEl) sloganEl.textContent = store.slogan || '';
+          var descEl = document.querySelector("[data-store-description]");
+          if (descEl) descEl.textContent = store.description || '';
+          var logoEl = document.querySelector("[data-store-logo]");
+          if (logoEl && store.logo) {
+            logoEl.src = store.logo;
+            logoEl.classList.remove('hidden');
+          }
+        }
       })
       .catch(function () {});
   })();

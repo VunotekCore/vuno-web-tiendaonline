@@ -16,8 +16,8 @@ const allCategories = await getCategories(lang)
 const products = await getProducts(lang)
 const activeSlugs = new Set(products.map((p) => (p.category || '').toLowerCase()))
 const categories = allCategories.filter((c) => activeSlugs.has(c.slug))
-const visibleCategories = categories.slice(0, 5)
-const overflowCategories = categories.slice(5)
+const visibleCategories = categories.slice(0, 4)
+const overflowCategories = categories.slice(4)
 ---
 
 <nav
@@ -380,11 +380,29 @@ const overflowCategories = categories.slice(5)
     }
   }
 
+  function populateStoreData(data: any) {
+    var store = data && data.store;
+    if (!store) return;
+    var nameEl = document.querySelector('[data-store-name]');
+    if (nameEl) nameEl.textContent = store.name || '';
+    var sloganEl = document.querySelector('[data-store-slogan]');
+    if (sloganEl) sloganEl.textContent = store.slogan || '';
+    var logoEl = document.querySelector('[data-store-logo]');
+    if (logoEl && store.logo) {
+      (logoEl as HTMLImageElement).src = store.logo;
+      logoEl.classList.remove('hidden');
+    }
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     updateProfileDropdown()
     if (window.VunoAuth) {
       window.VunoAuth.verify().then(updateProfileDropdown)
     }
+    fetch('/api/configuracion/public.php')
+      .then(function (r) { return r.json(); })
+      .then(populateStoreData)
+      .catch(function () {});
   })
   window.addEventListener('auth:changed', updateProfileDropdown)
 

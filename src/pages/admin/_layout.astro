@@ -72,12 +72,13 @@ const navItems: NavItem[] = [
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <ClientRouter fallback="swap" />
-
   </head>
   <body class="bg-[#0a1022] text-[#dae2fd] antialiased min-h-screen flex">
     <a href="#admin-main" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[200] focus:px-4 focus:py-2 focus:bg-[#42b883] focus:text-white focus:outline-none focus:ring-2 focus:ring-white" aria-label="Saltar al contenido principal">Saltar al contenido</a>
 
     <SidebarApp client:load navItems={navItems} currentPath={currentPath} />
+
+    <Modal />
 
     <!-- Main content -->
     <main id="admin-main" class="flex-1 flex flex-col min-h-screen min-w-0 pt-14 lg:pt-0 ml-0 lg:ml-64 relative">
@@ -93,7 +94,7 @@ const navItems: NavItem[] = [
       </div>
     </main>
 
-    <Modal />
+    <script is:inline src="/js/modal.js" data-astro-rerun></script>
 
     <script is:inline>
       // @ts-nocheck

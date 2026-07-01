@@ -42,6 +42,7 @@ const colors = ref<{ name: string; hex: string }[]>([
 ])
 const sizes = ref<string[]>(['5', '6', '7', '8', '9', '10', '11'])
 const sizePrefix = ref('US')
+const currencyField = ref('USD')
 
 const colorNameInput = ref('')
 const colorHexInput = ref('#C18C7E')
@@ -100,6 +101,24 @@ const loading = ref(isEdit)
 const submitting = ref(false)
 const uploadProgress = ref({ visible: false, current: 0, total: 0 })
 
+interface ProductSnapshot {
+  name: string
+  description: string
+  details: string
+  price: number | null
+  category: string
+  isFeatured: boolean
+  metaTitle: string
+  metaDescription: string
+  ogImageUrl: string
+  colors: { name: string; hex: string }[]
+  sizes: string[]
+  stocks: Record<string, number>
+  lowStockThreshold: number
+  images: { url: string; fileId: string; colorName: string | null }[]
+}
+const initialState = ref<ProductSnapshot | null>(null)
+
 onMounted(async () => {
   await loadCategories()
   if (isEdit) await loadProduct()
@@ -133,6 +152,9 @@ async function loadProduct() {
     priceField.value = p.price || null
     categoryField.value = p.category || ''
     isFeaturedField.value = !!p.isFeatured
+
+    sizePrefix.value = p.size_prefix || 'EU'
+    currencyField.value = p.currency || 'USD'
 
     metaTitleField.value = p.metaTitle || ''
     metaDescriptionField.value = p.metaDescription || ''
@@ -190,14 +212,69 @@ async function loadProduct() {
       })
     })
 
-    nextTickSetStock(initialStocks)
+    nextTickSetStock(initialStocks, () => captureInitialState())
   } catch (err: any) {
     toast.error(err.message || 'Error loading product')
     loading.value = false
   }
 }
 
-function nextTickSetStock(initialStocks: Record<string, number>) {
+function captureInitialState() {
+  const mp = variantsRef.value?.toPayload() || { stocks: {}, threshold: 5 }
+  initialState.value = {
+    name: nameField.value,
+    description: descriptionField.value,
+    details: detailsField.value,
+    price: priceField.value,
+    category: categoryField.value,
+    isFeatured: isFeaturedField.value,
+    sizePrefix: sizePrefix.value,
+    currency: currencyField.value,
+    metaTitle: metaTitleField.value,
+    metaDescription: metaDescriptionField.value,
+    ogImageUrl: ogImageUrlField.value,
+    colors: JSON.parse(JSON.stringify(colors.value)),
+    sizes: [...sizes.value],
+    stocks: { ...mp.stocks },
+    lowStockThreshold: mp.threshold,
+    images: uploadedImages.value.map(i => ({
+      url: i.url || '',
+      fileId: i.fileId || '',
+      colorName: i.colorName || null,
+    })),
+  }
+}
+
+function hasChanges(): boolean {
+  if (!initialState.value) return true
+  const mp = variantsRef.value?.toPayload() || { stocks: {}, threshold: 5 }
+  const current = {
+    name: nameField.value,
+    description: descriptionField.value,
+    details: detailsField.value,
+    price: priceField.value,
+    category: categoryField.value,
+    isFeatured: isFeaturedField.value,
+    sizePrefix: sizePrefix.value,
+    currency: currencyField.value,
+    metaTitle: metaTitleField.value,
+    metaDescription: metaDescriptionField.value,
+    ogImageUrl: ogImageUrlField.value,
+    colors: JSON.parse(JSON.stringify(colors.value)),
+    sizes: [...sizes.value],
+    stocks: { ...mp.stocks },
+    lowStockThreshold: mp.threshold,
+    images: uploadedImages.value.map(i => ({
+      url: i.url || '',
+      fileId: i.fileId || '',
+      colorName: i.colorName || null,
+    })),
+  }
+  const init = initialState.value
+  return JSON.stringify(init) !== JSON.stringify(current)
+}
+
+function nextTickSetStock(initialStocks: Record<string, number>, onDone?: () => void) {
   setTimeout(() => {
     if (variantsRef.value) {
       for (const [k, v] of Object.entries(initialStocks)) {
@@ -209,6 +286,7 @@ function nextTickSetStock(initialStocks: Record<string, number>) {
         }
       }
     }
+    onDone?.()
   }, 50)
 }
 
@@ -414,6 +492,11 @@ const computedSlug = computed(() => {
 async function handleSubmit() {
   if (isViewer.value) return
 
+  if (isEdit && !hasChanges()) {
+    toast.info('Sin cambios', 'No hay cambios que guardar.')
+    return
+  }
+
   const imagesToUpload = uploadedImages.value.filter(i => i._local)
 
   if (imagesToUpload.length > 0) {
@@ -460,6 +543,8 @@ async function handleSubmit() {
     details: detailsArr.length ? detailsArr : null,
     price: parseFloat(String(priceField.value)),
     category: categoryField.value,
+    size_prefix: sizePrefix.value,
+    currency: currencyField.value,
     colors: colors.value,
     sizes: sizes.value.map(s => ({ label: s, value: s })),
     stocks: matrixPayload.stocks,
@@ -585,14 +670,19 @@ const remainingImages = computed(() => MAX_IMAGES - totalImages.value)
       <div class="px-4 md:px-6 py-4">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label for="fieldPrice" class="block text-xs font-semibold tracking-widest text-[#94a3b8] mb-2 uppercase">PRECIO (USD)</label>
-          <input id="fieldPrice" v-model.number="priceField" type="number" step="0.01" required
-            class="w-full bg-transparent border-b border-[#1e293b] pb-2 text-[#dae2fd] focus:border-[#42b883] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#42b883] focus-visible:ring-offset-1" />
+          <label for="fieldPrice" class="block text-xs font-semibold tracking-widest text-[#94a3b8] mb-2 uppercase">PRECIO *</label>
+          <div class="flex gap-2 items-baseline">
+            <input id="fieldPrice" v-model.number="priceField" type="number" step="0.01" required
+              class="flex-1 bg-transparent border-b border-[#1e293b] pb-2 text-[#dae2fd] focus:border-[#42b883] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#42b883] focus-visible:ring-offset-1" />
+            <select v-model="currencyField" class="bg-[#1e293b]/50 border border-[#dae2fd]/10 rounded-sm px-2 py-2 text-xs text-[#dae2fd] focus:border-[#42b883] focus:outline-none w-20">
+              <option value="USD">USD</option>
+              <option value="NIO">NIO</option>
+            </select>
+          </div>
         </div>
         <div>
           <label for="fieldCategory" class="block text-xs font-semibold tracking-widest text-[#94a3b8] mb-2 uppercase">CATEGORÍA</label>
-          <select id="fieldCategory" v-model="categoryField"
-            class="w-full bg-transparent border-b border-[#1e293b] pb-2 text-[#dae2fd] focus:border-[#42b883] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#42b883] focus-visible:ring-offset-1">
+          <select id="fieldCategory" v-model="categoryField" class="admin-input">
             <option value="" disabled>{{ loadingCategories ? 'Cargando...' : 'Seleccionar categoría' }}</option>
             <option v-for="c in categories" :key="c.name" :value="c.name">{{ c.name }}</option>
           </select>

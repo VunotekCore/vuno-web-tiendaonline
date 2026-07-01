@@ -80,14 +80,3 @@ const { class: className = "" } = Astro.props;
     </button>
   </div>
 </template>
-
-<script>
-  // Marca de presencia: el script de lógica externa se auto-carga vía DOM si no está.
-  if (!window.__vunoModalLoaded) {
-    window.__vunoModalLoaded = true;
-    const s = document.createElement("script");
-    s.src = "/js/modal.js";
-    s.async = false;
-    document.head.appendChild(s);
-  }
-</script>

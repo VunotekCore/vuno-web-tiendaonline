@@ -46,19 +46,13 @@
   // ==============================================================
   //                          MODAL
   // ==============================================================
-  const modal = document.getElementById("vunoModal");
-  const modalTitle = document.getElementById("vunoModalTitle");
-  const modalMessage = document.getElementById("vunoModalMessage");
-  const modalBody = document.getElementById("vunoModalBody");
-  const modalIcon = document.getElementById("vunoModalIcon");
-  const modalActions = document.getElementById("vunoModalActions");
-  const modalClose = document.getElementById("vunoModalClose");
-let modalCancel = document.getElementById("vunoModalCancel");
-let modalConfirm = document.getElementById("vunoModalConfirm");
+  // DOM elements are re-queried on each call (ClientRouter replaces <body> on navigation,
+  // so cached references become detached). Only modalState is kept as module-level state.
 
-  let modalState = { onClose: null, onCancel: null, isOpen: false };
+  let modalState = { onClose: null, onCancel: null, isOpen: false, resolve: null };
 
   function showModalBackdrop() {
+    const modal = document.getElementById("vunoModal");
     if (!modal) return;
     modal.classList.remove("hidden");
     modal.classList.add("flex");
@@ -68,30 +62,43 @@ let modalConfirm = document.getElementById("vunoModalConfirm");
   }
 
   function hideModalBackdrop() {
+    const modal = document.getElementById("vunoModal");
+    const modalBody = document.getElementById("vunoModalBody");
     if (!modal) return;
     modal.classList.add("hidden");
     modal.classList.remove("flex");
     modalState.isOpen = false;
     unlockScroll();
-    modalBody.innerHTML = "";
+    if (modalBody) modalBody.innerHTML = "";
   }
 
   function closeModal() {
     const onClose = modalState.onClose;
-    modalState = { onClose: null, onCancel: null, isOpen: false };
+    const resolve = modalState.resolve;
+    modalState = { onClose: null, onCancel: null, isOpen: false, resolve: null };
     hideModalBackdrop();
+    if (typeof resolve === "function") {
+      try { resolve(false); } catch (e) { console.error(e); }
+    }
     if (typeof onClose === "function") {
       try { onClose(); } catch (e) { console.error(e); }
     }
   }
 
-  if (modalClose) modalClose.addEventListener("click", closeModal);
-
-  if (modal) {
-    modal.addEventListener("click", (e) => {
-      if (e.target === modal) closeModal();
-    });
-  }
+  // Delegated events — survive ClientRouter body swaps because they live on document
+  document.addEventListener("click", function (e) {
+    // Close button (X)
+    if (e.target.closest("#vunoModalClose")) {
+      e.preventDefault();
+      closeModal();
+      return;
+    }
+    // Backdrop click (click on the overlay itself, not its children)
+    const modal = document.getElementById("vunoModal");
+    if (modal && e.target === modal) {
+      closeModal();
+    }
+  });
 
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && modalState.isOpen) closeModal();
@@ -108,6 +115,14 @@ let modalConfirm = document.getElementById("vunoModalConfirm");
      * @param {() => void} [opts.onClose]
      */
     alert(opts) {
+      const modal = document.getElementById("vunoModal");
+      const modalTitle = document.getElementById("vunoModalTitle");
+      const modalMessage = document.getElementById("vunoModalMessage");
+      const modalBody = document.getElementById("vunoModalBody");
+      const modalIcon = document.getElementById("vunoModalIcon");
+      let modalCancel = document.getElementById("vunoModalCancel");
+      let modalConfirm = document.getElementById("vunoModalConfirm");
+
       const { type = "info", title, message = "", buttonText = "OK", onClose } = opts || {};
       if (!modal || !title) return;
       modalTitle.textContent = title;
@@ -135,54 +150,100 @@ let modalConfirm = document.getElementById("vunoModalConfirm");
 
     /**
      * Bloqueante con dos botones. Reemplazo de confirm().
-     * @param {Object} opts
-     * @param {"success"|"error"|"warning"|"info"} [opts.type="warning"]
-     * @param {string} opts.title
-     * @param {string} opts.message
-     * @param {string} [opts.confirmText="Confirmar"]
-     * @param {string} [opts.cancelText="Cancelar"]
-     * @param {() => void} opts.onConfirm
-     * @param {() => void} [opts.onCancel]
+     * Acepta tanto un texto (mensaje) como un objeto de opciones.
+     * Retorna Promise<boolean> — true si el usuario confirma, false si cancela.
+     *
+     @param {string|Object} input
+     @param {string} [input.type="warning"]
+     @param {string} input.title        — requerido si input es objeto
+     @param {string} input.message      — requerido si input es objeto
+     @param {string} [input.confirmText]
+     @param {string} [input.cancelText]
+     @param {() => void} [input.onConfirm]
+     @param {() => void} [input.onCancel]
+     @returns {Promise<boolean>}
      */
-    confirm(opts) {
-      const { type = "warning", title, message, confirmText = "Confirmar", cancelText = "Cancelar", onConfirm, onCancel } = opts || {};
-      if (!modal || !title || !message) return;
-      modalTitle.textContent = title;
-      modalMessage.textContent = message;
-      modalMessage.classList.remove("hidden");
-      modalBody.classList.add("hidden");
-      modalBody.innerHTML = "";
-      applyVariantToIcon(modalIcon, type);
-      modalCancel.textContent = cancelText;
-      modalCancel.classList.remove("hidden");
-      modalConfirm.textContent = confirmText;
-      const confirmClass = type === "error"
-        ? "font-label-caps text-label-caps bg-error text-off-white rounded-md px-5 h-10 hover:bg-error/90 transition-all"
-        : "font-label-caps text-label-caps bg-monolith-black text-off-white rounded-md px-5 h-10 hover:bg-monolith-black/90 transition-all";
-      modalConfirm.className = confirmClass;
-      const newCancel = modalCancel.cloneNode(true);
-      const newConfirm = modalConfirm.cloneNode(true);
-      modalCancel.parentNode.replaceChild(newCancel, modalCancel);
-      modalCancel = newCancel;
-      modalConfirm.parentNode.replaceChild(newConfirm, modalConfirm);
-      modalConfirm = newConfirm;
-      newCancel.addEventListener("click", () => {
-        const cb = onCancel;
-        closeModal();
-        if (typeof cb === "function") {
-          try { cb(); } catch (e) { console.error(e); }
+    confirm(input) {
+      return new Promise((resolve) => {
+        const modal = document.getElementById("vunoModal");
+        const modalTitle = document.getElementById("vunoModalTitle");
+        const modalMessage = document.getElementById("vunoModalMessage");
+        const modalBody = document.getElementById("vunoModalBody");
+        const modalIcon = document.getElementById("vunoModalIcon");
+        let modalCancel = document.getElementById("vunoModalCancel");
+        let modalConfirm = document.getElementById("vunoModalConfirm");
+
+        // Normalizar argumentos: string → objeto con message
+        let type = "warning";
+        let title = "";
+        let message = "";
+        let confirmText = "Eliminar";
+        let cancelText = "Cancelar";
+        let onConfirm = null;
+        let onCancel = null;
+
+        if (typeof input === "string") {
+          message = input;
+          title = "Confirmar";
+        } else if (input && typeof input === "object") {
+          type = input.type || "warning";
+          title = input.title || "";
+          message = input.message || "";
+          confirmText = input.confirmText || "Confirmar";
+          cancelText = input.cancelText || "Cancelar";
+          onConfirm = typeof input.onConfirm === "function" ? input.onConfirm : null;
+          onCancel = typeof input.onCancel === "function" ? input.onCancel : null;
         }
-      });
-      newConfirm.addEventListener("click", () => {
-        const cb = onConfirm;
-        closeModal();
-        if (typeof cb === "function") {
-          try { cb(); } catch (e) { console.error(e); }
+
+        if (!modal || !title || !message) return resolve(false);
+
+        modalTitle.textContent = title;
+        modalMessage.textContent = message;
+        modalMessage.classList.remove("hidden");
+        modalBody.classList.add("hidden");
+        modalBody.innerHTML = "";
+        applyVariantToIcon(modalIcon, type);
+
+        modalCancel.textContent = cancelText;
+        modalCancel.classList.remove("hidden");
+
+        modalConfirm.textContent = confirmText;
+        const confirmClass = type === "error"
+          ? "font-label-caps text-label-caps bg-error text-off-white rounded-md px-5 h-10 hover:bg-error/90 transition-all"
+          : "font-label-caps text-label-caps bg-monolith-black text-off-white rounded-md px-5 h-10 hover:bg-monolith-black/90 transition-all";
+        modalConfirm.className = confirmClass;
+
+        // Clonar para limpiar listeners viejos
+        const newCancel = modalCancel.cloneNode(true);
+        const newConfirm = modalConfirm.cloneNode(true);
+        modalCancel.parentNode.replaceChild(newCancel, modalCancel);
+        modalCancel = newCancel;
+        modalConfirm.parentNode.replaceChild(newConfirm, modalConfirm);
+        modalConfirm = newConfirm;
+
+        function handleConfirm() {
+          if (onConfirm) {
+            try { onConfirm(); } catch (e) { console.error(e); }
+          }
+          resolve(true);
+          closeModal();
         }
+
+        function handleCancel() {
+          if (onCancel) {
+            try { onCancel(); } catch (e) { console.error(e); }
+          }
+          resolve(false);
+          closeModal();
+        }
+
+        newCancel.addEventListener("click", handleCancel);
+        newConfirm.addEventListener("click", handleConfirm);
+
+        modalState = { onClose: null, onCancel: null, isOpen: true, resolve };
+        showModalBackdrop();
+        requestAnimationFrame(() => newConfirm.focus());
       });
-      modalState = { onClose: null, onCancel, isOpen: true };
-      showModalBackdrop();
-      requestAnimationFrame(() => newConfirm.focus());
     },
 
     /**
@@ -197,6 +258,13 @@ let modalConfirm = document.getElementById("vunoModalConfirm");
      * @param {() => void} [opts.onClose]
      */
     show(opts) {
+      const modal = document.getElementById("vunoModal");
+      const modalTitle = document.getElementById("vunoModalTitle");
+      const modalMessage = document.getElementById("vunoModalMessage");
+      const modalBody = document.getElementById("vunoModalBody");
+      const modalIcon = document.getElementById("vunoModalIcon");
+      const modalActions = document.getElementById("vunoModalActions");
+
       const { type = "info", title, message = "", body = null, actions = null, onClose } = opts || {};
       if (!modal || !title) return;
       modalTitle.textContent = title;
@@ -260,8 +328,6 @@ let modalConfirm = document.getElementById("vunoModalConfirm");
   // ==============================================================
   //                          TOAST
   // ==============================================================
-  const toastContainer = document.getElementById("vunoToastContainer");
-  const toastTemplate = document.getElementById("vunoToastTemplate");
   let toastSeq = 0;
 
   function dismissToast(toast) {
@@ -282,6 +348,8 @@ let modalConfirm = document.getElementById("vunoModalConfirm");
      * @param {number} [opts.duration=4000] 0 = no auto-dismiss
      */
     show(opts) {
+      const toastContainer = document.getElementById("vunoToastContainer");
+      const toastTemplate = document.getElementById("vunoToastTemplate");
       if (!toastContainer || !toastTemplate) return;
       const { type = "info", title, message = "", duration = 4000 } = opts || {};
       if (!title) return;

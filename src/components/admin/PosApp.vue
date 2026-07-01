@@ -120,7 +120,7 @@ function esc(str?: string | number | null): string {
 onMounted(async () => {
   try {
     const [prodData, configData] = await Promise.all([
-      api.get<{ items: Product[] }>('/api/productos/list.php?limit=200'),
+      api.get<{ items: Product[] }>('/api/productos/pos-list.php?limit=200'),
       api.get<ConfigResponse>('/api/configuracion/public.php'),
     ])
     products.value = prodData.items || []
