@@ -367,7 +367,8 @@ final class OrderController
             $paymentCompleted = $this->model->resolvePaymentStatusId('completed');
 
             $customerName = $this->str($body, 'customer_name', 'Venta en Mostrador');
-            $customerEmail = $this->str($body, 'customer_email', 'pos@vunotek.com');
+            $rawEmail = $this->str($body, 'customer_email');
+            $customerEmail = ($rawEmail !== '' && filter_var($rawEmail, FILTER_VALIDATE_EMAIL)) ? $rawEmail : null;
 
             $storeCurrency = $this->getCurrencyModel()->getStoreCurrency();
             if ($storeCurrency === null) {
@@ -502,7 +503,8 @@ final class OrderController
                 fastcgi_finish_request();
             }
 
-            if ($status !== $oldStatus && in_array($status, ['paid', 'shipped', 'delivered'], true)) {
+            $customerEmail = $order['customer']['email'] ?? '';
+            if ($status !== $oldStatus && in_array($status, ['paid', 'shipped', 'delivered'], true) && $customerEmail !== '') {
                 try {
                     $bankAccounts = $this->getSettings()->getBankAccounts();
                     $this->getEmailService()->sendOrderConfirmation($order, $bankAccounts, $status);
@@ -543,9 +545,12 @@ final class OrderController
             $this->model->updateStatus($order, 'paid', 'completed', $piId);
             $this->model->deductStock($orderId);
 
-            $bankAccounts = $this->getSettings()->getBankAccounts();
-            $this->getEmailService()->sendOrderConfirmation($order, $bankAccounts);
-            $this->getEmailService()->sendNewOrderNotification($order);
+            $customerEmail = $order['customer']['email'] ?? '';
+            if ($customerEmail !== '') {
+                $bankAccounts = $this->getSettings()->getBankAccounts();
+                $this->getEmailService()->sendOrderConfirmation($order, $bankAccounts);
+                $this->getEmailService()->sendNewOrderNotification($order);
+            }
 
             $this->jsonResponse(['success' => true, 'id' => $orderId]);
         } catch (\Exception $e) {
