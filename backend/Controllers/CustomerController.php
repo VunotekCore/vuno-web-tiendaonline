@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Models\AddressModel;
 use App\Models\CustomerModel;
 use App\Models\EmailTemplateModel;
 use App\Models\SubscriberModel;
@@ -17,6 +18,7 @@ final class CustomerController
 
     private ?AuthService $auth = null;
     private ?EmailService $emailService = null;
+    private ?AddressModel $addressModel = null;
 
     public function __construct(
         private CustomerModel $customerModel,
@@ -37,6 +39,14 @@ final class CustomerController
             $this->emailService = new EmailService(new EmailTemplateModel($db), new SubscriberModel($db));
         }
         return $this->emailService;
+    }
+
+    private function getAddressModel(): AddressModel
+    {
+        if ($this->addressModel === null) {
+            $this->addressModel = new AddressModel(\App\Config\Database::getConnection());
+        }
+        return $this->addressModel;
     }
 
     // =========================================================================
@@ -102,6 +112,151 @@ final class CustomerController
         $this->customerModel->delete($id);
         $email = isset($customer['email']) && \is_string($customer['email']) ? $customer['email'] : '';
         $this->getAuth()->logAction('Deleted customer', 'customer', (string) $id, $email);
+        $this->jsonResponse(['success' => true]);
+    }
+
+    // =========================================================================
+    //  Admin — Update Customer
+    // =========================================================================
+
+    /** @return never */
+    public function adminUpdate(): void
+    {
+        $raw = \file_get_contents('php://input');
+        /** @var array<string, mixed>|null $body */
+        $body = $raw !== false ? \json_decode($raw, true) : null;
+        if (!\is_array($body)) {
+            $this->jsonError('Invalid request body', 400);
+        }
+
+        $id = isset($body['id']) && is_numeric($body['id']) ? (int) $body['id'] : 0;
+        if ($id <= 0) {
+            $this->jsonError('Invalid customer ID', 400);
+        }
+
+        $existing = $this->customerModel->getById($id);
+        if ($existing === null) {
+            $this->jsonError('Customer not found', 404);
+        }
+
+        $fields = [];
+
+        if (isset($body['name']) && \is_string($body['name']) && \trim($body['name']) !== '') {
+            $fields['name'] = \trim($body['name']);
+        }
+        if (isset($body['email']) && \is_string($body['email'])) {
+            $newEmail = \strtolower(\trim($body['email']));
+            if (!\filter_var($newEmail, \FILTER_VALIDATE_EMAIL)) {
+                $this->jsonError('Email inválido', 400);
+            }
+            if ($this->customerModel->existsByEmail($newEmail, $id)) {
+                $this->jsonError('El email ya está en uso por otro cliente', 409);
+            }
+            $fields['email'] = $newEmail;
+        }
+        if (isset($body['phone']) && \is_string($body['phone'])) {
+            $fields['phone'] = \trim($body['phone']);
+        }
+        if (isset($body['notes']) && \is_string($body['notes'])) {
+            $fields['notes'] = \trim($body['notes']);
+        }
+        if (isset($body['is_verified']) && \is_bool($body['is_verified'])) {
+            $fields['is_verified'] = $body['is_verified'] ? 1 : 0;
+        }
+
+        if ($fields === []) {
+            $this->jsonError('No hay campos para actualizar', 400);
+        }
+
+        $this->customerModel->update($id, $fields);
+        $this->getAuth()->logAction('update', 'customer', (string) $id, print_r($fields, true));
+
+        $updated = $this->customerModel->getById($id);
+        $this->jsonResponse($updated);
+    }
+
+    // =========================================================================
+    //  Admin — Address CRUD
+    // =========================================================================
+
+    /** @return never */
+    public function adminCreateAddress(): void
+    {
+        $raw = \file_get_contents('php://input');
+        /** @var array<string, mixed>|null $body */
+        $body = $raw !== false ? \json_decode($raw, true) : null;
+        if (!\is_array($body)) {
+            $this->jsonError('Invalid request body', 400);
+        }
+
+        $customerId = isset($body['customer_id']) && is_numeric($body['customer_id']) ? (int) $body['customer_id'] : 0;
+        if ($customerId <= 0) {
+            $this->jsonError('Invalid customer ID', 400);
+        }
+
+        $customer = $this->customerModel->getById($customerId);
+        if ($customer === null) {
+            $this->jsonError('Customer not found', 404);
+        }
+
+        if (!isset($body['address_line1']) || !\is_string($body['address_line1']) || trim($body['address_line1']) === '') {
+            $this->jsonError('La dirección es requerida', 400);
+        }
+
+        $addressId = $this->getAddressModel()->create($customerId, $body);
+        $this->getAuth()->logAction('create', 'customer_address', (string) $addressId, "Created address for customer {$customerId}");
+
+        $created = $this->getAddressModel()->getById($addressId, $customerId);
+        $this->jsonResponse($created);
+    }
+
+    /** @return never */
+    public function adminUpdateAddress(): void
+    {
+        $raw = \file_get_contents('php://input');
+        /** @var array<string, mixed>|null $body */
+        $body = $raw !== false ? \json_decode($raw, true) : null;
+        if (!\is_array($body)) {
+            $this->jsonError('Invalid request body', 400);
+        }
+
+        $addressId = isset($body['id']) && is_numeric($body['id']) ? (int) $body['id'] : 0;
+        $customerId = isset($body['customer_id']) && is_numeric($body['customer_id']) ? (int) $body['customer_id'] : 0;
+        if ($addressId <= 0 || $customerId <= 0) {
+            $this->jsonError('Invalid address or customer ID', 400);
+        }
+
+        $existing = $this->getAddressModel()->getById($addressId, $customerId);
+        if ($existing === null) {
+            $this->jsonError('Address not found', 404);
+        }
+
+        $this->getAddressModel()->update($addressId, $customerId, $body);
+        $this->getAuth()->logAction('update', 'customer_address', (string) $addressId, "Updated address {$addressId} for customer {$customerId}");
+
+        $updated = $this->getAddressModel()->getById($addressId, $customerId);
+        $this->jsonResponse($updated);
+    }
+
+    /** @return never */
+    public function adminDeleteAddress(): void
+    {
+        $raw = \file_get_contents('php://input');
+        /** @var array<string, mixed>|null $body */
+        $body = $raw !== false ? \json_decode($raw, true) : null;
+        if (!\is_array($body)) {
+            $this->jsonError('Invalid request body', 400);
+        }
+
+        $addressId = isset($body['id']) && is_numeric($body['id']) ? (int) $body['id'] : 0;
+        $customerId = isset($body['customer_id']) && is_numeric($body['customer_id']) ? (int) $body['customer_id'] : 0;
+        if ($addressId <= 0 || $customerId <= 0) {
+            $this->jsonError('Invalid address or customer ID', 400);
+        }
+
+        $this->getAddressModel()->delete($addressId, $customerId);
+        $this->getAuth()->logAction('delete', 'customer_address', (string) $addressId, "Deleted address {$addressId} for customer {$customerId}");
+
         $this->jsonResponse(['success' => true]);
     }
 
