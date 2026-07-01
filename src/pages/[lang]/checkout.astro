@@ -870,7 +870,13 @@ const steps = [
         formData.append("file", transferModalReceiptFile);
         formData.append("folder", "receipts");
         const uploadRes = await fetch("/api/imagekit/upload.php", { method: "POST", body: formData });
-        const uploadData = await uploadRes.json();
+        let uploadData;
+        try {
+          uploadData = await uploadRes.json();
+        } catch {
+          const text = await uploadRes.text();
+          throw new Error("Error del servidor: " + text.substring(0, 200) || checkoutI18n.receiptFailed);
+        }
         if (!uploadRes.ok || !uploadData.url) {
           throw new Error(uploadData?.error || checkoutI18n.receiptFailed);
         }
