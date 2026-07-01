@@ -7,6 +7,7 @@ use App\Models\CouponModel;
 use App\Models\CurrencyModel;
 use App\Models\CustomerModel;
 use App\Models\EmailTemplateModel;
+use App\Models\NotificationModel;
 use App\Models\OrderModel;
 use App\Models\SettingModel;
 use App\Models\SubscriberModel;
@@ -232,6 +233,25 @@ final class OrderController
             $this->saveOrder($order, $this->model);
 
             $order = $this->getCurrencyModel()->addDisplayPricesToOrder($order);
+
+            // Create in-app notification for admin
+            try {
+                $notifModel = new NotificationModel(\App\Config\Database::getConnection());
+                $customerArr = $this->arr($order, 'customer');
+                /** @var array<string, mixed> $customerArr */
+                $customerName = is_array($customerArr) ? ((string) ($customerArr['name'] ?? 'Cliente')) : 'Cliente';
+                $symbol = $this->str($order, 'display_symbol', '$');
+                $totalDisplay = $this->str($order, 'display_total', number_format((float) $order['total'], 2));
+                $notifModel->create(
+                    'new_order',
+                    "Nuevo pedido: {$order['id']}",
+                    "{$customerName} · {$symbol}{$totalDisplay}",
+                    'order',
+                    $order['id']
+                );
+            } catch (\Throwable $e) {
+                error_log('Failed to create in-app notification: ' . $e->getMessage());
+            }
 
             if ($order['paymentMethod'] === 'transfer') {
                 try {

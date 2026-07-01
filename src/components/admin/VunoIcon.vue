@@ -15,7 +15,7 @@ import {
   Megaphone, Contact, TrendingUp, Receipt,
   Newspaper, Grid3x3, BadgeCheck, DollarSign,
   Truck, Pointer, AtSign,   Handshake, Film, Layers, Layout, ShieldCheck, Badge,
-  type Component
+  Bell, type Component
 } from '@lucide/vue'
 
 const iconMap: Record<string, Component> = {
@@ -114,6 +114,7 @@ const iconMap: Record<string, Component> = {
   settings_applications: Layout,
   people: Users,
   inventory: Package,
+  notifications: Bell,
 }
 
 const props = withDefaults(defineProps<{

@@ -746,3 +746,20 @@ CREATE TABLE category_translations (
     FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE,
     UNIQUE KEY uk_category_lang (category_id, lang)
 ) ENGINE=InnoDB;
+
+-- =============================================================================
+-- 14. Notificaciones In-App (Admin)
+-- =============================================================================
+
+CREATE TABLE admin_notifications (
+    id              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    type            VARCHAR(50) NOT NULL DEFAULT 'new_order',
+    title           VARCHAR(255) NOT NULL,
+    message         TEXT,
+    reference_type  VARCHAR(50) DEFAULT 'order',
+    reference_id    VARCHAR(100),
+    is_read         TINYINT(1) NOT NULL DEFAULT 0,
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_unread (is_read, created_at),
+    INDEX idx_reference (reference_type, reference_id)
+) ENGINE=InnoDB;
