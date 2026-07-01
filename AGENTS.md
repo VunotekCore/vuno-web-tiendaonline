@@ -467,10 +467,7 @@ hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 p-5
 │   ├── email-templates/            # 7 plantillas HTML con {{variable}} placeholders
 │   ├── database/
 │   │   ├── schema.sql              # Esquema MySQL (40 tablas normalizadas)
-│   │   ├── seed.sql                # Datos de semilla
-│   │   ├── migrate.php             # Migración vía CLI
-│   │   ├── seed-templates.php      # Seed templates email
-│   │   └── seed-blog.php           # Seed posts blog
+│   │   └── seed.sql                # Datos de semilla unificados (idempotente, INSERT IGNORE)
 │   ├── encryption.key              # Clave de cifrado (no versionada)
 │   ├── .htaccess                   # Protección directorios
 │   └── vendor/                     # Dependencias Composer
@@ -1033,11 +1030,8 @@ backend/
 ├── dev-router.php                  # Router 3-capas para servidor built-in
 ├── install.php                     # Instalador web one-time
 ├── database/
-│   ├── schema.sql                  # Esquema MySQL (40 tablas normalizadas)
-│   ├── seed.sql                    # Datos de semilla
-│   ├── migrate.php                 # Migración vía CLI
-│   ├── seed-templates.php          # Seed templates email desde archivos
-│   └── seed-blog.php               # Seed posts blog
+│   ├── schema.sql                  # Esquema MySQL (40 tablas normalizadas) — solo DDL
+│   └── seed.sql                    # Datos de semilla unificados (idempotente, INSERT IGNORE)
 ├── email-templates/                # 7 plantillas HTML con {{variable}} placeholders
 └── vendor/                         # Dependencias Composer
 ```
