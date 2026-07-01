@@ -266,6 +266,26 @@ final class OrderController
         }
 
         $db = $this->model->getDb();
+
+        // Resolve customer before transaction
+        $rawCustomerId = $body['customer_id'] ?? null;
+        $customer = null;
+        if (is_numeric($rawCustomerId) && (int) $rawCustomerId > 0) {
+            $stmt = $db->prepare('SELECT id, name, email FROM customers WHERE id = ?');
+            $stmt->execute([(int) $rawCustomerId]);
+            /** @var ?array<string, mixed> $customer */
+            $customer = $stmt->fetch();
+            if ($customer === false || $customer === null) {
+                $this->jsonError('Cliente no encontrado', 400);
+            }
+        }
+        if ($customer === null) {
+            $customer = $this->resolveDefaultPosCustomer($db);
+        }
+        $customerName = is_string($customer['name'] ?? null) ? $customer['name'] : 'Cliente Mostrador';
+        $customerEmail = is_string($customer['email'] ?? null) ? $customer['email'] : 'pos@vunotek.com';
+        $customerDbId = is_numeric($customer['id'] ?? null) ? (int) $customer['id'] : 0;
+
         $db->beginTransaction();
 
         try {
@@ -366,10 +386,6 @@ final class OrderController
             $statusDelivered = $this->model->resolveStatusId('delivered');
             $paymentCompleted = $this->model->resolvePaymentStatusId('completed');
 
-            $customerName = $this->str($body, 'customer_name', 'Venta en Mostrador');
-            $rawEmail = $this->str($body, 'customer_email');
-            $customerEmail = ($rawEmail !== '' && filter_var($rawEmail, FILTER_VALIDATE_EMAIL)) ? $rawEmail : null;
-
             $storeCurrency = $this->getCurrencyModel()->getStoreCurrency();
             if ($storeCurrency === null) {
                 $storeCurrency = ['code' => 'USD', 'symbol' => '$', 'name' => 'US Dollar', 'exchange_rate' => 1.0, 'decimal_places' => 2];
@@ -379,14 +395,15 @@ final class OrderController
 
             $stmt = $db->prepare(
                 'INSERT INTO orders (
-                    order_number, customer_name, customer_email,
+                    order_number, customer_id, customer_name, customer_email,
                     subtotal, shipping_total, tax_total, discount_total, total, origin, currency, exchange_rate,
                     status_id, payment_method_id, payment_status_id,
                     notes, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())'
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())'
             );
             $stmt->execute([
                 $orderId,
+                $customerDbId,
                 $customerName,
                 $customerEmail,
                 $total,
@@ -430,6 +447,10 @@ final class OrderController
 
             $db->commit();
 
+            if ($customerDbId > 0) {
+                $this->getCustomerModel()->updateLastOrderAt($customerDbId);
+            }
+
             $this->getAuth()->logAction('create', 'order', $orderId, "POS sale #{$orderId} — " . number_format($grandTotal, 2) . " USD", [
                 'payment_method' => $paymentMethodCode,
                 'total' => $grandTotal,
@@ -450,6 +471,53 @@ final class OrderController
         } catch (\Exception $e) {
             $db->rollBack();
             $this->jsonError('Error al procesar venta POS: ' . $e->getMessage(), 400);
+        }
+    }
+
+    /**
+     * @param \PDO $db
+     * @return array{id: int, name: string, email: string}
+     */
+    private function resolveDefaultPosCustomer(\PDO $db): array
+    {
+        $email = 'pos@vunotek.com';
+
+        $stmt = $db->prepare('SELECT id, name, email FROM customers WHERE email = ? LIMIT 1');
+        $stmt->execute([$email]);
+        /** @var array<string, mixed>|false $existing */
+        $existing = $stmt->fetch();
+        if ($existing !== false && $existing !== null) {
+            return [
+                'id' => is_numeric($existing['id'] ?? null) ? (int) $existing['id'] : 0,
+                'name' => is_string($existing['name'] ?? null) ? $existing['name'] : 'Cliente Mostrador',
+                'email' => is_string($existing['email'] ?? null) ? $existing['email'] : $email,
+            ];
+        }
+
+        try {
+            $stmt = $db->prepare(
+                'INSERT INTO customers (name, email, password_hash, is_verified, notes) VALUES (?, ?, NULL, 1, ?)'
+            );
+            $stmt->execute(['Cliente Mostrador', $email, 'Cliente predeterminado para ventas de mostrador (POS)']);
+            return [
+                'id' => (int) $db->lastInsertId(),
+                'name' => 'Cliente Mostrador',
+                'email' => $email,
+            ];
+        } catch (\PDOException $e) {
+            if ($e->getCode() === '23000') {
+                $stmt = $db->prepare('SELECT id, name, email FROM customers WHERE email = ? LIMIT 1');
+                $stmt->execute([$email]);
+                $existing = $stmt->fetch();
+                if ($existing !== false && $existing !== null) {
+                    return [
+                        'id' => is_numeric($existing['id'] ?? null) ? (int) $existing['id'] : 0,
+                        'name' => is_string($existing['name'] ?? null) ? $existing['name'] : 'Cliente Mostrador',
+                        'email' => is_string($existing['email'] ?? null) ? $existing['email'] : $email,
+                    ];
+                }
+            }
+            throw $e;
         }
     }
 

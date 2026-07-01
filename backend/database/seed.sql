@@ -637,6 +637,9 @@ INSERT IGNORE INTO coupons (code, description, discount_type, discount_value, mi
 INSERT IGNORE INTO customers (id, email, name, phone, is_verified) VALUES
 (1, 'maria.garcia@example.com', 'María García', '+52 55 1234 5678', TRUE);
 
+INSERT IGNORE INTO customers (email, name, password_hash, is_verified, notes) VALUES
+('pos@vunotek.com', 'Cliente Mostrador', NULL, TRUE, 'Cliente predeterminado para ventas de mostrador (POS)');
+
 INSERT IGNORE INTO orders (id, order_number, customer_id, customer_email, customer_name, customer_phone,
     shipping_name, shipping_line1, shipping_city, shipping_state, shipping_zip, shipping_country,
     billing_name, billing_line1, billing_city, billing_state, billing_zip, billing_country,

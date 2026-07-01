@@ -8,9 +8,9 @@ require_once __DIR__ . '/../../bootstrap.php';
 setCorsHeaders();
 startAdminSession();
 if (!isAdminLoggedIn()) jsonError('Unauthorized', 401);
-requireRole('superadmin', 'admin', 'editor', 'viewer', 'cashier');
+requireRole('superadmin', 'admin', 'editor', 'cashier');
 
 $controller = new CustomerController(
     new CustomerModel(\App\Config\Database::getConnection()),
 );
-$controller->adminList();
+$controller->quickCreate();

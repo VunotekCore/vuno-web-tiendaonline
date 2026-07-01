@@ -77,8 +77,16 @@ const productDetailPanel = ref(false)
 
 // Mobile
 const cartOverlay = ref(false)
-const customerName = ref('Venta en Mostrador')
-const customerEmail = ref('')
+const selectedCustomer = ref<{ id: number; name: string; email: string } | null>(null)
+const searchQuery = ref('')
+const searchResults = ref<Array<{ id: number; name: string; email: string; phone: string }>>([])
+const showSearchDropdown = ref(false)
+let searchTimeout: ReturnType<typeof setTimeout> | null = null
+const showCreateModal = ref(false)
+const newName = ref('')
+const newEmail = ref('')
+const newPhone = ref('')
+const createError = ref('')
 
 const categories = computed(() => {
   const set = new Set<string>()
@@ -258,8 +266,7 @@ async function processSale() {
     const res = await api.post<CreatePosResponse>('/api/pedidos/create-pos.php', {
       cart_items: cart.value.map(i => ({ variant_id: i.variant_id, quantity: i.quantity })),
       payment_method: paymentMethod.value,
-      customer_name: customerName.value.trim() || 'Venta en Mostrador',
-      customer_email: customerEmail.value.trim() || undefined,
+      customer_id: selectedCustomer.value?.id ?? null,
     })
     if (!res.success) throw new Error(res.error || 'Error al procesar venta')
 
@@ -268,10 +275,80 @@ async function processSale() {
       `#${res.id} — ${currencySymbol.value}${formatPrice((res.total || 0) * exchangeRate.value)} — ${res.items_count} ítem(s)`
     )
     cart.value = []
+    selectedCustomer.value = null
     closeCartOverlay()
     hideProductDetail()
   } catch (err: any) {
     toast.error('Error', err.message)
+  }
+}
+
+// Customer search
+async function searchCustomers(q: string) {
+  if (q.length < 2) {
+    searchResults.value = []
+    return
+  }
+  try {
+    const res = await api.get<{ items: Array<{ id: number; name: string; email: string; phone: string }> }>(
+      `/api/clientes/list.php?search=${encodeURIComponent(q)}&limit=10`
+    )
+    searchResults.value = res.items || []
+    showSearchDropdown.value = true
+  } catch {
+    searchResults.value = []
+  }
+}
+
+function onSearchInput() {
+  if (searchTimeout) clearTimeout(searchTimeout)
+  searchTimeout = setTimeout(() => searchCustomers(searchQuery.value.trim()), 300)
+}
+
+function selectCustomer(c: { id: number; name: string; email: string }) {
+  selectedCustomer.value = c
+  searchQuery.value = ''
+  searchResults.value = []
+  showSearchDropdown.value = false
+}
+
+function clearCustomer() {
+  selectedCustomer.value = null
+  searchQuery.value = ''
+  searchResults.value = []
+}
+
+function hideSearchDropdown() {
+  setTimeout(() => { showSearchDropdown.value = false }, 200)
+}
+
+function openCreateModal() {
+  newName.value = ''
+  newEmail.value = ''
+  newPhone.value = ''
+  createError.value = ''
+  showCreateModal.value = true
+}
+
+function closeCreateModal() {
+  showCreateModal.value = false
+}
+
+async function createCustomer() {
+  createError.value = ''
+  if (!newName.value.trim()) { createError.value = 'El nombre es requerido'; return }
+  if (!newEmail.value.trim()) { createError.value = 'El email es requerido'; return }
+  try {
+    const res = await api.post<{ success: boolean; id: number; name: string; email: string }>(
+      '/api/clientes/quick-create.php',
+      { name: newName.value.trim(), email: newEmail.value.trim(), phone: newPhone.value.trim() || undefined }
+    )
+    if (!res.success) throw new Error(res.error || 'Error al crear cliente')
+    selectedCustomer.value = { id: res.id, name: res.name, email: res.email }
+    showCreateModal.value = false
+    toast.success('Cliente creado', res.name)
+  } catch (err: any) {
+    createError.value = err.message
   }
 }
 
@@ -541,18 +618,43 @@ onMounted(() => {
             </div>
           </div>
 
-          <div class="space-y-3">
-            <div>
-              <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-1">CLIENTE</label>
-              <input v-model="customerName" type="text" placeholder="Nombre del cliente"
-                     class="w-full bg-[#1e293b]/50 border border-[#dae2fd]/10 rounded-sm px-3 py-2.5 text-[#dae2fd]
-                            focus:border-[#00A8FF] focus:outline-none placeholder:text-[#94a3b8]/50 text-sm" />
+          <div class="space-y-2">
+            <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-1">CLIENTE</label>
+            <div v-if="selectedCustomer" class="relative">
+              <div class="w-full bg-[#1e293b]/50 border border-[#42b883]/30 rounded-sm px-3 py-2.5 text-[#dae2fd] text-sm flex items-center justify-between">
+                <span>
+                  <span class="text-[#42b883] mr-1">&#9679;</span>
+                  {{ selectedCustomer.name }}
+                  <span class="text-[#94a3b8] text-xs ml-2">{{ selectedCustomer.email }}</span>
+                </span>
+                <button @click="clearCustomer" type="button" class="text-[#94a3b8] hover:text-[#dae2fd] transition-colors text-lg leading-none">&times;</button>
+              </div>
             </div>
-            <div>
-              <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-1">CORREO</label>
-              <input v-model="customerEmail" type="email" placeholder="correo@ejemplo.com"
-                     class="w-full bg-[#1e293b]/50 border border-[#dae2fd]/10 rounded-sm px-3 py-2.5 text-[#dae2fd]
-                            focus:border-[#00A8FF] focus:outline-none placeholder:text-[#94a3b8]/50 text-sm" />
+            <div v-else class="relative">
+              <div class="flex gap-1">
+                <input v-model="searchQuery" type="text" placeholder="Cliente Mostrador — buscar o crear"
+                       @input="onSearchInput"
+                       @focus="showSearchDropdown = true"
+                       @blur="hideSearchDropdown"
+                       class="flex-1 w-full bg-[#1e293b]/50 border border-[#dae2fd]/10 rounded-sm px-3 py-2.5 text-[#dae2fd]
+                              focus:border-[#00A8FF] focus:outline-none placeholder:text-[#94a3b8]/50 text-sm" />
+                <button @click="openCreateModal" type="button" title="Nuevo cliente"
+                        class="px-3 bg-[#1e293b]/50 border border-[#dae2fd]/10 rounded-sm text-[#94a3b8] hover:text-[#dae2fd] hover:border-[#42b883]/30 transition-all text-lg leading-none">+</button>
+              </div>
+              <div v-if="showSearchDropdown && searchResults.length > 0"
+                   class="absolute z-50 mt-1 w-full bg-[#111d2e] border border-[#dae2fd]/10 rounded-sm shadow-xl max-h-48 overflow-y-auto">
+                <div v-for="c in searchResults" :key="c.id"
+                     @mousedown.prevent="selectCustomer(c)"
+                     class="px-3 py-2 text-sm text-[#dae2fd] hover:bg-[#1e293b] cursor-pointer border-b border-[#dae2fd]/5 last:border-0">
+                  <span class="text-[#42b883] mr-1">&#9679;</span>
+                  {{ c.name }}
+                  <span class="text-[#94a3b8] text-xs ml-2">{{ c.email }}</span>
+                </div>
+              </div>
+              <div v-else-if="showSearchDropdown && searchQuery.length >= 2 && searchResults.length === 0"
+                   class="absolute z-50 mt-1 w-full bg-[#111d2e] border border-[#dae2fd]/10 rounded-sm shadow-xl px-3 py-2 text-xs text-[#94a3b8]">
+                Sin resultados
+              </div>
             </div>
           </div>
 
@@ -661,18 +763,43 @@ onMounted(() => {
           </div>
 
           <!-- Customer -->
-          <div class="mt-4 space-y-3">
-            <div>
-              <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-1">CLIENTE</label>
-              <input v-model="customerName" type="text" placeholder="Nombre del cliente"
-                     class="w-full bg-[#1e293b]/50 border border-[#dae2fd]/10 rounded-sm px-3 py-2.5 text-[#dae2fd]
-                            focus:border-[#00A8FF] focus:outline-none placeholder:text-[#94a3b8]/50 text-sm" />
+          <div class="mt-4 space-y-2">
+            <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-1">CLIENTE</label>
+            <div v-if="selectedCustomer" class="relative">
+              <div class="w-full bg-[#1e293b]/50 border border-[#42b883]/30 rounded-sm px-3 py-2.5 text-[#dae2fd] text-sm flex items-center justify-between">
+                <span>
+                  <span class="text-[#42b883] mr-1">&#9679;</span>
+                  {{ selectedCustomer.name }}
+                  <span class="text-[#94a3b8] text-xs ml-2">{{ selectedCustomer.email }}</span>
+                </span>
+                <button @click="clearCustomer" type="button" class="text-[#94a3b8] hover:text-[#dae2fd] transition-colors text-lg leading-none">&times;</button>
+              </div>
             </div>
-            <div>
-              <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-1">CORREO</label>
-              <input v-model="customerEmail" type="email" placeholder="correo@ejemplo.com"
-                     class="w-full bg-[#1e293b]/50 border border-[#dae2fd]/10 rounded-sm px-3 py-2.5 text-[#dae2fd]
-                            focus:border-[#00A8FF] focus:outline-none placeholder:text-[#94a3b8]/50 text-sm" />
+            <div v-else class="relative">
+              <div class="flex gap-1">
+                <input v-model="searchQuery" type="text" placeholder="Cliente Mostrador — buscar o crear"
+                       @input="onSearchInput"
+                       @focus="showSearchDropdown = true"
+                       @blur="hideSearchDropdown"
+                       class="flex-1 w-full bg-[#1e293b]/50 border border-[#dae2fd]/10 rounded-sm px-3 py-2.5 text-[#dae2fd]
+                              focus:border-[#00A8FF] focus:outline-none placeholder:text-[#94a3b8]/50 text-sm" />
+                <button @click="openCreateModal" type="button" title="Nuevo cliente"
+                        class="px-3 bg-[#1e293b]/50 border border-[#dae2fd]/10 rounded-sm text-[#94a3b8] hover:text-[#dae2fd] hover:border-[#42b883]/30 transition-all text-lg leading-none">+</button>
+              </div>
+              <div v-if="showSearchDropdown && searchResults.length > 0"
+                   class="absolute z-50 mt-1 w-full bg-[#111d2e] border border-[#dae2fd]/10 rounded-sm shadow-xl max-h-48 overflow-y-auto">
+                <div v-for="c in searchResults" :key="c.id"
+                     @mousedown.prevent="selectCustomer(c)"
+                     class="px-3 py-2 text-sm text-[#dae2fd] hover:bg-[#1e293b] cursor-pointer border-b border-[#dae2fd]/5 last:border-0">
+                  <span class="text-[#42b883] mr-1">&#9679;</span>
+                  {{ c.name }}
+                  <span class="text-[#94a3b8] text-xs ml-2">{{ c.email }}</span>
+                </div>
+              </div>
+              <div v-else-if="showSearchDropdown && searchQuery.length >= 2 && searchResults.length === 0"
+                   class="absolute z-50 mt-1 w-full bg-[#111d2e] border border-[#dae2fd]/10 rounded-sm shadow-xl px-3 py-2 text-xs text-[#94a3b8]">
+                Sin resultados
+              </div>
             </div>
           </div>
 
@@ -703,6 +830,46 @@ onMounted(() => {
       </div>
     </Teleport>
   </div>
+
+  <!-- Quick-create customer modal -->
+  <Teleport to="body">
+    <div v-if="showCreateModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60" @click.self="closeCreateModal">
+      <div class="bg-[#111d2e] border border-[#dae2fd]/10 rounded-sm shadow-2xl p-6 w-full max-w-sm mx-4">
+        <h3 class="text-lg font-semibold text-[#dae2fd] mb-4">Nuevo Cliente</h3>
+        <div class="space-y-3">
+          <div>
+            <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-1">NOMBRE</label>
+            <input v-model="newName" type="text" placeholder="Nombre completo"
+                   class="w-full bg-[#1e293b]/50 border border-[#dae2fd]/10 rounded-sm px-3 py-2 text-[#dae2fd] text-sm
+                          focus:border-[#00A8FF] focus:outline-none placeholder:text-[#94a3b8]/50" />
+          </div>
+          <div>
+            <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-1">EMAIL</label>
+            <input v-model="newEmail" type="email" placeholder="correo@ejemplo.com"
+                   class="w-full bg-[#1e293b]/50 border border-[#dae2fd]/10 rounded-sm px-3 py-2 text-[#dae2fd] text-sm
+                          focus:border-[#00A8FF] focus:outline-none placeholder:text-[#94a3b8]/50" />
+          </div>
+          <div>
+            <label class="text-xs font-semibold tracking-widest text-[#94a3b8] uppercase block mb-1">TELÉFONO</label>
+            <input v-model="newPhone" type="text" placeholder="Opcional"
+                   class="w-full bg-[#1e293b]/50 border border-[#dae2fd]/10 rounded-sm px-3 py-2 text-[#dae2fd] text-sm
+                          focus:border-[#00A8FF] focus:outline-none placeholder:text-[#94a3b8]/50" />
+          </div>
+        </div>
+        <div class="flex gap-2 mt-5">
+          <button @click="closeCreateModal" type="button"
+                  class="flex-1 px-4 py-2 text-sm text-[#94a3b8] border border-[#dae2fd]/10 rounded-sm hover:text-[#dae2fd] transition-colors">
+            Cancelar
+          </button>
+          <button @click="createCustomer" type="button"
+                  class="flex-1 px-4 py-2 text-sm admin-btn admin-btn-primary rounded-sm">
+            Guardar
+          </button>
+        </div>
+        <p v-if="createError" class="mt-3 text-xs text-red-400">{{ createError }}</p>
+      </div>
+    </div>
+  </Teleport>
 </template>
 
 <style scoped>

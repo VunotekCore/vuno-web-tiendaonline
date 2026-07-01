@@ -106,6 +106,48 @@ final class CustomerController
     }
 
     // =========================================================================
+    //  Admin — Quick Create Customer (POS)
+    // =========================================================================
+
+    /** @return never */
+    public function quickCreate(): void
+    {
+        $raw = \file_get_contents('php://input');
+        /** @var array<string, mixed>|null $body */
+        $body = $raw !== false ? \json_decode($raw, true) : null;
+        if (!\is_array($body)) {
+            $this->jsonError('Invalid request body', 400);
+        }
+        $name = isset($body['name']) && is_string($body['name']) ? trim($body['name']) : '';
+        $email = isset($body['email']) && is_string($body['email']) ? trim($body['email']) : '';
+        $phone = isset($body['phone']) && is_string($body['phone']) ? trim($body['phone']) : '';
+
+        if ($name === '') {
+            $this->jsonError('El nombre del cliente es requerido', 400);
+        }
+        if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $this->jsonError('Email válido es requerido', 400);
+        }
+        if ($this->customerModel->existsByEmail($email)) {
+            $this->jsonError('Ya existe un cliente con ese email', 400);
+        }
+
+        $id = $this->customerModel->create($name, $email, '', true);
+        if ($id <= 0) {
+            $this->jsonError('Error al crear el cliente', 500);
+        }
+
+        $this->getAuth()->logAction('create', 'customer', (string) $id, "Quick-create POS: {$name} <{$email}>");
+
+        $this->jsonResponse([
+            'success' => true,
+            'id' => $id,
+            'name' => $name,
+            'email' => $email,
+        ]);
+    }
+
+    // =========================================================================
     //  Customer — Register
     // =========================================================================
 
