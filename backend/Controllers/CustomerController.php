@@ -451,12 +451,17 @@ final class CustomerController
 
         /** @var mixed $customerIdRaw */
         $customerIdRaw = $customer['customer_id'] ?? null;
+        $customerId = \is_numeric($customerIdRaw) ? (int) $customerIdRaw : 0;
+
+        $lastOrder = $this->customerModel->getLastOrderDate((int) $customer['customer_id']);
         $this->jsonResponse([
             'success'  => true,
             'customer' => [
-                'id'    => \is_numeric($customerIdRaw) ? (int) $customerIdRaw : 0,
-                'name'  => $customer['name'] ?? '',
-                'email' => $customer['email'] ?? '',
+                'id'           => $customerId,
+                'name'         => $customer['name'] ?? '',
+                'email'        => $customer['email'] ?? '',
+                'memberSince'  => $customer['created_at'] ?? null,
+                'lastOrderAt'  => $lastOrder,
             ],
         ]);
     }

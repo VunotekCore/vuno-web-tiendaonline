@@ -34,6 +34,14 @@ final class AddressModel
     /** @param array<string, mixed> $data */
     public function create(int $customerId, array $data): int
     {
+        $dupStmt = $this->db->prepare(
+            'SELECT id FROM customer_addresses WHERE customer_id = ? AND address_line1 = ? AND city = ? LIMIT 1'
+        );
+        $dupStmt->execute([$customerId, $data['address_line1'] ?? '', $data['city'] ?? '']);
+        if ($dupStmt->fetch()) {
+            throw new \RuntimeException('This address is already saved');
+        }
+
         $existing = $this->getByCustomer($customerId);
         $isDefaultShipping = !empty($data['is_default_shipping']) || $existing === [];
         $isDefaultBilling = !empty($data['is_default_billing']) || $existing === [];

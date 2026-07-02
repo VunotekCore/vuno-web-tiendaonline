@@ -287,11 +287,54 @@ if ($step === 2) {
 
         $mysqli->close();
 
+        // --- Execute seed.sql (idempotent data) ---
+        $seedFile = __DIR__ . '/database/seed.sql';
+        $seedCount = 0;
+        $seedErrors = [];
+        if (file_exists($seedFile)) {
+            $seedSql = file_get_contents($seedFile);
+            if ($seedSql !== false) {
+                // Remove USE and CREATE DATABASE blocks
+                $seedSql = preg_replace('/CREATE\s+DATABASE\s+.*?;/is', '', $seedSql);
+                $seedSql = preg_replace('/USE\s+.*?;/i', '', $seedSql);
+
+                // Remove BEGIN / COMMIT (multi_query can choke on them with mixed engines)
+                $seedSql = preg_replace('/\bBEGIN\b\s*;/i', '', $seedSql);
+                $seedSql = preg_replace('/\bCOMMIT\b\s*;/i', '', $seedSql);
+
+                $cleanLines = [];
+                foreach (explode("\n", $seedSql) as $line) {
+                    $trimmed = trim($line);
+                    if ($trimmed === '' || str_starts_with($trimmed, '--') || str_starts_with($trimmed, '#')) {
+                        continue;
+                    }
+                    $cleanLines[] = $line;
+                }
+                $cleanSeedSql = implode("\n", $cleanLines);
+
+                $mysqli2 = new mysqli($dbHost, $dbUser, $dbPass, $dbName, (int)$dbPort);
+                $mysqli2->set_charset('utf8mb4');
+
+                if ($mysqli2->multi_query($cleanSeedSql)) {
+                    do {
+                        $result = $mysqli2->store_result();
+                        if ($result) $result->free();
+                        if ($mysqli2->errno) {
+                            $seedErrors[] = htmlspecialchars('Error #' . $mysqli2->errno . ': ' . $mysqli2->error);
+                        } else {
+                            $seedCount++;
+                        }
+                    } while ($mysqli2->more_results() && $mysqli2->next_result());
+                }
+                $mysqli2->close();
+            }
+        }
+
         echo renderHeader('Base de Datos Instalada', 'Instalación', $step);
         if (empty($errors)) {
-            echo '<div class="success">✓ Base de datos instalada correctamente. <strong>' . $count . '</strong> sentencias ejecutadas.</div>';
+            echo '<div class="success">✓ Esquema instalado correctamente. <strong>' . $count . '</strong> sentencias ejecutadas.</div>';
         } else {
-            echo '<div class="success">✓ Instalación completada con ' . count($errors) . ' advertencias (posiblemente ya existían). ' . $count . ' sentencias ejecutadas.</div>';
+            echo '<div class="success">✓ Esquema instalado con ' . count($errors) . ' advertencias. ' . $count . ' sentencias ejecutadas.</div>';
             echo '<ul>';
             foreach (array_slice($errors, 0, 5) as $e) {
                 echo '<li>' . $e . '</li>';
@@ -299,8 +342,19 @@ if ($step === 2) {
             if (count($errors) > 5) echo '<li>... y ' . (count($errors) - 5) . ' más</li>';
             echo '</ul>';
         }
+        if (empty($seedErrors)) {
+            echo '<div class="success">✓ Datos de semilla insertados correctamente. <strong>' . $seedCount . '</strong> sentencias ejecutadas.</div>';
+        } else {
+            echo '<div class="success">✓ Datos de semilla insertados con ' . count($seedErrors) . ' advertencias. ' . $seedCount . ' sentencias ejecutadas.</div>';
+            echo '<ul>';
+            foreach (array_slice($seedErrors, 0, 3) as $e) {
+                echo '<li>' . $e . '</li>';
+            }
+            if (count($seedErrors) > 3) echo '<li>... y ' . (count($seedErrors) - 3) . ' más</li>';
+            echo '</ul>';
+        }
         ?>
-        <p style="font-size:14px;color:#6b6b6b;line-height:1.6;">Ahora configurá los datos básicos de la tienda y el administrador.</p>
+        <p style="font-size:14px;color:#6b6b6b;line-height:1.6;">La base de datos está lista con datos de configuración y demo. Ahora creá el usuario administrador.</p>
         <form method="post">
             <input type="hidden" name="_step" value="3">
             <input type="hidden" name="db_host" value="<?= htmlspecialchars($dbHost) ?>">
@@ -353,6 +407,13 @@ if ($step === 3) {
                 $pdo = new PDO($dsn, $dbUser, $dbPass, [
                     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 ]);
+
+                // Ensure admin roles exist before creating/updating admin user
+                $pdo->exec("INSERT IGNORE INTO admin_roles (code, name) VALUES
+                    ('superadmin', 'Super Administrador'),
+                    ('editor', 'Editor'),
+                    ('viewer', 'Visor'),
+                    ('cashier', 'Vendedor / Cajero')");
 
                 // Update admin user
                 $hash = password_hash($adminPass, PASSWORD_BCRYPT);

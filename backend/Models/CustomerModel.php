@@ -410,6 +410,17 @@ final class CustomerModel
         )->execute([$email]);
     }
 
+    public function getLastOrderDate(int $customerId): ?string
+    {
+        $stmt = $this->db->prepare(
+            'SELECT created_at FROM orders WHERE customer_id = ? ORDER BY created_at DESC LIMIT 1'
+        );
+        $stmt->execute([$customerId]);
+        /** @var string|false $date */
+        $date = $stmt->fetchColumn();
+        return $date !== false ? $date : null;
+    }
+
     // =========================================================================
     //  Customer Orders
     // =========================================================================

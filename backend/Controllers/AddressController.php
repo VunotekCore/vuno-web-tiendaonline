@@ -42,7 +42,7 @@ final class AddressController
     private function listAddresses(int $customerId): void
     {
         $addresses = $this->addressModel->getByCustomer($customerId);
-        $this->jsonResponse(['items' => $addresses]);
+        $this->jsonResponse(['addresses' => $addresses]);
     }
 
     /** @return never */
@@ -55,7 +55,11 @@ final class AddressController
             $this->jsonError('Invalid request body', 400);
         }
 
-        $addressId = $this->addressModel->create($customerId, $input);
+        try {
+            $addressId = $this->addressModel->create($customerId, $input);
+        } catch (\RuntimeException $e) {
+            $this->jsonError($e->getMessage(), 409);
+        }
         $this->jsonResponse([
             'success'   => true,
             'addressId' => $addressId,

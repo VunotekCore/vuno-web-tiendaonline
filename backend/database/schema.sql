@@ -269,7 +269,8 @@ CREATE TABLE customer_addresses (
     created_at            TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at            TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
-    INDEX idx_customer (customer_id)
+    INDEX idx_customer (customer_id),
+    UNIQUE INDEX uq_customer_address_line (customer_id, address_line1(100), city(50))
 ) ENGINE=InnoDB;
 
 CREATE TABLE customer_sessions (
@@ -762,4 +763,64 @@ CREATE TABLE admin_notifications (
     created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_unread (is_read, created_at),
     INDEX idx_reference (reference_type, reference_id)
+) ENGINE=InnoDB;
+
+-- =============================================================================
+-- 15. Blog / Editorial
+-- =============================================================================
+
+CREATE TABLE blog_categories (
+    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name        VARCHAR(100) NOT NULL,
+    slug        VARCHAR(120) NOT NULL UNIQUE,
+    description TEXT,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_slug (slug)
+) ENGINE=InnoDB;
+
+CREATE TABLE blog_category_translations (
+    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    category_id INT UNSIGNED NOT NULL,
+    lang        CHAR(2) NOT NULL,
+    name        VARCHAR(100) NOT NULL,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (category_id) REFERENCES blog_categories(id) ON DELETE CASCADE,
+    UNIQUE KEY uk_category_lang (category_id, lang)
+) ENGINE=InnoDB;
+
+CREATE TABLE blog_posts (
+    id              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    title           VARCHAR(255) NOT NULL,
+    slug            VARCHAR(280) NOT NULL UNIQUE,
+    excerpt         TEXT,
+    thumbnail_image VARCHAR(500),
+    content         LONGTEXT,
+    featured_image  VARCHAR(500),
+    author          VARCHAR(200) DEFAULT 'Vunotek',
+    status          VARCHAR(20) NOT NULL DEFAULT 'draft',
+    category_id     INT UNSIGNED DEFAULT NULL,
+    published_at    TIMESTAMP NULL,
+    deleted_at      TIMESTAMP NULL DEFAULT NULL,
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (category_id) REFERENCES blog_categories(id) ON DELETE SET NULL,
+    INDEX idx_slug (slug),
+    INDEX idx_status (status, deleted_at, published_at),
+    INDEX idx_author (author),
+    FULLTEXT INDEX ft_search (title, excerpt, content)
+) ENGINE=InnoDB;
+
+CREATE TABLE blog_post_translations (
+    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    blog_post_id INT UNSIGNED NOT NULL,
+    lang        CHAR(2) NOT NULL,
+    title       VARCHAR(255),
+    excerpt     TEXT,
+    content     LONGTEXT,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (blog_post_id) REFERENCES blog_posts(id) ON DELETE CASCADE,
+    UNIQUE KEY uk_post_lang (blog_post_id, lang)
 ) ENGINE=InnoDB;
