@@ -84,8 +84,8 @@ if (data && data.enabled === false) return;
     var blogUrl = "/" + lang + "/blog";
     var skeletons = grid.querySelectorAll(".skeleton-card");
 
-    fetch("/api/blog/list.php?limit=3&status=published")
-      .then(function (r) { return r.json(); })
+    window.__api.get("/api/blog/list.php", { params: { limit: 3, status: "published" } })
+      .then(function (r) { return r.data; })
       .then(function (data) {
         var posts = data.items || [];
         if (posts.length === 0) {

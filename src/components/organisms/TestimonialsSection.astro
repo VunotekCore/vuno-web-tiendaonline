@@ -18,7 +18,6 @@ const title = data?.title_es && data?.title_en
 const subtitle = data?.subtitle_es && data?.subtitle_en
   ? (lang === "es" ? data.subtitle_es : data.subtitle_en)
   : t("home.testimonials.subtitle", lang);
-const testimonials = data?.items || [];
 ---
 
 <section class="py-section-gap px-margin-mobile md:px-margin-desktop bg-background" data-section="testimonials">
@@ -34,23 +33,29 @@ const testimonials = data?.items || [];
       </div>
     </AnimatedReveal>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
-      {testimonials.map((item, i) => (
-        <AnimatedReveal delay={i + 1}>
-          <div class="border border-outline-variant p-6 md:p-8 h-full flex flex-col hover:border-monolith-black transition-colors duration-300">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-gutter" id="testimonialsGrid">
+      {[1, 2, 3].map((_, i) => (
+        <div class="animate-pulse reveal" data-reveal-delay={i + 1}>
+          <div class="border border-outline-variant p-6 md:p-8 h-full flex flex-col">
             <div class="flex items-center gap-1 mb-6">
-              {Array.from({ length: 5 }, (_, j) => (
-                <span
-                  class="material-symbols-outlined text-sm"
-                  style={`font-variation-settings: 'FILL' ${j < (item.rating || 5) ? 1 : 0}; color: ${j < (item.rating || 5) ? '#C18C7E' : '#D4CFC8'}`}
-                >star</span>
+              {[1, 2, 3, 4, 5].map(() => (
+                <div class="w-4 h-4 bg-surface-container rounded"></div>
               ))}
             </div>
-            <p class="font-body-md text-body-md text-secondary leading-relaxed flex-grow">"{item.text}"</p>
-            <p class="font-label-caps text-label-caps text-monolith-black mt-6 tracking-widest">— {item.name}</p>
+            <div class="h-4 bg-surface-container w-full rounded mb-2"></div>
+            <div class="h-4 bg-surface-container w-3/4 rounded mb-2"></div>
+            <div class="h-4 bg-surface-container w-1/2 rounded mt-auto"></div>
           </div>
-        </AnimatedReveal>
+        </div>
       ))}
     </div>
   </div>
 </section>
+
+<script src="/js/testimonials.js" is:inline></script>
+<script is:inline>
+  (function () {
+    var lang = document.documentElement.lang || "es";
+    Testimonials.init(lang);
+  })();
+</script>

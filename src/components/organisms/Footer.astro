@@ -81,8 +81,8 @@ const { lang = "es" } = Astro.props;
   // @ts-nocheck
   (function () {
     document.getElementById("footer-year").textContent = new Date().getFullYear();
-    fetch("/api/configuracion/public.php")
-      .then(function (r) { return r.json(); })
+    window.__api.get("/api/configuracion/public.php")
+      .then(function (r) { return r.data; })
       .then(function (data) {
         var social = data.landing && data.landing.social;
         if (social) {

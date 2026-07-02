@@ -153,13 +153,9 @@ const isDark = theme === "dark";
           if (btn.innerHTML.trim()) btn.innerHTML = "…";
         }
         try {
-          var res = await fetch("/api/email/newsletter.php", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: email }),
-          });
-          var result = await res.json();
-          if (!res.ok) throw new Error(result.error || "Error");
+          var res = await window.__api.post("/api/email/newsletter.php", { email: email });
+          var result = res.data;
+          if (result.error) throw new Error(result.error || "Error");
           if (window.VunoToast) {
             var cleanMsg = result.message ? result.message.replace(/<[^>]+>/g, '') : 'Revisa tu bandeja de entrada';
             VunoToast.success('¡Suscrito!', cleanMsg);

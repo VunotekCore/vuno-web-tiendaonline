@@ -10,7 +10,7 @@ import ClosingCTA from "../../components/organisms/ClosingCTA.astro";
 import SocialFeed from "../../components/organisms/SocialFeed.astro";
 import TestimonialsSection from "../../components/organisms/TestimonialsSection.astro";
 import BlogJournal from "../../components/organisms/BlogJournal.astro";
-import { getProducts, getCategories, getLanding } from "../../lib/storage";
+import { getLanding } from "../../lib/storage";
 import { type Locale, locales } from "../../i18n/utils";
 import { tenant } from "../../config/tenant";
 
@@ -19,20 +19,6 @@ export async function getStaticPaths() {
 }
 
 const { lang } = Astro.params as { lang: Locale };
-const products = await getProducts(lang);
-const allCategories = await getCategories(lang);
-
-const activeCategorySlugs = new Set(products.map(p => p.category_slug).filter(Boolean));
-const categories = allCategories.filter(c => activeCategorySlugs.has(c.slug));
-
-function productForCategory(slug: string) {
-  return products.find(p => p.category_slug === slug);
-}
-
-const featuredProductsList = products.filter(p => p.isFeatured);
-const heroProducts = featuredProductsList.length > 0 ? featuredProductsList.slice(0, 4) : products.slice(0, 4);
-const newArrivals = [...products].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-const categoryVitrines = categories;
 const landing = await getLanding();
 
 const siteUrl = import.meta.env.PROD ? tenant.brand.url : "http://localhost:4321";
@@ -47,13 +33,13 @@ const alternateUrls = {
   <Navbar lang={lang} currentPath={currentPath} />
 
   <!-- Storefront Hero — Slideshow -->
-  <HeroSlideshow lang={lang} heroProducts={heroProducts} data={landing?.hero} />
+  <HeroSlideshow lang={lang} data={landing?.hero} />
 
   <!-- New Arrivals -->
-  <NewArrivalsSection lang={lang} products={newArrivals} data={landing?.new_arrivals} />
+  <NewArrivalsSection lang={lang} data={landing?.new_arrivals} />
 
   <!-- Display Windows — Category Vitrines -->
-  <CategoryVitrines lang={lang} categories={categoryVitrines} productForCategory={productForCategory} data={landing?.categories} />
+  <CategoryVitrines lang={lang} data={landing?.categories} />
 
   <!-- Brand Values -->
   <BrandValues lang={lang} data={landing?.brand_values} />
@@ -73,7 +59,7 @@ const alternateUrls = {
   <Footer lang={lang} />
 
 
-  <script>
+  <script is:inline>
     (function () {
       const observer = new IntersectionObserver(
         (entries) => {
@@ -91,11 +77,11 @@ const alternateUrls = {
     })();
   </script>
 
-  <script>
+  <script is:inline>
     (function () {
       var lang = window.location.pathname.startsWith("/en/") ? "en" : "es";
-      fetch("/api/configuracion/public.php")
-        .then(function (r) { return r.json(); })
+      window.__api.get("/api/configuracion/public.php")
+        .then(function (r) { return r.data; })
         .then(function (data) {
           var landing = data.landing || {};
           Object.keys(landing).forEach(function (sectionKey) {
@@ -118,6 +104,18 @@ const alternateUrls = {
               var value = sectionData[field + "_" + lang];
               if (!value) value = sectionData[field];
               if (value) fieldEl.textContent = value;
+            });
+
+            // Update images
+            el.querySelectorAll("[data-img]").forEach(function (imgEl) {
+              var imgField = imgEl.getAttribute("data-img");
+              if (!imgField) return;
+              var value = sectionData[imgField];
+              if (value && window.imgTransform) {
+                imgEl.src = window.imgTransform(value, 700, 900);
+              } else if (value) {
+                imgEl.src = value;
+              }
             });
           });
         })

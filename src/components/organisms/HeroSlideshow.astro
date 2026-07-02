@@ -1,23 +1,15 @@
 ---
-import { imgTransform } from "../../lib/images";
 import { t, type Locale } from "../../i18n/utils";
 import type { LandingSectionData } from "../../lib/storage";
 
-interface HeroProduct {
-  name: string;
-  slug: string;
-  images: string[];
-}
-
 interface Props {
   lang: Locale;
-  heroProducts: HeroProduct[];
   data?: LandingSectionData | null;
 }
 
-const { lang, heroProducts, data } = Astro.props;
+const { lang, data } = Astro.props;
 if (data && data.enabled === false) return;
-const slidesData = heroProducts.map((p) => ({ url: `/${lang}/producto/${p.slug}` }));
+const slidesData: Array<{ url: string }> = [];
 
 const label = data?.label_es && data?.label_en
   ? (lang === "es" ? data.label_es : data.label_en)
@@ -46,34 +38,21 @@ const ctaLink = data?.cta_category_slug
 
   <!-- Image Panel -->
   <div class="relative md:w-[55%] overflow-hidden h-[55vh] md:h-[90vh]" id="heroImageContainer">
-    {heroProducts.length > 0 && heroProducts.map((p, i) => (
-      <div
-        class="hero-slide-wrap absolute inset-0 bg-monolith-black transition-opacity duration-1000"
-        style={`opacity: ${i === 0 ? 1 : 0}`}
-      >
-        <img
-          src={imgTransform(p.images[0], 800, 1200, 'cm-pad_resize,bg-1A1A1A')}
-          alt={p.name}
-          class="w-full h-full object-cover object-center block"
-          loading={i === 0 ? "eager" : "lazy"}
-        />
+    <div class="absolute inset-0 bg-monolith-black" id="heroSlidesWrap">
+      <!-- 2 skeleton slides for layout -->
+      <div class="hero-slide-wrap absolute inset-0 bg-monolith-black animate-pulse" style="opacity: 1">
+        <div class="w-full h-full bg-monolith-black/60"></div>
       </div>
-    ))}
+      <div class="hero-slide-wrap absolute inset-0 bg-monolith-black animate-pulse" style="opacity: 0">
+        <div class="w-full h-full bg-monolith-black/60"></div>
+      </div>
+    </div>
     <div class="absolute inset-0 bg-gradient-to-r from-monolith-black/70 via-monolith-black/20 to-transparent pointer-events-none z-10"></div>
 
     <!-- Dot navigation -->
-    {heroProducts.length > 1 && (
-      <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-3 z-20" id="heroDots">
-        {heroProducts.map((_, i) => (
-          <button
-            class="hero-dot w-2 h-2 rounded-full transition-all duration-300"
-            style={`background-color: ${i === 0 ? '#C18C7E' : 'rgba(255,255,255,0.35)'}`}
-            data-index={i}
-            aria-label={`Slide ${i + 1}`}
-          ></button>
-        ))}
-      </div>
-    )}
+    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-3 z-20" id="heroDots">
+      <button class="hero-dot w-2 h-2 rounded-full transition-all duration-300" style="background-color: #C18C7E; transform: scale(1.4)" data-index="0" aria-label="Slide 1"></button>
+    </div>
   </div>
 
   <!-- Text Panel -->
@@ -95,15 +74,13 @@ const ctaLink = data?.cta_category_slug
       >
         {cta}
       </a>
-      {heroProducts.length > 0 && (
-        <a
-          href={`/${lang}/producto/${heroProducts[0].slug}`}
-          class="inline-flex items-center justify-center border border-off-white/30 text-off-white font-label-caps text-label-caps h-14 px-10 hover:border-off-white/60 hover:tracking-[0.15em] transition-all duration-300"
-          id="heroCta"
-        >
-          {lang === "es" ? "VER VITRINA" : "VIEW DISPLAY"}
-        </a>
-      )}
+      <a
+        href={ctaLink}
+        class="inline-flex items-center justify-center border border-off-white/30 text-off-white font-label-caps text-label-caps h-14 px-10 hover:border-off-white/60 hover:tracking-[0.15em] transition-all duration-300"
+        id="heroCta"
+      >
+        {lang === "es" ? "VER VITRINA" : "VIEW DISPLAY"}
+      </a>
     </div>
   </div>
 
@@ -128,81 +105,10 @@ const ctaLink = data?.cta_category_slug
   }
 </style>
 
-<script>
-(function () {
-  const wraps  = document.querySelectorAll<HTMLElement>(".hero-slide-wrap");
-  const dots   = document.querySelectorAll<HTMLElement>(".hero-dot");
-  const cta    = document.getElementById("heroCta") as HTMLAnchorElement | null;
-  const section = document.getElementById("heroSlideshow");
-
-  if (wraps.length < 1) return;
-
-  let current = 0;
-  let paused  = false;
-  let timer: ReturnType<typeof setInterval> | undefined;
-
-  const slidesData: Array<{ url: string }> = JSON.parse(
-    section?.getAttribute("data-slides") || "[]"
-  );
-
-  function activateSlide(idx: number) {
-    wraps.forEach((w, i) => {
-      const img = w.querySelector<HTMLImageElement>("img");
-      if (i === idx) {
-        w.style.opacity = "1";
-        // Remove and re-add the class to restart the CSS animation
-        w.classList.remove("is-active");
-        // Force reflow so the browser registers the removal
-        void w.offsetWidth;
-        w.classList.add("is-active");
-        if (img) {
-          img.style.animation = "none";
-          void img.offsetWidth;  // reflow
-          img.style.animation = "";
-        }
-      } else {
-        w.style.opacity = "0";
-        w.classList.remove("is-active");
-        if (img) {
-          img.style.animation = "none";
-          img.style.transform = "";
-        }
-      }
-    });
-
-    dots.forEach((d, i) => {
-      d.style.backgroundColor = i === idx ? "#C18C7E" : "rgba(255,255,255,0.35)";
-      d.style.transform = i === idx ? "scale(1.4)" : "scale(1)";
-    });
-
-    if (cta && slidesData[idx]) {
-      cta.href = slidesData[idx].url;
-    }
-
-    current = idx;
-  }
-
-  function next() {
-    if (!paused) activateSlide((current + 1) % wraps.length);
-  }
-
-  function start() { stop(); timer = setInterval(next, 5000); }
-  function stop()  { if (timer !== undefined) { clearInterval(timer); timer = undefined; } }
-
-  dots.forEach((d) => {
-    d.addEventListener("click", function (this: HTMLElement) {
-      activateSlide(parseInt(this.getAttribute("data-index") || "0"));
-      start();
-    });
-  });
-
-  if (section) {
-    section.addEventListener("mouseenter", () => { paused = true;  stop();  });
-    section.addEventListener("mouseleave", () => { paused = false; start(); });
-  }
-
-  // Initialise first slide
-  activateSlide(0);
-  start();
-})();
+<script src="/js/hero-slideshow.js" is:inline></script>
+<script is:inline>
+  (function () {
+    var lang = document.documentElement.lang || "es";
+    HeroSlideshow.init(lang);
+  })();
 </script>
