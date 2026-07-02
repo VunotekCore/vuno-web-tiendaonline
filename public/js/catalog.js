@@ -13,6 +13,7 @@
       colors: [],
       styles: [],
     },
+    loading: false,
   };
 
   function parseCategoryParam() {
@@ -673,7 +674,161 @@
   //                       EXPORT
   // =============================================================
 
+  // =============================================================
+  //                      CLIENT-SIDE INIT (API)
+  // =============================================================
+
+  function createSkeletonGrid(count) {
+    var html = "";
+    for (var i = 0; i < count; i++) {
+      html += '<div class="animate-pulse">';
+      html += '<div class="aspect-[4/5] bg-stone-gray/20 mb-4"></div>';
+      html += '<div class="h-4 w-3/4 bg-stone-gray/20 rounded mb-2"></div>';
+      html += '<div class="h-4 w-1/2 bg-stone-gray/20 rounded"></div>';
+      html += "</div>";
+    }
+    return html;
+  }
+
+  function renderFilters(allProducts) {
+    // Derive sizes
+    var sizeSet = new Set();
+    allProducts.forEach(function (p) {
+      (p.sizes || []).forEach(function (s) {
+        if (s.inStock) sizeSet.add(s.value);
+      });
+    });
+    var sizes = Array.from(sizeSet).sort(function (a, b) {
+      var na = parseFloat(a), nb = parseFloat(b);
+      return isNaN(na) || isNaN(nb) ? a.localeCompare(b) : na - nb;
+    });
+
+    // Derive colors
+    var colorMap = new Map();
+    allProducts.forEach(function (p) {
+      (p.colors || []).forEach(function (c) {
+        var key = c.name.trim().toLowerCase();
+        if (!colorMap.has(key)) colorMap.set(key, c.hex);
+      });
+    });
+    var colors = Array.from(colorMap.entries()).map(function (e) {
+      return { label: e[0], hex: e[1] };
+    });
+
+    // Derive categories with counts
+    var catMap = new Map();
+    allProducts.forEach(function (p) {
+      var name = (p.category || "").toLowerCase();
+      if (name) catMap.set(name, (catMap.get(name) || 0) + 1);
+    });
+
+    // Render desktop sizes
+    var sizeEl = document.getElementById("filterSizes");
+    if (sizeEl) {
+      sizeEl.innerHTML = sizes.map(function (s) {
+        return '<button data-filter-size="' + s + '" class="h-10 border border-outline-variant flex items-center justify-center font-body-md text-body-md text-secondary hover:border-monolith-black hover:text-monolith-black transition-colors">' + s + "</button>";
+      }).join("");
+    }
+
+    // Render desktop colors
+    var colorEl = document.getElementById("filterColors");
+    if (colorEl) {
+      colorEl.innerHTML = colors.map(function (c) {
+        return '<button aria-label="' + c.label + '" data-filter-color="' + c.label + '" data-active="false" class="w-8 h-8 rounded-full border-2 transition-all hover:scale-110 ring-1 ring-transparent border-surface-variant hover:ring-1 hover:ring-monolith-black" style="background-color:' + c.hex + '"></button>';
+      }).join("");
+    }
+    var colorWrap = document.getElementById("filterColorsWrapper");
+    if (colorWrap) colorWrap.style.display = colors.length > 0 ? "" : "none";
+
+    // Render desktop categories
+    var styleEl = document.getElementById("filterStyles");
+    if (styleEl) {
+      styleEl.innerHTML = Array.from(catMap.entries()).map(function (e) {
+        var name = e[0], count = e[1];
+        var displayName = name.charAt(0).toUpperCase() + name.slice(1);
+        return '<label class="flex items-center gap-3 cursor-pointer group">' +
+          '<input type="checkbox" data-filter-style="' + displayName + '" class="minimal-checkbox" />' +
+          '<span class="font-body-md text-body-md text-secondary group-hover:text-monolith-black transition-colors">' + displayName + " (" + count + ")</span>" +
+          "</label>";
+      }).join("");
+    }
+    var styleWrap = document.getElementById("filterStylesWrapper");
+    if (styleWrap) styleWrap.style.display = catMap.size > 0 ? "" : "none";
+
+    // Mobile sizes
+    var mSizeEl = document.getElementById("mobileFilterSizes");
+    if (mSizeEl) {
+      mSizeEl.innerHTML = sizes.map(function (s) {
+        return '<button data-filter-size="' + s + '" class="h-10 border border-outline-variant flex items-center justify-center font-body-md text-body-md text-secondary hover:border-monolith-black hover:text-monolith-black transition-colors">' + s + "</button>";
+      }).join("");
+    }
+
+    // Mobile colors
+    var mColorEl = document.getElementById("mobileFilterColors");
+    if (mColorEl) {
+      mColorEl.innerHTML = colors.map(function (c) {
+        return '<button aria-label="' + c.label + '" data-filter-color="' + c.label + '" data-active="false" class="w-8 h-8 rounded-full border-2 transition-all hover:scale-110 ring-1 ring-transparent border-surface-variant hover:ring-1 hover:ring-monolith-black" style="background-color:' + c.hex + '"></button>';
+      }).join("");
+    }
+    var mColorWrap = document.getElementById("mobileFilterColorsWrapper");
+    if (mColorWrap) mColorWrap.style.display = colors.length > 0 ? "" : "none";
+
+    // Mobile categories
+    var mStyleEl = document.getElementById("mobileFilterStyles");
+    if (mStyleEl) {
+      mStyleEl.innerHTML = Array.from(catMap.entries()).map(function (e) {
+        var name = e[0], count = e[1];
+        var displayName = name.charAt(0).toUpperCase() + name.slice(1);
+        return '<label class="flex items-center gap-3 cursor-pointer group">' +
+          '<input type="checkbox" data-filter-style="' + displayName + '" class="minimal-checkbox" />' +
+          '<span class="font-body-md text-body-md text-secondary group-hover:text-monolith-black transition-colors">' + displayName + " (" + count + ")</span>" +
+          "</label>";
+      }).join("");
+    }
+    var mStyleWrap = document.getElementById("mobileFilterStylesWrapper");
+    if (mStyleWrap) mStyleWrap.style.display = catMap.size > 0 ? "" : "none";
+  }
+
+  function initFromApi(lang) {
+    state.lang = lang;
+    state.loading = true;
+
+    var grid = document.getElementById("productGrid");
+    if (grid) grid.innerHTML = createSkeletonGrid(12);
+
+    window.__api.get("/api/productos/list.php")
+      .then(function (r) {
+        var products = r.data.items || r.data;
+        state.products = products;
+        state.filtered = products.slice();
+        state.visibleCount = state.perPage;
+        state.loading = false;
+
+        renderFilters(products);
+        bindSizeFilters();
+        bindColorFilters();
+        bindStyleFilters();
+        bindClearFilters();
+        bindSort();
+        bindLoadMore();
+        bindMobileFilterToggle();
+        bindQuickView();
+        bindProductCardClick();
+        parseCategoryParam();
+        render();
+      })
+      .catch(function () {
+        state.loading = false;
+        if (grid) {
+          grid.innerHTML = '<div class="col-span-full text-center py-20"><p class="font-body-lg text-body-lg text-secondary">' +
+            (state.lang === "es" ? "Error al cargar productos. Intente nuevamente." : "Error loading products. Please try again.") +
+            "</p></div>";
+        }
+      });
+  }
+
   window.CatalogUI = {
     init: init,
+    initFromApi: initFromApi,
   };
 })();

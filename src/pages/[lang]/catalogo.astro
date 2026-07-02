@@ -3,10 +3,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import Navbar from "../../components/organisms/Navbar.astro";
 import Footer from "../../components/organisms/Footer.astro";
 import AnimatedReveal from "../../components/atoms/AnimatedReveal.astro";
-import { getProducts, getCategories } from "../../lib/storage";
-import { imgTransform } from "../../lib/images";
 import { t, type Locale, locales } from "../../i18n/utils";
-import { formatPrice } from "../../utils/formatPrice";
 import { tenant } from "../../config/tenant";
 import JSONLDBreadcrumb from "../../components/seo/JSONLDBreadcrumb.astro";
 
@@ -15,40 +12,6 @@ export async function getStaticPaths() {
 }
 
 const { lang } = Astro.params as { lang: Locale };
-const products = await getProducts(lang);
-const allCategories = await getCategories(lang);
-
-// Filter categories that have active products (compare by name, not slug — slug may differ from translated names)
-const activeNames = new Set(products.map(p => (p.category || "").toLowerCase()));
-const categories = allCategories.filter(c => activeNames.has(c.name.toLowerCase()));
-
-// Derive unique colors from products (normalize key to lowercase to avoid case-dupes)
-const colorMap = new Map<string, string>();
-for (const p of products) {
-  for (const c of p.colors) {
-    const key = c.name.trim().toLowerCase();
-    if (!colorMap.has(key)) colorMap.set(key, c.hex);
-  }
-}
-const availableColors = Array.from(colorMap.entries()).map(([key, hex]) => ({ label: key, hex }));
-
-// Derive unique sizes from products in stock, sorted numerically
-const sizeSet = new Set<string>();
-for (const p of products) {
-  for (const s of p.sizes) {
-    if (s.inStock) sizeSet.add(s.value);
-  }
-}
-const availableSizes = Array.from(sizeSet).sort((a, b) => {
-  const na = parseFloat(a), nb = parseFloat(b);
-  return isNaN(na) || isNaN(nb) ? a.localeCompare(b) : na - nb;
-});
-
-// Build category counts (compare against name, not slug)
-const categoryCounts = categories.map(cat => {
-  const count = products.filter(p => (p.category || "").toLowerCase() === cat.name.toLowerCase()).length;
-  return { slug: cat.slug, name: cat.name, count };
-});
 
 const currentPath = Astro.url.pathname;
 const alternateUrls = {
@@ -105,50 +68,25 @@ const alternateUrls = {
 
         <div class="mb-10 pb-10 border-b border-surface-variant reveal">
           <h3 class="font-label-caps text-label-caps text-monolith-black mb-6 tracking-widest">{t("catalog.filter.size", lang)}</h3>
-          <div class="grid grid-cols-3 gap-2">
-            {availableSizes.map((size) => (
-              <button data-filter-size={size}
-                class={`h-10 border border-outline-variant flex items-center justify-center font-body-md text-body-md text-secondary hover:border-monolith-black hover:text-monolith-black transition-colors`}
-              >{size}</button>
-            ))}
-          </div>
+          <div id="filterSizes" class="grid grid-cols-3 gap-2"></div>
         </div>
 
-        {availableColors.length > 0 && (
-        <div class="mb-10 pb-10 border-b border-surface-variant reveal reveal-delay-2">
+        <div id="filterColorsWrapper" class="mb-10 pb-10 border-b border-surface-variant reveal reveal-delay-2">
           <h3 class="font-label-caps text-label-caps text-monolith-black mb-6 tracking-widest">{t("catalog.filter.color", lang)}</h3>
-          <div class="flex flex-wrap gap-4">
-            {availableColors.map((swatch) => (
-              <button aria-label={swatch.label} data-filter-color={swatch.label}
-                data-active="false"
-                class={`w-8 h-8 rounded-full border-2 transition-all hover:scale-110 ring-1 ring-transparent border-surface-variant hover:ring-1 hover:ring-monolith-black`}
-                style={`background-color: ${swatch.hex}`}
-              ></button>
-            ))}
-          </div>
+          <div id="filterColors" class="flex flex-wrap gap-4"></div>
         </div>
-        )}
 
-        {categoryCounts.length > 0 && (
-        <div class="reveal reveal-delay-3">
+        <div id="filterStylesWrapper" class="reveal reveal-delay-3">
           <h3 class="font-label-caps text-label-caps text-monolith-black mb-6 tracking-widest">{t("catalog.filter.style", lang)}</h3>
-          <div class="flex flex-col gap-4">
-            {categoryCounts.map((cat) => (
-              <label class="flex items-center gap-3 cursor-pointer group">
-                <input type="checkbox" data-filter-style={cat.name} class="minimal-checkbox" />
-                <span class="font-body-md text-body-md text-secondary group-hover:text-monolith-black transition-colors">{cat.name} ({cat.count})</span>
-              </label>
-            ))}
-          </div>
+          <div id="filterStyles" class="flex flex-col gap-4"></div>
         </div>
-        )}
       </aside>
 
       <!-- Product Grid -->
       <div class="col-span-1 lg:col-span-9">
         <!-- Sort & Results Bar -->
         <div class="flex justify-between items-center mb-6 pb-4 border-b border-surface-variant">
-          <span class="font-body-md text-body-md text-secondary" id="resultsCount">{products.length} {t("catalog.results", lang)}</span>
+          <span class="font-body-md text-body-md text-secondary" id="resultsCount">0 {t("catalog.results", lang)}</span>
           <div class="flex items-center gap-4">
             <select id="sortSelect" class="bg-transparent border-b border-monolith-black pb-1 font-label-caps text-label-caps text-monolith-black focus:outline-none cursor-pointer uppercase tracking-widest text-[11px]">
               <option value="newest">{lang === "es" ? "Más recientes" : "Newest"}</option>
@@ -164,66 +102,37 @@ const alternateUrls = {
         </div>
 
         <div class="grid grid-cols-2 md:grid-cols-3 gap-x-gutter gap-y-16" id="productGrid">
-          {products.map((product, i) => {
-            const img = product.images?.[0] || '';
-            const productJson = JSON.stringify({
-              id: product.id,
-              name: product.name,
-              slug: product.slug,
-              price: product.price,
-              currency: product.currency,
-              display_price: product.display_price,
-              display_currency: product.display_currency,
-              display_symbol: product.display_symbol,
-              images: [img],
-              category: product.category,
-            });
-            return (
-              <div
-                class="group flex flex-col cursor-pointer product-card reveal"
-                style={`transition-delay: ${0.05 * i}s`}
-              >
-                <div class="aspect-[4/5] bg-surface-container mb-4 overflow-hidden relative">
-                  <div class="absolute inset-0 bg-monolith-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10 pointer-events-none"></div>
-                  <a href={`/${lang}/producto/${product.slug}`} class="block w-full h-full overflow-hidden">
-              <img
-                src={imgTransform(img, 400, 500)}
-                alt={product.name}
-                width="400"
-                height="500"
-                class="w-full h-full object-cover object-center img-lift"
-                loading="lazy"
-              />
-                  </a>
-                  <button
-                    data-toggle-wishlist
-                    data-product={productJson}
-                    class="absolute top-3 right-3 z-20 w-9 h-9 flex items-center justify-center bg-off-white/80 backdrop-blur-sm rounded-full hover:bg-off-white hover:scale-110 transition-all border border-outline-variant/30"
-                    aria-label={lang === "es" ? "Añadir a lista de deseos" : "Add to wishlist"}
-                  >
-                    <span class="material-symbols-outlined wishlist-icon text-[18px] text-monolith-black" style="font-variation-settings: 'FILL' 0">favorite_border</span>
-                  </button>
-                  <div class="absolute bottom-4 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 z-20 hidden md:block translate-y-2 group-hover:translate-y-0">
-                    <button data-quick-view={product.slug} class="bg-off-white/90 backdrop-blur-sm px-6 py-2 font-label-caps text-label-caps text-monolith-black hover:bg-monolith-black hover:text-off-white transition-all border border-outline-variant whitespace-nowrap">{t("catalog.quickView", lang)}</button>
-                  </div>
-                </div>
-                <a href={`/${lang}/producto/${product.slug}`} class="block">
-                  <h3 class="font-body-md text-body-md text-monolith-black group-hover:text-clay-accent transition-colors duration-300">{product.name}</h3>
-                  <p class="font-price-display text-price-display text-secondary mt-1">{product.display_symbol || '$'}{formatPrice(product.display_price || product.price)}</p>
-                  {product.colors.length > 0 && (
-                    <div class="flex gap-2 mt-3">
-                      {product.colors.map((c) => (
-                        <span
-                          class="w-3 h-3 rounded-full border border-surface-variant transition-transform duration-300 group-hover:scale-110"
-                          style={`background-color: ${c.hex}`}
-                        ></span>
-                      ))}
-                    </div>
-                  )}
-                </a>
-              </div>
-            );
-          })}
+          <!-- Skeleton loading cards (replaced by JS) -->
+          <div class="animate-pulse">
+            <div class="aspect-[4/5] bg-stone-gray/20 mb-4"></div>
+            <div class="h-4 w-3/4 bg-stone-gray/20 rounded mb-2"></div>
+            <div class="h-4 w-1/2 bg-stone-gray/20 rounded"></div>
+          </div>
+          <div class="animate-pulse">
+            <div class="aspect-[4/5] bg-stone-gray/20 mb-4"></div>
+            <div class="h-4 w-3/4 bg-stone-gray/20 rounded mb-2"></div>
+            <div class="h-4 w-1/2 bg-stone-gray/20 rounded"></div>
+          </div>
+          <div class="animate-pulse">
+            <div class="aspect-[4/5] bg-stone-gray/20 mb-4"></div>
+            <div class="h-4 w-3/4 bg-stone-gray/20 rounded mb-2"></div>
+            <div class="h-4 w-1/2 bg-stone-gray/20 rounded"></div>
+          </div>
+          <div class="animate-pulse">
+            <div class="aspect-[4/5] bg-stone-gray/20 mb-4"></div>
+            <div class="h-4 w-3/4 bg-stone-gray/20 rounded mb-2"></div>
+            <div class="h-4 w-1/2 bg-stone-gray/20 rounded"></div>
+          </div>
+          <div class="animate-pulse">
+            <div class="aspect-[4/5] bg-stone-gray/20 mb-4"></div>
+            <div class="h-4 w-3/4 bg-stone-gray/20 rounded mb-2"></div>
+            <div class="h-4 w-1/2 bg-stone-gray/20 rounded"></div>
+          </div>
+          <div class="animate-pulse">
+            <div class="aspect-[4/5] bg-stone-gray/20 mb-4"></div>
+            <div class="h-4 w-3/4 bg-stone-gray/20 rounded mb-2"></div>
+            <div class="h-4 w-1/2 bg-stone-gray/20 rounded"></div>
+          </div>
         </div>
 
         <AnimatedReveal class="mt-16 text-center">
@@ -259,75 +168,31 @@ const alternateUrls = {
 
       <div class="mb-8 pb-8 border-b border-surface-variant">
         <h3 class="font-label-caps text-label-caps text-monolith-black mb-4 tracking-widest">{t("catalog.filter.size", lang)}</h3>
-        <div class="grid grid-cols-3 gap-2">
-          {availableSizes.map((size) => (
-            <button data-filter-size={size}
-              class="h-10 border border-outline-variant flex items-center justify-center font-body-md text-body-md text-secondary hover:border-monolith-black hover:text-monolith-black transition-colors"
-            >{size}</button>
-          ))}
-        </div>
+        <div id="mobileFilterSizes" class="grid grid-cols-3 gap-2"></div>
       </div>
 
-      {availableColors.length > 0 && (
-      <div class="mb-8 pb-8 border-b border-surface-variant">
+      <div id="mobileFilterColorsWrapper" class="mb-8 pb-8 border-b border-surface-variant">
         <h3 class="font-label-caps text-label-caps text-monolith-black mb-4 tracking-widest">{t("catalog.filter.color", lang)}</h3>
-        <div class="flex flex-wrap gap-4">
-          {availableColors.map((swatch) => (
-            <button aria-label={swatch.label} data-filter-color={swatch.label}
-              data-active="false"
-              class="w-8 h-8 rounded-full border-2 transition-all hover:scale-110 ring-1 ring-transparent border-surface-variant hover:ring-1 hover:ring-monolith-black"
-              style={`background-color: ${swatch.hex}`}
-            ></button>
-          ))}
-        </div>
+        <div id="mobileFilterColors" class="flex flex-wrap gap-4"></div>
       </div>
-      )}
 
-      {categoryCounts.length > 0 && (
-      <div>
+      <div id="mobileFilterStylesWrapper">
         <h3 class="font-label-caps text-label-caps text-monolith-black mb-4 tracking-widest">{t("catalog.filter.style", lang)}</h3>
-        <div class="flex flex-col gap-4">
-          {categoryCounts.map((cat) => (
-            <label class="flex items-center gap-3 cursor-pointer group">
-              <input type="checkbox" data-filter-style={cat.name} class="minimal-checkbox" />
-              <span class="font-body-md text-body-md text-secondary group-hover:text-monolith-black transition-colors">{cat.name} ({cat.count})</span>
-            </label>
-          ))}
-        </div>
+        <div id="mobileFilterStyles" class="flex flex-col gap-4"></div>
       </div>
-      )}
     </div>
   </div>
 
   <Footer lang={lang} />
 </BaseLayout>
 
-<script id="catalogProductsData" type="application/json" is:inline set:html={JSON.stringify(products.map((p) => ({
-  id: p.id,
-  name: p.name,
-  slug: p.slug,
-  price: p.price,
-  currency: p.currency,
-  display_price: p.display_price,
-  display_currency: p.display_currency,
-  display_symbol: p.display_symbol,
-  images: p.images,
-  category: p.category,
-  description: p.description,
-  colors: p.colors,
-  sizes: p.sizes,
-  variants: p.variants,
-  totalStock: p.totalStock,
-  createdAt: p.createdAt,
-})))}></script>
-<script id="catalogLangData" type="application/json" is:inline set:html={JSON.stringify(lang)}></script>
 <script src="/js/catalog.js" is:inline></script>
 <script is:inline>
   // @ts-nocheck
   (function () {
-    var products = JSON.parse(document.getElementById("catalogProductsData").textContent);
-    var lang = JSON.parse(document.getElementById("catalogLangData").textContent);
-    window.CatalogUI.init(products, lang);
+    var langEl = document.documentElement.lang || "es";
+    var lang = langEl.startsWith("en") ? "en" : "es";
+    window.CatalogUI.initFromApi(lang);
   })();
 </script>
 
