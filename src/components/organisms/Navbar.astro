@@ -1,7 +1,7 @@
 ---
 import type { Locale } from '../../i18n/utils'
 import { t } from '../../i18n/utils'
-import { getCategories, getProducts } from '../../lib/storage'
+import { Menu, Heart, ShoppingBag, User, X, Globe } from 'lucide'
 
 interface Props {
   lang: Locale
@@ -12,12 +12,13 @@ const { lang, currentPath } = Astro.props
 const otherLang: Locale = lang === 'es' ? 'en' : 'es'
 const langSwitchPath = currentPath.replace(`/${lang}/`, `/${otherLang}/`)
 
-const allCategories = await getCategories(lang)
-const products = await getProducts(lang)
-const activeSlugs = new Set(products.map((p) => (p.category || '').toLowerCase()))
-const categories = allCategories.filter((c) => activeSlugs.has(c.slug))
-const visibleCategories = categories.slice(0, 4)
-const overflowCategories = categories.slice(4)
+function icon(node: readonly (readonly [string, Record<string, string>])[], size = 24): string {
+  const attrs = `xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"`
+  const inner = node.map(([tag, a]) => `<${tag} ${Object.entries(a).map(([k, v]) => `${k}="${v}"`).join(' ')}/>`).join('')
+  return `<svg ${attrs}>${inner}</svg>`
+}
+
+
 ---
 
 <nav
@@ -32,43 +33,10 @@ const overflowCategories = categories.slice(4)
       class="md:hidden text-primary hover:opacity-70 transition-opacity"
       aria-label={t('nav.menu', lang)}
     >
-      <span class="material-symbols-outlined" data-icon="menu">menu</span>
+      <span set:html={icon(Menu)} />
     </button>
 
-    <div class="hidden md:flex items-center gap-8 font-label-caps text-label-caps">
-      {
-        visibleCategories.map((cat) => (
-          <a
-            href={`/${lang}/catalogo?categoria=${cat.slug}`}
-            class="text-secondary hover:text-primary transition-all hover:tracking-[0.15em] relative after:absolute after:bottom-[-2px] after:left-0 after:w-0 after:h-[1px] after:bg-monolith-black after:transition-all after:duration-300 hover:after:w-full"
-          >
-            {cat.name}
-          </a>
-        ))
-      }
-      {
-        overflowCategories.length > 0 && (
-          <div class="relative group/catdrop">
-            <button class="text-secondary hover:text-primary transition-all hover:tracking-[0.15em] flex items-center gap-1 cursor-pointer after:absolute after:bottom-[-2px] after:left-0 after:w-0 after:h-[1px] after:bg-monolith-black after:transition-all after:duration-300 hover:after:w-full relative">
-              {lang === 'es' ? 'CATEGORÍAS' : 'CATEGORIES'}
-              <span class="material-symbols-outlined text-sm transition-transform group-hover/catdrop:rotate-180">
-                expand_more
-              </span>
-            </button>
-            <div class="absolute top-full left-0 mt-2 bg-off-white border border-outline-variant shadow-lg min-w-[180px] opacity-0 invisible group-hover/catdrop:opacity-100 group-hover/catdrop:visible transition-all duration-200 z-50">
-              {overflowCategories.map((cat) => (
-                <a
-                  href={`/${lang}/catalogo?categoria=${cat.slug}`}
-                  class="block px-4 py-2.5 font-body-md text-body-md text-secondary hover:bg-surface-variant hover:text-monolith-black transition-colors"
-                >
-                  {cat.name}
-                </a>
-              ))}
-            </div>
-          </div>
-        )
-      }
-    </div>
+    <div id="navCategories" class="hidden md:flex items-center gap-8 font-label-caps text-label-caps"></div>
 
     <div
       class="inline-flex flex-col items-center absolute left-1/2 -translate-x-1/2 md:static md:transform-none"
@@ -104,7 +72,7 @@ const overflowCategories = categories.slice(4)
         class="hover:opacity-70 transition-opacity relative p-2"
         aria-label={t('nav.wishlist', lang)}
       >
-        <span class="material-symbols-outlined" data-icon="favorite">favorite</span>
+        <span set:html={icon(Heart)} />
         <span
           id="wishlistBadge"
           class="absolute top-0 right-0 w-4 h-4 bg-monolith-black text-off-white text-[9px] font-bold rounded-full flex items-center justify-center hidden"
@@ -116,7 +84,7 @@ const overflowCategories = categories.slice(4)
         class="hover:opacity-70 transition-opacity relative p-2"
         aria-label={t('nav.cart', lang)}
       >
-        <span class="material-symbols-outlined" data-icon="shopping_bag">shopping_bag</span>
+        <span set:html={icon(ShoppingBag)} />
         <span
           id="cartBadge"
           class="absolute top-0 right-0 w-4 h-4 bg-monolith-black text-off-white text-[9px] font-bold rounded-full flex items-center justify-center hidden"
@@ -129,7 +97,7 @@ const overflowCategories = categories.slice(4)
           class="hover:opacity-70 transition-opacity p-2"
           aria-label={t('nav.profile', lang)}
         >
-          <span class="material-symbols-outlined" data-icon="person">person</span>
+          <span set:html={icon(User)} />
         </button>
         <div
           id="profileDropdown"
@@ -198,31 +166,20 @@ const overflowCategories = categories.slice(4)
         class="text-secondary hover:text-monolith-black transition-colors p-1"
         aria-label="Cerrar menú"
       >
-        <span class="material-symbols-outlined text-2xl">close</span>
+        <span set:html={icon(X)} />
       </button>
     </div>
     <div class="flex-1 overflow-y-auto px-5 py-6">
       <p class="font-label-caps text-label-caps text-secondary tracking-widest mb-3">
         {t('nav.shop', lang)}
       </p>
-      <div class="flex flex-col gap-1">
-        {
-          categories.map((cat) => (
-            <a
-              href={`/${lang}/catalogo?categoria=${cat.slug}`}
-              class="block py-2.5 px-3 -mx-3 font-body-md text-body-md text-secondary hover:text-monolith-black hover:bg-surface-variant transition-colors rounded-sm"
-            >
-              {cat.name}
-            </a>
-          ))
-        }
-      </div>
+      <div id="mobileNavCategories" class="flex flex-col gap-1"></div>
       <div class="mt-6 pt-6 border-t border-outline-variant">
         <a
           href={langSwitchPath}
           class="flex items-center gap-3 py-2.5 font-body-md text-body-md text-secondary hover:text-monolith-black transition-colors"
         >
-          <span class="material-symbols-outlined text-lg">language</span>
+          <span set:html={icon(Globe, 18)} />
           {t('nav.langSwitch', lang)}
         </a>
       </div>
@@ -380,6 +337,68 @@ const overflowCategories = categories.slice(4)
     }
   }
 
+  function loadCategories() {
+    window.__api.get('/api/categorias/list.php')
+      .then(function (r) {
+        var data = r.data;
+        var list = Array.isArray(data) ? data : (data.items || data.data || []);
+        var withProducts = list.filter(function (c) { return c.productCount > 0; });
+        withProducts.sort(function (a, b) { return a.name.localeCompare(b.name); });
+
+        var lang = document.documentElement.lang || 'es';
+        var desktop = document.getElementById('navCategories');
+        if (desktop) {
+          desktop.innerHTML = '';
+          var visible = withProducts.slice(0, 4);
+          var overflow = withProducts.slice(4);
+
+          visible.forEach(function (cat) {
+            var a = document.createElement('a');
+            a.href = '/' + lang + '/catalogo?categoria=' + cat.slug;
+            a.className = 'text-secondary hover:text-primary transition-all hover:tracking-[0.15em] relative after:absolute after:bottom-[-2px] after:left-0 after:w-0 after:h-[1px] after:bg-monolith-black after:transition-all after:duration-300 hover:after:w-full';
+            a.textContent = cat.name;
+            desktop.appendChild(a);
+          });
+
+          if (overflow.length > 0) {
+            var wrapper = document.createElement('div');
+            wrapper.className = 'relative group/catdrop';
+
+            var btn = document.createElement('button');
+            btn.className = 'text-secondary hover:text-primary transition-all hover:tracking-[0.15em] flex items-center cursor-pointer p-1 relative';
+            btn.setAttribute('aria-label', lang === 'es' ? 'Más categorías' : 'More categories');
+            btn.innerHTML = '<span class="inline-flex transition-transform group-hover/catdrop:rotate-180"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>';
+            wrapper.appendChild(btn);
+
+            var dd = document.createElement('div');
+            dd.className = 'absolute top-full left-0 mt-2 bg-off-white border border-outline-variant shadow-lg min-w-[180px] opacity-0 invisible group-hover/catdrop:opacity-100 group-hover/catdrop:visible transition-all duration-200 z-50';
+            overflow.forEach(function (cat) {
+              var a = document.createElement('a');
+              a.href = '/' + lang + '/catalogo?categoria=' + cat.slug;
+              a.className = 'block px-4 py-2.5 font-body-md text-body-md text-secondary hover:bg-surface-variant hover:text-monolith-black transition-colors';
+              a.textContent = cat.name;
+              dd.appendChild(a);
+            });
+            wrapper.appendChild(dd);
+            desktop.appendChild(wrapper);
+          }
+        }
+
+        var mobileList = document.getElementById('mobileNavCategories');
+        if (mobileList) {
+          mobileList.innerHTML = '';
+          withProducts.forEach(function (cat) {
+            var a = document.createElement('a');
+            a.href = '/' + lang + '/catalogo?categoria=' + cat.slug;
+            a.className = 'block py-2.5 px-3 -mx-3 font-body-md text-body-md text-secondary hover:text-monolith-black hover:bg-surface-variant transition-colors rounded-sm';
+            a.textContent = cat.name;
+            mobileList.appendChild(a);
+          });
+        }
+      })
+      .catch(function () {});
+  }
+
   function populateStoreData(data: any) {
     var store = data && data.store;
     if (!store) return;
@@ -399,8 +418,9 @@ const overflowCategories = categories.slice(4)
     if (window.VunoAuth) {
       window.VunoAuth.verify().then(updateProfileDropdown)
     }
-    fetch('/api/configuracion/public.php')
-      .then(function (r) { return r.json(); })
+    loadCategories()
+    window.__api.get('/api/configuracion/public.php')
+      .then(function (r) { return r.data; })
       .then(populateStoreData)
       .catch(function () {});
   })
