@@ -316,13 +316,9 @@ const steps = [
       }
       const subtotal = window.VunoCart.getSubtotal();
       try {
-        const res = await fetch("/api/shipping/calculate.php", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ subtotal }),
-        });
-        const data = await res.json();
-        if (res.ok) {
+        const res = await window.__api.post("/api/shipping/calculate.php", { subtotal });
+        const data = res.data;
+        if (!data.error) {
           shippingCost = data.shipping || 0;
           shippingLabel = data.label || checkoutI18n.shippingFree;
         } else {
@@ -368,12 +364,8 @@ const steps = [
       msg.className = "font-body text-body-md text-xs mt-2 text-secondary";
       msg.textContent = checkoutI18n.couponValidating;
       try {
-        const res = await fetch("/api/cupones/validate.php", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ code, subtotal, email }),
-        });
-        const data = await res.json();
+        const res = await window.__api.post("/api/cupones/validate.php", { code, subtotal, email });
+        const data = res.data;
         if (data.valid) {
           appliedCoupon = { code, discount: data.discount, couponId: data.coupon.id };
           couponDiscount = data.discount;
@@ -473,8 +465,8 @@ const steps = [
 
     async function loadSettings() {
       try {
-        const res = await fetch("/api/configuracion/public.php");
-        settings = await res.json();
+        const res = await window.__api.get("/api/configuracion/public.php");
+        settings = res.data;
       } catch {
         settings = null;
       }
@@ -773,22 +765,13 @@ const steps = [
       if (payment === "stripe") {
         document.getElementById("processingModal").classList.remove("hidden");
         try {
-          const createRes = await fetch("/api/pedidos/create.php", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(order)
-          });
-          if (!createRes.ok) {
-            const createErr = await createRes.json();
-            throw new Error(createErr.error || "Failed to create order");
+          const createRes = await window.__api.post("/api/pedidos/create.php", order);
+          if (createRes.data.error) {
+            throw new Error(createRes.data.error || "Failed to create order");
           }
-          const piRes = await fetch("/api/stripe/create-payment-intent.php", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ items, customerEmail: email, total: order.total })
-          });
-          const piData = await piRes.json();
-          if (!piRes.ok) throw new Error(piData.error);
+          const piRes = await window.__api.post("/api/stripe/create-payment-intent.php", { items, customerEmail: email, total: order.total });
+          const piData = piRes.data;
+          if (piData.error) throw new Error(piData.error);
           const { error, paymentIntent } = await stripe.confirmCardPayment(piData.clientSecret, {
             payment_method: { card: card },
           });
@@ -796,12 +779,8 @@ const steps = [
             throw new Error(error.message);
           }
           if (paymentIntent.status === "succeeded") {
-            const confirmRes = await fetch("/api/pedidos/confirm-payment.php", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ id: order.id, stripePaymentIntentId: paymentIntent.id })
-            });
-            if (!confirmRes.ok) {
+            const confirmRes = await window.__api.post("/api/pedidos/confirm-payment.php", { id: order.id, stripePaymentIntentId: paymentIntent.id });
+            if (confirmRes.data.error) {
               console.warn("Payment confirmed but status update failed, webhook will reconcile");
             }
             order.status = "paid";
@@ -869,27 +848,16 @@ const steps = [
         const formData = new FormData();
         formData.append("file", transferModalReceiptFile);
         formData.append("folder", "receipts");
-        const uploadRes = await fetch("/api/imagekit/upload.php", { method: "POST", body: formData });
-        let uploadData;
-        try {
-          uploadData = await uploadRes.json();
-        } catch {
-          const text = await uploadRes.text();
-          throw new Error("Error del servidor: " + text.substring(0, 200) || checkoutI18n.receiptFailed);
-        }
-        if (!uploadRes.ok || !uploadData.url) {
+        const uploadRes = await window.__api.post("/api/imagekit/upload.php", formData);
+        const uploadData = uploadRes.data;
+        if (!uploadData || !uploadData.url) {
           throw new Error(uploadData?.error || checkoutI18n.receiptFailed);
         }
         pendingOrder.transferReceipt = uploadData.url;
         pendingOrder.selectedBankId = selectedBankId;
-        const createRes = await fetch("/api/pedidos/create.php", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(pendingOrder)
-        });
-        if (!createRes.ok) {
-          const createErr = await createRes.json();
-          throw new Error(createErr.error || "Failed to save order");
+        const createRes = await window.__api.post("/api/pedidos/create.php", pendingOrder);
+        if (createRes.data.error) {
+          throw new Error(createRes.data.error || "Failed to save order");
         }
         localStorage.setItem("vuno_cart_backup", JSON.stringify(window.VunoCart.getItems()));
         window.VunoCart.clear();

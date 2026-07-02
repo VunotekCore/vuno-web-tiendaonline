@@ -1,5 +1,6 @@
 import type { Product, Order, Category, BlogPost } from "./types";
 import type { Locale } from "../i18n/utils";
+import axios from "axios";
 
 export interface SocialPlatformConfig {
   enabled: boolean;
@@ -61,13 +62,14 @@ export interface LandingData {
 const API_BASE = import.meta.env.PUBLIC_API_URL
   || (import.meta.env.SSR ? "http://127.0.0.1:8000/api" : "/api");
 
+function apiUrl(path: string): string {
+  return `${API_BASE}${path}`;
+}
+
 export async function getCategories(lang?: Locale): Promise<Category[]> {
   try {
-    const url = lang ? `${API_BASE}/categorias/list.php?lang=${lang}` : `${API_BASE}/categorias/list.php`;
-    const res = await fetch(url);
-    if (!res.ok) return [];
-    const data = await res.json();
-    return data.items || data;
+    const res = await axios.get(apiUrl("/categorias/list.php"), { params: { lang } });
+    return res.data.items || res.data;
   } catch {
     return [];
   }
@@ -75,11 +77,8 @@ export async function getCategories(lang?: Locale): Promise<Category[]> {
 
 export async function getProducts(lang?: Locale): Promise<Product[]> {
   try {
-    const url = lang ? `${API_BASE}/productos/list.php?lang=${lang}` : `${API_BASE}/productos/list.php`;
-    const res = await fetch(url);
-    if (!res.ok) return [];
-    const data = await res.json();
-    return data.items || data;
+    const res = await axios.get(apiUrl("/productos/list.php"), { params: { lang } });
+    return res.data.items || res.data;
   } catch {
     return [];
   }
@@ -87,13 +86,8 @@ export async function getProducts(lang?: Locale): Promise<Product[]> {
 
 export async function getProductBySlug(slug: string, lang?: Locale): Promise<Product | null> {
   try {
-    const url = lang
-      ? `${API_BASE}/productos/list.php?lang=${lang}`
-      : `${API_BASE}/productos/list.php`;
-    const res = await fetch(url);
-    if (!res.ok) return null;
-    const data = await res.json();
-    const products: Product[] = data.items || data;
+    const res = await axios.get(apiUrl("/productos/list.php"), { params: { lang } });
+    const products: Product[] = res.data.items || res.data;
     return products.find((p) => p.slug === slug) || null;
   } catch {
     return null;
@@ -101,61 +95,48 @@ export async function getProductBySlug(slug: string, lang?: Locale): Promise<Pro
 }
 
 export async function getProductById(id: string): Promise<Product | null> {
-  const res = await fetch(`${API_BASE}/productos/get.php?id=${encodeURIComponent(id)}`);
-  if (!res.ok) return null;
-  return res.json();
+  try {
+    const res = await axios.get(apiUrl("/productos/get.php"), { params: { id } });
+    return res.data;
+  } catch {
+    return null;
+  }
 }
 
 export async function saveProduct(product: Product): Promise<void> {
-  await fetch(`${API_BASE}/productos/create.php`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(product),
-  });
+  await axios.post(apiUrl("/productos/create.php"), product);
 }
 
 export async function deleteProduct(id: string): Promise<void> {
-  await fetch(`${API_BASE}/productos/delete.php`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id }),
-  });
+  await axios.post(apiUrl("/productos/delete.php"), { id });
 }
 
 export async function getBlogPosts(lang?: Locale): Promise<BlogPost[]> {
   try {
-    const url = lang
-      ? `${API_BASE}/blog/list.php?limit=50&status=published&lang=${lang}`
-      : `${API_BASE}/blog/list.php?limit=50&status=published`
-    const res = await fetch(url)
-    if (!res.ok) return []
-    const data = await res.json()
-    return data.items || []
+    const res = await axios.get(apiUrl("/blog/list.php"), { params: { limit: 50, status: "published", lang } });
+    return res.data.items || [];
   } catch {
-    return []
+    return [];
   }
 }
 
 export async function getOrders(): Promise<Order[]> {
-  const res = await fetch(`${API_BASE}/pedidos/list.php`);
-  if (!res.ok) return [];
-  return res.json();
+  try {
+    const res = await axios.get(apiUrl("/pedidos/list.php"));
+    return res.data;
+  } catch {
+    return [];
+  }
 }
 
 export async function saveOrder(order: Order): Promise<void> {
-  await fetch(`${API_BASE}/pedidos/create.php`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(order),
-  });
+  await axios.post(apiUrl("/pedidos/create.php"), order);
 }
 
 export async function getLanding(): Promise<LandingData | null> {
   try {
-    const res = await fetch(`${API_BASE}/configuracion/public.php`);
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data.landing || null;
+    const res = await axios.get(apiUrl("/configuracion/public.php"));
+    return res.data.landing || null;
   } catch {
     return null;
   }
@@ -166,9 +147,5 @@ export async function updateOrderStatus(
   status: Order["status"],
   paymentStatus?: Order["paymentStatus"]
 ): Promise<void> {
-  await fetch(`${API_BASE}/pedidos/update-status.php`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id: orderId, status, paymentStatus }),
-  });
+  await axios.post(apiUrl("/pedidos/update-status.php"), { id: orderId, status, paymentStatus });
 }

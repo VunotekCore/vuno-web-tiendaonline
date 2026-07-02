@@ -14,6 +14,21 @@
   }
 })();
 
+// Axios-based public API helper
+(function() {
+  var meta = document.querySelector('meta[name="api-base"]');
+  var base = meta ? meta.getAttribute('content') || '' : '';
+  window.__api = axios.create({ withCredentials: true });
+  if (base) {
+    window.__api.defaults.baseURL = base;
+  }
+  // Copy CSRF token from meta if present
+  var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+  if (csrfMeta) {
+    window.__api.defaults.headers.common['X-CSRF-Token'] = csrfMeta.getAttribute('content');
+  }
+})();
+
 // ImageKit URL transformation helper
 window.imgTransform = function(url, w, h, extras) {
   if (!url) return url;

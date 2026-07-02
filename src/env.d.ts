@@ -126,6 +126,14 @@ interface VunoAuth {
   authFetch(url: string, options?: RequestInit): Promise<Response>;
 }
 
+interface ApiInstance {
+  get<T = any>(url: string, config?: any): Promise<{ data: T }>;
+  post<T = any>(url: string, data?: any, config?: any): Promise<{ data: T }>;
+  put<T = any>(url: string, data?: any, config?: any): Promise<{ data: T }>;
+  delete<T = any>(url: string, config?: any): Promise<{ data: T }>;
+  defaults: { baseURL?: string };
+}
+
 interface Window {
   VunoCart: VunoCart;
   VunoWishlist: VunoWishlist;
@@ -133,5 +141,6 @@ interface Window {
   VunoModal: VunoModal;
   VunoToast: VunoToast;
   __vunoModalLoaded?: boolean;
+  __api: ApiInstance;
   formatPrice(value: number): string;
 }

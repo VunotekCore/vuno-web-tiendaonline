@@ -89,7 +89,7 @@ const currentPath = Astro.url.pathname;
       try {
         const res = await window.VunoAuth.authFetch("/api/customer/orders.php");
         const data = await res.json();
-        const orders = data.orders || [];
+        const orders = data.items || data.orders || [];
 
         document.getElementById("orderCount").textContent = orders.length + " order(s)";
 

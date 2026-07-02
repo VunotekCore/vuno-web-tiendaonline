@@ -118,8 +118,8 @@ const blogDescFallback = lang === "es"
   (function () {
     var lang = document.querySelector("main[data-lang]");
     var locale = lang ? lang.getAttribute("data-lang") : "es";
-    fetch("/api/configuracion/public.php")
-      .then(function (r) { return r.json(); })
+    window.__api.get("/api/configuracion/public.php")
+      .then(function (r) { return r.data; })
       .then(function (data) {
         var section = (data.landing || {}).blog;
         if (!section) return;
@@ -178,10 +178,10 @@ const blogDescFallback = lang === "es"
       listView.classList.add("hidden");
       detailView.classList.remove("hidden");
 
-      fetch("/api/blog/get.php?slug=" + encodeURIComponent(currentSlug))
+      window.__api.get("/api/blog/get.php", { params: { slug: currentSlug } })
         .then(function (r) {
-          if (!r.ok) throw new Error("Not found");
-          return r.json();
+          if (!r.data || r.data.error) throw new Error("Not found");
+          return r.data;
         })
         .then(function (post) {
           var img = "";
@@ -221,8 +221,8 @@ const blogDescFallback = lang === "es"
     loadPosts();
 
     function loadCategories() {
-      fetch("/api/blog/categories.php")
-        .then(function (r) { return r.json(); })
+      window.__api.get("/api/blog/categories.php")
+        .then(function (r) { return r.data; })
         .then(function (cats) {
           if (!cats || cats.length === 0) return;
           var html = '<a href="?page=1" class="font-label-caps text-label-caps px-4 py-2 rounded-sm transition-colors ' +
@@ -251,8 +251,8 @@ const blogDescFallback = lang === "es"
       var url = "/api/blog/list.php?page=" + currentPage + "&limit=9&status=published";
       if (currentCategory > 0) url += "&category_id=" + currentCategory;
 
-      fetch(url)
-        .then(function (r) { return r.json(); })
+      window.__api.get(url)
+        .then(function (r) { return r.data; })
         .then(function (data) {
           var posts = data.items || [];
           var totalPages = data.pages || 1;

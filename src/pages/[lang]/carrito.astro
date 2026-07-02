@@ -105,9 +105,9 @@ const alternateUrls = {
         if (seen[pid]) continue;
         seen[pid] = true;
         try {
-          var res = await fetch('/api/productos/get.php?id=' + encodeURIComponent(pid));
-          if (!res.ok) continue;
-          var product = await res.json();
+          var res = await window.__api.get('/api/productos/get.php', { params: { id: pid } });
+          if (res.data.error) continue;
+          var product = res.data;
           if (product.variants) {
             for (var v = 0; v < product.variants.length; v++) {
               var key = stockKey(pid, product.variants[v].color_name, product.variants[v].size_value);

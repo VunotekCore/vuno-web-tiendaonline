@@ -72,6 +72,9 @@ const navItems: NavItem[] = [
     <link rel="manifest" href="/site.webmanifest" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <meta name="api-base" content="" />
+    <script src="/js/axios.min.js" is:inline></script>
+    <script src="/js/api.js" is:inline></script>
     <ClientRouter fallback="swap" />
   </head>
   <body class="bg-[#0a1022] text-[#dae2fd] antialiased min-h-screen flex">
@@ -105,8 +108,8 @@ const navItems: NavItem[] = [
       // Auth guard — runs before Vue hydrate
       (async function () {
         try {
-          const res = await fetch("/api/admin/verify.php");
-          const data = await res.json();
+          const res = await window.__api.get("/api/admin/verify.php");
+          const data = res.data;
           if (!data.valid) {
             window.location.href = "/admin/login";
             return;
