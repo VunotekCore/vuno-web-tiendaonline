@@ -2,7 +2,6 @@
 import type { Locale } from "../../i18n/utils";
 import { t } from "../../i18n/utils";
 import NewsletterSection from "./NewsletterSection.astro";
-import VunotekLogoMarca from "../atoms/VunotekLogoMarca.astro";
 
 interface Props {
   lang?: Locale;
@@ -65,14 +64,6 @@ const { lang = "es" } = Astro.props;
         </div>
       </div>
 
-      <!-- Bottom bar -->
-      <div class="md:col-span-4 mt-12 pt-6 border-t border-off-white/10 text-center text-xs text-off-white/40">
-        <p class="flex items-center justify-center gap-2">
-          &copy; <span id="footer-year"></span>
-          <VunotekLogoMarca height={20} text="VUNO-ECOMERCE" accentColor="#00ABFF" />
-          <span class="text-off-white/50">ENGINEERING PRECISION FOR MODERN BUSINESS</span>
-        </p>
-      </div>
     </div>
   </div>
 </footer>
@@ -80,7 +71,6 @@ const { lang = "es" } = Astro.props;
 <script is:inline>
   // @ts-nocheck
   (function () {
-    document.getElementById("footer-year").textContent = new Date().getFullYear();
     window.__api.get("/api/configuracion/public.php")
       .then(function (r) { return r.data; })
       .then(function (data) {

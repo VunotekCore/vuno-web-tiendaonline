@@ -12,7 +12,7 @@ const { lang, currentPath } = Astro.props
 const otherLang: Locale = lang === 'es' ? 'en' : 'es'
 const langSwitchPath = currentPath.replace(`/${lang}/`, `/${otherLang}/`)
 
-function icon(node: readonly (readonly [string, Record<string, string>])[], size = 24): string {
+function icon(node: readonly (readonly [string, Record<string, string | number | undefined>])[], size = 24): string {
   const attrs = `xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"`
   const inner = node.map(([tag, a]) => `<${tag} ${Object.entries(a).map(([k, v]) => `${k}="${v}"`).join(' ')}/>`).join('')
   return `<svg ${attrs}>${inner}</svg>`
@@ -342,8 +342,8 @@ function icon(node: readonly (readonly [string, Record<string, string>])[], size
       .then(function (r) {
         var data = r.data;
         var list = Array.isArray(data) ? data : (data.items || data.data || []);
-        var withProducts = list.filter(function (c) { return c.productCount > 0; });
-        withProducts.sort(function (a, b) { return a.name.localeCompare(b.name); });
+        var withProducts = list.filter(function (c: any) { return c.productCount > 0; });
+        withProducts.sort(function (a: any, b: any) { return a.name.localeCompare(b.name); });
 
         var lang = document.documentElement.lang || 'es';
         var desktop = document.getElementById('navCategories');
@@ -352,12 +352,12 @@ function icon(node: readonly (readonly [string, Record<string, string>])[], size
           var visible = withProducts.slice(0, 4);
           var overflow = withProducts.slice(4);
 
-          visible.forEach(function (cat) {
+          visible.forEach(function (cat: any) {
             var a = document.createElement('a');
             a.href = '/' + lang + '/catalogo?categoria=' + cat.slug;
             a.className = 'text-secondary hover:text-primary transition-all hover:tracking-[0.15em] relative after:absolute after:bottom-[-2px] after:left-0 after:w-0 after:h-[1px] after:bg-monolith-black after:transition-all after:duration-300 hover:after:w-full';
             a.textContent = cat.name;
-            desktop.appendChild(a);
+            desktop!.appendChild(a);
           });
 
           if (overflow.length > 0) {
@@ -372,7 +372,7 @@ function icon(node: readonly (readonly [string, Record<string, string>])[], size
 
             var dd = document.createElement('div');
             dd.className = 'absolute top-full left-0 mt-2 bg-off-white border border-outline-variant shadow-lg min-w-[180px] opacity-0 invisible group-hover/catdrop:opacity-100 group-hover/catdrop:visible transition-all duration-200 z-50';
-            overflow.forEach(function (cat) {
+            overflow.forEach(function (cat: any) {
               var a = document.createElement('a');
               a.href = '/' + lang + '/catalogo?categoria=' + cat.slug;
               a.className = 'block px-4 py-2.5 font-body-md text-body-md text-secondary hover:bg-surface-variant hover:text-monolith-black transition-colors';
@@ -387,12 +387,12 @@ function icon(node: readonly (readonly [string, Record<string, string>])[], size
         var mobileList = document.getElementById('mobileNavCategories');
         if (mobileList) {
           mobileList.innerHTML = '';
-          withProducts.forEach(function (cat) {
+          withProducts.forEach(function (cat: any) {
             var a = document.createElement('a');
             a.href = '/' + lang + '/catalogo?categoria=' + cat.slug;
             a.className = 'block py-2.5 px-3 -mx-3 font-body-md text-body-md text-secondary hover:text-monolith-black hover:bg-surface-variant transition-colors rounded-sm';
             a.textContent = cat.name;
-            mobileList.appendChild(a);
+            mobileList!.appendChild(a);
           });
         }
       })

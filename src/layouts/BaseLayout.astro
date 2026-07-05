@@ -5,6 +5,7 @@ import Modal from "../components/molecules/Modal.astro";
 import ProfileEditModal from "../components/organisms/ProfileEditModal.astro";
 import OrderDetailModal from "../components/organisms/OrderDetailModal.astro";
 import ContactForm from "../components/organisms/ContactForm.astro";
+import CopyrightVunotek from "../components/atoms/CopyrightVunotek.astro";
 import SEOMeta from "../components/seo/SEOMeta.astro";
 import JSONLDOrganization from "../components/seo/JSONLDOrganization.astro";
 import { tenant } from "../config/tenant";
@@ -82,6 +83,7 @@ const siteUrl = import.meta.env.PROD ? tenant.brand.url : "http://localhost:4321
   </head>
   <body class="bg-background text-on-surface font-body-md antialiased selection:bg-monolith-black selection:text-off-white min-h-screen flex flex-col">
     <slot />
+    <CopyrightVunotek />
     <Modal />
     <ContactForm lang={lang} />
     <ProfileEditModal lang={lang} />
